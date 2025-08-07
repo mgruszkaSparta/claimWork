@@ -252,7 +252,12 @@ export function useClaims() {
       setError(null)
       const payload = transformFrontendClaimToApiPayload(claimData)
       const updatedApiClaim = await apiService.updateClaim(id, payload)
-      const updatedClaim = transformApiClaimToFrontend(updatedApiClaim)
+      const existingClaim = claims.find((c) => c.id === id)
+
+      const updatedClaim: Claim = updatedApiClaim
+        ? transformApiClaimToFrontend(updatedApiClaim)
+        : { ...(existingClaim || {}), ...claimData } as Claim
+
       setClaims((prev) => prev.map((c) => (c.id === id ? updatedClaim : c)))
       return updatedClaim
     } catch (err) {

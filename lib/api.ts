@@ -397,6 +397,12 @@ class ApiService {
       throw new Error(`API Error: ${response.status} - ${errorText}`)
     }
 
+    const contentLength = response.headers.get("content-length")
+    if (response.status === 204 || !contentLength || contentLength === "0") {
+      console.log("No content in response")
+      return undefined as T
+    }
+
     const data = await response.json()
     console.log("Response data:", data)
     return data
@@ -417,8 +423,8 @@ class ApiService {
     })
   }
 
-  async updateClaim(id: string, claim: EventUpsertDto): Promise<EventDto> {
-    return this.request<EventDto>(`/events/${id}`, {
+  async updateClaim(id: string, claim: EventUpsertDto): Promise<EventDto | undefined> {
+    return this.request<EventDto | undefined>(`/events/${id}`, {
       method: "PUT",
       body: JSON.stringify(claim),
     })
@@ -452,8 +458,8 @@ class ApiService {
     })
   }
 
-  async updateEvent(id: string, event: Partial<EventDto>): Promise<EventDto> {
-    return this.request<EventDto>(`/events/${id}`, {
+  async updateEvent(id: string, event: Partial<EventDto>): Promise<EventDto | undefined> {
+    return this.request<EventDto | undefined>(`/events/${id}`, {
       method: "PUT",
       body: JSON.stringify(event),
     })

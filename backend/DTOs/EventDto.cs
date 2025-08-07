@@ -13,6 +13,7 @@ namespace AutomotiveClaimsApi.DTOs
         public string? Brand { get; set; }
         public string? Model { get; set; }
         public string? Owner { get; set; }
+        public int? InsuranceCompanyId { get; set; }
         public string? InsuranceCompany { get; set; }
         public string? InsuranceCompanyPhone { get; set; }
         public string? InsuranceCompanyEmail { get; set; }
@@ -27,11 +28,14 @@ namespace AutomotiveClaimsApi.DTOs
         public string? RiskType { get; set; }
         public string? DamageType { get; set; }
         public string? Liquidator { get; set; }
+        public int? ClientId { get; set; }
         public string? Client { get; set; }
         public string? ReportingChannel { get; set; }
+        public int? LeasingCompanyId { get; set; }
         public string? LeasingCompany { get; set; }
         public string? LeasingCompanyPhone { get; set; }
         public string? LeasingCompanyEmail { get; set; }
+        public int? HandlerId { get; set; }
         public string? Handler { get; set; }
         public string? HandlerEmail { get; set; }
         public string? HandlerPhone { get; set; }

@@ -32,6 +32,8 @@ namespace AutomotiveClaimsApi.Models
         [MaxLength(200)]
         public string? Owner { get; set; }
 
+        public int? InsuranceCompanyId { get; set; }
+
         [MaxLength(200)]
         public string? InsuranceCompany { get; set; }
 
@@ -71,11 +73,15 @@ namespace AutomotiveClaimsApi.Models
         [MaxLength(200)]
         public string? Liquidator { get; set; }
 
+        public int? ClientId { get; set; }
+
         [MaxLength(200)]
         public string? Client { get; set; }
 
         [MaxLength(100)]
         public string? ReportingChannel { get; set; }
+
+        public int? LeasingCompanyId { get; set; }
 
         [MaxLength(200)]
         public string? LeasingCompany { get; set; }
@@ -85,6 +91,8 @@ namespace AutomotiveClaimsApi.Models
 
         [MaxLength(200)]
         public string? LeasingCompanyEmail { get; set; }
+
+        public int? HandlerId { get; set; }
 
         [MaxLength(200)]
         public string? Handler { get; set; }

@@ -73,17 +73,28 @@ export function DecisionsSection({ claimId }: DecisionsSectionProps) {
     setIsLoading(true)
     try {
       const response = await fetch(`/api/decisions?claimId=${claimId}`)
-      if (response.ok) {
-        const data = await response.json()
-        setDecisions(data)
-      } else {
-        throw new Error("Failed to load decisions")
+      if (!response.ok) {
+        let errorMessage = `${response.status} ${response.statusText}`
+        try {
+          const errorData = await response.json()
+          const detail = errorData?.error || errorData?.message
+          if (detail) {
+            errorMessage += ` - ${detail}`
+          }
+        } catch {
+          // ignore json parse errors
+        }
+        throw new Error(errorMessage)
       }
+
+      const data = await response.json()
+      setDecisions(data)
     } catch (error) {
-      console.error("Error loading decisions:", error)
+      const message = error instanceof Error ? error.message : String(error)
+      console.error("Error loading decisions:", message)
       toast({
         title: "Błąd",
-        description: "Błąd podczas ładowania decyzji",
+        description: `Błąd podczas ładowania decyzji: ${message}`,
         variant: "destructive",
       })
     } finally {

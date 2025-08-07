@@ -33,7 +33,7 @@ export const pksData: Branch[] = [
   {
     id: "sosnowiec",
     name: "Sosnowiec",
-    company: "PKS Gostynin",
+    company: "PKS Grodzisk Maz.",
     employees: [
       { name: "Dyspozytornia Śląsk", email: "slask@pksgrodzisk.pl", role: "dyspozytor" },
       { name: "K. Chajdas", email: "k.chajdas@pksgrodzisk.pl", role: "kierownik" },
@@ -42,7 +42,7 @@ export const pksData: Branch[] = [
   {
     id: "sochaczew",
     name: "Sochaczew",
-    company: "PKS Gostynin",
+    company: "PKS Grodzisk Maz.",
     employees: [
       { name: "Dyspozytornia Sochaczew", email: "sochaczew@pksgrodzisk.com.pl", role: "dyspozytor" },
       { name: "M. Wadecki", email: "m.wadecki@pksgrodzisk.pl", role: "kierownik" },

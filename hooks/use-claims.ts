@@ -1,10 +1,16 @@
 "use client"
 
 import { useState, useCallback } from "react"
-import { apiService, type EventUpsertDto, type EventDto, type ParticipantUpsertDto, type EventListItemDto } from "@/lib/api"
+import {
+  apiService,
+  type EventUpsertDto,
+  type EventDto,
+  type ParticipantUpsertDto,
+  type EventListItemDto,
+} from "@/lib/api"
 import type { Claim, ParticipantInfo, DriverInfo } from "@/types"
 
-const transformApiClaimToFrontend = (apiClaim: EventDto): Claim => {
+export const transformApiClaimToFrontend = (apiClaim: EventDto): Claim => {
   const injuredParty = apiClaim.participants?.find((p: any) => p.role === "Poszkodowany")
   const perpetrator = apiClaim.participants?.find((p: any) => p.role === "Sprawca")
 
@@ -43,7 +49,9 @@ const transformApiClaimToFrontend = (apiClaim: EventDto): Claim => {
   }
 }
 
-const transformFrontendClaimToApiPayload = (claimData: Partial<Claim>): EventUpsertDto => {
+export const transformFrontendClaimToApiPayload = (
+  claimData: Partial<Claim>,
+): EventUpsertDto => {
   const {
     id,
     decisions,

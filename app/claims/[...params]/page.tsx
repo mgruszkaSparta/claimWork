@@ -26,7 +26,7 @@ import { ClaimFormSidebar } from "@/components/claim-form/claim-form-sidebar"
 import { ClaimTopHeader } from "@/components/claim-form/claim-top-header"
 import { ClaimMainContent } from "@/components/claim-form/claim-main-content"
 import { useClaimForm } from "@/hooks/use-claim-form"
-import { useClaims } from "@/hooks/use-claims"
+import { useClaims, transformApiClaimToFrontend } from "@/hooks/use-claims"
 import { generateId } from "@/lib/constants"
 import type { Claim, UploadedFile, RequiredDocument } from "@/types"
 
@@ -103,63 +103,9 @@ export default function ClaimPage() {
 
       const claimData = await response.json()
       if (claimData) {
-        // Transform API data to frontend format
-        const transformedData = {
-          ...claimData,
-          injuredParty: claimData.participants?.find((p: any) => p.role === "Poszkodowany") || {
-            id: "",
-            name: "",
-            phone: "",
-            email: "",
-            address: "",
-            city: "",
-            postalCode: "",
-            country: "Polska",
-            insuranceCompany: "",
-            policyNumber: "",
-            vehicleRegistration: "",
-            vehicleVin: "",
-            vehicleType: "",
-            vehicleBrand: "",
-            vehicleModel: "",
-            inspectionContactName: "",
-            inspectionContactPhone: "",
-            inspectionContactEmail: "",
-            drivers: [{ id: "", name: "", licenseNumber: "" }],
-          },
-          perpetrator: claimData.participants?.find((p: any) => p.role === "Sprawca") || {
-            id: "",
-            name: "",
-            phone: "",
-            email: "",
-            address: "",
-            city: "",
-            postalCode: "",
-            country: "Polska",
-            insuranceCompany: "",
-            policyNumber: "",
-            vehicleRegistration: "",
-            vehicleVin: "",
-            vehicleType: "",
-            vehicleBrand: "",
-            vehicleModel: "",
-            inspectionContactName: "",
-            inspectionContactPhone: "",
-            inspectionContactEmail: "",
-            drivers: [{ id: "", name: "", licenseNumber: "" }],
-          },
 
-          servicesCalled: Array.isArray(claimData.servicesCalled)
-            ? claimData.servicesCalled
-            : (claimData.servicesCalled?.split(",") ?? []),
+        const transformedData = transformApiClaimToFrontend(claimData)
 
-          damages: claimData.damages || [],
-          decisions: claimData.decisions || [],
-          appeals: claimData.appeals || [],
-          clientClaims: claimData.clientClaims || [],
-          recourses: claimData.recourses || [],
-          settlements: claimData.settlements || [],
-        }
 
         setClaim(transformedData)
         if (mode === "edit") {

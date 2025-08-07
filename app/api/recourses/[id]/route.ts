@@ -1,38 +1,5 @@
 import { type NextRequest, NextResponse } from "next/server"
-
-// Mock data for development (same as in route.ts)
-const mockRecourses = [
-  {
-    recourseId: 1,
-    claimId: "1",
-    isJustified: true,
-    filingDate: "2024-01-15T00:00:00Z",
-    insuranceCompany: "PZU SA",
-    obtainDate: "2024-02-20T00:00:00Z",
-    amount: 15000.0,
-    documentPath: "/documents/recourse-1.pdf",
-    documentName: "Pismo w sprawie regresu PZU.pdf",
-    documentDescription: "Oficjalne pismo w sprawie regresu od PZU SA",
-    currencyCode: "PLN",
-    createdDate: "2024-01-15T10:30:00Z",
-    modifiedDate: "2024-02-20T14:15:00Z",
-  },
-  {
-    recourseId: 2,
-    claimId: "1",
-    isJustified: false,
-    filingDate: "2024-01-20T00:00:00Z",
-    insuranceCompany: "Warta SA",
-    obtainDate: null,
-    amount: null,
-    documentPath: "/documents/recourse-2.pdf",
-    documentName: "Odrzucenie regresu Warta.pdf",
-    documentDescription: "Pismo o odrzuceniu wniosku o regres",
-    currencyCode: "PLN",
-    createdDate: "2024-01-20T09:15:00Z",
-    modifiedDate: "2024-01-20T09:15:00Z",
-  },
-]
+import { mockRecourses } from "../route"
 
 export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
   try {

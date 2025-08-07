@@ -145,7 +145,7 @@ export interface EmailUpsertDto {
 }
 
 export interface ParticipantDto {
-  id?: number
+  id?: string
   role?: string
   name?: string
   phone?: string
@@ -168,7 +168,7 @@ export interface ParticipantDto {
 }
 
 export interface ParticipantUpsertDto {
-  id?: number
+  id?: string
   role?: string
   name?: string
   phone?: string
@@ -191,7 +191,7 @@ export interface ParticipantUpsertDto {
 }
 
 export interface DriverDto {
-  id?: number
+  id?: string
   name?: string
   licenseNumber?: string
   firstName?: string
@@ -207,7 +207,7 @@ export interface DriverDto {
 }
 
 export interface DriverUpsertDto {
-  id?: number
+  id?: string
   name?: string
   licenseNumber?: string
   firstName?: string
@@ -405,14 +405,14 @@ class ApiService {
   async createClaim(claim: EventUpsertDto): Promise<EventDto> {
     return this.request<EventDto>("/events", {
       method: "POST",
-      body: JSON.stringify(claim),
+      body: JSON.stringify({ eventDto: claim }),
     })
   }
 
   async updateClaim(id: string, claim: EventUpsertDto): Promise<EventDto> {
     return this.request<EventDto>(`/events/${id}`, {
       method: "PUT",
-      body: JSON.stringify(claim),
+      body: JSON.stringify({ eventDto: claim }),
     })
   }
 

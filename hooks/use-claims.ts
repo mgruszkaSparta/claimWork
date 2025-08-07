@@ -68,8 +68,6 @@ export const transformFrontendClaimToApiPayload = (
     leasingCompanyId,
     handlerId,
     clientId,
-    clientId,
-    handlerId,
     riskType,
     damageType,
 
@@ -136,10 +134,6 @@ export const transformFrontendClaimToApiPayload = (
 
     riskType,
     damageType,
-    insuranceCompanyId: insuranceCompanyId ? parseInt(insuranceCompanyId) : undefined,
-    clientId: clientId ? parseInt(clientId) : undefined,
-    handlerId: handlerId ? parseInt(handlerId) : undefined,
-
     damageDate: rest.damageDate ? new Date(rest.damageDate).toISOString() : undefined,
     reportDate: rest.reportDate ? new Date(rest.reportDate).toISOString() : undefined,
     reportDateToInsurer: rest.reportDateToInsurer ? new Date(rest.reportDateToInsurer).toISOString() : undefined,

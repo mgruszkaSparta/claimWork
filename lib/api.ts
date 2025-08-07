@@ -52,6 +52,12 @@ export interface EventUpsertDto {
   payout?: number
   currency?: string
   participants?: ParticipantUpsertDto[]
+  damages?: DamageUpsertDto[]
+  decisions?: DecisionUpsertDto[]
+  appeals?: AppealUpsertDto[]
+  clientClaims?: ClientClaimUpsertDto[]
+  recourses?: RecourseUpsertDto[]
+  settlements?: SettlementUpsertDto[]
 }
 
 export interface ParticipantDto {
@@ -142,6 +148,12 @@ export interface DamageDto {
   status?: string
 }
 
+export interface DamageUpsertDto {
+  id?: number
+  description: string
+  detail?: string
+}
+
 export interface DecisionDto {
   id?: number
   eventId?: number
@@ -151,6 +163,15 @@ export interface DecisionDto {
   amount?: number
 }
 
+export interface DecisionUpsertDto {
+  id?: number
+  decisionDate?: string
+  decisionType?: string
+  description?: string
+  amount?: number
+  status?: string
+}
+
 export interface AppealDto {
   id?: number
   eventId?: number
@@ -158,6 +179,15 @@ export interface AppealDto {
   appealType?: string
   description?: string
   status?: string
+}
+
+export interface AppealUpsertDto {
+  id?: number
+  appealDate?: string
+  appealType?: string
+  description?: string
+  status?: string
+  amount?: number
 }
 
 export interface ClientClaimDto {
@@ -170,6 +200,16 @@ export interface ClientClaimDto {
   status?: string
 }
 
+export interface ClientClaimUpsertDto {
+  id?: number
+  claimDate?: string
+  claimType?: string
+  description?: string
+  amount?: number
+  status?: string
+  currency?: number
+}
+
 export interface RecourseDto {
   id?: number
   eventId?: number
@@ -180,9 +220,27 @@ export interface RecourseDto {
   status?: string
 }
 
+export interface RecourseUpsertDto {
+  id?: number
+  recourseDate?: string
+  recourseType?: string
+  description?: string
+  amount?: number
+  status?: string
+}
+
 export interface SettlementDto {
   id?: number
   eventId?: number
+  settlementDate?: string
+  settlementType?: string
+  description?: string
+  amount?: number
+  status?: string
+}
+
+export interface SettlementUpsertDto {
+  id?: number
   settlementDate?: string
   settlementType?: string
   description?: string

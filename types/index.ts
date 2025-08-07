@@ -177,7 +177,7 @@ export interface UploadedFile {
   name: string
   size: number
   type: "image" | "pdf" | "doc" | "other"
-  uploadedAt: string
+  uploadedAt: string // ISO timestamp when the file was uploaded
   url: string
   category?: string
   description?: string

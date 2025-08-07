@@ -8,6 +8,7 @@ export interface EventListItemDto {
   claimNumber?: string
   vehicleNumber?: string
   client?: string
+  clientId?: number
   liquidator?: string
   brand?: string
   status?: string
@@ -24,6 +25,10 @@ export interface EventDto extends EventListItemDto {
   location?: string
   description?: string
   servicesCalled?: string
+  insuranceCompanyId?: number
+  handlerId?: number
+  riskType?: string
+  damageType?: string
   participants?: ParticipantDto[]
   damages?: DamageDto[]
   decisions?: DecisionDto[]
@@ -43,9 +48,14 @@ export interface EventUpsertDto {
   claimNumber?: string
   vehicleNumber?: string
   client?: string
+  clientId?: number
   liquidator?: string
   brand?: string
   status?: string
+  riskType?: string
+  damageType?: string
+  insuranceCompanyId?: number
+  handlerId?: number
   damageDate?: string
   reportDate?: string
   reportDateToInsurer?: string
@@ -57,6 +67,48 @@ export interface EventUpsertDto {
   payout?: number
   currency?: string
   participants?: ParticipantUpsertDto[]
+  notes?: NoteUpsertDto[]
+  emails?: EmailUpsertDto[]
+}
+
+export interface NoteUpsertDto {
+  eventId?: string
+  category?: string
+  title?: string
+  content: string
+  createdBy?: string
+  isPrivate?: boolean
+  priority?: string
+  tags?: string[]
+}
+
+export interface EmailUpsertDto {
+  from: string
+  to: string
+  cc?: string
+  bcc?: string
+  subject: string
+  body: string
+  bodyHtml?: string
+  isHtml?: boolean
+  priority?: string
+  direction?: string
+  status?: string
+  sentAt?: string
+  receivedAt?: string
+  readAt?: string
+  isRead?: boolean
+  isImportant?: boolean
+  isArchived?: boolean
+  tags?: string
+  category?: string
+  claimId?: string
+  claimNumber?: string
+  threadId?: string
+  messageId?: string
+  inReplyTo?: string
+  references?: string
+
 
 
   documents?: DocumentDto[]

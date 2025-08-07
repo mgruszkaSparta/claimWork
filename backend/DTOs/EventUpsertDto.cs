@@ -36,6 +36,8 @@ namespace AutomotiveClaimsApi.DTOs
         [StringLength(200)]
         public string? InsuranceCompanyEmail { get; set; }
 
+        public int? InsuranceCompanyId { get; set; }
+
         [StringLength(100)]
         public string? PolicyNumber { get; set; }
 
@@ -67,6 +69,8 @@ namespace AutomotiveClaimsApi.DTOs
         [StringLength(200)]
         public string? Client { get; set; }
 
+        public int? ClientId { get; set; }
+
         [StringLength(100)]
         public string? ReportingChannel { get; set; }
 
@@ -87,6 +91,8 @@ namespace AutomotiveClaimsApi.DTOs
 
         [StringLength(50)]
         public string? HandlerPhone { get; set; }
+
+        public int? HandlerId { get; set; }
 
         public string? EventTime { get; set; }
 
@@ -125,20 +131,11 @@ namespace AutomotiveClaimsApi.DTOs
 
         public ICollection<ParticipantUpsertDto>? Participants { get; set; }
 
+        public ICollection<NoteUpsertDto>? Notes { get; set; }
+        public ICollection<EmailUpsertDto>? Emails { get; set; }
+
+
         public ICollection<DocumentDto>? Documents { get; set; }
-
-
-        public ICollection<DamageUpsertDto>? Damages { get; set; }
-
-
-        public ICollection<DamageDto>? Damages { get; set; }
-
-        public ICollection<DecisionDto>? Decisions { get; set; }
-        public ICollection<AppealDto>? Appeals { get; set; }
-        public ICollection<ClientClaimDto>? ClientClaims { get; set; }
-        public ICollection<RecourseDto>? Recourses { get; set; }
-        public ICollection<SettlementDto>? Settlements { get; set; }
-
 
         public ICollection<DamageUpsertDto>? Damages { get; set; }
         public ICollection<DecisionUpsertDto>? Decisions { get; set; }
@@ -146,6 +143,7 @@ namespace AutomotiveClaimsApi.DTOs
         public ICollection<ClientClaimUpsertDto>? ClientClaims { get; set; }
         public ICollection<RecourseUpsertDto>? Recourses { get; set; }
         public ICollection<SettlementUpsertDto>? Settlements { get; set; }
+
 
 
     }

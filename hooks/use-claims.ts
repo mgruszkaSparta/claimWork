@@ -64,6 +64,11 @@ const transformFrontendClaimToApiPayload = (claimData: Partial<Claim>): EventUps
     perpetrator,
     servicesCalled,
     documents,
+    insuranceCompanyId,
+    clientId,
+    handlerId,
+    riskType,
+    damageType,
     ...rest
   } = claimData
 
@@ -170,9 +175,20 @@ const transformFrontendClaimToApiPayload = (claimData: Partial<Claim>): EventUps
 
   return {
     ...rest,
+
     damageDate: mapDate(rest.damageDate),
     reportDate: mapDate(rest.reportDate),
     reportDateToInsurer: mapDate(rest.reportDateToInsurer),
+
+    riskType,
+    damageType,
+    insuranceCompanyId: insuranceCompanyId ? parseInt(insuranceCompanyId) : undefined,
+    clientId: clientId ? parseInt(clientId) : undefined,
+    handlerId: handlerId ? parseInt(handlerId) : undefined,
+    damageDate: rest.damageDate ? new Date(rest.damageDate).toISOString() : undefined,
+    reportDate: rest.reportDate ? new Date(rest.reportDate).toISOString() : undefined,
+    reportDateToInsurer: rest.reportDateToInsurer ? new Date(rest.reportDateToInsurer).toISOString() : undefined,
+
     eventTime: rest.eventTime,
     servicesCalled: servicesCalled?.join(","),
     participants: participants,

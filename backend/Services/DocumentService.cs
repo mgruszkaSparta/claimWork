@@ -136,9 +136,31 @@ namespace AutomotiveClaimsApi.Services
             return true;
         }
 
-        public Task<DocumentDownloadResult?> DownloadDocumentAsync(Guid id)
+        public async Task<DocumentDownloadResult?> DownloadDocumentAsync(Guid id)
         {
-            throw new NotImplementedException();
+            var document = await _context.Documents
+                .Where(d => d.Id == id && !d.IsDeleted)
+                .FirstOrDefaultAsync();
+
+            if (document == null)
+            {
+                return null;
+            }
+
+            var fullPath = Path.Combine(_uploadsPath, document.FilePath.Replace("uploads/", ""));
+            if (!File.Exists(fullPath))
+            {
+                return null;
+            }
+
+            var memoryStream = new MemoryStream(await File.ReadAllBytesAsync(fullPath));
+
+            return new DocumentDownloadResult
+            {
+                FileStream = memoryStream,
+                ContentType = GetContentType(fullPath),
+                FileName = document.OriginalFileName ?? document.FileName
+            };
         }
 
         private static string NormalizePath(string filePath)

@@ -885,7 +885,7 @@ namespace AutomotiveClaimsApi.Controllers
         {
             return new Damage
             {
-                Id = Guid.NewGuid(),
+                Id = dto.Id ?? Guid.NewGuid(),
                 EventId = dto.EventId ?? eventId,
                 Description = dto.Description,
                 Detail = dto.Detail,
@@ -940,7 +940,7 @@ namespace AutomotiveClaimsApi.Controllers
         {
             return new Decision
             {
-                Id = Guid.NewGuid(),
+                Id = dto.Id ?? Guid.NewGuid(),
                 EventId = dto.EventId ?? eventId,
                 DecisionDate = dto.DecisionDate,
                 DecisionType = dto.DecisionType,
@@ -960,7 +960,7 @@ namespace AutomotiveClaimsApi.Controllers
         {
             return new Appeal
             {
-                Id = Guid.NewGuid(),
+                Id = dto.Id ?? Guid.NewGuid(),
                 EventId = dto.EventId ?? eventId,
                 AppealNumber = dto.AppealNumber,
                 SubmissionDate = dto.SubmissionDate ?? DateTime.UtcNow,
@@ -980,7 +980,7 @@ namespace AutomotiveClaimsApi.Controllers
         {
             return new ClientClaim
             {
-                Id = Guid.NewGuid(),
+                Id = dto.Id ?? Guid.NewGuid(),
                 EventId = dto.EventId ?? eventId,
                 ClaimNumber = dto.ClaimNumber,
                 ClaimDate = dto.ClaimDate,
@@ -1002,7 +1002,7 @@ namespace AutomotiveClaimsApi.Controllers
         {
             return new Recourse
             {
-                Id = Guid.NewGuid(),
+                Id = dto.Id ?? Guid.NewGuid(),
                 EventId = dto.EventId ?? eventId,
                 Status = dto.Status,
                 InitiationDate = dto.InitiationDate,
@@ -1019,7 +1019,7 @@ namespace AutomotiveClaimsApi.Controllers
         {
             return new Settlement
             {
-                Id = Guid.NewGuid(),
+                Id = dto.Id ?? Guid.NewGuid(),
                 EventId = dto.EventId ?? eventId,
                 SettlementNumber = dto.SettlementNumber,
                 SettlementType = dto.SettlementType,

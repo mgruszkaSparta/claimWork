@@ -70,7 +70,7 @@ namespace AutomotiveClaimsApi.Controllers
 
                 var damage = new Damage
                 {
-                    Id = Guid.NewGuid(),
+                    Id = upsertDto.Id ?? Guid.NewGuid(),
                     EventId = upsertDto.EventId.Value,
                     Description = upsertDto.Description,
                     Detail = upsertDto.Detail,

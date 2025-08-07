@@ -4,6 +4,7 @@ namespace AutomotiveClaimsApi.DTOs
 {
     public class SettlementUpsertDto
     {
+        public Guid? Id { get; set; }
         public Guid? EventId { get; set; }
         public string? SettlementNumber { get; set; }
         public string? SettlementType { get; set; }

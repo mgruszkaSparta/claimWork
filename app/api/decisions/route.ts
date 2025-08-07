@@ -44,6 +44,13 @@ export async function GET(request: NextRequest) {
     // Filter decisions by claimId
     const decisions = mockDecisions.filter((d) => d.claimId === claimId)
 
+    if (decisions.length === 0) {
+      return NextResponse.json(
+        { error: "No decisions found" },
+        { status: 404 },
+      )
+    }
+
     return NextResponse.json(decisions)
   } catch (error) {
     console.error("Error fetching decisions:", error)

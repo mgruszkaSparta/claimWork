@@ -1,7 +1,19 @@
 "use client"
 
 import { useState, useCallback } from "react"
-import { apiService, type EventUpsertDto, type EventDto, type ParticipantUpsertDto, type EventListItemDto } from "@/lib/api"
+import {
+  apiService,
+  type EventUpsertDto,
+  type EventDto,
+  type ParticipantUpsertDto,
+  type EventListItemDto,
+  type DamageUpsertDto,
+  type DecisionUpsertDto,
+  type AppealUpsertDto,
+  type ClientClaimUpsertDto,
+  type RecourseUpsertDto,
+  type SettlementUpsertDto,
+} from "@/lib/api"
 import type { Claim, ParticipantInfo, DriverInfo } from "@/types"
 
 const transformApiClaimToFrontend = (apiClaim: EventDto): Claim => {
@@ -37,6 +49,9 @@ const transformApiClaimToFrontend = (apiClaim: EventDto): Claim => {
 }
 
 const transformFrontendClaimToApiPayload = (claimData: Partial<Claim>): EventUpsertDto => {
+
+  const { id, injuredParty, perpetrator, servicesCalled, ...rest } = claimData
+
   const {
     id,
     decisions,
@@ -56,6 +71,7 @@ const transformFrontendClaimToApiPayload = (claimData: Partial<Claim>): EventUps
     damageType,
     ...rest
   } = claimData
+
 
   const participants: ParticipantUpsertDto[] = []
 
@@ -103,8 +119,67 @@ const transformFrontendClaimToApiPayload = (claimData: Partial<Claim>): EventUps
     participants.push(mapParticipant(perpetrator, "Sprawca"))
   }
 
+  const mapDate = (date?: string) => (date ? new Date(date).toISOString() : undefined)
+
+  const damagesDto: DamageUpsertDto[] | undefined = rest.damages?.map((d: any) => ({
+    id: d.id ? parseInt(d.id) : undefined,
+    description: d.description,
+    detail: d.detail,
+  }))
+
+  const decisionsDto: DecisionUpsertDto[] | undefined = rest.decisions?.map((d: any) => ({
+    id: d.id ? parseInt(d.id) : undefined,
+    decisionDate: mapDate(d.decisionDate),
+    decisionType: d.decisionType,
+    description: d.description,
+    amount: d.amount,
+    status: d.status,
+  }))
+
+  const appealsDto: AppealUpsertDto[] | undefined = rest.appeals?.map((a: any) => ({
+    id: a.id ? parseInt(a.id) : undefined,
+    appealDate: mapDate(a.appealDate),
+    appealType: a.appealType,
+    description: a.description,
+    status: a.status,
+    amount: a.amount,
+  }))
+
+  const clientClaimsDto: ClientClaimUpsertDto[] | undefined = rest.clientClaims?.map((c: any) => ({
+    id: c.id ? parseInt(c.id) : undefined,
+    claimDate: mapDate(c.claimDate),
+    claimType: c.claimType,
+    description: c.description,
+    amount: c.amount,
+    status: c.status,
+    currency: c.currency,
+  }))
+
+  const recoursesDto: RecourseUpsertDto[] | undefined = rest.recourses?.map((r: any) => ({
+    id: r.id ? parseInt(r.id) : undefined,
+    recourseDate: mapDate(r.recourseDate),
+    recourseType: r.recourseType,
+    description: r.description,
+    amount: r.amount,
+    status: r.status,
+  }))
+
+  const settlementsDto: SettlementUpsertDto[] | undefined = rest.settlements?.map((s: any) => ({
+    id: s.id ? parseInt(s.id) : undefined,
+    settlementDate: mapDate(s.settlementDate),
+    settlementType: s.settlementType,
+    description: s.description,
+    amount: s.amount,
+    status: s.status,
+  }))
+
   return {
     ...rest,
+
+    damageDate: mapDate(rest.damageDate),
+    reportDate: mapDate(rest.reportDate),
+    reportDateToInsurer: mapDate(rest.reportDateToInsurer),
+
     riskType,
     damageType,
     insuranceCompanyId: insuranceCompanyId ? parseInt(insuranceCompanyId) : undefined,
@@ -113,9 +188,18 @@ const transformFrontendClaimToApiPayload = (claimData: Partial<Claim>): EventUps
     damageDate: rest.damageDate ? new Date(rest.damageDate).toISOString() : undefined,
     reportDate: rest.reportDate ? new Date(rest.reportDate).toISOString() : undefined,
     reportDateToInsurer: rest.reportDateToInsurer ? new Date(rest.reportDateToInsurer).toISOString() : undefined,
+
     eventTime: rest.eventTime,
     servicesCalled: servicesCalled?.join(","),
     participants: participants,
+
+    damages: damagesDto,
+    decisions: decisionsDto,
+    appeals: appealsDto,
+    clientClaims: clientClaimsDto,
+    recourses: recoursesDto,
+    settlements: settlementsDto,
+
 
     documents: documents?.map((d) => ({ id: d.id, filePath: d.url })),
 
@@ -140,6 +224,7 @@ const transformFrontendClaimToApiPayload = (claimData: Partial<Claim>): EventUps
       ...s,
       settlementDate: s.settlementDate ? new Date(s.settlementDate).toISOString() : undefined,
     })),
+
 
   }
 }

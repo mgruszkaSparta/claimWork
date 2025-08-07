@@ -409,7 +409,8 @@ class ApiService {
   }
 
   async getClaims(): Promise<EventListItemDto[]> {
-    return this.request<EventListItemDto[]>("/events")
+    const claims = await this.request<EventListItemDto[] | undefined>("/events")
+    return claims ?? []
   }
 
   async getClaim(id: string): Promise<EventDto> {

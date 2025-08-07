@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -52,6 +52,7 @@ export default function NewClaimPage() {
   const router = useRouter()
   const { toast } = useToast()
   const { createClaim, initializeClaim } = useClaims()
+  const initialized = useRef(false)
   const [activeClaimSection, setActiveClaimSection] = useState("dane-zdarzenia")
   const [isSaving, setIsSaving] = useState(false)
   
@@ -102,11 +103,14 @@ export default function NewClaimPage() {
   } = useClaimForm()
 
   useEffect(() => {
-    initializeClaim().then((id) => {
-      if (id) {
-        setClaimFormData((prev) => ({ ...prev, id }))
-      }
-    })
+    if (!initialized.current) {
+      initialized.current = true
+      initializeClaim().then((id) => {
+        if (id) {
+          setClaimFormData((prev) => ({ ...prev, id }))
+        }
+      })
+    }
   }, [initializeClaim, setClaimFormData])
 
   const getInitialScheduleData = (): Partial<RepairSchedule> => ({

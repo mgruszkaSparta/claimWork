@@ -9,7 +9,6 @@ export interface EventListItemDto {
   vehicleNumber?: string
   clientId?: number
   client?: string
-  clientId?: number
   liquidator?: string
   brand?: string
   status?: string
@@ -62,14 +61,17 @@ export interface EventUpsertDto {
   vehicleNumber?: string
   clientId?: number
   client?: string
-  clientId?: number
   liquidator?: string
   brand?: string
   status?: string
   riskType?: string
   damageType?: string
   insuranceCompanyId?: number
+  insuranceCompany?: string
+  leasingCompanyId?: number
+  leasingCompany?: string
   handlerId?: number
+  handler?: string
   damageDate?: string
   reportDate?: string
   reportDateToInsurer?: string
@@ -86,12 +88,6 @@ export interface EventUpsertDto {
   totalClaim?: number
   payout?: number
   currency?: string
-  insuranceCompanyId?: number
-  insuranceCompany?: string
-  leasingCompanyId?: number
-  leasingCompany?: string
-  handlerId?: number
-  handler?: string
   participants?: ParticipantUpsertDto[]
 
   notes?: NoteUpsertDto[]

@@ -493,16 +493,34 @@ namespace AutomotiveClaimsApi.Controllers
         {
             try
             {
-                var eventEntity = await _context.Events.FindAsync(id);
+                var eventEntity = await _context.Events
+                    .Include(e => e.Participants)
+                    .ThenInclude(p => p.Drivers)
+                    .FirstOrDefaultAsync(e => e.Id == id);
+
                 if (eventEntity == null)
                 {
                     return NotFound(new { error = "Event not found" });
+                }
+
+                foreach (var participant in eventEntity.Participants.ToList())
+                {
+                    foreach (var driver in participant.Drivers.ToList())
+                    {
+                        _context.Drivers.Remove(driver);
+                    }
+                    _context.Participants.Remove(participant);
                 }
 
                 _context.Events.Remove(eventEntity);
                 await _context.SaveChangesAsync();
 
                 return NoContent();
+            }
+            catch (DbUpdateException ex)
+            {
+                _logger.LogError(ex, "Event deletion blocked due to related entities {EventId}", id);
+                return Conflict(new { error = "Event has related entities and cannot be deleted" });
             }
             catch (Exception ex)
             {

@@ -58,14 +58,20 @@ namespace AutomotiveClaimsApi.Data
                 entity.HasMany(e => e.Decisions).WithOne(d => d.Event).HasForeignKey(d => d.EventId).OnDelete(DeleteBehavior.Cascade);
                 entity.HasMany(e => e.Recourses).WithOne(r => r.Event).HasForeignKey(r => r.EventId).OnDelete(DeleteBehavior.Cascade);
                 entity.HasMany(e => e.Settlements).WithOne(s => s.Event).HasForeignKey(s => s.EventId).OnDelete(DeleteBehavior.Cascade);
-                entity.HasMany(e => e.Participants).WithOne(p => p.Event).HasForeignKey(p => p.EventId).OnDelete(DeleteBehavior.Restrict);
+                entity.HasMany(e => e.Participants)
+                      .WithOne(p => p.Event)
+                      .HasForeignKey(p => p.EventId)
+                      .OnDelete(DeleteBehavior.Cascade);
                 entity.HasMany(e => e.Notes).WithOne(n => n.Event).HasForeignKey(n => n.EventId).OnDelete(DeleteBehavior.Cascade);
                 entity.HasMany(e => e.Documents).WithOne(d => d.Event).HasForeignKey(d => d.EventId).OnDelete(DeleteBehavior.Restrict);
             });
 
             modelBuilder.Entity<Participant>(entity =>
             {
-                entity.HasMany(p => p.Drivers).WithOne().HasForeignKey(d => d.ParticipantId).OnDelete(DeleteBehavior.Restrict);
+                entity.HasMany(p => p.Drivers)
+                      .WithOne(d => d.Participant)
+                      .HasForeignKey(d => d.ParticipantId)
+                      .OnDelete(DeleteBehavior.Cascade);
             });
 
             modelBuilder.Entity<DamageType>(entity =>

@@ -168,7 +168,7 @@ export interface ParticipantDto {
 }
 
 export interface ParticipantUpsertDto {
-  id?: number
+  id?: string
   role?: string
   name?: string
   phone?: string
@@ -207,7 +207,7 @@ export interface DriverDto {
 }
 
 export interface DriverUpsertDto {
-  id?: number
+  id?: string
   name?: string
   licenseNumber?: string
   firstName?: string

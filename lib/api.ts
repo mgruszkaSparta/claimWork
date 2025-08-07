@@ -31,6 +31,10 @@ export interface EventDto extends EventListItemDto {
   eventTime?: string
   location?: string
   description?: string
+  /**
+   * Comma-separated list of services that were called
+   * e.g. "policja,pogotowie,straz".
+   */
   servicesCalled?: string
   insuranceCompanyId?: number
   handlerId?: number
@@ -70,6 +74,10 @@ export interface EventUpsertDto {
   eventTime?: string
   location?: string
   description?: string
+  /**
+   * Comma-separated list of services that were called
+   * e.g. "policja,pogotowie,straz".
+   */
   servicesCalled?: string
   totalClaim?: number
   payout?: number

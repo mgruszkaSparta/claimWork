@@ -1,4 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
+using System.Security.Claims;
 using AutomotiveClaimsApi.Services;
 using AutomotiveClaimsApi.DTOs;
 
@@ -32,10 +34,16 @@ namespace AutomotiveClaimsApi.Controllers
             return Ok(email);
         }
 
-        [HttpGet("claim/{claimNumber}")]
-        public async Task<ActionResult<IEnumerable<EmailDto>>> GetEmailsByClaimNumber(string claimNumber)
+        [Authorize]
+        [HttpGet("claim")]
+        public async Task<ActionResult<IEnumerable<EmailDto>>> GetEmailsByClaim([FromQuery] string claimId, [FromQuery] string claimNumber)
         {
-            var emails = await _emailService.GetEmailsByClaimNumberAsync(claimNumber);
+            if (!User.HasClaim("claim", claimId))
+            {
+                return Forbid();
+            }
+
+            var emails = await _emailService.GetEmailsByClaimAsync(claimId, claimNumber);
             return Ok(emails);
         }
 

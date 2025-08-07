@@ -114,6 +114,24 @@ namespace AutomotiveClaimsApi.Services
             document.IsDeleted = true;
             await _context.SaveChangesAsync();
             _logger.LogInformation("Document with ID {DocumentId} soft-deleted.", id);
+
+            try
+            {
+                var deleted = await DeleteDocumentAsync(document.FilePath);
+                if (!deleted)
+                {
+                    _logger.LogWarning(
+                        "File deletion failed for Document ID {DocumentId} at {FilePath}",
+                        id, document.FilePath);
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex,
+                    "Unexpected error deleting file for Document ID {DocumentId} at {FilePath}",
+                    id, document.FilePath);
+            }
+
             return true;
         }
 

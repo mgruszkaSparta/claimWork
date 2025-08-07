@@ -556,6 +556,9 @@ namespace AutomotiveClaimsApi.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("character varying(100)");
 
+                    b.Property<int?>("ClientId")
+                        .HasColumnType("integer");
+
                     b.Property<string>("Client")
                         .HasMaxLength(200)
                         .HasColumnType("character varying(200)");
@@ -598,6 +601,9 @@ namespace AutomotiveClaimsApi.Migrations
                     b.Property<DateTime?>("EventTime")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<int?>("HandlerId")
+                        .HasColumnType("integer");
+
                     b.Property<string>("Handler")
                         .HasMaxLength(200)
                         .HasColumnType("character varying(200)");
@@ -610,8 +616,11 @@ namespace AutomotiveClaimsApi.Migrations
                         .HasMaxLength(50)
                         .HasColumnType("character varying(50)");
 
+
+                    b.Property<int?>("InsuranceCompanyId")
+
                     b.Property<int?>("HandlerId")
-                        .HasColumnType("integer");
+          .HasColumnType("integer");
 
                     b.Property<string>("InsuranceCompany")
                         .HasMaxLength(200)
@@ -631,6 +640,9 @@ namespace AutomotiveClaimsApi.Migrations
                     b.Property<string>("InsurerClaimNumber")
                         .HasMaxLength(100)
                         .HasColumnType("character varying(100)");
+
+                    b.Property<int?>("LeasingCompanyId")
+                        .HasColumnType("integer");
 
                     b.Property<string>("LeasingCompany")
                         .HasMaxLength(200)

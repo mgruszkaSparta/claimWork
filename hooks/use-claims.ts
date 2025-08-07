@@ -11,6 +11,10 @@ const transformApiClaimToFrontend = (apiClaim: EventDto): Claim => {
   return {
     ...apiClaim,
     id: apiClaim.id?.toString(),
+    insuranceCompanyId: apiClaim.insuranceCompanyId?.toString(),
+    leasingCompanyId: apiClaim.leasingCompanyId?.toString(),
+    handlerId: apiClaim.handlerId?.toString(),
+    clientId: apiClaim.clientId?.toString(),
     totalClaim: apiClaim.totalClaim ?? 0,
     payout: apiClaim.payout ?? 0,
     currency: apiClaim.currency ?? "PLN",
@@ -50,10 +54,14 @@ const transformFrontendClaimToApiPayload = (claimData: Partial<Claim>): EventUps
     servicesCalled,
     documents,
     insuranceCompanyId,
+    leasingCompanyId,
+    handlerId,
+    clientId,
     clientId,
     handlerId,
     riskType,
     damageType,
+
     ...rest
   } = claimData
 
@@ -105,11 +113,18 @@ const transformFrontendClaimToApiPayload = (claimData: Partial<Claim>): EventUps
 
   return {
     ...rest,
+
+    insuranceCompanyId: insuranceCompanyId ? parseInt(insuranceCompanyId) : undefined,
+    leasingCompanyId: leasingCompanyId ? parseInt(leasingCompanyId) : undefined,
+    handlerId: handlerId ? parseInt(handlerId) : undefined,
+    clientId: clientId ? parseInt(clientId) : undefined,
+
     riskType,
     damageType,
     insuranceCompanyId: insuranceCompanyId ? parseInt(insuranceCompanyId) : undefined,
     clientId: clientId ? parseInt(clientId) : undefined,
     handlerId: handlerId ? parseInt(handlerId) : undefined,
+
     damageDate: rest.damageDate ? new Date(rest.damageDate).toISOString() : undefined,
     reportDate: rest.reportDate ? new Date(rest.reportDate).toISOString() : undefined,
     reportDateToInsurer: rest.reportDateToInsurer ? new Date(rest.reportDateToInsurer).toISOString() : undefined,
@@ -164,6 +179,10 @@ export function useClaims() {
         totalClaim: claim.totalClaim ?? 0,
         payout: claim.payout ?? 0,
         currency: claim.currency ?? "PLN",
+        clientId: claim.clientId?.toString(),
+        insuranceCompanyId: claim.insuranceCompanyId?.toString(),
+        leasingCompanyId: claim.leasingCompanyId?.toString(),
+        handlerId: claim.handlerId?.toString(),
       })) as Claim[]
 
       setClaims(frontendClaims)

@@ -1290,10 +1290,10 @@ const renderParticipantDetails = (participant: ParticipantInfo | undefined, titl
                     </Label>
                     <div className="relative">
                       <ClientDropdown
-                        selectedClientId={claimFormData.clientId}
+                        selectedClientId={claimFormData.clientId ? parseInt(claimFormData.clientId) : undefined}
                         onClientSelected={(event: ClientSelectionEvent) => {
                           handleFormChange("client", event.clientName)
-                          handleFormChange("clientId", event.clientId)
+                          handleFormChange("clientId", event.clientId.toString())
                         }}
                         className="relative z-20"
                       />
@@ -1368,9 +1368,9 @@ const renderParticipantDetails = (participant: ParticipantInfo | undefined, titl
                       Szkodę zarejestrował
                     </Label>
                     <HandlerDropdown
-                      selectedHandlerId={claimFormData.handlerId?.toString()}
+                      selectedHandlerId={claimFormData.handlerId ? parseInt(claimFormData.handlerId) : undefined}
                       onHandlerSelected={(event: HandlerSelectionEvent) => {
-                        handleFormChange("handlerId", event.handlerId)
+                        handleFormChange("handlerId", event.handlerId.toString())
                         handleFormChange("handler", event.handlerName)
                         handleFormChange("handlerEmail", event.handlerEmail || "")
                         handleFormChange("handlerPhone", event.handlerPhone || "")
@@ -1390,10 +1390,10 @@ const renderParticipantDetails = (participant: ParticipantInfo | undefined, titl
                   </Label>
                   <div className="relative">
                     <InsuranceDropdown
-                      selectedCompanyId={claimFormData.insuranceCompanyId}
+                      selectedCompanyId={claimFormData.insuranceCompanyId ? parseInt(claimFormData.insuranceCompanyId) : undefined}
                       onCompanySelected={(event: CompanySelectionEvent) => {
                         handleFormChange("insuranceCompany", event.companyName)
-                        handleFormChange("insuranceCompanyId", event.companyId)
+                        handleFormChange("insuranceCompanyId", event.companyId.toString())
                       }}
                       className="relative z-20"
                     />
@@ -1406,10 +1406,10 @@ const renderParticipantDetails = (participant: ParticipantInfo | undefined, titl
                   </Label>
                   <div className="relative">
                     <LeasingDropdown
-                      selectedCompanyId={claimFormData.leasingCompanyId}
+                      selectedCompanyId={claimFormData.leasingCompanyId ? parseInt(claimFormData.leasingCompanyId) : undefined}
                       onCompanySelected={(event: LeasingCompanySelectionEvent) => {
                         handleFormChange("leasingCompany", event.companyName)
-                        handleFormChange("leasingCompanyId", event.companyId)
+                        handleFormChange("leasingCompanyId", event.companyId.toString())
                       }}
                       className="relative z-10"
                     />

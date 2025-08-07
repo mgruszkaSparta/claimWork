@@ -7,6 +7,7 @@ export interface EventListItemDto {
   spartaNumber?: string
   claimNumber?: string
   vehicleNumber?: string
+  clientId?: number
   client?: string
   clientId?: number
   liquidator?: string
@@ -16,6 +17,12 @@ export interface EventListItemDto {
   totalClaim?: number
   payout?: number
   currency?: string
+  insuranceCompanyId?: number
+  insuranceCompany?: string
+  leasingCompanyId?: number
+  leasingCompany?: string
+  handlerId?: number
+  handler?: string
 }
 
 export interface EventDto extends EventListItemDto {
@@ -47,6 +54,7 @@ export interface EventUpsertDto {
   spartaNumber?: string
   claimNumber?: string
   vehicleNumber?: string
+  clientId?: number
   client?: string
   clientId?: number
   liquidator?: string
@@ -66,6 +74,12 @@ export interface EventUpsertDto {
   totalClaim?: number
   payout?: number
   currency?: string
+  insuranceCompanyId?: number
+  insuranceCompany?: string
+  leasingCompanyId?: number
+  leasingCompany?: string
+  handlerId?: number
+  handler?: string
   participants?: ParticipantUpsertDto[]
 
   notes?: NoteUpsertDto[]

@@ -27,6 +27,8 @@ namespace AutomotiveClaimsApi.DTOs
         [StringLength(200)]
         public string? Owner { get; set; }
 
+        public int? InsuranceCompanyId { get; set; }
+
         [StringLength(200)]
         public string? InsuranceCompany { get; set; }
 
@@ -66,6 +68,8 @@ namespace AutomotiveClaimsApi.DTOs
         [StringLength(200)]
         public string? Liquidator { get; set; }
 
+        public int? ClientId { get; set; }
+
         [StringLength(200)]
         public string? Client { get; set; }
 
@@ -73,6 +77,8 @@ namespace AutomotiveClaimsApi.DTOs
 
         [StringLength(100)]
         public string? ReportingChannel { get; set; }
+
+        public int? LeasingCompanyId { get; set; }
 
         [StringLength(200)]
         public string? LeasingCompany { get; set; }
@@ -82,6 +88,8 @@ namespace AutomotiveClaimsApi.DTOs
 
         [StringLength(200)]
         public string? LeasingCompanyEmail { get; set; }
+
+        public int? HandlerId { get; set; }
 
         [StringLength(200)]
         public string? Handler { get; set; }

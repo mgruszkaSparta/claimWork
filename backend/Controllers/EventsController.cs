@@ -48,9 +48,9 @@ namespace AutomotiveClaimsApi.Controllers
                         (e.Brand != null && e.Brand.Contains(search)));
                 }
 
-                if (!string.IsNullOrEmpty(clientId))
+                if (!string.IsNullOrEmpty(clientId) && int.TryParse(clientId, out var clientIdValue))
                 {
-                    query = query.Where(e => e.Client == clientId);
+                    query = query.Where(e => e.ClientId == clientIdValue);
                 }
 
                 if (!string.IsNullOrEmpty(status))
@@ -90,10 +90,16 @@ namespace AutomotiveClaimsApi.Controllers
                         Payout = e.Payout,
                         Currency = e.Currency,
                         CreatedAt = e.CreatedAt,
+                        ClientId = e.ClientId,
                         Client = e.Client,
                         Liquidator = e.Liquidator,
                         PolicyNumber = e.PolicyNumber,
-                        InsuranceCompany = e.InsuranceCompany
+                        InsuranceCompanyId = e.InsuranceCompanyId,
+                        InsuranceCompany = e.InsuranceCompany,
+                        LeasingCompanyId = e.LeasingCompanyId,
+                        LeasingCompany = e.LeasingCompany,
+                        HandlerId = e.HandlerId,
+                        Handler = e.Handler
                     })
                     .ToListAsync();
 
@@ -451,6 +457,7 @@ namespace AutomotiveClaimsApi.Controllers
             entity.Brand = dto.Brand;
             entity.Model = dto.Model;
             entity.Owner = dto.Owner;
+            entity.InsuranceCompanyId = dto.InsuranceCompanyId;
             entity.InsuranceCompany = dto.InsuranceCompany;
             entity.InsuranceCompanyPhone = dto.InsuranceCompanyPhone;
             entity.InsuranceCompanyEmail = dto.InsuranceCompanyEmail;
@@ -466,12 +473,15 @@ namespace AutomotiveClaimsApi.Controllers
             entity.RiskType = dto.RiskType;
             entity.DamageType = dto.DamageType;
             entity.Liquidator = dto.Liquidator;
+            entity.ClientId = dto.ClientId;
             entity.Client = dto.Client;
             entity.ClientId = dto.ClientId;
             entity.ReportingChannel = dto.ReportingChannel;
+            entity.LeasingCompanyId = dto.LeasingCompanyId;
             entity.LeasingCompany = dto.LeasingCompany;
             entity.LeasingCompanyPhone = dto.LeasingCompanyPhone;
             entity.LeasingCompanyEmail = dto.LeasingCompanyEmail;
+            entity.HandlerId = dto.HandlerId;
             entity.Handler = dto.Handler;
             entity.HandlerEmail = dto.HandlerEmail;
             entity.HandlerPhone = dto.HandlerPhone;
@@ -1037,6 +1047,7 @@ namespace AutomotiveClaimsApi.Controllers
             Brand = e.Brand,
             Model = e.Model,
             Owner = e.Owner,
+            InsuranceCompanyId = e.InsuranceCompanyId,
             InsuranceCompany = e.InsuranceCompany,
             InsuranceCompanyPhone = e.InsuranceCompanyPhone,
             InsuranceCompanyEmail = e.InsuranceCompanyEmail,
@@ -1052,12 +1063,15 @@ namespace AutomotiveClaimsApi.Controllers
             RiskType = e.RiskType,
             DamageType = e.DamageType,
             Liquidator = e.Liquidator,
+            ClientId = e.ClientId,
             Client = e.Client,
             ClientId = e.ClientId,
             ReportingChannel = e.ReportingChannel,
+            LeasingCompanyId = e.LeasingCompanyId,
             LeasingCompany = e.LeasingCompany,
             LeasingCompanyPhone = e.LeasingCompanyPhone,
             LeasingCompanyEmail = e.LeasingCompanyEmail,
+            HandlerId = e.HandlerId,
             Handler = e.Handler,
             HandlerEmail = e.HandlerEmail,
             HandlerPhone = e.HandlerPhone,

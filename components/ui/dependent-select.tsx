@@ -63,6 +63,10 @@ export function DependentSelect({
           optionsArray = []
         }
 
+        optionsArray = optionsArray.filter(
+          (opt, idx, arr) => arr.findIndex((o) => o.id === opt.id) === idx
+        )
+
         setOptions(optionsArray)
       } catch (err) {
         console.error("Error fetching options:", err)

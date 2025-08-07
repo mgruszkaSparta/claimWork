@@ -57,7 +57,7 @@ export default function ClaimPage() {
       name: "Analiza zmian.csv",
       size: 301,
       type: "other",
-      uploadDate: "2025-07-24",
+      uploadedAt: "2025-07-24",
       url: "/placeholder.svg?width=400&height=300",
     },
   ])

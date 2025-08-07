@@ -173,7 +173,7 @@ export function ClientClaimsSection({ clientClaims, onClientClaimsChange, claimI
               name: selectedFile.name,
               size: selectedFile.size,
               type: selectedFile.type,
-              uploadDate: new Date().toISOString(),
+              uploadedAt: new Date().toISOString(),
             }
           : editingClaim?.document,
         claimId,

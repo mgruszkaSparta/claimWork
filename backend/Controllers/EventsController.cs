@@ -466,7 +466,6 @@ namespace AutomotiveClaimsApi.Controllers
             entity.InsuranceCompany = dto.InsuranceCompany;
             entity.InsuranceCompanyPhone = dto.InsuranceCompanyPhone;
             entity.InsuranceCompanyEmail = dto.InsuranceCompanyEmail;
-            entity.InsuranceCompanyId = dto.InsuranceCompanyId;
             entity.PolicyNumber = dto.PolicyNumber;
             entity.Status = dto.Status;
             entity.DamageDate = dto.DamageDate;
@@ -480,7 +479,6 @@ namespace AutomotiveClaimsApi.Controllers
             entity.Liquidator = dto.Liquidator;
             entity.ClientId = dto.ClientId;
             entity.Client = dto.Client;
-            entity.ClientId = dto.ClientId;
             entity.ReportingChannel = dto.ReportingChannel;
             entity.LeasingCompanyId = dto.LeasingCompanyId;
             entity.LeasingCompany = dto.LeasingCompany;
@@ -490,7 +488,6 @@ namespace AutomotiveClaimsApi.Controllers
             entity.Handler = dto.Handler;
             entity.HandlerEmail = dto.HandlerEmail;
             entity.HandlerPhone = dto.HandlerPhone;
-            entity.HandlerId = dto.HandlerId;
 
             if (DateTime.TryParse(dto.EventTime, out var eventTime))
             {

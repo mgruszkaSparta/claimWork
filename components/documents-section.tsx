@@ -264,15 +264,37 @@ export const DocumentsSection = ({
 
   const triggerUpload = (category: string) => {
     console.log("Triggering upload for category:", category)
+    if (!eventId) {
+      toast({
+        title: "Brak zgłoszenia",
+        description: "Utwórz lub zapisz zgłoszenie przed dodaniem dokumentów.",
+        variant: "destructive",
+      })
+      return
+    }
     setUploadingForCategory(category)
     fileInputRef.current?.click()
   }
 
   const handleFileInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     console.log("File input changed:", e.target.files?.length, "files selected")
-    if (e.target.files && e.target.files.length > 0) {
-      handleFileUpload(e.target.files, uploadingForCategory)
+    const files = e.target.files
+    if (!files || files.length === 0) {
+      setUploadingForCategory(null)
+      if (e.target) e.target.value = ""
+      return
     }
+    if (!uploadingForCategory || !eventId) {
+      toast({
+        title: "Błąd",
+        description: "Brak kategorii lub identyfikatora zgłoszenia.",
+        variant: "destructive",
+      })
+      setUploadingForCategory(null)
+      if (e.target) e.target.value = ""
+      return
+    }
+    handleFileUpload(files, uploadingForCategory)
     setUploadingForCategory(null)
     if (e.target) e.target.value = ""
   }

@@ -1,0 +1,58 @@
+"use client"
+import { cn } from "@/lib/utils"
+import { Button } from "@/components/ui/button"
+import { LayoutDashboard, FileText, Car } from "lucide-react"
+
+interface SidebarProps {
+  activeTab: string
+  onTabChange: (tab: string) => void
+}
+
+const menuItems = [
+  {
+    id: "dashboard",
+    label: "Dashboard",
+    icon: LayoutDashboard,
+  },
+  {
+    id: "claims",
+    label: "Szkody",
+    icon: FileText,
+  },
+]
+
+export function Sidebar({ activeTab, onTabChange }: SidebarProps) {
+  return (
+    <div className="fixed left-0 top-0 z-40 h-full w-16 bg-[#1a3a6c] border-r border-[#2a4a7c] flex flex-col">
+      {/* Header */}
+      <div className="p-3 border-b border-[#2a4a7c] flex items-center justify-center">
+        <Car className="h-8 w-8 text-white" />
+      </div>
+
+      {/* Navigation */}
+      <nav className="flex-1 p-2 space-y-2">
+        {menuItems.map((item) => {
+          const Icon = item.icon
+          const isActive = activeTab === item.id
+
+          return (
+            <Button
+              key={item.id}
+              variant="ghost"
+              className={cn(
+                "w-full h-12 p-0 flex items-center justify-center transition-all duration-200 rounded-lg",
+                isActive
+                  ? "bg-white/20 text-white hover:bg-white/25"
+                  : "text-white/70 hover:bg-white/10 hover:text-white",
+              )}
+              onClick={() => onTabChange(item.id)}
+              title={item.label}
+            >
+              <Icon className="h-5 w-5" />
+            </Button>
+          )
+        })}
+      </nav>
+    </div>
+  )
+}

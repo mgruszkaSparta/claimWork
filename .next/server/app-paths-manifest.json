@@ -1,0 +1,10 @@
+{
+  "/api/events/[id]/route": "app/api/events/[id]/route.js",
+  "/api/damage-types/route": "app/api/damage-types/route.js",
+  "/api/dictionaries/risk-types/route": "app/api/dictionaries/risk-types/route.js",
+  "/api/dictionaries/case-handlers/route": "app/api/dictionaries/case-handlers/route.js",
+  "/api/dictionaries/claim-statuses/route": "app/api/dictionaries/claim-statuses/route.js",
+  "/page": "app/page.js",
+  "/claims/[id]/edit/page": "app/claims/[id]/edit/page.js",
+  "/claims/new/page": "app/claims/new/page.js"
+}

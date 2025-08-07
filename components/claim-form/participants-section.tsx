@@ -1,0 +1,238 @@
+'use client'
+
+import React, { useState } from 'react'
+import { Button } from '@/components/ui/button'
+import { Plus } from 'lucide-react'
+import { ParticipantForm } from './participant-form'
+import type { ParticipantInfo, DriverInfo } from '@/types'
+
+interface ParticipantsSectionProps {
+  injuredParty?: ParticipantInfo
+  perpetrator?: ParticipantInfo
+  onInjuredPartyChange: (participant: ParticipantInfo | undefined) => void
+  onPerpetratorChange: (participant: ParticipantInfo | undefined) => void
+  disabled?: boolean
+}
+
+export function ParticipantsSection({ 
+  injuredParty,
+  perpetrator,
+  onInjuredPartyChange,
+  onPerpetratorChange,
+  disabled = false
+}: ParticipantsSectionProps) {
+  
+  const createNewParticipant = (): ParticipantInfo => ({
+    id: Date.now().toString(),
+    name: '',
+    address: '',
+    city: '',
+    postalCode: '',
+    country: 'PL',
+    phone: '',
+    email: '',
+    vehicleRegistration: '',
+    vehicleVin: '',
+    vehicleType: '',
+    vehicleBrand: '',
+    vehicleModel: '',
+    insuranceCompany: '',
+    policyNumber: '',
+    drivers: []
+  })
+
+  const createNewDriver = (): DriverInfo => ({
+    id: Date.now().toString(),
+    name: '',
+    licenseNumber: '',
+    role: 'kierowca',
+    firstName: '',
+    lastName: '',
+    phone: '',
+    email: '',
+    address: '',
+    city: '',
+    postalCode: '',
+    country: 'PL',
+    personalId: ''
+  })
+
+  const addInjuredParty = () => {
+    if (!injuredParty) {
+      const newParticipant = createNewParticipant()
+      newParticipant.drivers = [createNewDriver()]
+      onInjuredPartyChange(newParticipant)
+    }
+  }
+
+  const addPerpetrator = () => {
+    if (!perpetrator) {
+      const newParticipant = createNewParticipant()
+      newParticipant.drivers = [createNewDriver()]
+      onPerpetratorChange(newParticipant)
+    }
+  }
+
+  const removeInjuredParty = () => {
+    onInjuredPartyChange(undefined)
+  }
+
+  const removePerpetrator = () => {
+    onPerpetratorChange(undefined)
+  }
+
+  const updateInjuredParty = (field: keyof Omit<ParticipantInfo, "drivers">, value: any) => {
+    if (injuredParty) {
+      onInjuredPartyChange({
+        ...injuredParty,
+        [field]: value
+      })
+    }
+  }
+
+  const updatePerpetrator = (field: keyof Omit<ParticipantInfo, "drivers">, value: any) => {
+    if (perpetrator) {
+      onPerpetratorChange({
+        ...perpetrator,
+        [field]: value
+      })
+    }
+  }
+
+  const updateInjuredPartyDriver = (driverIndex: number, field: keyof DriverInfo, value: any) => {
+    if (injuredParty && injuredParty.drivers[driverIndex]) {
+      const updatedDrivers = [...injuredParty.drivers]
+      updatedDrivers[driverIndex] = {
+        ...updatedDrivers[driverIndex],
+        [field]: value
+      }
+      onInjuredPartyChange({
+        ...injuredParty,
+        drivers: updatedDrivers
+      })
+    }
+  }
+
+  const updatePerpetratorDriver = (driverIndex: number, field: keyof DriverInfo, value: any) => {
+    if (perpetrator && perpetrator.drivers[driverIndex]) {
+      const updatedDrivers = [...perpetrator.drivers]
+      updatedDrivers[driverIndex] = {
+        ...updatedDrivers[driverIndex],
+        [field]: value
+      }
+      onPerpetratorChange({
+        ...perpetrator,
+        drivers: updatedDrivers
+      })
+    }
+  }
+
+  const addInjuredPartyDriver = () => {
+    if (injuredParty) {
+      onInjuredPartyChange({
+        ...injuredParty,
+        drivers: [...injuredParty.drivers, createNewDriver()]
+      })
+    }
+  }
+
+  const addPerpetratorDriver = () => {
+    if (perpetrator) {
+      onPerpetratorChange({
+        ...perpetrator,
+        drivers: [...perpetrator.drivers, createNewDriver()]
+      })
+    }
+  }
+
+  const removeInjuredPartyDriver = (driverIndex: number) => {
+    if (injuredParty && injuredParty.drivers.length > 1) {
+      const updatedDrivers = injuredParty.drivers.filter((_, index) => index !== driverIndex)
+      onInjuredPartyChange({
+        ...injuredParty,
+        drivers: updatedDrivers
+      })
+    }
+  }
+
+  const removePerpetratorDriver = (driverIndex: number) => {
+    if (perpetrator && perpetrator.drivers.length > 1) {
+      const updatedDrivers = perpetrator.drivers.filter((_, index) => index !== driverIndex)
+      onPerpetratorChange({
+        ...perpetrator,
+        drivers: updatedDrivers
+      })
+    }
+  }
+
+  return (
+    <div className="space-y-6">
+      {/* Add participant buttons */}
+      <div className="flex gap-3 mb-6">
+        {!injuredParty && (
+          <Button
+            type="button"
+            onClick={addInjuredParty}
+            disabled={disabled}
+            className="bg-blue-600 hover:bg-blue-700 text-white"
+          >
+            <Plus className="w-4 h-4 mr-2" />
+            Dodaj poszkodowanego
+          </Button>
+        )}
+        {!perpetrator && (
+          <Button
+            type="button"
+            onClick={addPerpetrator}
+            disabled={disabled}
+            className="bg-red-600 hover:bg-red-700 text-white"
+          >
+            <Plus className="w-4 h-4 mr-2" />
+            Dodaj sprawcę
+          </Button>
+        )}
+      </div>
+
+      {/* Injured Party Form */}
+      {injuredParty && (
+        <div className="border border-blue-300 rounded-lg bg-blue-50/30">
+          <ParticipantForm
+            title="Poszkodowany"
+            participantData={injuredParty}
+            onParticipantChange={updateInjuredParty}
+            onDriverChange={updateInjuredPartyDriver}
+            onAddDriver={addInjuredPartyDriver}
+            onRemoveDriver={removeInjuredPartyDriver}
+            onRemoveParticipant={removeInjuredParty}
+            isVictim={true}
+            disabled={disabled}
+          />
+        </div>
+      )}
+
+      {/* Perpetrator Form */}
+      {perpetrator && (
+        <div className="border border-red-300 rounded-lg bg-red-50/30">
+          <ParticipantForm
+            title="Sprawca"
+            participantData={perpetrator}
+            onParticipantChange={updatePerpetrator}
+            onDriverChange={updatePerpetratorDriver}
+            onAddDriver={addPerpetratorDriver}
+            onRemoveDriver={removePerpetratorDriver}
+            onRemoveParticipant={removePerpetrator}
+            isVictim={false}
+            disabled={disabled}
+          />
+        </div>
+      )}
+
+      {!injuredParty && !perpetrator && (
+        <div className="text-center py-12 text-gray-500 bg-gray-50 rounded-lg border border-gray-200">
+          <p className="text-lg">Brak uczestników zdarzenia</p>
+          <p className="text-sm mt-2">Użyj przycisków powyżej, aby dodać poszkodowanego lub sprawcę</p>
+        </div>
+      )}
+    </div>
+  )
+}

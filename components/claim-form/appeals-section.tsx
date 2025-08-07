@@ -1,0 +1,796 @@
+"use client"
+
+import type React from "react"
+
+import { useState, useEffect, useRef } from "react"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Textarea } from "@/components/ui/textarea"
+import { Badge } from "@/components/ui/badge"
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog"
+import { ArrowUpDown, Plus, Edit, Trash2, Eye, Download, Upload, FileText, X, Info, Loader2, Minus } from "lucide-react"
+import { useToast } from "@/hooks/use-toast"
+import { useDragDrop } from "@/hooks/use-drag-drop"
+
+interface Appeal {
+  id: string
+  filingDate: string
+  extensionDate?: string
+  responseDate?: string
+  status: "W toku" | "Zamknięte"
+  documentPath?: string
+  documentName?: string
+  documentDescription?: string
+  alertDays?: number
+}
+
+interface AppealsSectionProps {
+  eventId: string
+}
+
+export const AppealsSection = ({ eventId }: AppealsSectionProps) => {
+  const { toast } = useToast()
+  const fileInputRef = useRef<HTMLInputElement>(null)
+  const { dragState, handleDragOver, handleDragLeave, handleDrop, handlePaste } = useDragDrop()
+
+  // State
+  const [appeals, setAppeals] = useState<Appeal[]>([])
+  const [isLoading, setIsLoading] = useState(false)
+  const [isFormVisible, setIsFormVisible] = useState(false)
+  const [isEditing, setIsEditing] = useState(false)
+  const [editingId, setEditingId] = useState<string | null>(null)
+  const [selectedFiles, setSelectedFiles] = useState<File[]>([])
+  const [showFileDescription, setShowFileDescription] = useState(false)
+  const [previewAppeal, setPreviewAppeal] = useState<Appeal | null>(null)
+  const [isPreviewOpen, setIsPreviewOpen] = useState(false)
+
+  // Form data
+  const [formData, setFormData] = useState({
+    filingDate: "",
+    extensionDate: "",
+    responseDate: "",
+    documentDescription: "",
+  })
+
+  // Load appeals on component mount
+  useEffect(() => {
+    loadAppeals()
+  }, [eventId])
+
+  // Handle paste events
+  useEffect(() => {
+    const handlePasteEvent = (event: ClipboardEvent) => {
+      if (isFormVisible) {
+        handlePaste(event, (files) => {
+          if (files.length > 0) {
+            processFiles(files)
+          }
+        })
+      }
+    }
+
+    document.addEventListener("paste", handlePasteEvent)
+    return () => document.removeEventListener("paste", handlePasteEvent)
+  }, [isFormVisible, handlePaste])
+
+  const loadAppeals = async () => {
+    setIsLoading(true)
+    try {
+      const response = await fetch(`/api/appeals?eventId=${eventId}`)
+      if (!response.ok) {
+        throw new Error("Failed to fetch appeals")
+      }
+      const data = await response.json()
+      setAppeals(data)
+    } catch (error) {
+      toast({
+        title: "Błąd",
+        description: "Nie udało się załadować odwołań",
+        variant: "destructive",
+      })
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  const processFiles = (files: File[]) => {
+    setSelectedFiles((prev) => [...prev, ...files])
+    setShowFileDescription(true)
+
+    const outlookFiles = files.filter(
+      (file) => file.name.includes("outlook") || file.type === "application/octet-stream",
+    )
+
+    toast({
+      title: "Pliki dodane",
+      description:
+        outlookFiles.length > 0
+          ? `Dodano ${files.length} plik(ów), w tym ${outlookFiles.length} z Outlooka`
+          : `Dodano ${files.length} plik(ów)`,
+    })
+  }
+
+  const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const files = event.target.files
+    if (files && files.length > 0) {
+      processFiles(Array.from(files))
+    }
+  }
+
+  const handleFilesDropped = (files: FileList) => {
+    if (files.length > 0) {
+      processFiles(Array.from(files))
+    }
+  }
+
+  const removeSelectedFile = (index: number) => {
+    setSelectedFiles((prev) => prev.filter((_, i) => i !== index))
+    if (selectedFiles.length === 1) {
+      setShowFileDescription(false)
+    }
+  }
+
+  const removeAllFiles = () => {
+    setSelectedFiles([])
+    setShowFileDescription(false)
+    setFormData((prev) => ({ ...prev, documentDescription: "" }))
+    if (fileInputRef.current) {
+      fileInputRef.current.value = ""
+    }
+  }
+
+  const resetForm = () => {
+    setFormData({
+      filingDate: new Date().toISOString().split("T")[0],
+      extensionDate: "",
+      responseDate: "",
+      documentDescription: "",
+    })
+    setSelectedFiles([])
+    setShowFileDescription(false)
+    setIsEditing(false)
+    setEditingId(null)
+    if (fileInputRef.current) {
+      fileInputRef.current.value = ""
+    }
+  }
+
+  const toggleForm = () => {
+    setIsFormVisible(!isFormVisible)
+    if (!isFormVisible) {
+      resetForm()
+    }
+  }
+
+  const cancelForm = () => {
+    resetForm()
+    setIsFormVisible(false)
+  }
+
+  const editAppeal = (appeal: Appeal) => {
+    setIsFormVisible(true)
+    setIsEditing(true)
+    setEditingId(appeal.id)
+    setFormData({
+      filingDate: appeal.filingDate,
+      extensionDate: appeal.extensionDate || "",
+      responseDate: appeal.responseDate || "",
+      documentDescription: appeal.documentDescription || "",
+    })
+    setSelectedFiles([])
+    setShowFileDescription(false)
+  }
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+
+    if (!formData.filingDate) {
+      toast({
+        title: "Błąd",
+        description: "Data złożenia odwołania jest wymagana",
+        variant: "destructive",
+      })
+      return
+    }
+
+    setIsLoading(true)
+    try {
+      const appealData = {
+        eventId,
+        filingDate: formData.filingDate,
+        extensionDate: formData.extensionDate || null,
+        responseDate: formData.responseDate || null,
+        documentDescription: formData.documentDescription || null,
+      }
+
+      // Create FormData for file upload if files are selected
+      const formDataToSend = new FormData()
+      Object.entries(appealData).forEach(([key, value]) => {
+        if (value !== null) {
+          formDataToSend.append(key, value)
+        }
+      })
+
+      // Add multiple files
+      selectedFiles.forEach((file, index) => {
+        formDataToSend.append(`documents`, file, file.name)
+      })
+
+      if (isEditing && editingId) {
+        // Update existing appeal
+        const response = await fetch(`/api/appeals/${editingId}`, {
+          method: "PUT",
+          body: formDataToSend,
+        })
+
+        if (!response.ok) {
+          throw new Error("Failed to update appeal")
+        }
+
+        toast({
+          title: "Sukces",
+          description: "Odwołanie zostało zaktualizowane",
+        })
+      } else {
+        // Create new appeal
+        const response = await fetch("/api/appeals", {
+          method: "POST",
+          body: formDataToSend,
+        })
+
+        if (!response.ok) {
+          throw new Error("Failed to create appeal")
+        }
+
+        toast({
+          title: "Sukces",
+          description: "Odwołanie zostało dodane",
+        })
+      }
+
+      // Reload appeals list
+      await loadAppeals()
+      cancelForm()
+    } catch (error) {
+      toast({
+        title: "Błąd",
+        description: isEditing ? "Nie udało się zaktualizować odwołania" : "Nie udało się dodać odwołania",
+        variant: "destructive",
+      })
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  const deleteAppeal = async (id: string) => {
+    setIsLoading(true)
+    try {
+      const response = await fetch(`/api/appeals/${id}`, {
+        method: "DELETE",
+      })
+
+      if (!response.ok) {
+        throw new Error("Failed to delete appeal")
+      }
+
+      toast({
+        title: "Sukces",
+        description: "Odwołanie zostało usunięte",
+      })
+
+      // Reload appeals list
+      await loadAppeals()
+    } catch (error) {
+      toast({
+        title: "Błąd",
+        description: "Nie udało się usunąć odwołania",
+        variant: "destructive",
+      })
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  const downloadFile = (appeal: Appeal) => {
+    if (!appeal.documentPath) {
+      toast({
+        title: "Błąd",
+        description: "Brak dokumentu do pobrania",
+        variant: "destructive",
+      })
+      return
+    }
+
+    // Create download link
+    const link = document.createElement("a")
+    link.href = `/api/appeals/${appeal.id}/download`
+    link.download = appeal.documentName || "document"
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+  }
+
+  const previewFile = (appeal: Appeal) => {
+    if (!appeal.documentPath) {
+      toast({
+        title: "Błąd",
+        description: "Brak dokumentu do podglądu",
+        variant: "destructive",
+      })
+      return
+    }
+
+    setPreviewAppeal(appeal)
+    setIsPreviewOpen(true)
+  }
+
+  const isPreviewable = (fileName?: string) => {
+    if (!fileName) return false
+    const ext = fileName.toLowerCase().split(".").pop()
+    return ["pdf", "jpg", "jpeg", "png", "gif"].includes(ext || "")
+  }
+
+  const getStatusBadge = (status: Appeal["status"]) => {
+    return status === "W toku" ? (
+      <Badge variant="secondary" className="bg-yellow-100 text-yellow-800">
+        W toku
+      </Badge>
+    ) : (
+      <Badge variant="secondary" className="bg-green-100 text-green-800">
+        Zamknięte
+      </Badge>
+    )
+  }
+
+  const getAlertBadge = (alertDays?: number) => {
+    if (!alertDays || alertDays === 0) {
+      return (
+        <Badge variant="secondary" className="bg-gray-100 text-gray-800">
+          Brak
+        </Badge>
+      )
+    } else if (alertDays > 30) {
+      return <Badge variant="destructive">MONIT ({alertDays} dni)</Badge>
+    } else if (alertDays > 20) {
+      return (
+        <Badge variant="secondary" className="bg-orange-100 text-orange-800">
+          {alertDays} dni
+        </Badge>
+      )
+    } else {
+      return (
+        <Badge variant="secondary" className="bg-yellow-100 text-yellow-800">
+          {alertDays} dni
+        </Badge>
+      )
+    }
+  }
+
+  const getTotalFileSize = () => {
+    return selectedFiles.reduce((total, file) => total + file.size, 0)
+  }
+
+  const formatFileSize = (bytes: number) => {
+    if (bytes === 0) return "0 B"
+    const k = 1024
+    const sizes = ["B", "KB", "MB", "GB"]
+    const i = Math.floor(Math.log(bytes) / Math.log(k))
+    return Number.parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + " " + sizes[i]
+  }
+
+  return (
+    <div className="space-y-6">
+      {/* Header Section */}
+      <div className="flex items-center gap-3 bg-gray-100 p-3 rounded-md mb-4 border border-[#d1d9e6]">
+        <div className="text-[#1a3a6c]">
+          <ArrowUpDown className="h-5 w-5" />
+        </div>
+        <div>
+          <h2 className="text-lg font-semibold text-[#1a3a6c]">Odwołanie/Reklamacja</h2>
+        </div>
+      </div>
+
+      {/* Add/Edit Appeal Form Toggle Button */}
+      <div className="mb-4 flex justify-end">
+        <Button
+          onClick={toggleForm}
+          className="bg-[#1a3a6c] text-white px-4 py-2 rounded hover:bg-[#15305a] transition-colors flex items-center gap-2"
+        >
+          {isFormVisible ? <Minus className="h-4 w-4" /> : <Plus className="h-4 w-4" />}
+          {isFormVisible ? "Ukryj formularz" : "Dodaj nowe odwołanie"}
+        </Button>
+      </div>
+
+      {/* Form Section */}
+      {isFormVisible && (
+        <div className="bg-white rounded-lg border border-[#d1d9e6] overflow-hidden mb-6 shadow-sm">
+          <div className="p-4 bg-[#f8fafc] border-b border-[#d1d9e6]">
+            <h3 className="text-md font-semibold text-[#1a3a6c]">
+              {isEditing ? "Edytuj odwołanie" : "Dodaj nowe odwołanie"}
+            </h3>
+          </div>
+          <div className="p-6">
+            <form onSubmit={handleSubmit} className="space-y-6">
+              {/* Date Fields */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium text-gray-700">Data złożenia odwołania *</Label>
+                  <Input
+                    type="date"
+                    value={formData.filingDate}
+                    onChange={(e) => setFormData((prev) => ({ ...prev, filingDate: e.target.value }))}
+                    className="w-full"
+                    required
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium text-gray-700">Data otrzymania informacji o przedłużeniu</Label>
+                  <Input
+                    type="date"
+                    value={formData.extensionDate}
+                    onChange={(e) => setFormData((prev) => ({ ...prev, extensionDate: e.target.value }))}
+                    className="w-full"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium text-gray-700">Data otrzymania odpowiedzi</Label>
+                  <Input
+                    type="date"
+                    value={formData.responseDate}
+                    onChange={(e) => setFormData((prev) => ({ ...prev, responseDate: e.target.value }))}
+                    className="w-full"
+                  />
+                </div>
+              </div>
+
+              {/* File Upload Section */}
+              <div className="space-y-4">
+                <Label className="text-sm font-medium text-gray-700">Załącz dokumenty odwołania</Label>
+
+                {/* Drop Zone */}
+                <div
+                  className={`border-2 border-dashed rounded-lg p-6 transition-all relative ${
+                    dragState.isDragOver ? "border-[#1a3a6c] bg-[#1a3a6c]/5" : "border-gray-300"
+                  }`}
+                  onDragOver={(e) => handleDragOver(e.nativeEvent)}
+                  onDragLeave={(e) => handleDragLeave(e.nativeEvent)}
+                  onDrop={(e) => handleDrop(e.nativeEvent, handleFilesDropped)}
+                >
+                  {dragState.isOutlookDrag && (
+                    <div className="absolute inset-0 bg-[#1a3a6c]/10 flex items-center justify-center rounded-lg">
+                      <div className="bg-white p-4 rounded-lg shadow-lg text-center">
+                        <FileText className="h-10 w-10 mx-auto mb-2 text-[#1a3a6c]" />
+                        <p className="text-[#1a3a6c] font-medium">Upuść załączniki z Outlooka tutaj</p>
+                      </div>
+                    </div>
+                  )}
+
+                  <div className="flex flex-col items-center justify-center text-center space-y-4">
+                    <Upload className="h-10 w-10 text-gray-400" />
+                    <div className="space-y-2">
+                      <p className="text-sm text-gray-500">
+                        <span className="font-semibold">Kliknij, aby wybrać pliki</span> lub przeciągnij i upuść
+                      </p>
+                      <p className="text-xs text-gray-400">Obsługiwane formaty: PDF, DOC, DOCX, JPG, PNG</p>
+                      <p className="text-xs text-gray-400">Możesz wybrać wiele plików jednocześnie</p>
+                    </div>
+
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      className="hidden"
+                      accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
+                      onChange={handleFileSelect}
+                      multiple
+                    />
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => fileInputRef.current?.click()}
+                      className="bg-transparent"
+                    >
+                      Wybierz pliki
+                    </Button>
+                  </div>
+                </div>
+
+                {/* Selected Files Display */}
+                {selectedFiles.length > 0 && (
+                  <div className="space-y-0 border border-gray-200 rounded-lg overflow-hidden">
+                    <div className="p-3 bg-gray-50 flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <FileText className="h-4 w-4 text-[#1a3a6c]" />
+                        <span className="text-sm font-medium">
+                          Wybrane pliki ({selectedFiles.length}) - {formatFileSize(getTotalFileSize())}
+                        </span>
+                      </div>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={removeAllFiles}
+                        className="h-6 w-6 p-0 text-gray-500 hover:text-red-500"
+                      >
+                        <X className="h-4 w-4" />
+                      </Button>
+                    </div>
+
+                    <div className="max-h-40 overflow-y-auto">
+                      {selectedFiles.map((file, index) => (
+                        <div
+                          key={index}
+                          className="p-2 bg-white border-b last:border-b-0 flex items-center justify-between"
+                        >
+                          <div className="flex items-center gap-2 flex-1 min-w-0">
+                            <FileText className="h-3 w-3 text-muted-foreground flex-shrink-0" />
+                            <span className="text-xs truncate">{file.name}</span>
+                            <span className="text-xs text-muted-foreground flex-shrink-0">
+                              ({formatFileSize(file.size)})
+                            </span>
+                          </div>
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => removeSelectedFile(index)}
+                            className="h-6 w-6 p-0 flex-shrink-0"
+                          >
+                            <X className="h-3 w-3" />
+                          </Button>
+                        </div>
+                      ))}
+                    </div>
+
+                    {showFileDescription && (
+                      <div className="p-4 bg-white space-y-2">
+                        <Label className="text-sm font-medium text-gray-700">Opis dokumentów</Label>
+                        <Textarea
+                          value={formData.documentDescription}
+                          onChange={(e) => setFormData((prev) => ({ ...prev, documentDescription: e.target.value }))}
+                          placeholder="Dodaj opis dokumentów (np. 'Odwołanie od decyzji z dnia 10.05.2023', 'Pismo przewodnie', itp.)"
+                          rows={2}
+                          className="text-sm"
+                        />
+                        <p className="text-xs text-gray-500">
+                          Opis pomoże w łatwiejszej identyfikacji dokumentów w przyszłości.
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* Outlook Integration Hint */}
+                <div className="flex items-center gap-2 text-xs text-gray-500 bg-blue-50 p-3 rounded-md">
+                  <Info className="h-3 w-3 flex-shrink-0" />
+                  <span>Możesz przeciągnąć załączniki bezpośrednio z Outlooka lub wkleić je ze schowka (Ctrl+V)</span>
+                </div>
+              </div>
+
+              {/* Form Actions */}
+              <div className="flex justify-end gap-3 pt-6 border-t border-gray-200">
+                <Button type="button" variant="outline" onClick={cancelForm} className="px-6 bg-transparent">
+                  Anuluj
+                </Button>
+                <Button
+                  type="submit"
+                  disabled={!formData.filingDate || isLoading}
+                  className="bg-[#1a3a6c] hover:bg-[#15305a] text-white flex items-center gap-2 px-6"
+                >
+                  {isLoading && <Loader2 className="h-4 w-4 animate-spin" />}
+                  {isEditing ? "Zapisz zmiany" : "Dodaj odwołanie"}
+                </Button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Appeals List */}
+      {!isFormVisible && (
+        <div className="bg-white rounded-lg border border-[#d1d9e6] overflow-hidden shadow-sm">
+          <div className="p-4 bg-[#f8fafc] border-b border-[#d1d9e6]">
+            <h3 className="text-md font-semibold text-[#1a3a6c]">Lista odwołań</h3>
+          </div>
+          <div className="overflow-x-auto">
+            <table className="min-w-full bg-white">
+              <thead>
+                <tr className="bg-muted/50 text-[#1a3a6c] text-sm border-b">
+                  <th className="py-3 px-4 text-left font-medium">Data złożenia</th>
+                  <th className="py-3 px-4 text-left font-medium">Data przedłużenia</th>
+                  <th className="py-3 px-4 text-left font-medium">Data odpowiedzi</th>
+                  <th className="py-3 px-4 text-left font-medium">Status</th>
+                  <th className="py-3 px-4 text-left font-medium">Dokumenty</th>
+                  <th className="py-3 px-4 text-left font-medium">Opis</th>
+                  <th className="py-3 px-4 text-left font-medium">Alerty</th>
+                  <th className="py-3 px-4 text-center font-medium">Akcje</th>
+                </tr>
+              </thead>
+              <tbody>
+                {isLoading && appeals.length === 0 && (
+                  <tr>
+                    <td colSpan={8} className="py-8 text-center text-gray-500">
+                      <div className="flex items-center justify-center gap-2">
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                        Ładowanie danych...
+                      </div>
+                    </td>
+                  </tr>
+                )}
+                {!isLoading && appeals.length === 0 && (
+                  <tr>
+                    <td colSpan={8} className="py-8 text-center text-gray-500">
+                      <div className="space-y-2">
+                        <ArrowUpDown className="h-8 w-8 mx-auto text-gray-300" />
+                        <p>Brak odwołań do wyświetlenia</p>
+                      </div>
+                    </td>
+                  </tr>
+                )}
+                {appeals.map((appeal) => (
+                  <tr key={appeal.id} className="hover:bg-gray-50 text-sm border-b">
+                    <td className="py-3 px-4 text-gray-700">
+                      {new Date(appeal.filingDate).toLocaleDateString("pl-PL")}
+                    </td>
+                    <td className="py-3 px-4 text-gray-700">
+                      {appeal.extensionDate ? new Date(appeal.extensionDate).toLocaleDateString("pl-PL") : "-"}
+                    </td>
+                    <td className="py-3 px-4 text-gray-700">
+                      {appeal.responseDate ? new Date(appeal.responseDate).toLocaleDateString("pl-PL") : "-"}
+                    </td>
+                    <td className="py-3 px-4">{getStatusBadge(appeal.status)}</td>
+                    <td className="py-3 px-4">
+                      {appeal.documentPath ? (
+                        <div className="flex items-center gap-2">
+                          <span className="text-gray-700 truncate max-w-32" title={appeal.documentName}>
+                            {appeal.documentName}
+                          </span>
+                          <div className="flex gap-1">
+                            {isPreviewable(appeal.documentName) && (
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => previewFile(appeal)}
+                                className="h-6 w-6 p-0 text-blue-600 hover:text-blue-800 hover:bg-blue-50"
+                                title="Podgląd"
+                              >
+                                <Eye className="h-3 w-3" />
+                              </Button>
+                            )}
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => downloadFile(appeal)}
+                              className="h-6 w-6 p-0 text-green-600 hover:text-green-800 hover:bg-green-50"
+                              title="Pobierz"
+                            >
+                              <Download className="h-3 w-3" />
+                            </Button>
+                          </div>
+                        </div>
+                      ) : (
+                        <span className="text-gray-500">Brak dokumentów</span>
+                      )}
+                    </td>
+                    <td className="py-3 px-4 text-gray-700 max-w-48">
+                      <span className="truncate block" title={appeal.documentDescription}>
+                        {appeal.documentDescription || "-"}
+                      </span>
+                    </td>
+                    <td className="py-3 px-4">{getAlertBadge(appeal.alertDays)}</td>
+                    <td className="py-3 px-4 text-center">
+                      <div className="flex justify-center gap-1">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => editAppeal(appeal)}
+                          className="h-6 w-6 p-0 text-blue-600 hover:text-blue-800 hover:bg-blue-50"
+                          title="Edytuj"
+                        >
+                          <Edit className="h-3 w-3" />
+                        </Button>
+                        <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="h-6 w-6 p-0 text-red-600 hover:text-red-800 hover:bg-red-50"
+                              title="Usuń"
+                            >
+                              <Trash2 className="h-3 w-3" />
+                            </Button>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent>
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>Czy na pewno chcesz usunąć to odwołanie?</AlertDialogTitle>
+                              <AlertDialogDescription>
+                                Ta akcja nie może być cofnięta. Odwołanie zostanie trwale usunięte.
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel>Anuluj</AlertDialogCancel>
+                              <AlertDialogAction
+                                onClick={() => deleteAppeal(appeal.id)}
+                                className="bg-red-600 hover:bg-red-700"
+                              >
+                                Usuń
+                              </AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          {/* Table Footer */}
+          <div className="p-4 bg-muted/50 border-t flex justify-center">
+            <div className="text-sm text-gray-600">
+              Wyświetlanie {appeals.length > 0 ? `1-${appeals.length}` : "0"} z {appeals.length} odwołań
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* File Preview Dialog */}
+      <Dialog open={isPreviewOpen} onOpenChange={setIsPreviewOpen}>
+        <DialogContent className="max-w-4xl max-h-[90vh]">
+          <DialogHeader>
+            <DialogTitle>Podgląd: {previewAppeal?.documentName}</DialogTitle>
+            {previewAppeal?.documentDescription && (
+              <p className="text-sm text-gray-600 mt-1">{previewAppeal.documentDescription}</p>
+            )}
+          </DialogHeader>
+          <div className="flex-1 overflow-auto flex items-center justify-center bg-gray-100 rounded p-4 min-h-[400px]">
+            {previewAppeal?.documentName?.toLowerCase().endsWith(".pdf") ? (
+              <iframe
+                src={`/api/documents/${previewAppeal.id}/preview`}
+                className="w-full h-full border-0"
+                title="PDF Preview"
+              />
+            ) : previewAppeal?.documentName && isPreviewable(previewAppeal.documentName) ? (
+              <img
+                src={`/api/documents/${previewAppeal.id}/preview`}
+                alt="Preview"
+                className="max-w-full max-h-[70vh] object-contain"
+              />
+            ) : (
+              <div className="text-center p-8 space-y-4">
+                <FileText className="h-12 w-12 mx-auto text-gray-400" />
+                <div className="space-y-2">
+                  <p className="text-gray-600">Podgląd niedostępny dla tego typu pliku.</p>
+                  <p className="text-gray-500 text-sm">Możesz pobrać plik, aby go otworzyć.</p>
+                </div>
+              </div>
+            )}
+          </div>
+          <div className="flex justify-end pt-4 border-t border-gray-200">
+            <Button
+              onClick={() => previewAppeal && downloadFile(previewAppeal)}
+              className="bg-[#1a3a6c] hover:bg-[#15305a] text-white"
+            >
+              <Download className="h-4 w-4 mr-2" />
+              Pobierz plik
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+    </div>
+  )
+}

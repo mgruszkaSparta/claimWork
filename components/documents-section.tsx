@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { useToast } from "@/hooks/use-toast"
 import { File, Search, Filter, Eye, Download, Upload, X, Trash2, Grid, List, Wand, Plus, FileText, Paperclip, ZoomIn, ZoomOut, ChevronLeft, ChevronRight, RotateCw, Maximize2, Minimize2 } from 'lucide-react'
-import type { DocumentsSectionProps } from "@/types"
+import type { DocumentsSectionProps, UploadedFile } from "@/types"
 
 interface Document {
   id: string
@@ -34,9 +34,11 @@ export const DocumentsSection = ({
   setUploadedFiles,
   requiredDocuments,
   setRequiredDocuments,
-  eventId = "1",
+  eventId,
+  pendingFiles = [],
+  setPendingFiles,
   hideRequiredDocuments = false,
-}: DocumentsSectionProps & { eventId?: string; hideRequiredDocuments?: boolean }) => {
+}: DocumentsSectionProps & { hideRequiredDocuments?: boolean }) => {
   const { toast } = useToast()
   const [viewMode, setViewMode] = useState<"list" | "grid">("list")
   const fileInputRef = React.useRef<HTMLInputElement>(null)
@@ -57,6 +59,29 @@ export const DocumentsSection = ({
   const [previewFullscreen, setPreviewFullscreen] = useState(false)
   const [currentPreviewIndex, setCurrentPreviewIndex] = useState(0)
   const [previewDocuments, setPreviewDocuments] = useState<Document[]>([])
+
+  const uploadedFileToDocument = (file: UploadedFile): Document => ({
+    id: file.id,
+    fileName: file.name,
+    originalFileName: file.name,
+    contentType: file.file?.type || "",
+    fileSize: file.size,
+    filePath: file.url,
+    description: file.description,
+    status: "pending",
+    uploadedBy: "Current User",
+    createdAt: file.uploadedAt,
+    updatedAt: file.uploadedAt,
+    canPreview: file.type === "image" || file.type === "pdf",
+    previewUrl: file.url,
+    downloadUrl: file.url,
+    documentType: file.category || "Inne dokumenty",
+  })
+
+  const allDocuments = React.useMemo(
+    () => [...documents, ...pendingFiles.map(uploadedFileToDocument)],
+    [documents, pendingFiles]
+  )
 
   // Load documents from API
   useEffect(() => {
@@ -107,18 +132,66 @@ export const DocumentsSection = ({
 
   const documentCategories = React.useMemo(() => {
     const categoriesFromRequired = requiredDocuments.filter((d) => d.uploaded).map((d) => d.name)
-    const categoriesFromDocuments = [...new Set(documents.map((d) => d.documentType))]
+    const categoriesFromDocuments = [...new Set(allDocuments.map((d) => d.documentType))]
     return [...new Set(["Inne dokumenty", ...categoriesFromRequired, ...categoriesFromDocuments])]
-  }, [requiredDocuments, documents])
+  }, [requiredDocuments, allDocuments])
 
   const handleFileUpload = async (files: FileList | null, category: string | null) => {
-    if (!files || !category || !eventId) {
-      console.error("Missing required parameters:", { files: !!files, category, eventId })
+    if (!files || !category) {
+      console.error("Missing required parameters:", { files: !!files, category })
       toast({
         title: "Błąd",
         description: "Brak wymaganych parametrów do przesłania pliku",
         variant: "destructive",
       })
+      return
+    }
+
+    // Handle temporary uploads when eventId is not provided
+    if (!eventId) {
+      const newFiles: UploadedFile[] = []
+      Array.from(files).forEach((file, index) => {
+        if (file.size > 50 * 1024 * 1024) {
+          toast({
+            title: "Plik za duży",
+            description: `Plik "${file.name}" jest za duży. Maksymalny rozmiar to 50MB.`,
+            variant: "destructive",
+          })
+          return
+        }
+        if (file.size === 0) {
+          toast({
+            title: "Pusty plik",
+            description: `Plik "${file.name}" jest pusty.`,
+            variant: "destructive",
+          })
+          return
+        }
+        newFiles.push({
+          id: `temp-${Date.now()}-${index}`,
+          name: file.name,
+          size: file.size,
+          type: file.type.includes("image")
+            ? "image"
+            : file.type.includes("pdf")
+            ? "pdf"
+            : file.type.includes("msword") || file.type.includes("wordprocessingml")
+            ? "doc"
+            : "other",
+          uploadedAt: new Date().toISOString(),
+          url: URL.createObjectURL(file),
+          category: category || "Inne dokumenty",
+          file: file,
+        })
+      })
+
+      if (newFiles.length > 0) {
+        setPendingFiles?.((prev) => [...prev, ...newFiles])
+        toast({
+          title: "Dodano pliki",
+          description: `Dodano ${newFiles.length} plik(ów) do kategorii "${category}".`,
+        })
+      }
       return
     }
 
@@ -264,14 +337,6 @@ export const DocumentsSection = ({
 
   const triggerUpload = (category: string) => {
     console.log("Triggering upload for category:", category)
-    if (!eventId) {
-      toast({
-        title: "Brak zgłoszenia",
-        description: "Utwórz lub zapisz zgłoszenie przed dodaniem dokumentów.",
-        variant: "destructive",
-      })
-      return
-    }
     setUploadingForCategory(category)
     fileInputRef.current?.click()
   }
@@ -284,10 +349,10 @@ export const DocumentsSection = ({
       if (e.target) e.target.value = ""
       return
     }
-    if (!uploadingForCategory || !eventId) {
+    if (!uploadingForCategory) {
       toast({
         title: "Błąd",
-        description: "Brak kategorii lub identyfikatora zgłoszenia.",
+        description: "Brak kategorii.",
         variant: "destructive",
       })
       setUploadingForCategory(null)
@@ -299,7 +364,18 @@ export const DocumentsSection = ({
     if (e.target) e.target.value = ""
   }
 
-  const handleFileDelete = async (documentId: number) => {
+  const handleFileDelete = async (documentId: string | number) => {
+    const isPending = pendingFiles.some((f) => f.id === documentId)
+    if (isPending) {
+      if (!window.confirm("Czy na pewno chcesz usunąć ten dokument?")) return
+      setPendingFiles?.((prev) => prev.filter((f) => f.id !== documentId))
+      toast({
+        title: "Plik usunięty",
+        description: "Dokument został pomyślnie usunięty.",
+      })
+      return
+    }
+
     if (!window.confirm("Czy na pewno chcesz usunąć ten dokument?")) {
       return
     }
@@ -329,7 +405,12 @@ export const DocumentsSection = ({
     }
   }
 
-  const handleDescriptionChange = async (documentId: number, description: string) => {
+  const handleDescriptionChange = async (documentId: string | number, description: string) => {
+    const pendingIndex = pendingFiles.findIndex((f) => f.id === documentId)
+    if (pendingIndex !== -1) {
+      setPendingFiles?.((prev) => prev.map((f) => (f.id === documentId ? { ...f, description } : f)))
+      return
+    }
     try {
       const response = await fetch(`/api/documents/${documentId}`, {
         method: "PUT",
@@ -348,9 +429,9 @@ export const DocumentsSection = ({
     }
   }
 
-  const handleGenerateAIDescription = async (documentId: number) => {
-    const document = documents.find((d) => d.id === documentId)
-    if (!document) return
+  const handleGenerateAIDescription = async (documentId: string | number) => {
+    const document = allDocuments.find((d) => d.id === documentId)
+    if (!document || document.status === "pending") return
 
     try {
       toast({
@@ -383,7 +464,7 @@ export const DocumentsSection = ({
   }
 
   const handlePreview = (document: Document, documentsArray?: Document[]) => {
-    const docsToPreview = documentsArray || documents
+    const docsToPreview = documentsArray || allDocuments
     const index = docsToPreview.findIndex((d) => d.id === document.id)
 
     setPreviewDocuments(docsToPreview)
@@ -405,7 +486,7 @@ export const DocumentsSection = ({
   }
 
   const handleDownloadAll = async (category: string) => {
-    const documentsForCategory = documents.filter((d) => d.documentType === category)
+    const documentsForCategory = allDocuments.filter((d) => d.documentType === category)
 
     if (documentsForCategory.length === 0) {
       toast({
@@ -519,7 +600,7 @@ export const DocumentsSection = ({
     }
   }
 
-  const FileCard = ({ document, onDelete }: { document: Document; onDelete: (id: number) => void }) => (
+  const FileCard = ({ document, onDelete }: { document: Document; onDelete: (id: string | number) => void }) => (
     <Card className="overflow-hidden group relative">
       <div className="aspect-w-16 aspect-h-10 bg-gray-100 flex items-center justify-center min-h-[150px]">
         {document.contentType.startsWith("image/") ? (
@@ -631,7 +712,7 @@ export const DocumentsSection = ({
         </Card>
 
         {documentCategories.map((category) => {
-          const documentsForCategory = documents.filter((d) => d.documentType === category)
+          const documentsForCategory = allDocuments.filter((d) => d.documentType === category)
           const isCategoryOpen = openCategories[category] ?? false
 
           return (
@@ -919,7 +1000,7 @@ export const DocumentsSection = ({
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {documents
+                {allDocuments
                   .filter((d) => d.documentType === groupPreviewCategory)
                   .map((document) => (
                     <Card key={document.id} className="overflow-hidden">
@@ -933,7 +1014,7 @@ export const DocumentsSection = ({
                               setGroupPreviewOpen(false)
                               handlePreview(
                                 document,
-                                documents.filter((d) => d.documentType === groupPreviewCategory),
+                                allDocuments.filter((d) => d.documentType === groupPreviewCategory),
                               )
                             }}
                           />
@@ -945,7 +1026,7 @@ export const DocumentsSection = ({
                               setGroupPreviewOpen(false)
                               handlePreview(
                                 document,
-                                documents.filter((d) => d.documentType === groupPreviewCategory),
+                                allDocuments.filter((d) => d.documentType === groupPreviewCategory),
                               )
                             }}
                             muted
@@ -961,7 +1042,7 @@ export const DocumentsSection = ({
                                 setGroupPreviewOpen(false)
                                 handlePreview(
                                   document,
-                                  documents.filter((d) => d.documentType === groupPreviewCategory),
+                                  allDocuments.filter((d) => d.documentType === groupPreviewCategory),
                                 )
                               }}
                             >
@@ -1017,7 +1098,7 @@ export const DocumentsSection = ({
                               setGroupPreviewOpen(false)
                               handlePreview(
                                 document,
-                                documents.filter((d) => d.documentType === groupPreviewCategory),
+                                allDocuments.filter((d) => d.documentType === groupPreviewCategory),
                               )
                             }}
                           >
@@ -1030,7 +1111,7 @@ export const DocumentsSection = ({
                   ))}
               </div>
 
-              {documents.filter((d) => d.documentType === groupPreviewCategory).length === 0 && (
+              {allDocuments.filter((d) => d.documentType === groupPreviewCategory).length === 0 && (
                 <div className="text-center py-12">
                   <FileText className="w-16 h-16 text-gray-400 mx-auto mb-4" />
                   <p className="text-gray-600">Brak plików w tej kategorii</p>

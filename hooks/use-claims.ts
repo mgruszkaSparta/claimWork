@@ -48,6 +48,7 @@ const transformFrontendClaimToApiPayload = (claimData: Partial<Claim>): EventUps
     injuredParty,
     perpetrator,
     servicesCalled,
+    documents,
     ...rest
   } = claimData
 
@@ -105,6 +106,7 @@ const transformFrontendClaimToApiPayload = (claimData: Partial<Claim>): EventUps
     eventTime: rest.eventTime,
     servicesCalled: servicesCalled?.join(","),
     participants: participants,
+    documents: documents?.map((d) => ({ id: d.id, filePath: d.url })),
   }
 }
 

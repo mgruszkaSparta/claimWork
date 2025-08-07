@@ -152,6 +152,17 @@ namespace AutomotiveClaimsApi.Controllers
 
                 _context.Events.Add(eventEntity);
 
+                if (eventDto.Documents != null && eventDto.Documents.Any())
+                {
+                    var documentIds = eventDto.Documents.Select(d => d.Id).ToList();
+                    var documents = await _context.Documents.Where(d => documentIds.Contains(d.Id)).ToListAsync();
+                    foreach (var doc in documents)
+                    {
+                        doc.EventId = eventEntity.Id;
+                        doc.UpdatedAt = DateTime.UtcNow;
+                    }
+                }
+
                 if (eventDto.Participants != null)
                 {
                     foreach (var pDto in eventDto.Participants)
@@ -230,6 +241,17 @@ namespace AutomotiveClaimsApi.Controllers
                                 _context.Drivers.Add(MapDriverDtoToModel(dDto, eventEntity.Id, participant.Id));
                             }
                         }
+                    }
+                }
+
+                if (eventDto.Documents != null && eventDto.Documents.Any())
+                {
+                    var documentIds = eventDto.Documents.Select(d => d.Id).ToList();
+                    var documents = await _context.Documents.Where(d => documentIds.Contains(d.Id)).ToListAsync();
+                    foreach (var doc in documents)
+                    {
+                        doc.EventId = eventEntity.Id;
+                        doc.UpdatedAt = DateTime.UtcNow;
                     }
                 }
 

@@ -118,15 +118,17 @@ export function ClaimForm({ initialData, mode }: ClaimFormProps) {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    
+
     try {
+      const payload = { ...formData, documents: uploadedFiles }
+
       if (mode === 'create') {
-        const result = await createClaim(formData)
+        const result = await createClaim(payload)
         if (result) {
           router.push(`/claims/${result.id}/view`)
         }
       } else if (mode === 'edit' && formData.id) {
-        const result = await updateClaim(formData.id, formData)
+        const result = await updateClaim(formData.id, payload)
         if (result) {
           router.push(`/claims/${result.id}/view`)
         }

@@ -41,6 +41,7 @@ export interface Claim {
   client?: string
   clientId?: string
   handler?: string
+  handlerId?: string
   handlerEmail?: string
   handlerPhone?: string
   insuranceCompany?: string

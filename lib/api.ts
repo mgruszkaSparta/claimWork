@@ -8,6 +8,7 @@ export interface EventListItemDto {
   claimNumber?: string
   vehicleNumber?: string
   client?: string
+  clientId?: number
   liquidator?: string
   brand?: string
   status?: string
@@ -24,6 +25,10 @@ export interface EventDto extends EventListItemDto {
   location?: string
   description?: string
   servicesCalled?: string
+  insuranceCompanyId?: number
+  handlerId?: number
+  riskType?: string
+  damageType?: string
   participants?: ParticipantDto[]
   damages?: DamageDto[]
   decisions?: DecisionDto[]
@@ -43,9 +48,14 @@ export interface EventUpsertDto {
   claimNumber?: string
   vehicleNumber?: string
   client?: string
+  clientId?: number
   liquidator?: string
   brand?: string
   status?: string
+  riskType?: string
+  damageType?: string
+  insuranceCompanyId?: number
+  handlerId?: number
   damageDate?: string
   reportDate?: string
   reportDateToInsurer?: string

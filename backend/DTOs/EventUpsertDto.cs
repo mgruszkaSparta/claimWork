@@ -36,6 +36,8 @@ namespace AutomotiveClaimsApi.DTOs
         [StringLength(200)]
         public string? InsuranceCompanyEmail { get; set; }
 
+        public int? InsuranceCompanyId { get; set; }
+
         [StringLength(100)]
         public string? PolicyNumber { get; set; }
 
@@ -67,6 +69,8 @@ namespace AutomotiveClaimsApi.DTOs
         [StringLength(200)]
         public string? Client { get; set; }
 
+        public int? ClientId { get; set; }
+
         [StringLength(100)]
         public string? ReportingChannel { get; set; }
 
@@ -87,6 +91,8 @@ namespace AutomotiveClaimsApi.DTOs
 
         [StringLength(50)]
         public string? HandlerPhone { get; set; }
+
+        public int? HandlerId { get; set; }
 
         public string? EventTime { get; set; }
 

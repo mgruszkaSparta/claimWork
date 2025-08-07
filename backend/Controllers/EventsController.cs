@@ -416,6 +416,7 @@ namespace AutomotiveClaimsApi.Controllers
             entity.InsuranceCompany = dto.InsuranceCompany;
             entity.InsuranceCompanyPhone = dto.InsuranceCompanyPhone;
             entity.InsuranceCompanyEmail = dto.InsuranceCompanyEmail;
+            entity.InsuranceCompanyId = dto.InsuranceCompanyId;
             entity.PolicyNumber = dto.PolicyNumber;
             entity.Status = dto.Status;
             entity.DamageDate = dto.DamageDate;
@@ -428,6 +429,7 @@ namespace AutomotiveClaimsApi.Controllers
             entity.DamageType = dto.DamageType;
             entity.Liquidator = dto.Liquidator;
             entity.Client = dto.Client;
+            entity.ClientId = dto.ClientId;
             entity.ReportingChannel = dto.ReportingChannel;
             entity.LeasingCompany = dto.LeasingCompany;
             entity.LeasingCompanyPhone = dto.LeasingCompanyPhone;
@@ -435,6 +437,7 @@ namespace AutomotiveClaimsApi.Controllers
             entity.Handler = dto.Handler;
             entity.HandlerEmail = dto.HandlerEmail;
             entity.HandlerPhone = dto.HandlerPhone;
+            entity.HandlerId = dto.HandlerId;
 
             if (DateTime.TryParse(dto.EventTime, out var eventTime))
             {
@@ -950,6 +953,7 @@ namespace AutomotiveClaimsApi.Controllers
             InsuranceCompany = e.InsuranceCompany,
             InsuranceCompanyPhone = e.InsuranceCompanyPhone,
             InsuranceCompanyEmail = e.InsuranceCompanyEmail,
+            InsuranceCompanyId = e.InsuranceCompanyId,
             PolicyNumber = e.PolicyNumber,
             Status = e.Status,
             DamageDate = e.DamageDate,
@@ -962,6 +966,7 @@ namespace AutomotiveClaimsApi.Controllers
             DamageType = e.DamageType,
             Liquidator = e.Liquidator,
             Client = e.Client,
+            ClientId = e.ClientId,
             ReportingChannel = e.ReportingChannel,
             LeasingCompany = e.LeasingCompany,
             LeasingCompanyPhone = e.LeasingCompanyPhone,
@@ -969,6 +974,7 @@ namespace AutomotiveClaimsApi.Controllers
             Handler = e.Handler,
             HandlerEmail = e.HandlerEmail,
             HandlerPhone = e.HandlerPhone,
+            HandlerId = e.HandlerId,
             EventTime = e.EventTime,
             EventLocation = e.EventLocation,
             EventDescription = e.EventDescription,

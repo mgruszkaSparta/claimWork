@@ -159,7 +159,11 @@ export default function EditClaimPage() {
             inspectionContactEmail: "",
             drivers: [{ id: "", name: "", licenseNumber: "" }],
           },
-          servicesCalled: claimData.servicesCalled || [],
+
+          servicesCalled: Array.isArray(claimData.servicesCalled)
+            ? claimData.servicesCalled
+            : (claimData.servicesCalled?.split(",") ?? []),
+
           damages: claimData.damages || [],
           decisions: claimData.decisions || [],
           appeals: claimData.appeals || [],

@@ -234,6 +234,8 @@ export const ClaimMainContent = ({
           user: note.createdBy || "",
           createdAt: note.createdAt,
           priority: note.priority,
+          status: note.status,
+          dueDate: note.dueDate,
         }))
         setNotes(mappedNotes)
       } catch (error) {
@@ -453,6 +455,7 @@ export const ClaimMainContent = ({
           title: noteForm.title,
           content: noteForm.description,
           priority: noteForm.priority,
+          dueDate: noteForm.dueDate || undefined,
         }),
       })
       if (!response.ok) throw new Error()
@@ -465,11 +468,9 @@ export const ClaimMainContent = ({
         description: data.content,
         user: data.createdBy || "",
         createdAt: data.createdAt,
-        ...(type === "task" && {
-          status: "active" as const,
-          priority: noteForm.priority,
-          dueDate: noteForm.dueDate,
-        }),
+        priority: data.priority,
+        status: data.status,
+        dueDate: data.dueDate,
       }
 
       setNotes((prev) => [newNote, ...prev])
@@ -493,14 +494,11 @@ export const ClaimMainContent = ({
     noteId: string,
     status: "active" | "completed" | "cancelled",
   ) => {
-    const noteToUpdate = notes.find((n) => n.id === noteId)
-    if (!noteToUpdate) return
-
     try {
       const response = await fetch(`/api/notes/${noteId}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...noteToUpdate, status }),
+        body: JSON.stringify({ status }),
       })
       if (!response.ok) throw new Error()
 

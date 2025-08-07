@@ -27,7 +27,11 @@ const transformApiClaimToFrontend = (apiClaim: EventDto): Claim => {
     totalClaim: apiClaim.totalClaim ?? 0,
     payout: apiClaim.payout ?? 0,
     currency: apiClaim.currency ?? "PLN",
-    servicesCalled: apiClaim.servicesCalled?.split(",").filter(Boolean) || [],
+
+    servicesCalled: Array.isArray(apiClaim.servicesCalled)
+      ? apiClaim.servicesCalled
+      : (apiClaim.servicesCalled?.split(",").filter(Boolean) ?? []),
+
     damages: apiClaim.damages || [],
     decisions: apiClaim.decisions || [],
     appeals: apiClaim.appeals || [],
@@ -132,7 +136,7 @@ const transformFrontendClaimToApiPayload = (claimData: Partial<Claim>): EventUps
     reportDate: rest.reportDate ? new Date(rest.reportDate).toISOString() : undefined,
     reportDateToInsurer: rest.reportDateToInsurer ? new Date(rest.reportDateToInsurer).toISOString() : undefined,
     eventTime: rest.eventTime,
-    servicesCalled: servicesCalled?.join(","),
+    servicesCalled,
     participants: participants,
 
     documents: documents?.map((d) => ({ id: d.id, filePath: d.url })),

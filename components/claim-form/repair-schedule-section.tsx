@@ -219,6 +219,7 @@ export const RepairScheduleSection: React.FC<RepairScheduleSectionProps> = ({ ev
   }
 
   const handleDelete = async (scheduleId: string) => {
+    if (!confirm('Czy na pewno chcesz usunąć harmonogram?')) return;
     try {
       const response = await fetch(`/api/repair-schedules/${scheduleId}`, {
         method: "DELETE",

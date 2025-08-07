@@ -168,7 +168,7 @@ export default function InsuranceDropdown({
           ) : (
             filteredCompanies.map((company) => (
               <div
-                key={company.id}
+                key={`insurance-${company.id}`}
                 className={`dropdown-item ${selectedCompany?.id === company.id ? "selected" : ""}`}
                 onClick={() => selectCompany(company)}
               >

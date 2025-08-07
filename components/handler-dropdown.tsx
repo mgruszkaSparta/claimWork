@@ -166,7 +166,7 @@ export default function HandlerDropdown({
           ) : (
             filteredHandlers.map((handler) => (
               <div
-                key={handler.id}
+                key={`handler-${handler.id}`}
                 className={`dropdown-item ${selectedHandler?.id === handler.id ? "selected" : ""}`}
                 onClick={() => selectHandler(handler)}
               >

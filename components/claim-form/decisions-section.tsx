@@ -70,6 +70,16 @@ export function DecisionsSection({ claimId }: DecisionsSectionProps) {
   }, [decisions])
 
   const loadDecisions = async () => {
+    if (!claimId) {
+      console.warn("Missing claim ID, skipping decisions fetch")
+      toast({
+        title: "Brak ID roszczenia",
+        description: "Nie można załadować decyzji bez ID roszczenia",
+        variant: "destructive",
+      })
+      return
+    }
+
     setIsLoading(true)
     try {
       const response = await fetch(`/api/decisions?claimId=${claimId}`)

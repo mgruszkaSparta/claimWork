@@ -266,5 +266,6 @@ export function useClaims() {
     updateClaim,
     deleteClaim,
     clearError,
+    setError,
   }
 }

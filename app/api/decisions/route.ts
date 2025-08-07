@@ -13,6 +13,7 @@ export async function GET(request: NextRequest) {
 
     const url = `${API_BASE_URL}/api/decisions?claimId=${claimId}`
 
+
     const response = await fetch(url, {
       method: "GET",
       headers: {
@@ -30,6 +31,7 @@ export async function GET(request: NextRequest) {
 
     const data = await response.json()
     return NextResponse.json(data)
+
   } catch (error) {
     console.error("Error fetching decisions:", error)
     return NextResponse.json(

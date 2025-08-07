@@ -57,6 +57,7 @@ export interface Claim {
   location?: string
   description?: string
   documents?: UploadedFile[]
+  pendingFiles?: UploadedFile[]
   documentsSectionProps?: DocumentsSectionProps
 }
 
@@ -184,6 +185,7 @@ export interface UploadedFile {
   category?: string
   description?: string
   date?: string
+  file?: File
 }
 
 export interface RequiredDocument {
@@ -200,5 +202,7 @@ export interface DocumentsSectionProps {
   setUploadedFiles: React.Dispatch<React.SetStateAction<UploadedFile[]>>
   requiredDocuments: RequiredDocument[]
   setRequiredDocuments: React.Dispatch<React.SetStateAction<RequiredDocument[]>>
-  eventId?: number
+  eventId?: number | string
+  pendingFiles?: UploadedFile[]
+  setPendingFiles?: React.Dispatch<React.SetStateAction<UploadedFile[]>>
 }

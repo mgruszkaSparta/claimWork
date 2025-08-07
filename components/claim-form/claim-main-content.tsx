@@ -200,19 +200,7 @@ export const ClaimMainContent = ({
   const [loadingHandlers, setLoadingHandlers] = useState(false)
 
   // Notes state
-  const [notes, setNotes] = useState<Note[]>([
-    {
-      id: "1",
-      type: "task",
-      title: "Skontaktuj się z klientem",
-      description: "Zadzwoń do klienta, aby potwierdzić szczegóły zgłoszenia szkody.",
-      user: "Jan Kowalski",
-      createdAt: "2025-07-27T13:39:00",
-      status: "active",
-      priority: "high",
-      dueDate: "2025-08-05",
-    },
-  ])
+  const [notes, setNotes] = useState<Note[]>([])
 
   // Form states
   const [showNoteForm, setShowNoteForm] = useState<string | null>(null)
@@ -228,6 +216,37 @@ export const ClaimMainContent = ({
     priority: "wszystkie",
     search: "",
   })
+
+  useEffect(() => {
+    const eventId = claimFormData.id || claimFormData.spartaNumber
+    if (!eventId) return
+
+    const loadNotes = async () => {
+      try {
+        const response = await fetch(`/api/notes?eventId=${eventId}`)
+        if (!response.ok) throw new Error()
+        const data = await response.json()
+        const mappedNotes: Note[] = data.map((note: any) => ({
+          id: note.id,
+          type: (note.category as Note["type"]) || "note",
+          title: note.title,
+          description: note.content,
+          user: note.createdBy || "",
+          createdAt: note.createdAt,
+          priority: note.priority,
+        }))
+        setNotes(mappedNotes)
+      } catch (error) {
+        toast({
+          title: "Błąd",
+          description: "Nie udało się pobrać notatek.",
+          variant: "destructive",
+        })
+      }
+    }
+
+    loadNotes()
+  }, [claimFormData.id, claimFormData.spartaNumber])
 
   // State for expanded sections in teczka-szkodowa
   const [expandedSections, setExpandedSections] = useState({
@@ -404,7 +423,7 @@ export const ClaimMainContent = ({
   }
 
   // Notes functions
-  const addNote = (type: Note["type"]) => {
+  const addNote = async (type: Note["type"]) => {
     if (!noteForm.title.trim() || !noteForm.description.trim()) {
       toast({
         title: "Błąd",
@@ -414,45 +433,113 @@ export const ClaimMainContent = ({
       return
     }
 
-    const newNote: Note = {
-      id: Date.now().toString(),
-      type,
-      title: noteForm.title,
-      description: noteForm.description,
-      user: "Aktualny użytkownik",
-      createdAt: new Date().toISOString(),
-      ...(type === "task" && {
-        status: "active" as const,
-        priority: noteForm.priority,
-        dueDate: noteForm.dueDate,
-      }),
+    const eventId = claimFormData.id || claimFormData.spartaNumber
+    if (!eventId) {
+      toast({
+        title: "Błąd",
+        description: "Brak identyfikatora zdarzenia.",
+        variant: "destructive",
+      })
+      return
     }
 
-    setNotes((prev) => [newNote, ...prev])
-    setNoteForm({ title: "", description: "", priority: "medium", dueDate: "" })
-    setShowNoteForm(null)
+    try {
+      const response = await fetch("/api/notes", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          eventId,
+          category: type,
+          title: noteForm.title,
+          content: noteForm.description,
+          priority: noteForm.priority,
+        }),
+      })
+      if (!response.ok) throw new Error()
+      const data = await response.json()
 
-    toast({
-      title: "Sukces",
-      description: `${getTypeLabel(type)} została dodana pomyślnie.`,
-    })
+      const newNote: Note = {
+        id: data.id,
+        type: (data.category as Note["type"]) || type,
+        title: data.title,
+        description: data.content,
+        user: data.createdBy || "",
+        createdAt: data.createdAt,
+        ...(type === "task" && {
+          status: "active" as const,
+          priority: noteForm.priority,
+          dueDate: noteForm.dueDate,
+        }),
+      }
+
+      setNotes((prev) => [newNote, ...prev])
+      setNoteForm({ title: "", description: "", priority: "medium", dueDate: "" })
+      setShowNoteForm(null)
+
+      toast({
+        title: "Sukces",
+        description: `${getTypeLabel(type)} została dodana pomyślnie.`,
+      })
+    } catch (error) {
+      toast({
+        title: "Błąd",
+        description: "Nie udało się dodać notatki.",
+        variant: "destructive",
+      })
+    }
   }
 
-  const updateTaskStatus = (noteId: string, status: "active" | "completed" | "cancelled") => {
-    setNotes((prev) => prev.map((note) => (note.id === noteId ? { ...note, status } : note)))
+  const updateTaskStatus = async (
+    noteId: string,
+    status: "active" | "completed" | "cancelled",
+  ) => {
+    const noteToUpdate = notes.find((n) => n.id === noteId)
+    if (!noteToUpdate) return
 
-    toast({
-      title: "Zaktualizowano",
-      description: "Status zadania został zmieniony.",
-    })
+    try {
+      const response = await fetch(`/api/notes/${noteId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ...noteToUpdate, status }),
+      })
+      if (!response.ok) throw new Error()
+
+      setNotes((prev) =>
+        prev.map((note) => (note.id === noteId ? { ...note, status } : note)),
+      )
+
+      toast({
+        title: "Zaktualizowano",
+        description: "Status zadania został zmieniony.",
+      })
+    } catch (error) {
+      toast({
+        title: "Błąd",
+        description: "Nie udało się zaktualizować statusu.",
+        variant: "destructive",
+      })
+    }
   }
 
-  const deleteNote = (noteId: string) => {
-    setNotes((prev) => prev.filter((note) => note.id !== noteId))
-    toast({
-      title: "Usunięto",
-      description: "Notatka została usunięta.",
-    })
+  const deleteNote = async (noteId: string) => {
+    try {
+      const response = await fetch(`/api/notes/${noteId}`, {
+        method: "DELETE",
+      })
+      if (!response.ok) throw new Error()
+
+      setNotes((prev) => prev.filter((note) => note.id !== noteId))
+      toast({
+        title: "Usunięto",
+        description: "Notatka została usunięta.",
+      })
+    } catch (error) {
+      toast({
+        title: "Błąd",
+        description: "Nie udało się usunąć notatki.",
+        variant: "destructive",
+      })
+    }
   }
 
   const cancelNoteForm = () => {

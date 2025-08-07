@@ -1,10 +1,10 @@
 import { type NextRequest, NextResponse } from "next/server"
 
 // Mock data for development
-const mockRecourses = [
+export const mockRecourses = [
   {
     recourseId: 1,
-    claimId: "1",
+    eventId: "1",
     isJustified: true,
     filingDate: "2024-01-15T00:00:00Z",
     insuranceCompany: "PZU SA",
@@ -19,7 +19,7 @@ const mockRecourses = [
   },
   {
     recourseId: 2,
-    claimId: "1",
+    eventId: "1",
     isJustified: false,
     filingDate: "2024-01-20T00:00:00Z",
     insuranceCompany: "Warta SA",
@@ -37,14 +37,14 @@ const mockRecourses = [
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url)
-    const claimId = searchParams.get("claimId")
+    const eventId = searchParams.get("eventId")
 
-    if (!claimId) {
-      return NextResponse.json({ error: "ClaimId is required" }, { status: 400 })
+    if (!eventId) {
+      return NextResponse.json({ error: "EventId is required" }, { status: 400 })
     }
 
-    // Filter recourses by claimId
-    const filteredRecourses = mockRecourses.filter((r) => r.claimId === claimId)
+    // Filter recourses by eventId
+    const filteredRecourses = mockRecourses.filter((r) => r.eventId === eventId)
 
     return NextResponse.json(filteredRecourses)
   } catch (error) {
@@ -57,7 +57,7 @@ export async function POST(request: NextRequest) {
   try {
     const formData = await request.formData()
 
-    const claimId = formData.get("claimId") as string
+    const eventId = formData.get("eventId") as string
     const isJustified = formData.get("isJustified") === "true"
     const filingDate = formData.get("filingDate") as string
     const insuranceCompany = formData.get("insuranceCompany") as string
@@ -67,14 +67,14 @@ export async function POST(request: NextRequest) {
     const document = formData.get("document") as File
 
     // Validate required fields
-    if (!claimId || !filingDate || !insuranceCompany) {
-      return NextResponse.json({ error: "ClaimId, filingDate, and insuranceCompany are required" }, { status: 400 })
+    if (!eventId || !filingDate || !insuranceCompany) {
+      return NextResponse.json({ error: "EventId, filingDate, and insuranceCompany are required" }, { status: 400 })
     }
 
     // Create new recourse
     const newRecourse = {
       recourseId: Math.max(...mockRecourses.map((r) => r.recourseId)) + 1,
-      claimId,
+      eventId,
       isJustified,
       filingDate: new Date(filingDate).toISOString(),
       insuranceCompany,

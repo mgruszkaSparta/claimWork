@@ -14,6 +14,7 @@ import { Trash2, Plus, Save, Edit, X } from 'lucide-react'
 import { toast } from "@/hooks/use-toast"
 import type { RepairDetail } from "@/lib/repair-details-store"
 import { pksData, type Employee } from "@/lib/pks-data"
+import { z } from "zod"
 
 interface RepairDetailsSectionProps {
   eventId: string
@@ -50,6 +51,17 @@ export function RepairDetailsSection({ eventId }: RepairDetailsSectionProps) {
   })
 
   const [formData, setFormData] = useState(getInitialFormData())
+
+  const repairDetailsValidationSchema = z.object({
+    branchId: z.string().min(1, "Oddział jest wymagany"),
+    employeeEmail: z.string().min(1, "Pracownik jest wymagany"),
+    vehicleTabNumber: z.string().min(1, "Nr taborowy pojazdu jest wymagany"),
+    vehicleRegistration: z.string().min(1, "Nr rejestracyjny jest wymagany"),
+    damageDateTime: z.string().min(1, "Data i godzina szkody są wymagane"),
+    appraiserWaitingDate: z.string().min(1, "Data oczekiwania na rzeczoznawcę jest wymagana"),
+    repairStartDate: z.string().min(1, "Data przystąpienia do naprawy jest wymagana"),
+    repairEndDate: z.string().min(1, "Data zakończenia naprawy jest wymagana"),
+  })
 
   useEffect(() => {
     fetchRepairDetails()
@@ -100,6 +112,16 @@ export function RepairDetailsSection({ eventId }: RepairDetailsSectionProps) {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    const validation = repairDetailsValidationSchema.safeParse(formData)
+
+    if (!validation.success) {
+      toast({
+        title: "Błąd",
+        description: validation.error.errors.map((err) => err.message).join(", "),
+        variant: "destructive",
+      })
+      return
+    }
 
     try {
       const url = editingId ? `/api/repair-details/${editingId}` : "/api/repair-details"
@@ -324,6 +346,7 @@ export function RepairDetailsSection({ eventId }: RepairDetailsSectionProps) {
                         value={formData.damageDateTime}
                         onChange={(e) => setFormData({ ...formData, damageDateTime: e.target.value })}
                         className="w-full"
+                        required
                       />
                     </div>
                     <div className="space-y-2">
@@ -336,6 +359,7 @@ export function RepairDetailsSection({ eventId }: RepairDetailsSectionProps) {
                         value={formData.appraiserWaitingDate}
                         onChange={(e) => setFormData({ ...formData, appraiserWaitingDate: e.target.value })}
                         className="w-full"
+                        required
                       />
                     </div>
                     <div className="space-y-2">
@@ -348,6 +372,7 @@ export function RepairDetailsSection({ eventId }: RepairDetailsSectionProps) {
                         value={formData.repairStartDate}
                         onChange={(e) => setFormData({ ...formData, repairStartDate: e.target.value })}
                         className="w-full"
+                        required
                       />
                     </div>
                     <div className="space-y-2">
@@ -360,6 +385,7 @@ export function RepairDetailsSection({ eventId }: RepairDetailsSectionProps) {
                         value={formData.repairEndDate}
                         onChange={(e) => setFormData({ ...formData, repairEndDate: e.target.value })}
                         className="w-full"
+                        required
                       />
                     </div>
                   </div>

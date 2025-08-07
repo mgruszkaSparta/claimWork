@@ -337,7 +337,7 @@ export const ClaimMainContent = ({
       const response = await fetch("/api/dictionaries/case-handlers")
       if (response.ok) {
         const data = await response.json()
-        setCaseHandlers(data)
+        setCaseHandlers(data.items ?? [])
       } else {
         throw new Error(`HTTP error! status: ${response.status}`)
       }

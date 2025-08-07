@@ -49,7 +49,24 @@ const transformApiClaimToFrontend = (apiClaim: EventDto): Claim => {
 }
 
 const transformFrontendClaimToApiPayload = (claimData: Partial<Claim>): EventUpsertDto => {
+
   const { id, injuredParty, perpetrator, servicesCalled, ...rest } = claimData
+
+  const {
+    id,
+    decisions,
+    appeals,
+    clientClaims,
+    recourses,
+    settlements,
+    damages,
+    injuredParty,
+    perpetrator,
+    servicesCalled,
+    documents,
+    ...rest
+  } = claimData
+
 
   const participants: ParticipantUpsertDto[] = []
 
@@ -159,12 +176,40 @@ const transformFrontendClaimToApiPayload = (claimData: Partial<Claim>): EventUps
     eventTime: rest.eventTime,
     servicesCalled: servicesCalled?.join(","),
     participants: participants,
+
     damages: damagesDto,
     decisions: decisionsDto,
     appeals: appealsDto,
     clientClaims: clientClaimsDto,
     recourses: recoursesDto,
     settlements: settlementsDto,
+
+
+    documents: documents?.map((d) => ({ id: d.id, filePath: d.url })),
+
+    damages: damages?.map((d) => ({ description: d.description, detail: d.detail } as any)),
+    decisions: decisions?.map((d) => ({
+      ...d,
+      decisionDate: d.decisionDate ? new Date(d.decisionDate).toISOString() : undefined,
+    })),
+    appeals: appeals?.map((a) => ({
+      ...a,
+      appealDate: a.appealDate ? new Date(a.appealDate).toISOString() : undefined,
+    })),
+    clientClaims: clientClaims?.map((c) => ({
+      ...c,
+      claimDate: c.claimDate ? new Date(c.claimDate).toISOString() : undefined,
+    })),
+    recourses: recourses?.map((r) => ({
+      ...r,
+      recourseDate: r.recourseDate ? new Date(r.recourseDate).toISOString() : undefined,
+    })),
+    settlements: settlements?.map((s) => ({
+      ...s,
+      settlementDate: s.settlementDate ? new Date(s.settlementDate).toISOString() : undefined,
+    })),
+
+
   }
 }
 

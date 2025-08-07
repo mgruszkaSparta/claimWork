@@ -10,7 +10,7 @@ import { File, Search, Filter, Eye, Download, Upload, X, Trash2, Grid, List, Wan
 import type { DocumentsSectionProps } from "@/types"
 
 interface Document {
-  id: number
+  id: string
   eventId?: number
   damageId?: number
   fileName: string
@@ -216,6 +216,25 @@ export const DocumentsSection = ({
 
       if (successfulUploads.length > 0) {
         setDocuments((prev) => [...prev, ...successfulUploads])
+        setUploadedFiles((prev) => [
+          ...prev,
+          ...successfulUploads.map((doc) => ({
+            id: doc.id.toString(),
+            name: doc.originalFileName || doc.fileName,
+            size: doc.fileSize,
+            type: doc.contentType.includes("image")
+              ? "image"
+              : doc.contentType.includes("pdf")
+              ? "pdf"
+              : doc.contentType.includes("msword") || doc.contentType.includes("wordprocessingml")
+              ? "doc"
+              : "other",
+            uploadedAt: doc.createdAt,
+            url: doc.filePath,
+            category: doc.documentType,
+            description: doc.description,
+          })),
+        ])
         toast({
           title: "Przesłano pliki",
           description: `Pomyślnie dodano ${successfulUploads.length} plik(ów) do kategorii "${category}".`,

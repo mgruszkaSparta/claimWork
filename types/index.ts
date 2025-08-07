@@ -55,6 +55,7 @@ export interface Claim {
   vehicleNumber?: string
   location?: string
   description?: string
+  documents?: UploadedFile[]
   documentsSectionProps?: DocumentsSectionProps
 }
 

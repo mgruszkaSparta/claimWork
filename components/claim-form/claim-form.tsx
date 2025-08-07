@@ -21,7 +21,7 @@ interface ClaimFormProps {
 
 export function ClaimForm({ initialData, mode }: ClaimFormProps) {
   const router = useRouter()
-  const { createClaim, updateClaim, loading, error } = useClaims()
+  const { createClaim, updateClaim, initializeClaim, loading, error } = useClaims()
   
   const [formData, setFormData] = useState<Claim>({
     spartaNumber: '',
@@ -72,7 +72,6 @@ export function ClaimForm({ initialData, mode }: ClaimFormProps) {
   })
 
   const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([])
-  const [pendingFiles, setPendingFiles] = useState<UploadedFile[]>([])
   const [requiredDocuments, setRequiredDocuments] = useState<RequiredDocument[]>([
     { id: '1', name: 'Zgłoszenie szkody', required: true, uploaded: false, description: 'Formularz zgłoszenia szkody' },
     { id: '2', name: 'Dowód rejestracyjny', required: true, uploaded: false, description: 'Kopia dowodu rejestracyjnego pojazdu' },
@@ -82,6 +81,16 @@ export function ClaimForm({ initialData, mode }: ClaimFormProps) {
   ])
 
   const isDisabled = mode === 'view'
+
+  useEffect(() => {
+    if (mode === 'create' && !formData.id) {
+      initializeClaim().then((id) => {
+        if (id) {
+          setFormData((prev) => ({ ...prev, id }))
+        }
+      })
+    }
+  }, [mode, formData.id, initializeClaim])
 
   const handleInputChange = (field: keyof Claim, value: any) => {
     setFormData(prev => ({
@@ -127,31 +136,15 @@ export function ClaimForm({ initialData, mode }: ClaimFormProps) {
     try {
       const payload = { ...formData, documents: uploadedFiles }
 
-      if (mode === 'create') {
-        const result = await createClaim(payload)
-        if (result && result.id) {
-          if (pendingFiles.length > 0) {
-            await Promise.all(
-              pendingFiles.map(async (file) => {
-                if (!file.file) return
-                const formDataFile = new FormData()
-                formDataFile.append('file', file.file)
-                formDataFile.append('eventId', result.id.toString())
-                formDataFile.append('documentType', file.category || 'Inne dokumenty')
-                formDataFile.append('uploadedBy', 'Current User')
-                await fetch('/api/documents/upload', {
-                  method: 'POST',
-                  body: formDataFile,
-                })
-              })
-            )
-          }
-          router.push(`/claims/${result.id}/view`)
-        }
-      } else if (mode === 'edit' && formData.id) {
+      if (formData.id) {
         const result = await updateClaim(formData.id, payload)
         if (result) {
           router.push(`/claims/${formData.id}/view`)
+        }
+      } else {
+        const result = await createClaim(payload)
+        if (result && result.id) {
+          router.push(`/claims/${result.id}/view`)
         }
       }
     } catch (err) {
@@ -334,15 +327,15 @@ export function ClaimForm({ initialData, mode }: ClaimFormProps) {
             <CardTitle>Dokumenty</CardTitle>
           </CardHeader>
           <CardContent>
-            <DocumentsSection
-              uploadedFiles={uploadedFiles}
-              setUploadedFiles={setUploadedFiles}
-              pendingFiles={pendingFiles}
-              setPendingFiles={setPendingFiles}
-              requiredDocuments={requiredDocuments}
-              setRequiredDocuments={setRequiredDocuments}
-              eventId={formData.id}
-            />
+            {formData.id && (
+              <DocumentsSection
+                uploadedFiles={uploadedFiles}
+                setUploadedFiles={setUploadedFiles}
+                requiredDocuments={requiredDocuments}
+                setRequiredDocuments={setRequiredDocuments}
+                eventId={formData.id}
+              />
+            )}
           </CardContent>
         </Card>
 

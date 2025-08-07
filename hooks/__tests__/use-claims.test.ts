@@ -21,7 +21,7 @@ test('includes dropdown selections in payload', () => {
   assert.equal(payload.handlerId, 9)
 })
 
-test('participant and driver ids remain strings', () => {
+test('participant and driver ids are numeric', () => {
   const payload = transformFrontendClaimToApiPayload({
     injuredParty: {
       id: '123',
@@ -31,6 +31,6 @@ test('participant and driver ids remain strings', () => {
 
   const participant = payload.participants?.[0]
   const driver = participant?.drivers?.[0]
-  assert.equal(participant?.id, '123')
-  assert.equal(driver?.id, '456')
+  assert.equal(participant?.id, 123)
+  assert.equal(driver?.id, 456)
 })

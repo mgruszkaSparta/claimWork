@@ -14,8 +14,20 @@ namespace AutomotiveClaimsApi.Services
         Task<DocumentDto> UploadAndCreateDocumentAsync(IFormFile file, CreateDocumentDto createDto);
         Task<bool> DeleteDocumentAsync(Guid id);
         Task<bool> DeleteDocumentAsync(string filePath);
+        /// <summary>
+        /// Retrieves a document for download by its identifier.
+        /// </summary>
+        /// <remarks>
+        /// Callers are responsible for disposing the <see cref="DocumentDownloadResult.FileStream"/> returned in the result.
+        /// </remarks>
         Task<DocumentDownloadResult?> DownloadDocumentAsync(Guid id);
         Task<(string FilePath, string OriginalFileName)> SaveDocumentAsync(IFormFile file, string category, string? description);
+        /// <summary>
+        /// Retrieves a document based on its file path.
+        /// </summary>
+        /// <remarks>
+        /// Callers are responsible for disposing the <see cref="DocumentDownloadResult.FileStream"/> returned in the result.
+        /// </remarks>
         Task<DocumentDownloadResult?> GetDocumentAsync(string filePath);
         Task<Stream> GetDocumentStreamAsync(string filePath);
         Task<DocumentDto> UploadDocumentAsync(IFormFile file, string category, string entityId);

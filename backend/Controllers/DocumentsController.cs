@@ -105,6 +105,7 @@ namespace AutomotiveClaimsApi.Controllers
             if (result == null)
                 return NotFound();
 
+            // File() handles disposing the stream after the response is sent.
             return File(result.FileStream, result.ContentType, result.FileName);
         }
 
@@ -115,6 +116,7 @@ namespace AutomotiveClaimsApi.Controllers
             if (result == null)
                 return NotFound();
 
+            // File() handles disposing the stream after the response is sent.
             return File(result.FileStream, result.ContentType);
         }
 

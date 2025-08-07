@@ -303,7 +303,7 @@ export const ClaimMainContent = ({
       const response = await fetch("/api/dictionaries/claim-statuses")
       if (response.ok) {
         const data = await response.json()
-        setClaimStatuses(data)
+        setClaimStatuses(data.items ?? [])
       } else {
         throw new Error(`HTTP error! status: ${response.status}`)
       }
@@ -337,7 +337,7 @@ export const ClaimMainContent = ({
       const response = await fetch("/api/dictionaries/case-handlers")
       if (response.ok) {
         const data = await response.json()
-        setCaseHandlers(data)
+        setCaseHandlers(data.items ?? [])
       } else {
         throw new Error(`HTTP error! status: ${response.status}`)
       }

@@ -43,8 +43,6 @@ namespace AutomotiveClaimsApi.Models
         [MaxLength(200)]
         public string? InsuranceCompanyEmail { get; set; }
 
-        public int? InsuranceCompanyId { get; set; }
-
         [MaxLength(100)]
         public string? PolicyNumber { get; set; }
 
@@ -80,8 +78,6 @@ namespace AutomotiveClaimsApi.Models
         [MaxLength(200)]
         public string? Client { get; set; }
 
-        public int? ClientId { get; set; }
-
         [MaxLength(100)]
         public string? ReportingChannel { get; set; }
 
@@ -106,8 +102,6 @@ namespace AutomotiveClaimsApi.Models
 
         [MaxLength(50)]
         public string? HandlerPhone { get; set; }
-
-        public int? HandlerId { get; set; }
 
         public DateTime? EventTime { get; set; }
 

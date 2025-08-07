@@ -21,6 +21,9 @@ export function ClaimsList({ onEditClaim, onNewClaim }: ClaimsListProps) {
   const router = useRouter()
   const [searchTerm, setSearchTerm] = useState("")
   const [filterStatus, setFilterStatus] = useState("all")
+  const [filterBrand, setFilterBrand] = useState("")
+  const [filterHandler, setFilterHandler] = useState("")
+  const [showFilters, setShowFilters] = useState(false)
   const [isRefreshing, setIsRefreshing] = useState(false)
 
   const { claims, loading, error, deleteClaim, fetchClaims } = useClaims()
@@ -53,8 +56,12 @@ export function ClaimsList({ onEditClaim, onNewClaim }: ClaimsListProps) {
       claim.brand?.toLowerCase().includes(lowerCaseSearchTerm)
 
     const matchesFilter = filterStatus === "all" || claim.status === filterStatus
+    const matchesBrand =
+      !filterBrand || claim.brand?.toLowerCase().includes(filterBrand.toLowerCase())
+    const matchesHandler =
+      !filterHandler || claim.liquidator?.toLowerCase().includes(filterHandler.toLowerCase())
 
-    return matchesSearch && matchesFilter
+    return matchesSearch && matchesFilter && matchesBrand && matchesHandler
   })
 
   const getStatusColor = (status: string) => {
@@ -226,12 +233,33 @@ export function ClaimsList({ onEditClaim, onNewClaim }: ClaimsListProps) {
               <option value="ODRZUCONA">Odrzucona</option>
               <option value="ZAWIESZONA">Zawieszona</option>
             </select>
-            <Button variant="outline" size="sm" className="h-9 text-sm bg-white">
+            <Button
+              variant="outline"
+              size="sm"
+              className="h-9 text-sm bg-white"
+              onClick={() => setShowFilters(!showFilters)}
+            >
               <Filter className="h-3 w-3 mr-1" />
               Filtry
             </Button>
           </div>
         </div>
+        {showFilters && (
+          <div className="mt-3 flex flex-col sm:flex-row gap-3">
+            <Input
+              placeholder="Filtruj po marce..."
+              value={filterBrand}
+              onChange={(e) => setFilterBrand(e.target.value)}
+              className="h-9 text-sm"
+            />
+            <Input
+              placeholder="Filtruj po likwidatorze..."
+              value={filterHandler}
+              onChange={(e) => setFilterHandler(e.target.value)}
+              className="h-9 text-sm"
+            />
+          </div>
+        )}
       </div>
 
       {/* Claims Table */}
@@ -264,9 +292,12 @@ export function ClaimsList({ onEditClaim, onNewClaim }: ClaimsListProps) {
                   </th>
                 </tr>
               </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
+              <tbody className="divide-y divide-gray-200">
                 {filteredClaims.map((claim) => (
-                  <tr key={claim.id} className="hover:bg-gray-50 transition-colors">
+                  <tr
+                    key={claim.id}
+                    className="odd:bg-white even:bg-gray-50 hover:bg-gray-100 transition-colors"
+                  >
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div>
                         <div className="text-sm font-medium text-gray-900">{claim.vehicleNumber || "-"}</div>

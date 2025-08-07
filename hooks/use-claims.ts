@@ -130,10 +130,11 @@ export const transformFrontendClaimToApiPayload = (
   return {
     ...rest,
 
-    insuranceCompanyId: insuranceCompanyId ? parseInt(insuranceCompanyId) : undefined,
-    leasingCompanyId: leasingCompanyId ? parseInt(leasingCompanyId) : undefined,
-    handlerId: handlerId ? parseInt(handlerId) : undefined,
-    clientId: clientId ? parseInt(clientId) : undefined,
+    // Convert string identifiers to numbers for API payload
+    insuranceCompanyId: insuranceCompanyId ? parseInt(insuranceCompanyId, 10) : undefined,
+    leasingCompanyId: leasingCompanyId ? parseInt(leasingCompanyId, 10) : undefined,
+    clientId: clientId ? parseInt(clientId, 10) : undefined,
+    handlerId: handlerId ? parseInt(handlerId, 10) : undefined,
     riskType,
     damageType,
     damageDate: rest.damageDate ? new Date(rest.damageDate).toISOString() : undefined,

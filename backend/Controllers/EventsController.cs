@@ -147,11 +147,10 @@ namespace AutomotiveClaimsApi.Controllers
         }
 
         [HttpPost]
-        public async Task<ActionResult<EventDto>> CreateEvent([FromBody] EventUpsertRequest request)
+        public async Task<ActionResult<EventDto>> CreateEvent([FromBody] EventUpsertDto eventDto)
         {
             try
             {
-                var eventDto = request.EventDto;
                 var eventEntity = new Event
                 {
                     Id = Guid.NewGuid(),
@@ -282,11 +281,10 @@ namespace AutomotiveClaimsApi.Controllers
         }
 
         [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateEvent(Guid id, [FromBody] EventUpsertRequest request)
+        public async Task<IActionResult> UpdateEvent(Guid id, [FromBody] EventUpsertDto eventDto)
         {
             try
             {
-                var eventDto = request.EventDto;
                 var eventEntity = await _context.Events
                     .Include(e => e.Participants).ThenInclude(p => p.Drivers)
                     .Include(e => e.Damages)

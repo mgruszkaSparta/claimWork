@@ -8,7 +8,7 @@ import { transformFrontendClaimToApiPayload } from '../use-claims'
 test('includes dropdown selections in payload', () => {
   const payload = transformFrontendClaimToApiPayload({
     riskType: 'RT',
-    damageType: 'DT',
+    damageType: { code: 'DT', name: 'Damage' } as any,
     insuranceCompanyId: '5',
     clientId: '7',
     handlerId: '9',

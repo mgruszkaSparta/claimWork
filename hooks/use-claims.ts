@@ -74,6 +74,9 @@ export const transformFrontendClaimToApiPayload = (
     ...rest
   } = claimData
 
+  const damageTypeValue =
+    typeof damageType === "object" ? (damageType as any).code : damageType
+
   const participants: ParticipantUpsertDto[] = []
 
   const mapParticipant = (p: ParticipantInfo, role: string): ParticipantUpsertDto => ({
@@ -131,14 +134,13 @@ export const transformFrontendClaimToApiPayload = (
     leasingCompanyId: leasingCompanyId ? parseInt(leasingCompanyId) : undefined,
     handlerId: handlerId ? parseInt(handlerId) : undefined,
     clientId: clientId ? parseInt(clientId) : undefined,
-
     riskType,
     damageType,
     damageDate: rest.damageDate ? new Date(rest.damageDate).toISOString() : undefined,
     reportDate: rest.reportDate ? new Date(rest.reportDate).toISOString() : undefined,
     reportDateToInsurer: rest.reportDateToInsurer ? new Date(rest.reportDateToInsurer).toISOString() : undefined,
     eventTime: rest.eventTime,
-    servicesCalled,
+    servicesCalled: servicesCalled?.join(","),
     participants: participants,
 
     documents: documents?.map((d) => ({ id: d.id, filePath: d.url })),

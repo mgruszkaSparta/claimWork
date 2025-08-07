@@ -898,6 +898,10 @@ namespace AutomotiveClaimsApi.Controllers
                 IsPrivate = dto.IsPrivate,
                 Priority = dto.Priority,
                 Tags = dto.Tags != null ? string.Join(",", dto.Tags) : null,
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow
+            };
+        }
 
         private static Damage MapDamageDtoToModel(DamageUpsertDto dto, Guid eventId)
         {
@@ -953,6 +957,10 @@ namespace AutomotiveClaimsApi.Controllers
                 MessageId = dto.MessageId,
                 InReplyTo = dto.InReplyTo,
                 References = dto.References,
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow
+            };
+        }
 
         private static Decision MapDecisionDtoToModel(DecisionUpsertDto dto, Guid eventId)
         {

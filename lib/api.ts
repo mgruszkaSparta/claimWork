@@ -52,6 +52,47 @@ export interface EventUpsertDto {
   payout?: number
   currency?: string
   participants?: ParticipantUpsertDto[]
+  notes?: NoteUpsertDto[]
+  emails?: EmailUpsertDto[]
+}
+
+export interface NoteUpsertDto {
+  eventId?: string
+  category?: string
+  title?: string
+  content: string
+  createdBy?: string
+  isPrivate?: boolean
+  priority?: string
+  tags?: string[]
+}
+
+export interface EmailUpsertDto {
+  from: string
+  to: string
+  cc?: string
+  bcc?: string
+  subject: string
+  body: string
+  bodyHtml?: string
+  isHtml?: boolean
+  priority?: string
+  direction?: string
+  status?: string
+  sentAt?: string
+  receivedAt?: string
+  readAt?: string
+  isRead?: boolean
+  isImportant?: boolean
+  isArchived?: boolean
+  tags?: string
+  category?: string
+  claimId?: string
+  claimNumber?: string
+  threadId?: string
+  messageId?: string
+  inReplyTo?: string
+  references?: string
 }
 
 export interface ParticipantDto {

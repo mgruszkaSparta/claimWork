@@ -168,6 +168,22 @@ namespace AutomotiveClaimsApi.Controllers
                     }
                 }
 
+                if (eventDto.Notes != null)
+                {
+                    foreach (var nDto in eventDto.Notes)
+                    {
+                        _context.Notes.Add(MapNoteDtoToModel(nDto, eventEntity.Id));
+                    }
+                }
+
+                if (eventDto.Emails != null)
+                {
+                    foreach (var eDto in eventDto.Emails)
+                    {
+                        _context.Emails.Add(MapEmailDtoToModel(eDto, eventEntity.Id));
+                    }
+                }
+
                 await _context.SaveChangesAsync();
 
                 // Reload the entity with all related data
@@ -216,6 +232,12 @@ namespace AutomotiveClaimsApi.Controllers
                 _context.Drivers.RemoveRange(existingDrivers);
                 _context.Participants.RemoveRange(eventEntity.Participants);
 
+                var existingNotes = await _context.Notes.Where(n => n.EventId == eventEntity.Id).ToListAsync();
+                _context.Notes.RemoveRange(existingNotes);
+
+                var existingEmails = await _context.Emails.Where(e => e.EventId == eventEntity.Id).ToListAsync();
+                _context.Emails.RemoveRange(existingEmails);
+
                 // Add new participants
                 if (eventDto.Participants != null)
                 {
@@ -230,6 +252,22 @@ namespace AutomotiveClaimsApi.Controllers
                                 _context.Drivers.Add(MapDriverDtoToModel(dDto, eventEntity.Id, participant.Id));
                             }
                         }
+                    }
+                }
+
+                if (eventDto.Notes != null)
+                {
+                    foreach (var nDto in eventDto.Notes)
+                    {
+                        _context.Notes.Add(MapNoteDtoToModel(nDto, eventEntity.Id));
+                    }
+                }
+
+                if (eventDto.Emails != null)
+                {
+                    foreach (var eDto in eventDto.Emails)
+                    {
+                        _context.Emails.Add(MapEmailDtoToModel(eDto, eventEntity.Id));
                     }
                 }
 
@@ -381,6 +419,61 @@ namespace AutomotiveClaimsApi.Controllers
                 IsMainDriver = dto.IsMainDriver,
                 UpdatedAt = DateTime.UtcNow,
                 CreatedAt = DateTime.UtcNow // Simplified
+            };
+        }
+
+        private static Note MapNoteDtoToModel(NoteUpsertDto dto, Guid eventId)
+        {
+            return new Note
+            {
+                Id = Guid.NewGuid(),
+                EventId = eventId,
+                Category = dto.Category,
+                Title = dto.Title,
+                Content = dto.Content,
+                CreatedBy = dto.CreatedBy,
+                UpdatedBy = dto.CreatedBy,
+                IsPrivate = dto.IsPrivate,
+                Priority = dto.Priority,
+                Tags = dto.Tags != null ? string.Join(",", dto.Tags) : null,
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow
+            };
+        }
+
+        private static Email MapEmailDtoToModel(EmailUpsertDto dto, Guid eventId)
+        {
+            return new Email
+            {
+                Id = Guid.NewGuid(),
+                EventId = eventId,
+                From = dto.From,
+                To = dto.To,
+                Cc = dto.Cc,
+                Bcc = dto.Bcc,
+                Subject = dto.Subject,
+                Body = dto.Body,
+                BodyHtml = dto.BodyHtml,
+                IsHtml = dto.IsHtml,
+                Priority = dto.Priority,
+                Direction = dto.Direction,
+                Status = dto.Status,
+                SentAt = dto.SentAt,
+                ReceivedAt = dto.ReceivedAt,
+                ReadAt = dto.ReadAt,
+                IsRead = dto.IsRead,
+                IsImportant = dto.IsImportant,
+                IsArchived = dto.IsArchived,
+                Tags = dto.Tags,
+                Category = dto.Category,
+                ClaimId = dto.ClaimId,
+                ClaimNumber = dto.ClaimNumber,
+                ThreadId = dto.ThreadId,
+                MessageId = dto.MessageId,
+                InReplyTo = dto.InReplyTo,
+                References = dto.References,
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow
             };
         }
 

@@ -13,6 +13,7 @@ namespace AutomotiveClaimsApi.Services
         Task<DocumentDto?> GetDocumentByIdAsync(Guid id);
         Task<DocumentDto> UploadAndCreateDocumentAsync(IFormFile file, CreateDocumentDto createDto);
         Task<bool> DeleteDocumentAsync(Guid id);
+        Task<bool> DeleteDocumentAsync(string filePath);
         Task<DocumentDownloadResult?> DownloadDocumentAsync(Guid id);
         Task<(string FilePath, string OriginalFileName)> SaveDocumentAsync(IFormFile file, string category, string? description);
         Task<DocumentDownloadResult?> GetDocumentAsync(string filePath);

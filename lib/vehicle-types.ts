@@ -1,6 +1,6 @@
 import type { VehicleType, VehicleTypeResponse } from "@/types/vehicle-type"
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5200/api"
+const API_BASE_URL = "/api/dictionaries/vehicle-types"
 
 export const vehicleTypeService = {
   async getVehicleTypes(search?: string): Promise<VehicleType[]> {
@@ -10,7 +10,7 @@ export const vehicleTypeService = {
         params.append("search", search)
       }
 
-      const url = `${API_BASE_URL}/vehicle-types${params.toString() ? `?${params.toString()}` : ""}`
+      const url = `${API_BASE_URL}${params.toString() ? `?${params.toString()}` : ""}`
       console.log("Fetching vehicle types from:", url)
 
       const response = await fetch(url)
@@ -35,7 +35,7 @@ export const vehicleTypeService = {
 
   async getVehicleTypeById(id: string): Promise<VehicleType | null> {
     try {
-      const response = await fetch(`${API_BASE_URL}/vehicle-types/${id}`)
+      const response = await fetch(`${API_BASE_URL}/${id}`)
 
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`)

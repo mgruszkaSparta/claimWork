@@ -181,7 +181,7 @@ export default function ClientDropdown({
           ) : (
             filteredClients.map((client) => (
               <div
-                key={client.id}
+                key={`client-${client.id}`}
                 className={`dropdown-item ${selectedClient?.id === client.id ? "selected" : ""}`}
                 onClick={() => selectClient(client)}
               >

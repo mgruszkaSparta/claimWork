@@ -847,7 +847,7 @@ export const DocumentsSection = ({
                         <tbody>
                           {documentsForCategory.map((document, index) => (
                             <tr
-                              key={document.id}
+                              key={`${document.status}-${document.id}`}
                               className={`border-t ${index % 2 === 0 ? "bg-white" : "bg-gray-50/50"}`}
                             >
                               <td className="p-3 font-medium flex items-center gap-2">
@@ -931,7 +931,11 @@ export const DocumentsSection = ({
                   ) : documentsForCategory.length > 0 ? (
                     <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
                       {documentsForCategory.map((document) => (
-                        <FileCard key={document.id} document={document} onDelete={handleFileDelete} />
+                        <FileCard
+                          key={`${document.status}-${document.id}`}
+                          document={document}
+                          onDelete={handleFileDelete}
+                        />
                       ))}
                     </div>
                   ) : (
@@ -972,7 +976,7 @@ export const DocumentsSection = ({
               <div className="border rounded-md">
                 {missingRequiredDocs.map((doc, index, arr) => (
                   <div
-                    key={doc.id}
+                    key={`required-${doc.id}`}
                     className={`flex items-center justify-between p-4 ${index < arr.length - 1 ? "border-b" : ""}`}
                   >
                     <div className="flex items-center gap-3">
@@ -1005,7 +1009,7 @@ export const DocumentsSection = ({
                 {allDocuments
                   .filter((d) => d.documentType === groupPreviewCategory)
                   .map((document) => (
-                    <Card key={document.id} className="overflow-hidden">
+                    <Card key={`${document.status}-${document.id}`} className="overflow-hidden">
                       <div className="aspect-w-16 aspect-h-12 bg-gray-100 flex items-center justify-center min-h-[200px]">
                         {document.contentType.startsWith("image/") ? (
                           <img

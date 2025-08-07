@@ -464,7 +464,9 @@ export const DocumentsSection = ({
   }
 
   const handlePreview = (document: Document, documentsArray?: Document[]) => {
-    const docsToPreview = documentsArray || allDocuments
+    const docsToPreview =
+      documentsArray ||
+      documents.filter((d) => d.documentType === document.documentType)
     const index = docsToPreview.findIndex((d) => d.id === document.id)
 
     setPreviewDocuments(docsToPreview)
@@ -1133,6 +1135,7 @@ export const DocumentsSection = ({
               <div className="flex justify-between items-center p-4 bg-gray-50 border-b">
                 <div className="flex items-center gap-4">
                   <h3 className="text-lg font-semibold truncate max-w-md">{previewDocument.originalFileName}</h3>
+                  <Badge variant="secondary">{previewDocument.documentType}</Badge>
                   <div className="text-sm text-gray-500">
                     {currentPreviewIndex + 1} z {previewDocuments.length}
                   </div>

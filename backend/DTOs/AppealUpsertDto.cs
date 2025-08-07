@@ -14,5 +14,8 @@ namespace AutomotiveClaimsApi.DTOs
         public decimal? AppealAmount { get; set; }
         public DateTime? DecisionDate { get; set; }
         public string? DecisionReason { get; set; }
+        public string? DocumentPath { get; set; }
+        public string? DocumentName { get; set; }
+        public string? DocumentDescription { get; set; }
     }
 }

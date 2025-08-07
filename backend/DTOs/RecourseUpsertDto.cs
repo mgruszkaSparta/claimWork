@@ -4,6 +4,7 @@ namespace AutomotiveClaimsApi.DTOs
 {
     public class RecourseUpsertDto
     {
+        public Guid? Id { get; set; }
         public Guid? EventId { get; set; }
         public string? Status { get; set; }
         public DateTime? InitiationDate { get; set; }

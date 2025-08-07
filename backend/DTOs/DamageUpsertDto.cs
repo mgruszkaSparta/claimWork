@@ -5,6 +5,7 @@ namespace AutomotiveClaimsApi.DTOs
 {
     public class DamageUpsertDto
     {
+        public Guid? Id { get; set; }
         public Guid? EventId { get; set; }
 
         [Required]

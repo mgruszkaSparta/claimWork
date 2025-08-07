@@ -129,12 +129,12 @@ export function ClaimForm({ initialData, mode }: ClaimFormProps) {
       if (mode === 'create') {
         const result = await createClaim(payload)
         if (result) {
-          router.push(`/claims/${result.id}/view`)
+          router.push('/claims')
         }
       } else if (mode === 'edit' && formData.id) {
         const result = await updateClaim(formData.id, payload)
         if (result) {
-          router.push(`/claims/${result.id}/view`)
+          router.push('/claims')
         }
       }
     } catch (err) {

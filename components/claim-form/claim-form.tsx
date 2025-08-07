@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
@@ -22,6 +22,7 @@ interface ClaimFormProps {
 export function ClaimForm({ initialData, mode }: ClaimFormProps) {
   const router = useRouter()
   const { createClaim, updateClaim, initializeClaim, loading, error } = useClaims()
+  const initialized = useRef(false)
   
   const [formData, setFormData] = useState<Claim>({
     spartaNumber: '',
@@ -83,7 +84,8 @@ export function ClaimForm({ initialData, mode }: ClaimFormProps) {
   const isDisabled = mode === 'view'
 
   useEffect(() => {
-    if (mode === 'create' && !formData.id) {
+    if (!initialized.current && mode === 'create' && !formData.id) {
+      initialized.current = true
       initializeClaim().then((id) => {
         if (id) {
           setFormData((prev) => ({ ...prev, id }))

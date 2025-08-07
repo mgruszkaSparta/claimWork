@@ -126,7 +126,7 @@ export default function ViewClaimPage() {
           ...claimData,
           injuredParty: claimData.participants?.find((p: any) => p.role === "Poszkodowany"),
           perpetrator: claimData.participants?.find((p: any) => p.role === "Sprawca"),
-          servicesCalled: claimData.servicesCalled?.split(",") || [],
+          servicesCalled: claimData.servicesCalled || [],
           damages: claimData.damages || [],
           decisions: claimData.decisions || [],
           appeals: claimData.appeals || [],

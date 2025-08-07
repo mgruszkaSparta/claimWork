@@ -148,7 +148,7 @@ export default function ClaimPage() {
             inspectionContactEmail: "",
             drivers: [{ id: "", name: "", licenseNumber: "" }],
           },
-          servicesCalled: claimData.servicesCalled?.split(",") || [],
+          servicesCalled: claimData.servicesCalled || [],
           damages: claimData.damages || [],
           decisions: claimData.decisions || [],
           appeals: claimData.appeals || [],

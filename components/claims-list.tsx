@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useMemo } from "react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Search, Plus, Filter, Eye, Edit, Trash2, RefreshCw, AlertCircle, Loader2, X } from "lucide-react"
 import { useClaims } from "@/hooks/use-claims"
+import { filterClaims } from "@/hooks/filter-claims"
 import { useToast } from "@/hooks/use-toast"
 import type { Claim } from "@/types"
 
@@ -17,12 +18,16 @@ interface ClaimsListProps {
   onNewClaim?: () => void
 }
 
+interface ClaimFilters {
+  statuses: string[]
+  client?: string
+  handler?: string
+}
+
 export function ClaimsList({ onEditClaim, onNewClaim }: ClaimsListProps) {
   const router = useRouter()
   const [searchTerm, setSearchTerm] = useState("")
-  const [filterStatus, setFilterStatus] = useState("all")
-  const [filterBrand, setFilterBrand] = useState("")
-  const [filterHandler, setFilterHandler] = useState("")
+  const [filters, setFilters] = useState<ClaimFilters>({ statuses: [] })
   const [showFilters, setShowFilters] = useState(false)
   const [isRefreshing, setIsRefreshing] = useState(false)
 
@@ -45,24 +50,10 @@ export function ClaimsList({ onEditClaim, onNewClaim }: ClaimsListProps) {
     loadClaims()
   }, [fetchClaims, toast])
 
-  const filteredClaims = claims.filter((claim) => {
-    const lowerCaseSearchTerm = searchTerm.toLowerCase()
-    const matchesSearch =
-      claim.vehicleNumber?.toLowerCase().includes(lowerCaseSearchTerm) ||
-      claim.claimNumber?.toLowerCase().includes(lowerCaseSearchTerm) ||
-      claim.spartaNumber?.toLowerCase().includes(lowerCaseSearchTerm) ||
-      claim.client?.toLowerCase().includes(lowerCaseSearchTerm) ||
-      claim.liquidator?.toLowerCase().includes(lowerCaseSearchTerm) ||
-      claim.brand?.toLowerCase().includes(lowerCaseSearchTerm)
-
-    const matchesFilter = filterStatus === "all" || claim.status === filterStatus
-    const matchesBrand =
-      !filterBrand || claim.brand?.toLowerCase().includes(filterBrand.toLowerCase())
-    const matchesHandler =
-      !filterHandler || claim.liquidator?.toLowerCase().includes(filterHandler.toLowerCase())
-
-    return matchesSearch && matchesFilter && matchesBrand && matchesHandler
-  })
+  const filteredClaims = useMemo(
+    () => filterClaims(claims, searchTerm, filters),
+    [claims, searchTerm, filters]
+  )
 
   const getStatusColor = (status: string) => {
     switch (status?.toUpperCase()) {
@@ -220,47 +211,56 @@ export function ClaimsList({ onEditClaim, onNewClaim }: ClaimsListProps) {
               className="pl-9 h-9 text-sm"
             />
           </div>
-          <div className="flex gap-2">
-            <select
-              value={filterStatus}
-              onChange={(e) => setFilterStatus(e.target.value)}
-              className="px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#1a3a6c] focus:border-[#1a3a6c] bg-white"
-            >
-              <option value="all">Wszystkie statusy</option>
-              <option value="NOWA SZKODA">Nowa szkoda</option>
-              <option value="W TRAKCIE">W trakcie</option>
-              <option value="ZAKOŃCZONA">Zakończona</option>
-              <option value="ODRZUCONA">Odrzucona</option>
-              <option value="ZAWIESZONA">Zawieszona</option>
-            </select>
-            <Button
-              variant="outline"
-              size="sm"
-              className="h-9 text-sm bg-white"
-              onClick={() => setShowFilters(!showFilters)}
-            >
-              <Filter className="h-3 w-3 mr-1" />
-              Filtry
-            </Button>
+            <div className="flex gap-2">
+              <select
+                multiple
+                value={filters.statuses}
+                onChange={(e) =>
+                  setFilters((prev) => ({
+                    ...prev,
+                    statuses: Array.from(e.target.selectedOptions).map((o) => o.value),
+                  }))
+                }
+                className="px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#1a3a6c] focus:border-[#1a3a6c] bg-white"
+              >
+                <option value="NOWA SZKODA">Nowa szkoda</option>
+                <option value="W TRAKCIE">W trakcie</option>
+                <option value="ZAKOŃCZONA">Zakończona</option>
+                <option value="ODRZUCONA">Odrzucona</option>
+                <option value="ZAWIESZONA">Zawieszona</option>
+              </select>
+              <Button
+                variant="outline"
+                size="sm"
+                className="h-9 text-sm bg-white"
+                onClick={() => setShowFilters(!showFilters)}
+              >
+                <Filter className="h-3 w-3 mr-1" />
+                Filtry
+              </Button>
+            </div>
           </div>
+          {showFilters && (
+            <div className="mt-3 flex flex-col sm:flex-row gap-3">
+              <Input
+                placeholder="Filtruj po kliencie..."
+                value={filters.client || ""}
+                onChange={(e) =>
+                  setFilters((prev) => ({ ...prev, client: e.target.value || undefined }))
+                }
+                className="h-9 text-sm"
+              />
+              <Input
+                placeholder="Filtruj po likwidatorze..."
+                value={filters.handler || ""}
+                onChange={(e) =>
+                  setFilters((prev) => ({ ...prev, handler: e.target.value || undefined }))
+                }
+                className="h-9 text-sm"
+              />
+            </div>
+          )}
         </div>
-        {showFilters && (
-          <div className="mt-3 flex flex-col sm:flex-row gap-3">
-            <Input
-              placeholder="Filtruj po marce..."
-              value={filterBrand}
-              onChange={(e) => setFilterBrand(e.target.value)}
-              className="h-9 text-sm"
-            />
-            <Input
-              placeholder="Filtruj po likwidatorze..."
-              value={filterHandler}
-              onChange={(e) => setFilterHandler(e.target.value)}
-              className="h-9 text-sm"
-            />
-          </div>
-        )}
-      </div>
 
       {/* Claims Table */}
       <div className="flex-1 px-6 pb-4 overflow-hidden">
@@ -381,15 +381,17 @@ export function ClaimsList({ onEditClaim, onNewClaim }: ClaimsListProps) {
                 <div className="mx-auto w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mb-4">
                   <Search className="h-8 w-8 text-gray-400" />
                 </div>
-                <h3 className="text-sm font-medium text-gray-900 mb-1">
-                  {searchTerm || filterStatus !== "all" ? "Brak szkód spełniających kryteria" : "Brak szkód w systemie"}
-                </h3>
-                <p className="text-sm text-gray-500 mb-4">
-                  {searchTerm || filterStatus !== "all"
-                    ? "Spróbuj zmienić kryteria wyszukiwania"
-                    : "Dodaj pierwszą szkodę, aby rozpocząć"}
-                </p>
-                {!searchTerm && filterStatus === "all" && (
+                  <h3 className="text-sm font-medium text-gray-900 mb-1">
+                    {searchTerm || filters.statuses.length > 0 || filters.client || filters.handler
+                      ? "Brak szkód spełniających kryteria"
+                      : "Brak szkód w systemie"}
+                  </h3>
+                  <p className="text-sm text-gray-500 mb-4">
+                    {searchTerm || filters.statuses.length > 0 || filters.client || filters.handler
+                      ? "Spróbuj zmienić kryteria wyszukiwania"
+                      : "Dodaj pierwszą szkodę, aby rozpocząć"}
+                  </p>
+                  {!searchTerm && filters.statuses.length === 0 && !filters.client && !filters.handler && (
                   <Button className="bg-[#1a3a6c] hover:bg-[#1a3a6c]/90" onClick={onNewClaim || handleNewClaimDirect}>
                     <Plus className="h-4 w-4 mr-2" />
                     Dodaj pierwszą szkodę

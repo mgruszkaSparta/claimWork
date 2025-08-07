@@ -563,6 +563,9 @@ namespace AutomotiveClaimsApi.Migrations
                         .HasMaxLength(200)
                         .HasColumnType("character varying(200)");
 
+                    b.Property<int?>("ClientId")
+                        .HasColumnType("integer");
+
                     b.Property<string>("Comments")
                         .HasColumnType("text");
 
@@ -613,8 +616,11 @@ namespace AutomotiveClaimsApi.Migrations
                         .HasMaxLength(50)
                         .HasColumnType("character varying(50)");
 
+
                     b.Property<int?>("InsuranceCompanyId")
-                        .HasColumnType("integer");
+
+                    b.Property<int?>("HandlerId")
+          .HasColumnType("integer");
 
                     b.Property<string>("InsuranceCompany")
                         .HasMaxLength(200)
@@ -627,6 +633,9 @@ namespace AutomotiveClaimsApi.Migrations
                     b.Property<string>("InsuranceCompanyPhone")
                         .HasMaxLength(50)
                         .HasColumnType("character varying(50)");
+
+                    b.Property<int?>("InsuranceCompanyId")
+                        .HasColumnType("integer");
 
                     b.Property<string>("InsurerClaimNumber")
                         .HasMaxLength(100)

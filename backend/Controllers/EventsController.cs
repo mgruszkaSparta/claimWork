@@ -188,6 +188,21 @@ namespace AutomotiveClaimsApi.Controllers
                     }
                 }
 
+
+                if (eventDto.Notes != null)
+                {
+                    foreach (var nDto in eventDto.Notes)
+                    {
+                        _context.Notes.Add(MapNoteDtoToModel(nDto, eventEntity.Id));
+                    }
+                }
+
+                if (eventDto.Emails != null)
+                {
+                    foreach (var eDto in eventDto.Emails)
+                    {
+                        _context.Emails.Add(MapEmailDtoToModel(eDto, eventEntity.Id));
+
                 if (eventDto.Damages != null)
                 {
                     foreach (var dDto in eventDto.Damages)
@@ -233,6 +248,7 @@ namespace AutomotiveClaimsApi.Controllers
                     foreach (var sDto in eventDto.Settlements)
                     {
                         _context.Settlements.Add(MapSettlementDtoToModel(sDto, eventEntity.Id));
+
                     }
                 }
 
@@ -298,6 +314,12 @@ namespace AutomotiveClaimsApi.Controllers
                 _context.Recourses.RemoveRange(eventEntity.Recourses);
                 _context.Settlements.RemoveRange(eventEntity.Settlements);
 
+                var existingNotes = await _context.Notes.Where(n => n.EventId == eventEntity.Id).ToListAsync();
+                _context.Notes.RemoveRange(existingNotes);
+
+                var existingEmails = await _context.Emails.Where(e => e.EventId == eventEntity.Id).ToListAsync();
+                _context.Emails.RemoveRange(existingEmails);
+
                 // Add new participants
                 if (eventDto.Participants != null)
                 {
@@ -314,6 +336,21 @@ namespace AutomotiveClaimsApi.Controllers
                         }
                     }
                 }
+
+
+                if (eventDto.Notes != null)
+                {
+                    foreach (var nDto in eventDto.Notes)
+                    {
+                        _context.Notes.Add(MapNoteDtoToModel(nDto, eventEntity.Id));
+                    }
+                }
+
+                if (eventDto.Emails != null)
+                {
+                    foreach (var eDto in eventDto.Emails)
+                    {
+                        _context.Emails.Add(MapEmailDtoToModel(eDto, eventEntity.Id));
 
 
                 if (eventDto.Documents != null && eventDto.Documents.Any())
@@ -371,6 +408,7 @@ namespace AutomotiveClaimsApi.Controllers
                     {
                         _context.Settlements.Add(MapSettlementDtoToModel(sDto, eventEntity.Id));
 
+
                     }
                 }
 
@@ -423,6 +461,7 @@ namespace AutomotiveClaimsApi.Controllers
             entity.InsuranceCompany = dto.InsuranceCompany;
             entity.InsuranceCompanyPhone = dto.InsuranceCompanyPhone;
             entity.InsuranceCompanyEmail = dto.InsuranceCompanyEmail;
+            entity.InsuranceCompanyId = dto.InsuranceCompanyId;
             entity.PolicyNumber = dto.PolicyNumber;
             entity.Status = dto.Status;
             entity.DamageDate = dto.DamageDate;
@@ -436,6 +475,7 @@ namespace AutomotiveClaimsApi.Controllers
             entity.Liquidator = dto.Liquidator;
             entity.ClientId = dto.ClientId;
             entity.Client = dto.Client;
+            entity.ClientId = dto.ClientId;
             entity.ReportingChannel = dto.ReportingChannel;
             entity.LeasingCompanyId = dto.LeasingCompanyId;
             entity.LeasingCompany = dto.LeasingCompany;
@@ -445,6 +485,7 @@ namespace AutomotiveClaimsApi.Controllers
             entity.Handler = dto.Handler;
             entity.HandlerEmail = dto.HandlerEmail;
             entity.HandlerPhone = dto.HandlerPhone;
+            entity.HandlerId = dto.HandlerId;
 
             if (DateTime.TryParse(dto.EventTime, out var eventTime))
             {
@@ -820,6 +861,21 @@ namespace AutomotiveClaimsApi.Controllers
             };
         }
 
+        private static Note MapNoteDtoToModel(NoteUpsertDto dto, Guid eventId)
+        {
+            return new Note
+            {
+                Id = Guid.NewGuid(),
+                EventId = eventId,
+                Category = dto.Category,
+                Title = dto.Title,
+                Content = dto.Content,
+                CreatedBy = dto.CreatedBy,
+                UpdatedBy = dto.CreatedBy,
+                IsPrivate = dto.IsPrivate,
+                Priority = dto.Priority,
+                Tags = dto.Tags != null ? string.Join(",", dto.Tags) : null,
+
         private static Damage MapDamageDtoToModel(DamageUpsertDto dto, Guid eventId)
         {
             return new Damage
@@ -836,10 +892,44 @@ namespace AutomotiveClaimsApi.Controllers
                 RepairDate = dto.RepairDate,
                 RepairShop = dto.RepairShop,
                 Notes = dto.Notes,
+
                 CreatedAt = DateTime.UtcNow,
                 UpdatedAt = DateTime.UtcNow
             };
         }
+
+
+        private static Email MapEmailDtoToModel(EmailUpsertDto dto, Guid eventId)
+        {
+            return new Email
+            {
+                Id = Guid.NewGuid(),
+                EventId = eventId,
+                From = dto.From,
+                To = dto.To,
+                Cc = dto.Cc,
+                Bcc = dto.Bcc,
+                Subject = dto.Subject,
+                Body = dto.Body,
+                BodyHtml = dto.BodyHtml,
+                IsHtml = dto.IsHtml,
+                Priority = dto.Priority,
+                Direction = dto.Direction,
+                Status = dto.Status,
+                SentAt = dto.SentAt,
+                ReceivedAt = dto.ReceivedAt,
+                ReadAt = dto.ReadAt,
+                IsRead = dto.IsRead,
+                IsImportant = dto.IsImportant,
+                IsArchived = dto.IsArchived,
+                Tags = dto.Tags,
+                Category = dto.Category,
+                ClaimId = dto.ClaimId,
+                ClaimNumber = dto.ClaimNumber,
+                ThreadId = dto.ThreadId,
+                MessageId = dto.MessageId,
+                InReplyTo = dto.InReplyTo,
+                References = dto.References,
 
         private static Decision MapDecisionDtoToModel(DecisionUpsertDto dto, Guid eventId)
         {
@@ -961,6 +1051,7 @@ namespace AutomotiveClaimsApi.Controllers
             InsuranceCompany = e.InsuranceCompany,
             InsuranceCompanyPhone = e.InsuranceCompanyPhone,
             InsuranceCompanyEmail = e.InsuranceCompanyEmail,
+            InsuranceCompanyId = e.InsuranceCompanyId,
             PolicyNumber = e.PolicyNumber,
             Status = e.Status,
             DamageDate = e.DamageDate,
@@ -974,6 +1065,7 @@ namespace AutomotiveClaimsApi.Controllers
             Liquidator = e.Liquidator,
             ClientId = e.ClientId,
             Client = e.Client,
+            ClientId = e.ClientId,
             ReportingChannel = e.ReportingChannel,
             LeasingCompanyId = e.LeasingCompanyId,
             LeasingCompany = e.LeasingCompany,
@@ -983,6 +1075,7 @@ namespace AutomotiveClaimsApi.Controllers
             Handler = e.Handler,
             HandlerEmail = e.HandlerEmail,
             HandlerPhone = e.HandlerPhone,
+            HandlerId = e.HandlerId,
             EventTime = e.EventTime,
             EventLocation = e.EventLocation,
             EventDescription = e.EventDescription,

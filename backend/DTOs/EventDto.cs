@@ -17,6 +17,7 @@ namespace AutomotiveClaimsApi.DTOs
         public string? InsuranceCompany { get; set; }
         public string? InsuranceCompanyPhone { get; set; }
         public string? InsuranceCompanyEmail { get; set; }
+        public int? InsuranceCompanyId { get; set; }
         public string? PolicyNumber { get; set; }
         public string? Status { get; set; }
         public DateTime? DamageDate { get; set; }
@@ -30,6 +31,7 @@ namespace AutomotiveClaimsApi.DTOs
         public string? Liquidator { get; set; }
         public int? ClientId { get; set; }
         public string? Client { get; set; }
+        public int? ClientId { get; set; }
         public string? ReportingChannel { get; set; }
         public int? LeasingCompanyId { get; set; }
         public string? LeasingCompany { get; set; }
@@ -39,6 +41,7 @@ namespace AutomotiveClaimsApi.DTOs
         public string? Handler { get; set; }
         public string? HandlerEmail { get; set; }
         public string? HandlerPhone { get; set; }
+        public int? HandlerId { get; set; }
         public DateTime? EventTime { get; set; }
         public string? EventLocation { get; set; }
         public string? EventDescription { get; set; }

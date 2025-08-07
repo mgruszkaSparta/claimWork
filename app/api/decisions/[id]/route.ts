@@ -1,108 +1,75 @@
 import { type NextRequest, NextResponse } from "next/server"
 
-// Mock data - replace with actual database calls
-const mockDecisions = [
-  {
-    decisionId: 1,
-    claimId: "1",
-    decisionDate: "2024-01-15T00:00:00Z",
-    status: "Wypłata",
-    paymentAmount: 5000.0,
-    currency: "PLN",
-    compensationTitle: "Pojazd - szkoda częściowa",
-    documentPath: "/documents/decision-1.pdf",
-    documentName: "decision-1.pdf",
-    documentDescription: "Decyzja o wypłacie odszkodowania",
-    createdAt: "2024-01-15T10:00:00Z",
-    updatedAt: "2024-01-15T10:00:00Z",
-  },
-]
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5200"
 
 export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
   try {
-    const id = params.id
+    const response = await fetch(`${API_BASE_URL}/api/decisions/${params.id}`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    })
 
-    // TODO: Replace with actual database call
-    // const response = await fetch(`${process.env.API_BASE_URL}/api/decisions/${id}`)
-    // const decision = await response.json()
-
-    // Mock data for now
-    const mockDecision = mockDecisions.find((d) => d.decisionId === Number.parseInt(id))
-    if (!mockDecision) {
-      return NextResponse.json({ error: "Decision not found" }, { status: 404 })
+    if (!response.ok) {
+      const errorData = await response.text()
+      return NextResponse.json({ error: "Failed to fetch decision", details: errorData }, { status: response.status })
     }
 
-    return NextResponse.json(mockDecision)
+    const data = await response.json()
+    return NextResponse.json(data)
   } catch (error) {
     console.error("Error fetching decision:", error)
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 })
+    return NextResponse.json(
+      { error: "Internal server error", details: error instanceof Error ? error.message : "Unknown error" },
+      { status: 500 },
+    )
   }
 }
 
 export async function PUT(request: NextRequest, { params }: { params: { id: string } }) {
   try {
-    const id = params.id
     const formData = await request.formData()
 
-    const claimId = formData.get("claimId") as string
-    const decisionDate = formData.get("decisionDate") as string
-    const status = formData.get("status") as string
-    const paymentAmount = formData.get("paymentAmount") as string
-    const currency = formData.get("currency") as string
-    const compensationTitle = formData.get("compensationTitle") as string
-    const documentDescription = formData.get("documentDescription") as string
-    const document = formData.get("document") as File
+    const response = await fetch(`${API_BASE_URL}/api/decisions/${params.id}`, {
+      method: "PUT",
+      body: formData,
+    })
 
-    if (!claimId || !decisionDate || !status) {
-      return NextResponse.json({ error: "Required fields missing" }, { status: 400 })
+    if (!response.ok) {
+      const errorData = await response.text()
+      return NextResponse.json({ error: "Failed to update decision", details: errorData }, { status: response.status })
     }
 
-    // Find existing decision
-    const decisionIndex = mockDecisions.findIndex((d) => d.decisionId === Number.parseInt(id))
-    if (decisionIndex === -1) {
-      return NextResponse.json({ error: "Decision not found" }, { status: 404 })
-    }
-
-    // Update decision
-    const updatedDecision = {
-      ...mockDecisions[decisionIndex],
-      claimId,
-      decisionDate,
-      status,
-      paymentAmount: paymentAmount ? Number.parseFloat(paymentAmount) : null,
-      currency: currency || "PLN",
-      compensationTitle: compensationTitle || null,
-      documentPath: document ? `/documents/${document.name}` : null,
-      documentName: document ? document.name : null,
-      documentDescription: documentDescription || null,
-      updatedAt: new Date().toISOString(),
-    }
-
-    mockDecisions[decisionIndex] = updatedDecision
-
-    return NextResponse.json(updatedDecision)
+    const data = await response.json()
+    return NextResponse.json(data)
   } catch (error) {
     console.error("Error updating decision:", error)
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 })
+    return NextResponse.json(
+      { error: "Internal server error", details: error instanceof Error ? error.message : "Unknown error" },
+      { status: 500 },
+    )
   }
 }
 
 export async function DELETE(request: NextRequest, { params }: { params: { id: string } }) {
   try {
-    const id = params.id
+    const response = await fetch(`${API_BASE_URL}/api/decisions/${params.id}`, {
+      method: "DELETE",
+    })
 
-    // Find existing decision
-    const decisionIndex = mockDecisions.findIndex((d) => d.decisionId === Number.parseInt(id))
-    if (decisionIndex === -1) {
-      return NextResponse.json({ error: "Decision not found" }, { status: 404 })
+    if (!response.ok) {
+      const errorData = await response.text()
+      return NextResponse.json({ error: "Failed to delete decision", details: errorData }, { status: response.status })
     }
 
-    // Remove decision from array
-    mockDecisions.splice(decisionIndex, 1)
-
-    return NextResponse.json({ message: "Decision deleted successfully" })
+    return NextResponse.json({ success: true })
   } catch (error) {
     console.error("Error deleting decision:", error)
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 })
+    return NextResponse.json(
+      { error: "Internal server error", details: error instanceof Error ? error.message : "Unknown error" },
+      { status: 500 },
+    )
   }
 }
+

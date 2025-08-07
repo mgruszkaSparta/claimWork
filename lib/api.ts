@@ -145,7 +145,7 @@ export interface EmailUpsertDto {
 }
 
 export interface ParticipantDto {
-  id?: number
+  id?: string
   role?: string
   name?: string
   phone?: string
@@ -191,7 +191,7 @@ export interface ParticipantUpsertDto {
 }
 
 export interface DriverDto {
-  id?: number
+  id?: string
   name?: string
   licenseNumber?: string
   firstName?: string

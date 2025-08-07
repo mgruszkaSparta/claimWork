@@ -67,8 +67,10 @@ const transformFrontendClaimToApiPayload = (claimData: Partial<Claim>): EventUps
   const participants: ParticipantUpsertDto[] = []
 
   const mapParticipant = (p: ParticipantInfo, role: string): ParticipantUpsertDto => ({
+
     id: p.id ? p.id.toString() : undefined,
     role,
+
     name: p.name,
     phone: p.phone,
     email: p.email,
@@ -87,7 +89,9 @@ const transformFrontendClaimToApiPayload = (claimData: Partial<Claim>): EventUps
     inspectionContactPhone: p.inspectionContactPhone,
     inspectionContactEmail: p.inspectionContactEmail,
     drivers: p.drivers?.map((d: DriverInfo) => ({
+
       id: d.id ? d.id.toString() : undefined,
+
       name: d.name,
       licenseNumber: d.licenseNumber,
       firstName: d.firstName,

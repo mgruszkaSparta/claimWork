@@ -1,26 +1,18 @@
 import type { VehicleType, VehicleTypeResponse } from "@/types/vehicle-type"
+import { API_ENDPOINTS } from "@/lib/constants"
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5200/api"
+const VEHICLE_TYPES_URL = API_ENDPOINTS.VEHICLE_TYPES
 
 export const vehicleTypeService = {
-  async getVehicleTypes(search?: string): Promise<VehicleType[]> {
+  async getVehicleTypes(): Promise<VehicleType[]> {
     try {
-      const params = new URLSearchParams()
-      if (search) {
-        params.append("search", search)
-      }
-
-      const url = `${API_BASE_URL}/vehicle-types${params.toString() ? `?${params.toString()}` : ""}`
-      console.log("Fetching vehicle types from:", url)
-
-      const response = await fetch(url)
+      const response = await fetch(VEHICLE_TYPES_URL)
 
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`)
       }
 
       const data: VehicleTypeResponse = await response.json()
-      console.log("Vehicle types response:", data)
 
       if (data.success && Array.isArray(data.data)) {
         return data.data.filter((type) => type.isActive)
@@ -35,7 +27,7 @@ export const vehicleTypeService = {
 
   async getVehicleTypeById(id: string): Promise<VehicleType | null> {
     try {
-      const response = await fetch(`${API_BASE_URL}/vehicle-types/${id}`)
+      const response = await fetch(`${VEHICLE_TYPES_URL}/${id}`)
 
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`)

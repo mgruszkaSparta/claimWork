@@ -969,7 +969,7 @@ const renderParticipantDetails = (participant: ParticipantInfo | undefined, titl
                 <div className="p-4">
                   {expandedSections.harmonogram ? (
                     <div className="border rounded-lg overflow-hidden">
-                      <RepairScheduleSection eventId={claimFormData.id || claimFormData.spartaNumber || ""} />
+                      <RepairScheduleSection eventId={claimFormData.id || claimFormData.spartaNumber || undefined} />
                     </div>
                   ) : (
                     <div className="space-y-4">
@@ -1082,7 +1082,7 @@ const renderParticipantDetails = (participant: ParticipantInfo | undefined, titl
                 <div className="p-4">
                   {expandedSections.naprawa ? (
                     <div className="border rounded-lg overflow-hidden">
-                      <RepairDetailsSection eventId={claimFormData.id || claimFormData.spartaNumber || ""} />
+                      <RepairDetailsSection eventId={claimFormData.id || claimFormData.spartaNumber || undefined} />
                     </div>
                   ) : (
                     <div className="space-y-4">
@@ -1858,7 +1858,8 @@ const renderParticipantDetails = (participant: ParticipantInfo | undefined, titl
         </div>
       )
 
-    case "dokumenty":
+    case "dokumenty": {
+      const eventId = claimFormData.id || claimFormData.spartaNumber
       return (
         <div className="space-y-4">
           <Card className="overflow-hidden shadow-sm border-gray-200 rounded-xl">
@@ -1869,17 +1870,24 @@ const renderParticipantDetails = (participant: ParticipantInfo | undefined, titl
               <CardTitle className="text-lg font-semibold">Dokumenty</CardTitle>
             </CardHeader>
             <CardContent className="p-0 bg-white">
-              <DocumentsSection
-                uploadedFiles={uploadedFiles}
-                setUploadedFiles={setUploadedFiles}
-                requiredDocuments={requiredDocuments}
-                setRequiredDocuments={setRequiredDocuments}
-                eventId={claimFormData.id || claimFormData.spartaNumber || ""}
-              />
+              {eventId ? (
+                <DocumentsSection
+                  uploadedFiles={uploadedFiles}
+                  setUploadedFiles={setUploadedFiles}
+                  requiredDocuments={requiredDocuments}
+                  setRequiredDocuments={setRequiredDocuments}
+                  eventId={eventId}
+                />
+              ) : (
+                <div className="p-4 text-sm text-gray-500">
+                  Zapisz roszczenie, aby dodać dokumenty.
+                </div>
+              )}
             </CardContent>
           </Card>
         </div>
       )
+    }
 
     case "decyzje":
       return (
@@ -1892,7 +1900,7 @@ const renderParticipantDetails = (participant: ParticipantInfo | undefined, titl
               <CardTitle className="text-lg font-semibold">Decyzje</CardTitle>
             </CardHeader>
             <CardContent className="p-0 bg-white">
-              <DecisionsSection claimId={claimFormData.id || claimFormData.spartaNumber || ""} />
+              <DecisionsSection claimId={claimFormData.id || claimFormData.spartaNumber || undefined} />
             </CardContent>
           </Card>
         </div>
@@ -1909,7 +1917,7 @@ const renderParticipantDetails = (participant: ParticipantInfo | undefined, titl
               <CardTitle className="text-lg font-semibold">Odwołanie/Reklamacja</CardTitle>
             </CardHeader>
             <CardContent className="p-0 bg-white">
-              <AppealsSection eventId={claimFormData.id || claimFormData.spartaNumber || ""} />
+              <AppealsSection eventId={claimFormData.id || claimFormData.spartaNumber || undefined} />
             </CardContent>
           </Card>
         </div>
@@ -1929,7 +1937,7 @@ const renderParticipantDetails = (participant: ParticipantInfo | undefined, titl
               <ClientClaimsSection
                 clientClaims={claimFormData.clientClaims || []}
                 onClientClaimsChange={(claims) => handleFormChange("clientClaims", claims)}
-                claimId={claimFormData.id || ""}
+                claimId={claimFormData.id || undefined}
               />
             </CardContent>
           </Card>
@@ -1947,7 +1955,7 @@ const renderParticipantDetails = (participant: ParticipantInfo | undefined, titl
               <CardTitle className="text-lg font-semibold">Regres</CardTitle>
             </CardHeader>
             <CardContent className="p-0 bg-white">
-              <RecourseSection eventId={claimFormData.id || claimFormData.spartaNumber || ""} />
+              <RecourseSection eventId={claimFormData.id || claimFormData.spartaNumber || undefined} />
             </CardContent>
           </Card>
         </div>
@@ -1967,7 +1975,7 @@ const renderParticipantDetails = (participant: ParticipantInfo | undefined, titl
               <SettlementsSection
                 settlements={claimFormData.settlements || []}
                 onSettlementsChange={(settlements) => handleFormChange("settlements", settlements)}
-                claimId={claimFormData.id || ""}
+                claimId={claimFormData.id || undefined}
               />
             </CardContent>
           </Card>
@@ -2396,7 +2404,8 @@ const renderParticipantDetails = (participant: ParticipantInfo | undefined, titl
         </div>
       )
 
-    case "teczka-szkodowa":
+    case "teczka-szkodowa": {
+    const eventId = claimFormData.id || claimFormData.spartaNumber
     return (
       <div className="space-y-4">
         <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
@@ -2617,14 +2626,20 @@ const renderParticipantDetails = (participant: ParticipantInfo | undefined, titl
               </div>
             </div>
             <div className="p-4">
-              <DocumentsSection
-                uploadedFiles={uploadedFiles}
-                setUploadedFiles={setUploadedFiles}
-                requiredDocuments={[]} // Empty array to hide required documents section
-                setRequiredDocuments={() => {}} // No-op function
-                eventId={claimFormData.id || claimFormData.spartaNumber || ""}
-                hideRequiredDocuments={true} // Add this prop to hide required docs
-              />
+              {eventId ? (
+                <DocumentsSection
+                  uploadedFiles={uploadedFiles}
+                  setUploadedFiles={setUploadedFiles}
+                  requiredDocuments={[]} // Empty array to hide required documents section
+                  setRequiredDocuments={() => {}} // No-op function
+                  eventId={eventId}
+                  hideRequiredDocuments={true} // Add this prop to hide required docs
+                />
+              ) : (
+                <p className="text-sm text-gray-500">
+                  Zapisz roszczenie, aby dodać dokumenty.
+                </p>
+              )}
             </div>
           </div>
 
@@ -2706,7 +2721,7 @@ const renderParticipantDetails = (participant: ParticipantInfo | undefined, titl
             <div className="p-4">
               {expandedSections.harmonogram ? (
                 <div className="border rounded-lg overflow-hidden">
-                  <RepairScheduleSection eventId={claimFormData.id || claimFormData.spartaNumber || ""} />
+                <RepairScheduleSection eventId={claimFormData.id || claimFormData.spartaNumber || undefined} />
                 </div>
               ) : (
                 <div className="space-y-4">
@@ -2802,7 +2817,7 @@ const renderParticipantDetails = (participant: ParticipantInfo | undefined, titl
             <div className="p-4">
               {expandedSections.naprawa ? (
                 <div className="border rounded-lg overflow-hidden">
-                  <RepairDetailsSection eventId={claimFormData.id || claimFormData.spartaNumber || ""} />
+                <RepairDetailsSection eventId={claimFormData.id || claimFormData.spartaNumber || undefined} />
                 </div>
               ) : (
                 <div className="space-y-4">
@@ -2905,6 +2920,7 @@ const renderParticipantDetails = (participant: ParticipantInfo | undefined, titl
         </div>
       </div>
     )
+    }
 
     default:
       return (

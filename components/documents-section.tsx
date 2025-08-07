@@ -889,7 +889,7 @@ export const DocumentsSection = ({
               <div className="border rounded-md">
                 {missingRequiredDocs.map((doc, index, arr) => (
                   <div
-                    key={`required-${doc.id}`}
+                    key={`required-${doc.id ?? doc.name}`}
                     className={`flex items-center justify-between p-4 ${index < arr.length - 1 ? "border-b" : ""}`}
                   >
                     <div className="flex items-center gap-3">

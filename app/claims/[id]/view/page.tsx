@@ -19,6 +19,7 @@ import { ArrowLeft, Edit, FileText, User, AlertTriangle, Car, Calendar, Phone, M
 import type { Claim } from "@/types"
 import { pksData, type Employee } from "@/lib/pks-data"
 import type { RepairDetail } from "@/lib/repair-details-store"
+import { transformApiClaimToFrontend } from "@/hooks/use-claims"
 
 interface RepairSchedule {
   id?: string
@@ -121,19 +122,7 @@ export default function ViewClaimPage() {
 
       const claimData = await response.json()
       if (claimData) {
-        // Transform API data to frontend format
-        const transformedData = {
-          ...claimData,
-          injuredParty: claimData.participants?.find((p: any) => p.role === "Poszkodowany"),
-          perpetrator: claimData.participants?.find((p: any) => p.role === "Sprawca"),
-          servicesCalled: claimData.servicesCalled?.split(",") || [],
-          damages: claimData.damages || [],
-          decisions: claimData.decisions || [],
-          appeals: claimData.appeals || [],
-          clientClaims: claimData.clientClaims || [],
-          recourses: claimData.recourses || [],
-          settlements: claimData.settlements || [],
-        }
+        const transformedData = transformApiClaimToFrontend(claimData)
         setClaim(transformedData)
       } else {
         throw new Error("Nie znaleziono danych szkody")

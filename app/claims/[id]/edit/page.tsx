@@ -10,7 +10,7 @@ import { ClaimFormSidebar } from "@/components/claim-form/claim-form-sidebar"
 import { ClaimTopHeader } from "@/components/claim-form/claim-top-header"
 import { ClaimMainContent } from "@/components/claim-form/claim-main-content"
 import { useClaimForm } from "@/hooks/use-claim-form"
-import { useClaims } from "@/hooks/use-claims"
+import { useClaims, transformApiClaimToFrontend } from "@/hooks/use-claims"
 import type { UploadedFile, RequiredDocument } from "@/types"
 
 export default function EditClaimPage() {
@@ -113,61 +113,7 @@ export default function EditClaimPage() {
 
       const claimData = await response.json()
       if (claimData) {
-        // Transform API data to frontend format if needed
-        const transformedData = {
-          ...claimData,
-          // Ensure participants have proper structure
-          injuredParty: claimData.participants?.find((p: any) => p.role === "Poszkodowany") || {
-            id: "",
-            name: "",
-            phone: "",
-            email: "",
-            address: "",
-            city: "",
-            postalCode: "",
-            country: "Polska",
-            insuranceCompany: "",
-            policyNumber: "",
-            vehicleRegistration: "",
-            vehicleVin: "",
-            vehicleType: "",
-            vehicleBrand: "",
-            vehicleModel: "",
-            inspectionContactName: "",
-            inspectionContactPhone: "",
-            inspectionContactEmail: "",
-            drivers: [{ id: "", name: "", licenseNumber: "" }],
-          },
-          perpetrator: claimData.participants?.find((p: any) => p.role === "Sprawca") || {
-            id: "",
-            name: "",
-            phone: "",
-            email: "",
-            address: "",
-            city: "",
-            postalCode: "",
-            country: "Polska",
-            insuranceCompany: "",
-            policyNumber: "",
-            vehicleRegistration: "",
-            vehicleVin: "",
-            vehicleType: "",
-            vehicleBrand: "",
-            vehicleModel: "",
-            inspectionContactName: "",
-            inspectionContactPhone: "",
-            inspectionContactEmail: "",
-            drivers: [{ id: "", name: "", licenseNumber: "" }],
-          },
-          servicesCalled: claimData.servicesCalled?.split(",") || [],
-          damages: claimData.damages || [],
-          decisions: claimData.decisions || [],
-          appeals: claimData.appeals || [],
-          clientClaims: claimData.clientClaims || [],
-          recourses: claimData.recourses || [],
-          settlements: claimData.settlements || [],
-        }
-
+        const transformedData = transformApiClaimToFrontend(claimData)
         setClaimFormData(transformedData)
       } else {
         throw new Error("Nie znaleziono danych szkody")

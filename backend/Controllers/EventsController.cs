@@ -513,14 +513,17 @@ namespace AutomotiveClaimsApi.Controllers
             // Upsert nested collections
             if (dto.Damages != null)
             {
-                var dtoIds = dto.Damages.Where(d => Guid.TryParse(d.Id, out _))
-                    .Select(d => Guid.Parse(d.Id)).ToHashSet();
+                var dtoIds = dto.Damages
+                    .Where(d => d.Id.HasValue)
+                    .Select(d => d.Id.Value)
+                    .ToHashSet();
                 var toRemove = entity.Damages.Where(d => !dtoIds.Contains(d.Id)).ToList();
                 foreach (var r in toRemove) entity.Damages.Remove(r);
 
                 foreach (var dDto in dto.Damages)
                 {
-                    var hasId = Guid.TryParse(dDto.Id, out var damageId);
+                    var hasId = dDto.Id.HasValue;
+                    var damageId = dDto.Id ?? Guid.Empty;
                     var existing = hasId ? entity.Damages.FirstOrDefault(d => d.Id == damageId) : null;
                     if (existing != null)
                     {
@@ -561,14 +564,17 @@ namespace AutomotiveClaimsApi.Controllers
 
             if (dto.Decisions != null)
             {
-                var dtoIds = dto.Decisions.Where(d => Guid.TryParse(d.Id, out _))
-                    .Select(d => Guid.Parse(d.Id)).ToHashSet();
+                var dtoIds = dto.Decisions
+                    .Where(d => d.Id.HasValue)
+                    .Select(d => d.Id.Value)
+                    .ToHashSet();
                 var toRemove = entity.Decisions.Where(d => !dtoIds.Contains(d.Id)).ToList();
                 foreach (var r in toRemove) entity.Decisions.Remove(r);
 
                 foreach (var dDto in dto.Decisions)
                 {
-                    var hasId = Guid.TryParse(dDto.Id, out var decisionId);
+                    var hasId = dDto.Id.HasValue;
+                    var decisionId = dDto.Id ?? Guid.Empty;
                     var existing = hasId ? entity.Decisions.FirstOrDefault(d => d.Id == decisionId) : null;
                     if (existing != null)
                     {
@@ -607,14 +613,17 @@ namespace AutomotiveClaimsApi.Controllers
 
             if (dto.Appeals != null)
             {
-                var dtoIds = dto.Appeals.Where(a => Guid.TryParse(a.Id, out _))
-                    .Select(a => Guid.Parse(a.Id)).ToHashSet();
+                var dtoIds = dto.Appeals
+                    .Where(a => a.Id.HasValue)
+                    .Select(a => a.Id.Value)
+                    .ToHashSet();
                 var toRemove = entity.Appeals.Where(a => !dtoIds.Contains(a.Id)).ToList();
                 foreach (var r in toRemove) entity.Appeals.Remove(r);
 
                 foreach (var aDto in dto.Appeals)
                 {
-                    var hasId = Guid.TryParse(aDto.Id, out var appealId);
+                    var hasId = aDto.Id.HasValue;
+                    var appealId = aDto.Id ?? Guid.Empty;
                     var existing = hasId ? entity.Appeals.FirstOrDefault(a => a.Id == appealId) : null;
                     if (existing != null)
                     {
@@ -659,14 +668,17 @@ namespace AutomotiveClaimsApi.Controllers
 
             if (dto.ClientClaims != null)
             {
-                var dtoIds = dto.ClientClaims.Where(c => Guid.TryParse(c.Id, out _))
-                    .Select(c => Guid.Parse(c.Id)).ToHashSet();
+                var dtoIds = dto.ClientClaims
+                    .Where(c => c.Id.HasValue)
+                    .Select(c => c.Id.Value)
+                    .ToHashSet();
                 var toRemove = entity.ClientClaims.Where(c => !dtoIds.Contains(c.Id)).ToList();
                 foreach (var r in toRemove) entity.ClientClaims.Remove(r);
 
                 foreach (var cDto in dto.ClientClaims)
                 {
-                    var hasId = Guid.TryParse(cDto.Id, out var claimId);
+                    var hasId = cDto.Id.HasValue;
+                    var claimId = cDto.Id ?? Guid.Empty;
                     var existing = hasId ? entity.ClientClaims.FirstOrDefault(c => c.Id == claimId) : null;
                     if (existing != null)
                     {
@@ -709,14 +721,17 @@ namespace AutomotiveClaimsApi.Controllers
 
             if (dto.Recourses != null)
             {
-                var dtoIds = dto.Recourses.Where(r => Guid.TryParse(r.Id, out _))
-                    .Select(r => Guid.Parse(r.Id)).ToHashSet();
+                var dtoIds = dto.Recourses
+                    .Where(r => r.Id.HasValue)
+                    .Select(r => r.Id.Value)
+                    .ToHashSet();
                 var toRemove = entity.Recourses.Where(r => !dtoIds.Contains(r.Id)).ToList();
                 foreach (var r in toRemove) entity.Recourses.Remove(r);
 
                 foreach (var rDto in dto.Recourses)
                 {
-                    var hasId = Guid.TryParse(rDto.Id, out var recourseId);
+                    var hasId = rDto.Id.HasValue;
+                    var recourseId = rDto.Id ?? Guid.Empty;
                     var existing = hasId ? entity.Recourses.FirstOrDefault(r => r.Id == recourseId) : null;
                     if (existing != null)
                     {
@@ -749,14 +764,17 @@ namespace AutomotiveClaimsApi.Controllers
 
             if (dto.Settlements != null)
             {
-                var dtoIds = dto.Settlements.Where(s => Guid.TryParse(s.Id, out _))
-                    .Select(s => Guid.Parse(s.Id)).ToHashSet();
+                var dtoIds = dto.Settlements
+                    .Where(s => s.Id.HasValue)
+                    .Select(s => s.Id.Value)
+                    .ToHashSet();
                 var toRemove = entity.Settlements.Where(s => !dtoIds.Contains(s.Id)).ToList();
                 foreach (var r in toRemove) entity.Settlements.Remove(r);
 
                 foreach (var sDto in dto.Settlements)
                 {
-                    var hasId = Guid.TryParse(sDto.Id, out var settlementId);
+                    var hasId = sDto.Id.HasValue;
+                    var settlementId = sDto.Id ?? Guid.Empty;
                     var existing = hasId ? entity.Settlements.FirstOrDefault(s => s.Id == settlementId) : null;
                     if (existing != null)
                     {

@@ -28,8 +28,19 @@ export function ClaimsList({ onEditClaim, onNewClaim }: ClaimsListProps) {
 
   // Refresh data on component mount
   useEffect(() => {
-    fetchClaims()
-  }, [fetchClaims])
+    const loadClaims = async () => {
+      try {
+        await fetchClaims()
+      } catch (err) {
+        toast({
+          title: "Błąd",
+          description: "Nie udało się pobrać listy szkód.",
+          variant: "destructive",
+        })
+      }
+    }
+    loadClaims()
+  }, [fetchClaims, toast])
 
   const filteredClaims = claims.filter((claim) => {
     const lowerCaseSearchTerm = searchTerm.toLowerCase()
@@ -67,16 +78,24 @@ export function ClaimsList({ onEditClaim, onNewClaim }: ClaimsListProps) {
     if (!claimId) return
 
     if (window.confirm(`Czy na pewno chcesz usunąć szkodę ${claimNumber}?`)) {
-      const success = await deleteClaim(claimId)
-      if (success) {
-        toast({
-          title: "Szkoda usunięta",
-          description: `Szkoda ${claimNumber} została pomyślnie usunięta.`,
-        })
-      } else {
+      try {
+        const success = await deleteClaim(claimId)
+        if (success) {
+          toast({
+            title: "Szkoda usunięta",
+            description: `Szkoda ${claimNumber} została pomyślnie usunięta.`,
+          })
+        } else {
+          toast({
+            title: "Błąd",
+            description: "Nie udało się usunąć szkody " + claimNumber + ".",
+            variant: "destructive",
+          })
+        }
+      } catch (err) {
         toast({
           title: "Błąd",
-          description: "Nie udało się usunąć szkody.",
+          description: "Wystąpił problem podczas usuwania szkody " + claimNumber + ".",
           variant: "destructive",
         })
       }
@@ -92,9 +111,10 @@ export function ClaimsList({ onEditClaim, onNewClaim }: ClaimsListProps) {
         description: "Lista szkód została odświeżona.",
       })
     } catch (err) {
+      const message = err instanceof Error ? err.message : "Nieznany błąd"
       toast({
         title: "Błąd",
-        description: "Nie udało się odświeżyć listy szkód.",
+        description: "Nie udało się odświeżyć listy szkód: " + message,
         variant: "destructive",
       })
     } finally {

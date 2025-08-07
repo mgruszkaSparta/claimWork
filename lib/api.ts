@@ -417,14 +417,14 @@ class ApiService {
   async createClaim(claim: EventUpsertDto): Promise<EventDto> {
     return this.request<EventDto>("/events", {
       method: "POST",
-      body: JSON.stringify({ eventDto: claim }),
+      body: JSON.stringify(claim),
     })
   }
 
   async updateClaim(id: string, claim: EventUpsertDto): Promise<EventDto> {
     return this.request<EventDto>(`/events/${id}`, {
       method: "PUT",
-      body: JSON.stringify({ eventDto: claim }),
+      body: JSON.stringify(claim),
     })
   }
 

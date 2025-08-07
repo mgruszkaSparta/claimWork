@@ -1,14 +1,10 @@
 import type { VehicleType, VehicleTypeResponse } from "@/types/vehicle-type"
-import { API_ENDPOINTS } from "@/lib/constants"
-
 
 const API_BASE_URL = "/api/dictionaries/vehicle-types"
 
-
 export const vehicleTypeService = {
-  async getVehicleTypes(): Promise<VehicleType[]> {
+  async getVehicleTypes(search?: string): Promise<VehicleType[]> {
     try {
-
       const params = new URLSearchParams()
       if (search) {
         params.append("search", search)

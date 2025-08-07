@@ -171,6 +171,54 @@ namespace AutomotiveClaimsApi.Controllers
                     }
                 }
 
+                if (eventDto.Damages != null)
+                {
+                    foreach (var dDto in eventDto.Damages)
+                    {
+                        _context.Damages.Add(MapDamageDtoToModel(dDto, eventEntity.Id));
+                    }
+                }
+
+                if (eventDto.Decisions != null)
+                {
+                    foreach (var dDto in eventDto.Decisions)
+                    {
+                        _context.Decisions.Add(MapDecisionDtoToModel(dDto, eventEntity.Id));
+                    }
+                }
+
+                if (eventDto.Appeals != null)
+                {
+                    foreach (var aDto in eventDto.Appeals)
+                    {
+                        _context.Appeals.Add(MapAppealDtoToModel(aDto, eventEntity.Id));
+                    }
+                }
+
+                if (eventDto.ClientClaims != null)
+                {
+                    foreach (var cDto in eventDto.ClientClaims)
+                    {
+                        _context.ClientClaims.Add(MapClientClaimDtoToModel(cDto, eventEntity.Id));
+                    }
+                }
+
+                if (eventDto.Recourses != null)
+                {
+                    foreach (var rDto in eventDto.Recourses)
+                    {
+                        _context.Recourses.Add(MapRecourseDtoToModel(rDto, eventEntity.Id));
+                    }
+                }
+
+                if (eventDto.Settlements != null)
+                {
+                    foreach (var sDto in eventDto.Settlements)
+                    {
+                        _context.Settlements.Add(MapSettlementDtoToModel(sDto, eventEntity.Id));
+                    }
+                }
+
                 await _context.SaveChangesAsync();
 
                 // Reload the entity with all related data
@@ -205,9 +253,11 @@ namespace AutomotiveClaimsApi.Controllers
                 var eventEntity = await _context.Events
                     .Include(e => e.Participants).ThenInclude(p => p.Drivers)
                     .Include(e => e.Damages)
+
                     .Include(e => e.Appeals)
                     .Include(e => e.ClientClaims)
                     .Include(e => e.Decisions)
+
                     .Include(e => e.Recourses)
                     .Include(e => e.Settlements)
                     .FirstOrDefaultAsync(e => e.Id == id);
@@ -220,10 +270,16 @@ namespace AutomotiveClaimsApi.Controllers
                 MapUpsertDtoToEvent(eventDto, eventEntity);
                 eventEntity.UpdatedAt = DateTime.UtcNow;
 
-                // Remove existing participants and drivers
+                // Remove existing related entities
                 var existingDrivers = eventEntity.Participants.SelectMany(p => p.Drivers).ToList();
                 _context.Drivers.RemoveRange(existingDrivers);
                 _context.Participants.RemoveRange(eventEntity.Participants);
+                _context.Damages.RemoveRange(eventEntity.Damages);
+                _context.Decisions.RemoveRange(eventEntity.Decisions);
+                _context.Appeals.RemoveRange(eventEntity.Appeals);
+                _context.ClientClaims.RemoveRange(eventEntity.ClientClaims);
+                _context.Recourses.RemoveRange(eventEntity.Recourses);
+                _context.Settlements.RemoveRange(eventEntity.Settlements);
 
                 // Add new participants
                 if (eventDto.Participants != null)
@@ -239,6 +295,54 @@ namespace AutomotiveClaimsApi.Controllers
                                 _context.Drivers.Add(MapDriverDtoToModel(dDto, eventEntity.Id, participant.Id));
                             }
                         }
+                    }
+                }
+
+                if (eventDto.Damages != null)
+                {
+                    foreach (var dDto in eventDto.Damages)
+                    {
+                        _context.Damages.Add(MapDamageDtoToModel(dDto, eventEntity.Id));
+                    }
+                }
+
+                if (eventDto.Decisions != null)
+                {
+                    foreach (var dDto in eventDto.Decisions)
+                    {
+                        _context.Decisions.Add(MapDecisionDtoToModel(dDto, eventEntity.Id));
+                    }
+                }
+
+                if (eventDto.Appeals != null)
+                {
+                    foreach (var aDto in eventDto.Appeals)
+                    {
+                        _context.Appeals.Add(MapAppealDtoToModel(aDto, eventEntity.Id));
+                    }
+                }
+
+                if (eventDto.ClientClaims != null)
+                {
+                    foreach (var cDto in eventDto.ClientClaims)
+                    {
+                        _context.ClientClaims.Add(MapClientClaimDtoToModel(cDto, eventEntity.Id));
+                    }
+                }
+
+                if (eventDto.Recourses != null)
+                {
+                    foreach (var rDto in eventDto.Recourses)
+                    {
+                        _context.Recourses.Add(MapRecourseDtoToModel(rDto, eventEntity.Id));
+                    }
+                }
+
+                if (eventDto.Settlements != null)
+                {
+                    foreach (var sDto in eventDto.Settlements)
+                    {
+                        _context.Settlements.Add(MapSettlementDtoToModel(sDto, eventEntity.Id));
                     }
                 }
 
@@ -681,6 +785,133 @@ namespace AutomotiveClaimsApi.Controllers
                 IsMainDriver = dto.IsMainDriver,
                 UpdatedAt = DateTime.UtcNow,
                 CreatedAt = DateTime.UtcNow // Simplified
+            };
+        }
+
+        private static Damage MapDamageDtoToModel(DamageUpsertDto dto, Guid eventId)
+        {
+            return new Damage
+            {
+                Id = Guid.NewGuid(),
+                EventId = dto.EventId ?? eventId,
+                Description = dto.Description,
+                Detail = dto.Detail,
+                Location = dto.Location,
+                Severity = dto.Severity,
+                EstimatedCost = dto.EstimatedCost,
+                ActualCost = dto.ActualCost,
+                RepairStatus = dto.RepairStatus,
+                RepairDate = dto.RepairDate,
+                RepairShop = dto.RepairShop,
+                Notes = dto.Notes,
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow
+            };
+        }
+
+        private static Decision MapDecisionDtoToModel(DecisionUpsertDto dto, Guid eventId)
+        {
+            return new Decision
+            {
+                Id = Guid.NewGuid(),
+                EventId = dto.EventId ?? eventId,
+                DecisionDate = dto.DecisionDate,
+                DecisionType = dto.DecisionType,
+                DecisionDescription = dto.DecisionDescription,
+                DecisionAmount = dto.DecisionAmount,
+                DecisionStatus = dto.DecisionStatus,
+                DecisionNumber = dto.DecisionNumber,
+                Description = dto.Description,
+                Reason = dto.Reason,
+                Notes = dto.Notes,
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow
+            };
+        }
+
+        private static Appeal MapAppealDtoToModel(AppealUpsertDto dto, Guid eventId)
+        {
+            return new Appeal
+            {
+                Id = Guid.NewGuid(),
+                EventId = dto.EventId ?? eventId,
+                AppealNumber = dto.AppealNumber,
+                SubmissionDate = dto.SubmissionDate ?? DateTime.UtcNow,
+                Reason = dto.Reason,
+                Status = dto.Status,
+                Notes = dto.Notes,
+                Description = dto.Description,
+                AppealAmount = dto.AppealAmount,
+                DecisionDate = dto.DecisionDate,
+                DecisionReason = dto.DecisionReason,
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow
+            };
+        }
+
+        private static ClientClaim MapClientClaimDtoToModel(ClientClaimUpsertDto dto, Guid eventId)
+        {
+            return new ClientClaim
+            {
+                Id = Guid.NewGuid(),
+                EventId = dto.EventId ?? eventId,
+                ClaimNumber = dto.ClaimNumber,
+                ClaimDate = dto.ClaimDate,
+                ClaimType = dto.ClaimType,
+                ClaimAmount = dto.ClaimAmount,
+                Currency = dto.Currency,
+                Status = dto.Status,
+                Description = dto.Description,
+                DocumentPath = dto.DocumentPath,
+                DocumentName = dto.DocumentName,
+                DocumentDescription = dto.DocumentDescription,
+                ClaimNotes = dto.ClaimNotes,
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow
+            };
+        }
+
+        private static Recourse MapRecourseDtoToModel(RecourseUpsertDto dto, Guid eventId)
+        {
+            return new Recourse
+            {
+                Id = Guid.NewGuid(),
+                EventId = dto.EventId ?? eventId,
+                Status = dto.Status,
+                InitiationDate = dto.InitiationDate,
+                Description = dto.Description,
+                Notes = dto.Notes,
+                RecourseNumber = dto.RecourseNumber,
+                RecourseAmount = dto.RecourseAmount,
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow
+            };
+        }
+
+        private static Settlement MapSettlementDtoToModel(SettlementUpsertDto dto, Guid eventId)
+        {
+            return new Settlement
+            {
+                Id = Guid.NewGuid(),
+                EventId = dto.EventId ?? eventId,
+                SettlementNumber = dto.SettlementNumber,
+                SettlementType = dto.SettlementType,
+                ExternalEntity = dto.ExternalEntity,
+                CustomExternalEntity = dto.CustomExternalEntity,
+                TransferDate = dto.TransferDate,
+                Status = dto.Status,
+                SettlementDate = dto.SettlementDate,
+                Amount = dto.Amount,
+                SettlementAmount = dto.SettlementAmount,
+                Currency = dto.Currency,
+                PaymentMethod = dto.PaymentMethod,
+                Notes = dto.Notes,
+                Description = dto.Description,
+                DocumentPath = dto.DocumentPath,
+                DocumentName = dto.DocumentName,
+                DocumentDescription = dto.DocumentDescription,
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow
             };
         }
 

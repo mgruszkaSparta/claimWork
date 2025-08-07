@@ -8,6 +8,15 @@ const transformApiClaimToFrontend = (apiClaim: EventDto): Claim => {
   const injuredParty = apiClaim.participants?.find((p: any) => p.role === "Poszkodowany")
   const perpetrator = apiClaim.participants?.find((p: any) => p.role === "Sprawca")
 
+  const mapParticipantDto = (p: any): ParticipantInfo => ({
+    ...p,
+    id: p.id?.toString() || "",
+    drivers: p.drivers?.map((d: any) => ({
+      ...d,
+      id: d.id?.toString() || "",
+    })) || [],
+  })
+
   return {
     ...apiClaim,
     id: apiClaim.id?.toString(),
@@ -25,18 +34,8 @@ const transformApiClaimToFrontend = (apiClaim: EventDto): Claim => {
     clientClaims: apiClaim.clientClaims || [],
     recourses: apiClaim.recourses || [],
     settlements: apiClaim.settlements || [],
-    injuredParty: injuredParty
-      ? {
-          ...injuredParty,
-          drivers: injuredParty.drivers || [],
-        }
-      : undefined,
-    perpetrator: perpetrator
-      ? {
-          ...perpetrator,
-          drivers: perpetrator.drivers || [],
-        }
-      : undefined,
+    injuredParty: injuredParty ? mapParticipantDto(injuredParty) : undefined,
+    perpetrator: perpetrator ? mapParticipantDto(perpetrator) : undefined,
   }
 }
 
@@ -68,8 +67,10 @@ const transformFrontendClaimToApiPayload = (claimData: Partial<Claim>): EventUps
   const participants: ParticipantUpsertDto[] = []
 
   const mapParticipant = (p: ParticipantInfo, role: string): ParticipantUpsertDto => ({
-    id: p.id || undefined,
-    role: role,
+
+    id: p.id ? p.id.toString() : undefined,
+    role,
+
     name: p.name,
     phone: p.phone,
     email: p.email,
@@ -88,7 +89,9 @@ const transformFrontendClaimToApiPayload = (claimData: Partial<Claim>): EventUps
     inspectionContactPhone: p.inspectionContactPhone,
     inspectionContactEmail: p.inspectionContactEmail,
     drivers: p.drivers?.map((d: DriverInfo) => ({
-      id: d.id || undefined,
+
+      id: d.id ? d.id.toString() : undefined,
+
       name: d.name,
       licenseNumber: d.licenseNumber,
       firstName: d.firstName,

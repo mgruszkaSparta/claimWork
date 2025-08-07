@@ -214,14 +214,20 @@ export const DocumentsSection = ({
 
     try {
       const uploadedDocuments = await Promise.all(uploadPromises)
-      const successfulUploads = uploadedDocuments.filter((doc) => doc !== null)
+      const successfulUploads = uploadedDocuments.filter(
+        (doc): doc is Document => doc !== null,
+      )
+      const successfulUploadsWithIds = successfulUploads.map((doc) => ({
+        ...doc,
+        id: doc.id?.toString() ?? crypto.randomUUID(),
+      }))
 
-      if (successfulUploads.length > 0) {
-        setDocuments((prev) => [...prev, ...successfulUploads])
+      if (successfulUploadsWithIds.length > 0) {
+        setDocuments((prev) => [...prev, ...successfulUploadsWithIds])
         setUploadedFiles((prev) => [
           ...prev,
-          ...successfulUploads.map((doc) => ({
-            id: doc.id.toString(),
+          ...successfulUploadsWithIds.map((doc) => ({
+            id: doc.id,
             name: doc.originalFileName || doc.fileName,
             size: doc.fileSize,
             type: doc.contentType.includes("image")
@@ -239,12 +245,12 @@ export const DocumentsSection = ({
         ])
         toast({
           title: "Przesłano pliki",
-          description: `Pomyślnie dodano ${successfulUploads.length} plik(ów) do kategorii "${category}".`,
+          description: `Pomyślnie dodano ${successfulUploadsWithIds.length} plik(ów) do kategorii "${category}".`,
         })
-        console.log("All successful uploads:", successfulUploads)
+        console.log("All successful uploads:", successfulUploadsWithIds)
       }
 
-      const failedUploads = files.length - successfulUploads.length
+      const failedUploads = files.length - successfulUploadsWithIds.length
       if (failedUploads > 0) {
         toast({
           title: "Częściowy błąd",
@@ -760,7 +766,7 @@ export const DocumentsSection = ({
                         <tbody>
                           {documentsForCategory.map((document, index) => (
                             <tr
-                              key={`${document.status}-${document.id}`}
+                              key={document.id}
                               className={`border-t ${index % 2 === 0 ? "bg-white" : "bg-gray-50/50"}`}
                             >
                               <td className="p-3 font-medium flex items-center gap-2">
@@ -845,7 +851,7 @@ export const DocumentsSection = ({
                     <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
                       {documentsForCategory.map((document) => (
                         <FileCard
-                          key={`${document.status}-${document.id}`}
+                          key={document.id}
                           document={document}
                           onDelete={handleFileDelete}
                         />
@@ -922,7 +928,7 @@ export const DocumentsSection = ({
                 {allDocuments
                   .filter((d) => d.documentType === groupPreviewCategory)
                   .map((document) => (
-                    <Card key={`${document.status}-${document.id}`} className="overflow-hidden">
+                    <Card key={document.id} className="overflow-hidden">
                       <div className="aspect-w-16 aspect-h-12 bg-gray-100 flex items-center justify-center min-h-[200px]">
                         {document.contentType.startsWith("image/") ? (
                           <img

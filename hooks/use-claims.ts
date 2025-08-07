@@ -68,7 +68,7 @@ const transformFrontendClaimToApiPayload = (claimData: Partial<Claim>): EventUps
   const participants: ParticipantUpsertDto[] = []
 
   const mapParticipant = (p: ParticipantInfo, role: string): ParticipantUpsertDto => ({
-    id: p.id ? parseInt(p.id) : undefined,
+    id: p.id || undefined,
     role: role,
     name: p.name,
     phone: p.phone,
@@ -88,7 +88,7 @@ const transformFrontendClaimToApiPayload = (claimData: Partial<Claim>): EventUps
     inspectionContactPhone: p.inspectionContactPhone,
     inspectionContactEmail: p.inspectionContactEmail,
     drivers: p.drivers?.map((d: DriverInfo) => ({
-      id: d.id ? parseInt(d.id) : undefined,
+      id: d.id || undefined,
       name: d.name,
       licenseNumber: d.licenseNumber,
       firstName: d.firstName,

@@ -7,7 +7,7 @@ import { ClaimsList } from "@/components/claims-list"
 import { AuthWrapper } from '@/components/auth-wrapper'
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { FileText, Clock, Calendar, DollarSign, TrendingUp, Users, Plus, Search, Filter } from 'lucide-react'
+import { FileText, Clock, Calendar, DollarSign, TrendingUp, Users, Plus, Search, Filter, CheckSquare } from 'lucide-react'
 
 interface User {
   id: string
@@ -23,7 +23,6 @@ interface PageProps {
 
 function HomePage({ user, onLogout }: PageProps) {
   const [activeTab, setActiveTab] = useState("dashboard")
-  const [sidebarOpen, setSidebarOpen] = useState(false)
 
   useEffect(() => {
     const isAuthenticated = localStorage.getItem('isAuthenticated')
@@ -108,18 +107,17 @@ function HomePage({ user, onLogout }: PageProps) {
     { title: "Filtry", icon: Filter, color: "bg-purple-600 hover:bg-purple-700" },
   ]
 
+  const tasks = [
+    { title: 'Przypomnij klientowi o dokumentach', due: '2025-01-10' },
+    { title: 'Zaplanuj oględziny pojazdu', due: '2025-01-12' },
+    { title: 'Przygotuj raport dla zarządu', due: '2025-01-15' },
+  ]
+
   return (
     <div className="min-h-screen bg-gray-50">
-      <Header 
-        onMenuClick={() => setSidebarOpen(true)} 
-        user={user}
-        onLogout={onLogout}
-      />
+      <Header onMenuClick={() => {}} user={user} onLogout={onLogout} />
       <div className="flex">
-        <Sidebar 
-          isOpen={sidebarOpen} 
-          onClose={() => setSidebarOpen(false)} 
-        />
+        <Sidebar activeTab={activeTab} onTabChange={setActiveTab} />
         <main className="flex-1 p-6">
           <div className="max-w-7xl mx-auto">
             <div className="mb-8">
@@ -302,6 +300,29 @@ function HomePage({ user, onLogout }: PageProps) {
                         )
                       })}
                     </div>
+                  </CardContent>
+                </Card>
+
+                {/* Tasks */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center space-x-2">
+                      <CheckSquare className="h-5 w-5 text-blue-600" />
+                      <span>Zadania</span>
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <ul className="space-y-2">
+                      {tasks.map((task, index) => (
+                        <li
+                          key={index}
+                          className="flex items-center justify-between"
+                        >
+                          <span className="text-sm text-gray-700">{task.title}</span>
+                          <span className="text-xs text-gray-500">{task.due}</span>
+                        </li>
+                      ))}
+                    </ul>
                   </CardContent>
                 </Card>
               </div>

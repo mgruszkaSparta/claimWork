@@ -1,25 +1,25 @@
 import { NextRequest, NextResponse } from 'next/server'
 
 export async function GET(request: NextRequest) {
+  const urlObj = new URL(request.url)
+  const dependsOn = urlObj.searchParams.get('dependsOn') // This is the RiskId
+
   try {
-    const { searchParams } = new URL(request.url)
-    const dependsOn = searchParams.get('dependsOn') // This is the RiskId
-    
     const url = `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5200'}/api/damage-types`
-    
+
     const response = await fetch(url)
-    
+
     if (!response.ok) {
       throw new Error('Failed to fetch damage types')
     }
 
     let data = await response.json()
-    
+
     // Filter by RiskId if dependsOn parameter is provided
     if (dependsOn) {
       data = data.filter((item: any) => item.riskId.toString() === dependsOn)
     }
-    
+
     return NextResponse.json(data)
   } catch (error) {
     console.error('Error fetching damage types:', error)

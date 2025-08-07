@@ -146,6 +146,32 @@ namespace AutomotiveClaimsApi.Controllers
             }
         }
 
+        [HttpPost("initialize")]
+        public async Task<ActionResult<object>> InitializeEvent()
+        {
+            try
+            {
+                var eventEntity = new Event
+                {
+                    Id = Guid.NewGuid(),
+                    Status = "Nowa",
+                    Currency = "PLN",
+                    CreatedAt = DateTime.UtcNow,
+                    UpdatedAt = DateTime.UtcNow
+                };
+
+                _context.Events.Add(eventEntity);
+                await _context.SaveChangesAsync();
+
+                return Ok(new { id = eventEntity.Id });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error initializing event");
+                return StatusCode(500, new { error = "Failed to initialize event" });
+            }
+        }
+
         [HttpPost]
         public async Task<ActionResult<EventDto>> CreateEvent([FromBody] EventUpsertDto eventDto)
         {

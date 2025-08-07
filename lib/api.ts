@@ -434,6 +434,12 @@ class ApiService {
     })
   }
 
+  async initializeClaim(): Promise<{ id: string }> {
+    return this.request<{ id: string }>("/events/initialize", {
+      method: "POST",
+    })
+  }
+
   // Events API
   async getEvents(): Promise<EventDto[]> {
     return this.request<EventDto[]>("/events")

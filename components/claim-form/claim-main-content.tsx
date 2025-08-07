@@ -218,12 +218,11 @@ export const ClaimMainContent = ({
   })
 
   useEffect(() => {
-    const eventId = claimFormData.id || claimFormData.spartaNumber
-    if (!eventId) return
+    if (!claimFormData.id) return
 
     const loadNotes = async () => {
       try {
-        const response = await fetch(`/api/notes?eventId=${eventId}`)
+        const response = await fetch(`/api/notes?eventId=${claimFormData.id}`)
         if (!response.ok) throw new Error()
         const data = await response.json()
         const mappedNotes: Note[] = data.map((note: any) => ({
@@ -248,7 +247,7 @@ export const ClaimMainContent = ({
     }
 
     loadNotes()
-  }, [claimFormData.id, claimFormData.spartaNumber])
+  }, [claimFormData.id])
 
   // State for expanded sections in teczka-szkodowa
   const [expandedSections, setExpandedSections] = useState({
@@ -435,7 +434,7 @@ export const ClaimMainContent = ({
       return
     }
 
-    const eventId = claimFormData.id || claimFormData.spartaNumber
+    const eventId = claimFormData.id
     if (!eventId) {
       toast({
         title: "Błąd",
@@ -1944,7 +1943,6 @@ const renderParticipantDetails = (participant: ParticipantInfo | undefined, titl
       )
 
     case "dokumenty": {
-      const eventId = claimFormData.id || claimFormData.spartaNumber
       return (
         <div className="space-y-4">
           <Card className="overflow-hidden shadow-sm border-gray-200 rounded-xl">
@@ -1955,18 +1953,14 @@ const renderParticipantDetails = (participant: ParticipantInfo | undefined, titl
               <CardTitle className="text-lg font-semibold">Dokumenty</CardTitle>
             </CardHeader>
             <CardContent className="p-0 bg-white">
-              {eventId ? (
+              {claimFormData.id && (
                 <DocumentsSection
                   uploadedFiles={uploadedFiles}
                   setUploadedFiles={setUploadedFiles}
                   requiredDocuments={requiredDocuments}
                   setRequiredDocuments={setRequiredDocuments}
-                  eventId={eventId}
+                  eventId={claimFormData.id}
                 />
-              ) : (
-                <div className="p-4 text-sm text-gray-500">
-                  Zapisz roszczenie, aby dodać dokumenty.
-                </div>
               )}
             </CardContent>
           </Card>
@@ -2711,19 +2705,15 @@ const renderParticipantDetails = (participant: ParticipantInfo | undefined, titl
               </div>
             </div>
             <div className="p-4">
-              {eventId ? (
+              {claimFormData.id && (
                 <DocumentsSection
                   uploadedFiles={uploadedFiles}
                   setUploadedFiles={setUploadedFiles}
-                  requiredDocuments={[]} // Empty array to hide required documents section
-                  setRequiredDocuments={() => {}} // No-op function
-                  eventId={eventId}
-                  hideRequiredDocuments={true} // Add this prop to hide required docs
+                  requiredDocuments={[]}
+                  setRequiredDocuments={() => {}}
+                  eventId={claimFormData.id}
+                  hideRequiredDocuments={true}
                 />
-              ) : (
-                <p className="text-sm text-gray-500">
-                  Zapisz roszczenie, aby dodać dokumenty.
-                </p>
               )}
             </div>
           </div>

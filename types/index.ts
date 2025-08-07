@@ -58,7 +58,6 @@ export interface Claim
   handlerEmail?: string
   handlerPhone?: string
   documents?: UploadedFile[]
-  pendingFiles?: UploadedFile[]
   documentsSectionProps?: DocumentsSectionProps
 }
 
@@ -203,7 +202,5 @@ export interface DocumentsSectionProps {
   setUploadedFiles: React.Dispatch<React.SetStateAction<UploadedFile[]>>
   requiredDocuments: RequiredDocument[]
   setRequiredDocuments: React.Dispatch<React.SetStateAction<RequiredDocument[]>>
-  eventId?: number | string
-  pendingFiles?: UploadedFile[]
-  setPendingFiles?: React.Dispatch<React.SetStateAction<UploadedFile[]>>
+  eventId: string | number
 }

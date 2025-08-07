@@ -801,7 +801,13 @@ const renderParticipantDetails = (participant: ParticipantInfo | undefined, titl
           {participant.drivers && participant.drivers.length > 0 && participant.drivers.some(d => d.firstName || d.lastName || d.phone || d.email || d.licenseNumber) ? (
             <div className="space-y-4">
               {participant.drivers.map((driver, index) => (
-                <div key={index} className="bg-gray-50 rounded-lg p-4 border border-gray-200">
+                <div
+                  key={
+                    driver.id ||
+                    `${driver.firstName}-${driver.lastName}-${driver.licenseNumber}`
+                  }
+                  className="bg-gray-50 rounded-lg p-4 border border-gray-200"
+                >
                   <div className="flex items-center justify-between mb-3">
                     <h5 className="font-medium text-gray-900 flex items-center">
                       <UserCheck className="h-4 w-4 mr-2 text-blue-600" />
@@ -1856,7 +1862,7 @@ const renderParticipantDetails = (participant: ParticipantInfo | undefined, titl
                     {claimFormData.damages && claimFormData.damages.length > 0 ? (
                       claimFormData.damages.map((damage, index) => (
                         <div
-                          key={index}
+                          key={damage.id || `${damage.description}-${damage.detail}`}
                           className="flex items-center justify-between text-sm hover:bg-gray-100 p-2 rounded bg-white border"
                         >
                           <span className="font-medium">
@@ -2611,7 +2617,10 @@ const renderParticipantDetails = (participant: ParticipantInfo | undefined, titl
                   <div className="space-y-1 max-h-32 overflow-y-auto">
                     {claimFormData.damages && claimFormData.damages.length > 0 ? (
                       claimFormData.damages.map((damage, index) => (
-                        <div key={index} className="text-sm text-gray-900 p-2 bg-white rounded border">
+                        <div
+                          key={damage.id || `${damage.description}-${damage.detail}`}
+                          className="text-sm text-gray-900 p-2 bg-white rounded border"
+                        >
                           <span className="font-medium">{damage.description}</span>
                           <span className="text-gray-600 ml-2">- {damage.detail}</span>
                         </div>
@@ -2642,8 +2651,11 @@ const renderParticipantDetails = (participant: ParticipantInfo | undefined, titl
               </div>
               <div className="p-4">
                 <div className="flex flex-wrap gap-2 mb-4">
-                  {claimFormData.servicesCalled.map((service, index) => (
-                    <span key={index} className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm font-medium capitalize">
+                  {claimFormData.servicesCalled.map((service) => (
+                    <span
+                      key={service}
+                      className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm font-medium capitalize"
+                    >
                       {service}
                     </span>
                   ))}

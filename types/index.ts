@@ -142,7 +142,7 @@ export interface Appeal {
 }
 
 export interface ClientClaim {
-  currency: number | undefined;
+  currency?: string;
   id?: string
   eventId?: string
   claimDate: string

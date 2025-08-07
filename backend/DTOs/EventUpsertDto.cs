@@ -125,6 +125,9 @@ namespace AutomotiveClaimsApi.DTOs
 
         public ICollection<ParticipantUpsertDto>? Participants { get; set; }
 
+        public ICollection<DocumentDto>? Documents { get; set; }
+
+
         public ICollection<DamageUpsertDto>? Damages { get; set; }
 
 

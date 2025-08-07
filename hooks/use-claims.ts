@@ -48,6 +48,7 @@ const transformFrontendClaimToApiPayload = (claimData: Partial<Claim>): EventUps
     injuredParty,
     perpetrator,
     servicesCalled,
+    documents,
     ...rest
   } = claimData
 
@@ -105,6 +106,9 @@ const transformFrontendClaimToApiPayload = (claimData: Partial<Claim>): EventUps
     eventTime: rest.eventTime,
     servicesCalled: servicesCalled?.join(","),
     participants: participants,
+
+    documents: documents?.map((d) => ({ id: d.id, filePath: d.url })),
+
     damages: damages?.map((d) => ({ description: d.description, detail: d.detail } as any)),
     decisions: decisions?.map((d) => ({
       ...d,
@@ -126,6 +130,7 @@ const transformFrontendClaimToApiPayload = (claimData: Partial<Claim>): EventUps
       ...s,
       settlementDate: s.settlementDate ? new Date(s.settlementDate).toISOString() : undefined,
     })),
+
   }
 }
 

@@ -33,6 +33,11 @@ export interface EventDto extends EventListItemDto {
   settlements?: SettlementDto[]
 }
 
+export interface DocumentDto {
+  id?: string
+  filePath?: string
+}
+
 export interface EventUpsertDto {
   spartaNumber?: string
   claimNumber?: string
@@ -52,6 +57,9 @@ export interface EventUpsertDto {
   payout?: number
   currency?: string
   participants?: ParticipantUpsertDto[]
+
+  documents?: DocumentDto[]
+
 
   damages?: DamageDto[]
   decisions?: DecisionDto[]

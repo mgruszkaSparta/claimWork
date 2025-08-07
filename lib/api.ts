@@ -52,12 +52,21 @@ export interface EventUpsertDto {
   payout?: number
   currency?: string
   participants?: ParticipantUpsertDto[]
+
   damages?: DamageDto[]
   decisions?: DecisionDto[]
   appeals?: AppealDto[]
   clientClaims?: ClientClaimDto[]
   recourses?: RecourseDto[]
   settlements?: SettlementDto[]
+
+  damages?: DamageUpsertDto[]
+  decisions?: DecisionUpsertDto[]
+  appeals?: AppealUpsertDto[]
+  clientClaims?: ClientClaimUpsertDto[]
+  recourses?: RecourseUpsertDto[]
+  settlements?: SettlementUpsertDto[]
+
 }
 
 export interface ParticipantDto {
@@ -148,6 +157,20 @@ export interface DamageDto {
   status?: string
 }
 
+export interface DamageUpsertDto {
+  eventId?: string
+  description?: string
+  detail?: string
+  location?: string
+  severity?: string
+  estimatedCost?: number
+  actualCost?: number
+  repairStatus?: string
+  repairDate?: string
+  repairShop?: string
+  notes?: string
+}
+
 export interface DecisionDto {
   id?: number
   eventId?: number
@@ -157,6 +180,19 @@ export interface DecisionDto {
   amount?: number
 }
 
+export interface DecisionUpsertDto {
+  eventId?: string
+  decisionDate?: string
+  decisionType?: string
+  decisionDescription?: string
+  decisionAmount?: number
+  decisionStatus?: string
+  decisionNumber?: string
+  description?: string
+  reason?: string
+  notes?: string
+}
+
 export interface AppealDto {
   id?: number
   eventId?: number
@@ -164,6 +200,19 @@ export interface AppealDto {
   appealType?: string
   description?: string
   status?: string
+}
+
+export interface AppealUpsertDto {
+  eventId?: string
+  appealNumber?: string
+  submissionDate?: string
+  reason?: string
+  status?: string
+  notes?: string
+  description?: string
+  appealAmount?: number
+  decisionDate?: string
+  decisionReason?: string
 }
 
 export interface ClientClaimDto {
@@ -176,6 +225,21 @@ export interface ClientClaimDto {
   status?: string
 }
 
+export interface ClientClaimUpsertDto {
+  eventId?: string
+  claimNumber?: string
+  claimDate?: string
+  claimType?: string
+  claimAmount?: number
+  currency?: string
+  status?: string
+  description?: string
+  documentPath?: string
+  documentName?: string
+  documentDescription?: string
+  claimNotes?: string
+}
+
 export interface RecourseDto {
   id?: number
   eventId?: number
@@ -186,6 +250,16 @@ export interface RecourseDto {
   status?: string
 }
 
+export interface RecourseUpsertDto {
+  eventId?: string
+  status?: string
+  initiationDate?: string
+  description?: string
+  notes?: string
+  recourseNumber?: string
+  recourseAmount?: number
+}
+
 export interface SettlementDto {
   id?: number
   eventId?: number
@@ -194,6 +268,26 @@ export interface SettlementDto {
   description?: string
   amount?: number
   status?: string
+}
+
+export interface SettlementUpsertDto {
+  eventId?: string
+  settlementNumber?: string
+  settlementType?: string
+  externalEntity?: string
+  customExternalEntity?: string
+  transferDate?: string
+  status?: string
+  settlementDate?: string
+  amount?: number
+  settlementAmount?: number
+  currency?: string
+  paymentMethod?: string
+  notes?: string
+  description?: string
+  documentPath?: string
+  documentName?: string
+  documentDescription?: string
 }
 
 // API Service

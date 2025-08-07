@@ -124,5 +124,13 @@ namespace AutomotiveClaimsApi.DTOs
         public string? Description { get; set; }
 
         public ICollection<ParticipantUpsertDto>? Participants { get; set; }
+
+        // Nested collections for cascade upsert
+        public ICollection<DamageDto>? Damages { get; set; }
+        public ICollection<DecisionDto>? Decisions { get; set; }
+        public ICollection<AppealDto>? Appeals { get; set; }
+        public ICollection<ClientClaimDto>? ClientClaims { get; set; }
+        public ICollection<RecourseDto>? Recourses { get; set; }
+        public ICollection<SettlementDto>? Settlements { get; set; }
     }
 }

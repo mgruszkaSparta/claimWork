@@ -103,7 +103,9 @@ export default function ClaimPage() {
 
       const claimData = await response.json()
       if (claimData) {
+
         const transformedData = transformApiClaimToFrontend(claimData)
+
 
         setClaim(transformedData)
         if (mode === "edit") {

@@ -113,7 +113,9 @@ export default function EditClaimPage() {
 
       const claimData = await response.json()
       if (claimData) {
+
         const transformedData = transformApiClaimToFrontend(claimData)
+
         setClaimFormData(transformedData)
       } else {
         throw new Error("Nie znaleziono danych szkody")

@@ -52,6 +52,12 @@ export interface EventUpsertDto {
   payout?: number
   currency?: string
   participants?: ParticipantUpsertDto[]
+  damages?: DamageDto[]
+  decisions?: DecisionDto[]
+  appeals?: AppealDto[]
+  clientClaims?: ClientClaimDto[]
+  recourses?: RecourseDto[]
+  settlements?: SettlementDto[]
 }
 
 export interface ParticipantDto {

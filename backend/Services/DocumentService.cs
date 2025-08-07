@@ -84,7 +84,8 @@ namespace AutomotiveClaimsApi.Services
                 RelatedEntityType = createDto.RelatedEntityType,
                 FileName = uniqueFileName,
                 OriginalFileName = file.FileName,
-                FilePath = Path.Combine("uploads", createDto.Category ?? "other", uniqueFileName),
+                FilePath = Path.Combine("uploads", createDto.Category ?? "other", uniqueFileName)
+                    .Replace("\\", "/"),
                 FileSize = file.Length,
                 ContentType = file.ContentType,
                 DocumentType = createDto.Category ?? "other",
@@ -122,9 +123,18 @@ namespace AutomotiveClaimsApi.Services
             throw new NotImplementedException();
         }
 
+        private static string NormalizePath(string filePath)
+        {
+            var normalized = filePath
+                .Replace("/", Path.DirectorySeparatorChar.ToString())
+                .Replace("\\", Path.DirectorySeparatorChar.ToString());
+            normalized = normalized.Replace("uploads" + Path.DirectorySeparatorChar, "");
+            return normalized.TrimStart(Path.DirectorySeparatorChar);
+        }
+
         public async Task<bool> DeleteDocumentAsync(string filePath)
         {
-            var fullPath = Path.Combine(_uploadsPath, filePath.Replace("uploads/", ""));
+            var fullPath = Path.Combine(_uploadsPath, NormalizePath(filePath));
             try
             {
                 if (File.Exists(fullPath))
@@ -142,7 +152,7 @@ namespace AutomotiveClaimsApi.Services
 
         public async Task<DocumentDownloadResult?> GetDocumentAsync(string filePath)
         {
-            var fullPath = Path.Combine(_uploadsPath, filePath.Replace("uploads/", ""));
+            var fullPath = Path.Combine(_uploadsPath, NormalizePath(filePath));
             if (!File.Exists(fullPath)) return null;
 
             var memoryStream = new MemoryStream(await File.ReadAllBytesAsync(fullPath));
@@ -156,7 +166,7 @@ namespace AutomotiveClaimsApi.Services
 
         public async Task<Stream> GetDocumentStreamAsync(string filePath)
         {
-            var fullPath = Path.Combine(_uploadsPath, filePath.Replace("uploads/", ""));
+            var fullPath = Path.Combine(_uploadsPath, NormalizePath(filePath));
             if (!File.Exists(fullPath)) throw new FileNotFoundException("Document not found", filePath);
             return new MemoryStream(await File.ReadAllBytesAsync(fullPath));
         }

@@ -31,7 +31,7 @@ export interface EventDto extends EventListItemDto {
   eventTime?: string
   location?: string
   description?: string
-  servicesCalled?: string
+  servicesCalled?: string[]
   insuranceCompanyId?: number
   handlerId?: number
   riskType?: string
@@ -70,7 +70,7 @@ export interface EventUpsertDto {
   eventTime?: string
   location?: string
   description?: string
-  servicesCalled?: string
+  servicesCalled?: string[]
   totalClaim?: number
   payout?: number
   currency?: string

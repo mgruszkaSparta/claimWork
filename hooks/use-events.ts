@@ -55,7 +55,7 @@ const transformToApiEvent = (event: Partial<Event>): Partial<EventDto> => ({
   eventTime: event.eventTime || "",
   location: event.location || "",
   description: event.eventDescription,
-  servicesCalled: event.policeInvolved ? "policja" : "",
+  servicesCalled: event.policeInvolved ? ["policja"] : [],
 })
 
 export function useEvents() {

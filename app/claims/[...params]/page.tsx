@@ -148,9 +148,11 @@ export default function ClaimPage() {
             inspectionContactEmail: "",
             drivers: [{ id: "", name: "", licenseNumber: "" }],
           },
+
           servicesCalled: Array.isArray(claimData.servicesCalled)
             ? claimData.servicesCalled
             : (claimData.servicesCalled?.split(",") ?? []),
+
           damages: claimData.damages || [],
           decisions: claimData.decisions || [],
           appeals: claimData.appeals || [],

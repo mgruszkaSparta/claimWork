@@ -1,5 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 
+const API_BASE_URL =
+  process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5200/api'
+
 export async function GET(request: NextRequest) {
   const searchParams = request.nextUrl.searchParams
   const taxId = searchParams.get('taxId')
@@ -7,46 +10,32 @@ export async function GET(request: NextRequest) {
   const countryId = searchParams.get('countryId')
   const searchCriteria = searchParams.get('searchCriteria')
 
+  const params = new URLSearchParams()
+  if (taxId) params.set('taxId', taxId)
+  if (numberId) params.set('numberId', numberId)
+  if (countryId) params.set('countryId', countryId)
+  if (searchCriteria) params.set('searchCriteria', searchCriteria)
+
   try {
-    // Mock search logic - replace with actual database search
-    if (taxId && taxId.length >= 8) {
-      // Mock found participant data
-      const mockParticipant = {
-        name: 'Przykładowa Firma Sp. z o.o.',
-        taxId: taxId,
-        city: 'Warszawa',
-        postalCode: '00-001',
-        street: 'ul. Przykładowa',
-        houseNumber: '1',
-        countryId: 'PL',
-        phone: '+48 123 456 789',
-        email: 'kontakt@przyklad.pl'
-      }
-      return NextResponse.json(mockParticipant)
+    const res = await fetch(
+      `${API_BASE_URL}/participants/search?${params.toString()}`,
+    )
+
+    if (res.status === 404) {
+      return NextResponse.json(null)
     }
 
-    if (numberId && numberId.length >= 8) {
-      // Mock found participant data
-      const mockParticipant = {
-        firstName: 'Jan',
-        surname: 'Kowalski',
-        personalId: numberId,
-        city: 'Kraków',
-        postalCode: '30-001',
-        street: 'ul. Testowa',
-        houseNumber: '2',
-        countryId: 'PL',
-        phone: '+48 987 654 321',
-        email: 'jan.kowalski@example.com'
-      }
-      return NextResponse.json(mockParticipant)
+    if (!res.ok) {
+      throw new Error('Failed to fetch participant')
     }
 
-    return NextResponse.json(null)
+    const participant = await res.json()
+    return NextResponse.json(participant)
   } catch (error) {
+    console.error('Error searching participant:', error)
     return NextResponse.json(
       { error: 'Failed to search participant' },
-      { status: 500 }
+      { status: 500 },
     )
   }
 }

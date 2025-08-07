@@ -1,52 +1,13 @@
 import { type NextRequest, NextResponse } from "next/server"
 
-// Client interface based on the database structure
 interface Client {
-  id: string
+  id: number
   name: string
   fullName: string
-  isActive: boolean
-  createdAt: Date
 }
 
-// Mock client data - replace with actual database query
-const mockClients: Client[] = [
-  {
-    id: "1000",
-    name: "JPM GLOBAL OZIEWICZ STOBIŃKI WODZYŃSKI SP.JAWNA",
-    fullName: "JPM GLOBAL OZIEWICZ STOBIŃKI WODZYŃSKI SP.JAWNA",
-    isActive: true,
-    createdAt: new Date(),
-  },
-  {
-    id: "1001",
-    name: "KUROWSKI SPÓŁKA Z OGRANICZONĄ ODPOWIEDZIALNOŚCIĄ",
-    fullName: "KUROWSKI SPÓŁKA Z OGRANICZONĄ ODPOWIEDZIALNOŚCIĄ",
-    isActive: true,
-    createdAt: new Date(),
-  },
-  {
-    id: "1002",
-    name: '"MATRAK" M.A. ŁYCZKOWSCY SPÓŁKA JAWNA',
-    fullName: '"MATRAK" M.A. ŁYCZKOWSCY SPÓŁKA JAWNA',
-    isActive: true,
-    createdAt: new Date(),
-  },
-  {
-    id: "1003",
-    name: "HTS LOGISTIC Sylwester Prus",
-    fullName: "HTS LOGISTIC Sylwester Prus",
-    isActive: true,
-    createdAt: new Date(),
-  },
-  {
-    id: "1004",
-    name: "WORLDTRANS SPÓŁKA Z OGRANICZONĄ ODPOWIEDZIALNOŚCIĄ",
-    fullName: "WORLDTRANS SPÓŁKA Z OGRANICZONĄ ODPOWIEDZIALNOŚCIĄ",
-    isActive: true,
-    createdAt: new Date(),
-  },
-]
+const API_BASE_URL =
+  process.env.NEXT_PUBLIC_API_URL || "http://localhost:5200/api"
 
 export async function GET(request: NextRequest) {
   try {
@@ -55,45 +16,30 @@ export async function GET(request: NextRequest) {
     const limit = Number.parseInt(searchParams.get("limit") || "50")
     const offset = Number.parseInt(searchParams.get("offset") || "0")
 
-    // TODO: Replace with actual database query
-    // Example with your existing database context:
-    // const clients = await db.clients.findMany({
-    //   where: search ? {
-    //     OR: [
-    //       { name: { contains: search, mode: 'insensitive' } },
-    //       { fullName: { contains: search, mode: 'insensitive' } }
-    //     ]
-    //   } : {},
-    //   take: limit,
-    //   skip: offset,
-    //   orderBy: { name: 'asc' }
-    // })
-
-    let filteredClients = mockClients
-
-    // Filter by search term if provided
+    const url = new URL(`${API_BASE_URL}/clients`)
     if (search) {
-      filteredClients = mockClients.filter(
-        (client) =>
-          client.name.toLowerCase().includes(search.toLowerCase()) ||
-          client.fullName.toLowerCase().includes(search.toLowerCase()),
-      )
+      url.searchParams.set("search", search)
     }
 
-    // Apply pagination
-    const paginatedClients = filteredClients.slice(offset, offset + limit)
+    const res = await fetch(url.toString())
+    if (!res.ok) {
+      throw new Error("Failed to fetch clients")
+    }
 
-    // Transform to the format expected by SearchableSelect
+    const clients: Client[] = await res.json()
+
+    const paginatedClients = clients.slice(offset, offset + limit)
+
     const options = paginatedClients.map((client) => ({
-      value: client.id,
+      value: client.id.toString(),
       label: client.name,
       fullName: client.fullName,
     }))
 
     return NextResponse.json({
       options,
-      total: filteredClients.length,
-      hasMore: offset + limit < filteredClients.length,
+      total: clients.length,
+      hasMore: offset + limit < clients.length,
     })
   } catch (error) {
     console.error("Error fetching clients:", error)
@@ -107,28 +53,26 @@ export async function POST(request: NextRequest) {
     const { name, fullName } = body
 
     if (!name || !fullName) {
-      return NextResponse.json({ error: "Name and fullName are required" }, { status: 400 })
+      return NextResponse.json(
+        { error: "Name and fullName are required" },
+        { status: 400 },
+      )
     }
 
-    // TODO: Add client to database
-    // const newClient = await db.clients.create({
-    //   data: {
-    //     name,
-    //     fullName,
-    //     isActive: true
-    //   }
-    // })
+    const res = await fetch(`${API_BASE_URL}/clients`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name, fullName, isActive: true }),
+    })
 
-    const newClient = {
-      id: Date.now().toString(),
-      name,
-      fullName,
-      isActive: true,
-      createdAt: new Date(),
+    if (!res.ok) {
+      throw new Error("Failed to create client")
     }
+
+    const newClient: Client = await res.json()
 
     return NextResponse.json({
-      value: newClient.id,
+      value: newClient.id.toString(),
       label: newClient.name,
       fullName: newClient.fullName,
     })
@@ -137,3 +81,4 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Failed to create client" }, { status: 500 })
   }
 }
+

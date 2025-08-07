@@ -7,6 +7,7 @@ import { Loader2, AlertCircle } from 'lucide-react'
 interface Option {
   id: string
   name: string
+  code?: string
   [key: string]: any
 }
 
@@ -118,7 +119,7 @@ export function DependentSelect({
           !error &&
           options.length > 0 &&
           options.map((option) => (
-            <SelectItem key={option.id} value={option.id}>
+            <SelectItem key={option.id} value={option.code ?? option.id}>
               {option.name}
             </SelectItem>
           ))}

@@ -196,6 +196,8 @@ namespace AutomotiveClaimsApi.Controllers
                     foreach (var eDto in eventDto.Emails)
                     {
                         _context.Emails.Add(MapEmailDtoToModel(eDto, eventEntity.Id));
+                    }
+                }
 
                 if (eventDto.Damages != null)
                 {
@@ -345,7 +347,8 @@ namespace AutomotiveClaimsApi.Controllers
                     foreach (var eDto in eventDto.Emails)
                     {
                         _context.Emails.Add(MapEmailDtoToModel(eDto, eventEntity.Id));
-
+                    }
+                }
 
                 if (eventDto.Documents != null && eventDto.Documents.Any())
                 {
@@ -355,6 +358,8 @@ namespace AutomotiveClaimsApi.Controllers
                     {
                         doc.EventId = eventEntity.Id;
                         doc.UpdatedAt = DateTime.UtcNow;
+                    }
+                }
 
                 if (eventDto.Damages != null)
                 {

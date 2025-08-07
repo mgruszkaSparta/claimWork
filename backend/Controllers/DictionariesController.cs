@@ -22,6 +22,39 @@ namespace AutomotiveClaimsApi.Controllers
             _logger = logger;
         }
 
+        [HttpGet("case-handlers")]
+        public async Task<ActionResult<DictionaryResponseDto>> GetCaseHandlers()
+        {
+            try
+            {
+                var handlers = await _context.CaseHandlers
+                    .Where(h => h.IsActive)
+                    .OrderBy(h => h.Name)
+                    .Select(h => new DictionaryItemDto
+                    {
+                        Id = h.Id.ToString(),
+                        Name = h.Name,
+                        Code = h.Code,
+                        IsActive = h.IsActive
+                    })
+                    .ToListAsync();
+
+                var response = new DictionaryResponseDto
+                {
+                    Items = handlers,
+                    TotalCount = handlers.Count,
+                    Category = "CaseHandlers"
+                };
+
+                return Ok(response);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error retrieving case handlers");
+                return StatusCode(500, new { error = "Failed to retrieve case handlers" });
+            }
+        }
+
         [HttpGet("countries")]
         public async Task<ActionResult<DictionaryResponseDto>> GetCountries()
         {

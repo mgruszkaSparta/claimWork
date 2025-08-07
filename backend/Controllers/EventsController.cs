@@ -145,10 +145,13 @@ namespace AutomotiveClaimsApi.Controllers
         {
             try
             {
-                var eventEntity = MapUpsertDtoToEvent(eventDto);
-                eventEntity.Id = Guid.NewGuid();
-                eventEntity.CreatedAt = DateTime.UtcNow;
-                eventEntity.UpdatedAt = DateTime.UtcNow;
+                var eventEntity = new Event
+                {
+                    Id = Guid.NewGuid(),
+                    CreatedAt = DateTime.UtcNow,
+                    UpdatedAt = DateTime.UtcNow
+                };
+                MapUpsertDtoToEvent(eventDto, eventEntity);
 
                 _context.Events.Add(eventEntity);
 
@@ -250,9 +253,11 @@ namespace AutomotiveClaimsApi.Controllers
                 var eventEntity = await _context.Events
                     .Include(e => e.Participants).ThenInclude(p => p.Drivers)
                     .Include(e => e.Damages)
-                    .Include(e => e.Decisions)
+
                     .Include(e => e.Appeals)
                     .Include(e => e.ClientClaims)
+                    .Include(e => e.Decisions)
+
                     .Include(e => e.Recourses)
                     .Include(e => e.Settlements)
                     .FirstOrDefaultAsync(e => e.Id == id);
@@ -426,6 +431,297 @@ namespace AutomotiveClaimsApi.Controllers
             entity.VehicleType = dto.VehicleType;
             entity.DamageDescription = dto.DamageDescription;
             entity.Description = dto.Description;
+
+            // Upsert nested collections
+            if (dto.Damages != null)
+            {
+                var dtoIds = dto.Damages.Where(d => Guid.TryParse(d.Id, out _))
+                    .Select(d => Guid.Parse(d.Id)).ToHashSet();
+                var toRemove = entity.Damages.Where(d => !dtoIds.Contains(d.Id)).ToList();
+                foreach (var r in toRemove) entity.Damages.Remove(r);
+
+                foreach (var dDto in dto.Damages)
+                {
+                    var hasId = Guid.TryParse(dDto.Id, out var damageId);
+                    var existing = hasId ? entity.Damages.FirstOrDefault(d => d.Id == damageId) : null;
+                    if (existing != null)
+                    {
+                        existing.Description = dDto.Description;
+                        existing.Detail = dDto.Detail;
+                        existing.Location = dDto.Location;
+                        existing.Severity = dDto.Severity;
+                        existing.EstimatedCost = dDto.EstimatedCost;
+                        existing.ActualCost = dDto.ActualCost;
+                        existing.RepairStatus = dDto.RepairStatus;
+                        existing.RepairDate = dDto.RepairDate;
+                        existing.RepairShop = dDto.RepairShop;
+                        existing.Notes = dDto.Notes;
+                        existing.UpdatedAt = DateTime.UtcNow;
+                    }
+                    else
+                    {
+                        entity.Damages.Add(new Damage
+                        {
+                            Id = hasId ? damageId : Guid.NewGuid(),
+                            EventId = entity.Id,
+                            Description = dDto.Description,
+                            Detail = dDto.Detail,
+                            Location = dDto.Location,
+                            Severity = dDto.Severity,
+                            EstimatedCost = dDto.EstimatedCost,
+                            ActualCost = dDto.ActualCost,
+                            RepairStatus = dDto.RepairStatus,
+                            RepairDate = dDto.RepairDate,
+                            RepairShop = dDto.RepairShop,
+                            Notes = dDto.Notes,
+                            CreatedAt = DateTime.UtcNow,
+                            UpdatedAt = DateTime.UtcNow
+                        });
+                    }
+                }
+            }
+
+            if (dto.Decisions != null)
+            {
+                var dtoIds = dto.Decisions.Where(d => Guid.TryParse(d.Id, out _))
+                    .Select(d => Guid.Parse(d.Id)).ToHashSet();
+                var toRemove = entity.Decisions.Where(d => !dtoIds.Contains(d.Id)).ToList();
+                foreach (var r in toRemove) entity.Decisions.Remove(r);
+
+                foreach (var dDto in dto.Decisions)
+                {
+                    var hasId = Guid.TryParse(dDto.Id, out var decisionId);
+                    var existing = hasId ? entity.Decisions.FirstOrDefault(d => d.Id == decisionId) : null;
+                    if (existing != null)
+                    {
+                        existing.DecisionDate = dDto.DecisionDate;
+                        existing.DecisionType = dDto.DecisionType;
+                        existing.DecisionDescription = dDto.DecisionDescription;
+                        existing.DecisionAmount = dDto.DecisionAmount;
+                        existing.DecisionStatus = dDto.DecisionStatus;
+                        existing.DecisionNumber = dDto.DecisionNumber;
+                        existing.Description = dDto.Description;
+                        existing.Reason = dDto.Reason;
+                        existing.Notes = dDto.Notes;
+                        existing.UpdatedAt = DateTime.UtcNow;
+                    }
+                    else
+                    {
+                        entity.Decisions.Add(new Decision
+                        {
+                            Id = hasId ? decisionId : Guid.NewGuid(),
+                            EventId = entity.Id,
+                            DecisionDate = dDto.DecisionDate,
+                            DecisionType = dDto.DecisionType,
+                            DecisionDescription = dDto.DecisionDescription,
+                            DecisionAmount = dDto.DecisionAmount,
+                            DecisionStatus = dDto.DecisionStatus,
+                            DecisionNumber = dDto.DecisionNumber,
+                            Description = dDto.Description,
+                            Reason = dDto.Reason,
+                            Notes = dDto.Notes,
+                            CreatedAt = DateTime.UtcNow,
+                            UpdatedAt = DateTime.UtcNow
+                        });
+                    }
+                }
+            }
+
+            if (dto.Appeals != null)
+            {
+                var dtoIds = dto.Appeals.Where(a => Guid.TryParse(a.Id, out _))
+                    .Select(a => Guid.Parse(a.Id)).ToHashSet();
+                var toRemove = entity.Appeals.Where(a => !dtoIds.Contains(a.Id)).ToList();
+                foreach (var r in toRemove) entity.Appeals.Remove(r);
+
+                foreach (var aDto in dto.Appeals)
+                {
+                    var hasId = Guid.TryParse(aDto.Id, out var appealId);
+                    var existing = hasId ? entity.Appeals.FirstOrDefault(a => a.Id == appealId) : null;
+                    if (existing != null)
+                    {
+                        existing.SubmissionDate = aDto.SubmissionDate ?? existing.SubmissionDate;
+                        existing.Reason = aDto.Reason;
+                        existing.Status = aDto.Status;
+                        existing.Notes = aDto.Notes;
+                        existing.Description = aDto.Description;
+                        existing.AppealNumber = aDto.AppealNumber;
+                        existing.AppealAmount = aDto.AppealAmount;
+                        existing.DecisionDate = aDto.DecisionDate;
+                        existing.DecisionReason = aDto.DecisionReason;
+                        existing.DocumentPath = aDto.DocumentPath;
+                        existing.DocumentName = aDto.DocumentName;
+                        existing.DocumentDescription = aDto.DocumentDescription;
+                        existing.UpdatedAt = DateTime.UtcNow;
+                    }
+                    else
+                    {
+                        entity.Appeals.Add(new Appeal
+                        {
+                            Id = hasId ? appealId : Guid.NewGuid(),
+                            EventId = entity.Id,
+                            SubmissionDate = aDto.SubmissionDate ?? DateTime.UtcNow,
+                            Reason = aDto.Reason,
+                            Status = aDto.Status,
+                            Notes = aDto.Notes,
+                            Description = aDto.Description,
+                            AppealNumber = aDto.AppealNumber,
+                            AppealAmount = aDto.AppealAmount,
+                            DecisionDate = aDto.DecisionDate,
+                            DecisionReason = aDto.DecisionReason,
+                            DocumentPath = aDto.DocumentPath,
+                            DocumentName = aDto.DocumentName,
+                            DocumentDescription = aDto.DocumentDescription,
+                            CreatedAt = DateTime.UtcNow,
+                            UpdatedAt = DateTime.UtcNow
+                        });
+                    }
+                }
+            }
+
+            if (dto.ClientClaims != null)
+            {
+                var dtoIds = dto.ClientClaims.Where(c => Guid.TryParse(c.Id, out _))
+                    .Select(c => Guid.Parse(c.Id)).ToHashSet();
+                var toRemove = entity.ClientClaims.Where(c => !dtoIds.Contains(c.Id)).ToList();
+                foreach (var r in toRemove) entity.ClientClaims.Remove(r);
+
+                foreach (var cDto in dto.ClientClaims)
+                {
+                    var hasId = Guid.TryParse(cDto.Id, out var claimId);
+                    var existing = hasId ? entity.ClientClaims.FirstOrDefault(c => c.Id == claimId) : null;
+                    if (existing != null)
+                    {
+                        existing.ClaimNumber = cDto.ClaimNumber;
+                        existing.ClaimDate = cDto.ClaimDate;
+                        existing.ClaimType = cDto.ClaimType;
+                        existing.ClaimAmount = cDto.ClaimAmount;
+                        existing.Currency = cDto.Currency;
+                        existing.Status = cDto.Status;
+                        existing.Description = cDto.Description;
+                        existing.DocumentPath = cDto.DocumentPath;
+                        existing.DocumentName = cDto.DocumentName;
+                        existing.DocumentDescription = cDto.DocumentDescription;
+                        existing.ClaimNotes = cDto.ClaimNotes;
+                        existing.UpdatedAt = DateTime.UtcNow;
+                    }
+                    else
+                    {
+                        entity.ClientClaims.Add(new ClientClaim
+                        {
+                            Id = hasId ? claimId : Guid.NewGuid(),
+                            EventId = entity.Id,
+                            ClaimNumber = cDto.ClaimNumber,
+                            ClaimDate = cDto.ClaimDate,
+                            ClaimType = cDto.ClaimType,
+                            ClaimAmount = cDto.ClaimAmount,
+                            Currency = cDto.Currency,
+                            Status = cDto.Status,
+                            Description = cDto.Description,
+                            DocumentPath = cDto.DocumentPath,
+                            DocumentName = cDto.DocumentName,
+                            DocumentDescription = cDto.DocumentDescription,
+                            ClaimNotes = cDto.ClaimNotes,
+                            CreatedAt = DateTime.UtcNow,
+                            UpdatedAt = DateTime.UtcNow
+                        });
+                    }
+                }
+            }
+
+            if (dto.Recourses != null)
+            {
+                var dtoIds = dto.Recourses.Where(r => Guid.TryParse(r.Id, out _))
+                    .Select(r => Guid.Parse(r.Id)).ToHashSet();
+                var toRemove = entity.Recourses.Where(r => !dtoIds.Contains(r.Id)).ToList();
+                foreach (var r in toRemove) entity.Recourses.Remove(r);
+
+                foreach (var rDto in dto.Recourses)
+                {
+                    var hasId = Guid.TryParse(rDto.Id, out var recourseId);
+                    var existing = hasId ? entity.Recourses.FirstOrDefault(r => r.Id == recourseId) : null;
+                    if (existing != null)
+                    {
+                        existing.Status = rDto.Status;
+                        existing.InitiationDate = rDto.InitiationDate;
+                        existing.Description = rDto.Description;
+                        existing.Notes = rDto.Notes;
+                        existing.RecourseNumber = rDto.RecourseNumber;
+                        existing.RecourseAmount = rDto.RecourseAmount;
+                        existing.UpdatedAt = DateTime.UtcNow;
+                    }
+                    else
+                    {
+                        entity.Recourses.Add(new Recourse
+                        {
+                            Id = hasId ? recourseId : Guid.NewGuid(),
+                            EventId = entity.Id,
+                            Status = rDto.Status,
+                            InitiationDate = rDto.InitiationDate,
+                            Description = rDto.Description,
+                            Notes = rDto.Notes,
+                            RecourseNumber = rDto.RecourseNumber,
+                            RecourseAmount = rDto.RecourseAmount,
+                            CreatedAt = DateTime.UtcNow,
+                            UpdatedAt = DateTime.UtcNow
+                        });
+                    }
+                }
+            }
+
+            if (dto.Settlements != null)
+            {
+                var dtoIds = dto.Settlements.Where(s => Guid.TryParse(s.Id, out _))
+                    .Select(s => Guid.Parse(s.Id)).ToHashSet();
+                var toRemove = entity.Settlements.Where(s => !dtoIds.Contains(s.Id)).ToList();
+                foreach (var r in toRemove) entity.Settlements.Remove(r);
+
+                foreach (var sDto in dto.Settlements)
+                {
+                    var hasId = Guid.TryParse(sDto.Id, out var settlementId);
+                    var existing = hasId ? entity.Settlements.FirstOrDefault(s => s.Id == settlementId) : null;
+                    if (existing != null)
+                    {
+                        existing.Status = sDto.Status;
+                        existing.SettlementDate = sDto.SettlementDate;
+                        existing.Amount = sDto.Amount;
+                        existing.Currency = sDto.Currency;
+                        existing.PaymentMethod = sDto.PaymentMethod;
+                        existing.Notes = sDto.Notes;
+                        existing.Description = sDto.Description;
+                        existing.DocumentPath = sDto.DocumentPath;
+                        existing.DocumentName = sDto.DocumentName;
+                        existing.DocumentDescription = sDto.DocumentDescription;
+                        existing.SettlementNumber = sDto.SettlementNumber;
+                        existing.SettlementType = sDto.SettlementType;
+                        existing.SettlementAmount = sDto.SettlementAmount;
+                        existing.UpdatedAt = DateTime.UtcNow;
+                    }
+                    else
+                    {
+                        entity.Settlements.Add(new Settlement
+                        {
+                            Id = hasId ? settlementId : Guid.NewGuid(),
+                            EventId = entity.Id,
+                            Status = sDto.Status,
+                            SettlementDate = sDto.SettlementDate,
+                            Amount = sDto.Amount,
+                            Currency = sDto.Currency,
+                            PaymentMethod = sDto.PaymentMethod,
+                            Notes = sDto.Notes,
+                            Description = sDto.Description,
+                            DocumentPath = sDto.DocumentPath,
+                            DocumentName = sDto.DocumentName,
+                            DocumentDescription = sDto.DocumentDescription,
+                            SettlementNumber = sDto.SettlementNumber,
+                            SettlementType = sDto.SettlementType,
+                            SettlementAmount = sDto.SettlementAmount,
+                            CreatedAt = DateTime.UtcNow,
+                            UpdatedAt = DateTime.UtcNow
+                        });
+                    }
+                }
+            }
 
             entity.UpdatedAt = DateTime.UtcNow;
             if (entity.CreatedAt == default) entity.CreatedAt = DateTime.UtcNow;

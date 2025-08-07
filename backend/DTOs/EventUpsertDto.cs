@@ -131,6 +131,10 @@ namespace AutomotiveClaimsApi.DTOs
 
         public ICollection<ParticipantUpsertDto>? Participants { get; set; }
 
+        public ICollection<NoteUpsertDto>? Notes { get; set; }
+        public ICollection<EmailUpsertDto>? Emails { get; set; }
+
+
         public ICollection<DocumentDto>? Documents { get; set; }
 
         public ICollection<DamageUpsertDto>? Damages { get; set; }
@@ -139,6 +143,7 @@ namespace AutomotiveClaimsApi.DTOs
         public ICollection<ClientClaimUpsertDto>? ClientClaims { get; set; }
         public ICollection<RecourseUpsertDto>? Recourses { get; set; }
         public ICollection<SettlementUpsertDto>? Settlements { get; set; }
+
 
 
     }

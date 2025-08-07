@@ -72,6 +72,7 @@ export function ClaimForm({ initialData, mode }: ClaimFormProps) {
   })
 
   const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([])
+  const [pendingFiles, setPendingFiles] = useState<UploadedFile[]>([])
   const [requiredDocuments, setRequiredDocuments] = useState<RequiredDocument[]>([
     { id: '1', name: 'Zgłoszenie szkody', required: true, uploaded: false, description: 'Formularz zgłoszenia szkody' },
     { id: '2', name: 'Dowód rejestracyjny', required: true, uploaded: false, description: 'Kopia dowodu rejestracyjnego pojazdu' },
@@ -128,13 +129,29 @@ export function ClaimForm({ initialData, mode }: ClaimFormProps) {
 
       if (mode === 'create') {
         const result = await createClaim(payload)
-        if (result) {
-          router.push('/claims')
+        if (result && result.id) {
+          if (pendingFiles.length > 0) {
+            await Promise.all(
+              pendingFiles.map(async (file) => {
+                if (!file.file) return
+                const formDataFile = new FormData()
+                formDataFile.append('file', file.file)
+                formDataFile.append('eventId', result.id.toString())
+                formDataFile.append('documentType', file.category || 'Inne dokumenty')
+                formDataFile.append('uploadedBy', 'Current User')
+                await fetch('/api/documents/upload', {
+                  method: 'POST',
+                  body: formDataFile,
+                })
+              })
+            )
+          }
+          router.push(`/claims/${result.id}/view`)
         }
       } else if (mode === 'edit' && formData.id) {
         const result = await updateClaim(formData.id, payload)
         if (result) {
-          router.push('/claims')
+          router.push(`/claims/${formData.id}/view`)
         }
       }
     } catch (err) {
@@ -320,9 +337,11 @@ export function ClaimForm({ initialData, mode }: ClaimFormProps) {
             <DocumentsSection
               uploadedFiles={uploadedFiles}
               setUploadedFiles={setUploadedFiles}
+              pendingFiles={pendingFiles}
+              setPendingFiles={setPendingFiles}
               requiredDocuments={requiredDocuments}
               setRequiredDocuments={setRequiredDocuments}
-              eventId={formData.id ? parseInt(formData.id) : undefined}
+              eventId={formData.id}
             />
           </CardContent>
         </Card>

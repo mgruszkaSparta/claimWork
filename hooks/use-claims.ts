@@ -27,7 +27,9 @@ const transformApiClaimToFrontend = (apiClaim: EventDto): Claim => {
     totalClaim: apiClaim.totalClaim ?? 0,
     payout: apiClaim.payout ?? 0,
     currency: apiClaim.currency ?? "PLN",
-    servicesCalled: apiClaim.servicesCalled?.split(",").filter(Boolean) || [],
+    servicesCalled: Array.isArray(apiClaim.servicesCalled)
+      ? apiClaim.servicesCalled
+      : (apiClaim.servicesCalled?.split(",").filter(Boolean) ?? []),
     damages: apiClaim.damages || [],
     decisions: apiClaim.decisions || [],
     appeals: apiClaim.appeals || [],

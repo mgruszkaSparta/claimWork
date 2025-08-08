@@ -407,9 +407,11 @@ class ApiService {
     return text as unknown as T
   }
 
+
   async getClaims(): Promise<ClaimListItemDto[]> {
     const claims = await this.request<ClaimListItemDto[] | undefined>("/claims")
     return claims ?? []
+
   }
 
   async getClaim(id: string): Promise<ClaimDto> {

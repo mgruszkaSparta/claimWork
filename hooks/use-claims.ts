@@ -192,6 +192,7 @@ export function useClaims() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
+
   const fetchClaims = useCallback(async () => {
     try {
       setLoading(true)
@@ -223,16 +224,11 @@ export function useClaims() {
       setClaims(frontendClaims)
       if (isDev) {
         console.log("Claims set in state:", frontendClaims)
+
       }
-    } catch (err) {
-      console.error("Error fetching claims:", err)
-      const message = err instanceof Error ? err.message : "An unknown error occurred"
-      setError(`Failed to fetch claims: ${message}`)
-      setClaims([])
-    } finally {
-      setLoading(false)
-    }
-  }, [])
+    },
+    [],
+  )
 
   const getClaim = async (id: string): Promise<Claim | null> => {
     try {
@@ -265,6 +261,7 @@ export function useClaims() {
       const newApiClaim = await apiService.createClaim(payload)
       const newClaim = transformApiClaimToFrontend(newApiClaim)
       setClaims((prev) => [newClaim, ...prev])
+      setTotalCount((prev) => prev + 1)
       return newClaim
     } catch (err) {
       const message = err instanceof Error ? err.message : "An unknown error occurred"
@@ -298,6 +295,7 @@ export function useClaims() {
       setError(null)
       await apiService.deleteClaim(id)
       setClaims((prev) => prev.filter((c) => c.id !== id))
+      setTotalCount((prev) => Math.max(0, prev - 1))
       return true
     } catch (err) {
       const message = err instanceof Error ? err.message : "An unknown error occurred"
@@ -314,6 +312,7 @@ export function useClaims() {
     claims,
     loading,
     error,
+    totalCount,
     fetchClaims,
     getClaim,
     initializeClaim,

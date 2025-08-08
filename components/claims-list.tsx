@@ -10,6 +10,14 @@ import { Search, Plus, Filter, Eye, Edit, Trash2, RefreshCw, AlertCircle, Loader
 import { useClaims } from "@/hooks/use-claims"
 import { useToast } from "@/hooks/use-toast"
 import type { Claim } from "@/types"
+import {
+  Pagination,
+  PaginationContent,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from "@/components/ui/pagination"
 
 interface ClaimsListProps {
   claims?: Claim[]
@@ -25,15 +33,18 @@ export function ClaimsList({ onEditClaim, onNewClaim }: ClaimsListProps) {
   const [filterHandler, setFilterHandler] = useState("")
   const [showFilters, setShowFilters] = useState(false)
   const [isRefreshing, setIsRefreshing] = useState(false)
+  const [page, setPage] = useState(1)
+  const pageSize = 10
 
-  const { claims, loading, error, deleteClaim, fetchClaims, clearError } = useClaims()
+  const { claims, loading, error, deleteClaim, fetchClaims, clearError, totalCount } = useClaims()
   const { toast } = useToast()
+  const totalPages = Math.max(1, Math.ceil(totalCount / pageSize))
 
-  // Refresh data on component mount
+  // Refresh data on component mount and when page changes
   useEffect(() => {
     const loadClaims = async () => {
       try {
-        await fetchClaims()
+        await fetchClaims({ page, pageSize })
       } catch (err) {
         toast({
           title: "Błąd",
@@ -43,7 +54,7 @@ export function ClaimsList({ onEditClaim, onNewClaim }: ClaimsListProps) {
       }
     }
     loadClaims()
-  }, [fetchClaims, toast])
+  }, [fetchClaims, toast, page, pageSize])
 
   // TODO: consider moving this filtering to use-claims or the API to reduce client workload
   const filteredClaims = useMemo(
@@ -117,7 +128,7 @@ export function ClaimsList({ onEditClaim, onNewClaim }: ClaimsListProps) {
   const handleRefresh = async () => {
     setIsRefreshing(true)
     try {
-      await fetchClaims()
+      await fetchClaims({ page, pageSize })
       toast({
         title: "Odświeżono",
         description: "Lista szkód została odświeżona.",
@@ -184,9 +195,9 @@ export function ClaimsList({ onEditClaim, onNewClaim }: ClaimsListProps) {
           >
             <RefreshCw className={`h-3 w-3 ${isRefreshing ? "animate-spin" : ""}`} />
           </Button>
-          {claims.length > 0 && (
+          {totalCount > 0 && (
             <Badge variant="secondary" className="text-xs">
-              {claims.length} szkód
+              {totalCount} szkód
             </Badge>
           )}
         </div>
@@ -411,12 +422,56 @@ export function ClaimsList({ onEditClaim, onNewClaim }: ClaimsListProps) {
         </div>
       </div>
 
+      {/* Pagination */}
+      {totalPages > 1 && (
+        <div className="px-6 py-4 flex justify-center flex-shrink-0">
+          <Pagination>
+            <PaginationContent>
+              <PaginationItem>
+                <PaginationPrevious
+                  href="#"
+                  onClick={(e) => {
+                    e.preventDefault()
+                    setPage((p) => Math.max(1, p - 1))
+                  }}
+                  className={page === 1 ? "pointer-events-none opacity-50" : ""}
+                />
+              </PaginationItem>
+              {Array.from({ length: totalPages }).map((_, i) => (
+                <PaginationItem key={i}>
+                  <PaginationLink
+                    href="#"
+                    isActive={page === i + 1}
+                    onClick={(e) => {
+                      e.preventDefault()
+                      setPage(i + 1)
+                    }}
+                  >
+                    {i + 1}
+                  </PaginationLink>
+                </PaginationItem>
+              ))}
+              <PaginationItem>
+                <PaginationNext
+                  href="#"
+                  onClick={(e) => {
+                    e.preventDefault()
+                    setPage((p) => Math.min(totalPages, p + 1))
+                  }}
+                  className={page === totalPages ? "pointer-events-none opacity-50" : ""}
+                />
+              </PaginationItem>
+            </PaginationContent>
+          </Pagination>
+        </div>
+      )}
+
       {/* Summary */}
       {filteredClaims.length > 0 && (
         <div className="px-6 pb-6 flex-shrink-0">
           <div className="flex justify-between items-center text-sm text-gray-500 bg-gray-50 px-4 py-2 rounded-lg">
             <span>
-              Wyświetlono {filteredClaims.length} z {claims.length} szkód
+              Wyświetlono {filteredClaims.length} z {totalCount} szkód
               {error && " (sprawdź połączenie z API)"}
             </span>
             <div className="flex items-center space-x-4">
@@ -425,7 +480,9 @@ export function ClaimsList({ onEditClaim, onNewClaim }: ClaimsListProps) {
                 {filteredClaims.reduce((sum, claim) => sum + (claim.totalClaim || 0), 0).toLocaleString("pl-PL")} PLN
               </span>
               <span>•</span>
-              <span>Strona 1 z 1</span>
+              <span>
+                Strona {page} z {totalPages}
+              </span>
             </div>
           </div>
         </div>

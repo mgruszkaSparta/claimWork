@@ -1,7 +1,9 @@
 "use client"
 
 import { useCallback } from "react"
-import { generateId } from "@/lib/constants"
+import { API_ENDPOINTS } from "@/lib/constants"
+
+
 
 export interface Damage {
   id?: string
@@ -17,26 +19,28 @@ export interface Damage {
 
 export function useDamages(eventId?: string) {
 
-  const initDamage = useCallback(
-    (damage: Pick<Damage, "description" | "detail">): Damage => ({
-      id: generateId(),
-      description: damage.description,
-      detail: damage.detail,
-    }),
-    [],
-  )
+  const initDamages = useCallback(async (): Promise<Damage[]> => {
+    const response = await fetch(API_ENDPOINTS.DAMAGES_INIT)
+
+    if (!response.ok) {
+      const errorText = await response.text()
+      throw new Error(errorText || "Nie udało się pobrać szkód")
+    }
+
+    return response.json()
+  }, [])
+
 
   const createDamage = useCallback(
-    async (damage: Omit<Damage, "id" | "eventId">): Promise<Damage> => {
+    async (damage: Omit<Damage, "id" | "eventId">): Promise<void> => {
       if (!eventId) {
         throw new Error("Brak identyfikatora zdarzenia")
-
       }
 
-      const response = await fetch("/api/damages/save", {
+      const response = await fetch(API_ENDPOINTS.DAMAGES, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...damage, eventId: damage.eventId || eventId }),
+        body: JSON.stringify({ ...damage, eventId }),
       })
 
       if (!response.ok) {
@@ -49,7 +53,7 @@ export function useDamages(eventId?: string) {
 
   const updateDamage = useCallback(
     async (id: string, damage: Partial<Damage>): Promise<void> => {
-      const response = await fetch(`/api/damages/${id}`, {
+      const response = await fetch(`${API_ENDPOINTS.DAMAGES}/${id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ ...damage, eventId }),
@@ -63,23 +67,11 @@ export function useDamages(eventId?: string) {
     [eventId],
   )
 
-  const deleteDamage = useCallback(
-    async (id: string, saved = true): Promise<void> => {
-      if (!saved) return
-      const response = await fetch(`/api/damages/${id}`, {
-        method: "DELETE",
-      })
-
-      if (!response.ok) {
-        const errorText = await response.text()
-        throw new Error(errorText || "Nie udało się usunąć szkody")
-      }
-    },
-    [],
-  )
-
-
-  return { initDamage, createDamage, updateDamage, deleteDamage }
+  const deleteDamage = useCallback(async (id: string): Promise<void> => {
+    await fetch(`${API_ENDPOINTS.DAMAGES}/${id}`, {
+      method: "DELETE",
+    })
+  }, [])
 
 
   const fetchDamages = useCallback(
@@ -97,6 +89,7 @@ export function useDamages(eventId?: string) {
   )
 
   return { createDamage, updateDamage, deleteDamage, fetchDamages }
+
 
 }
 

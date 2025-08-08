@@ -21,6 +21,14 @@ test('includes dropdown selections in payload', () => {
   assert.equal(payload.handlerId, 9)
 })
 
+test('maps damageType object to its code value', () => {
+  const payload = transformFrontendClaimToApiPayload({
+    damageType: { code: 'DT', name: 'Damage' } as any,
+  } as any)
+
+  assert.equal(payload.damageType, 'DT')
+})
+
 test('participant and driver ids are numeric', () => {
   const payload = transformFrontendClaimToApiPayload({
     injuredParty: {

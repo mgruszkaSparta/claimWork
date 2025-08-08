@@ -6,7 +6,7 @@ export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url)
     const query = searchParams.toString()
-    const url = `${API_BASE_URL}/events${query ? `?${query}` : ""}`
+    const url = `${API_BASE_URL}/claims${query ? `?${query}` : ""}`
 
     console.log(`Fetching claims from backend: ${url}`)
 

@@ -1,27 +1,27 @@
 "use client"
+import Link from "next/link"
+import { usePathname } from "next/navigation"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { LayoutDashboard, FileText, Car } from "lucide-react"
-
-interface SidebarProps {
-  activeTab: string
-  onTabChange: (tab: string) => void
-}
 
 const menuItems = [
   {
     id: "dashboard",
     label: "Dashboard",
     icon: LayoutDashboard,
+    href: "/",
   },
   {
     id: "claims",
     label: "Szkody",
     icon: FileText,
+    href: "/claims",
   },
 ]
 
-export function Sidebar({ activeTab, onTabChange }: SidebarProps) {
+export function Sidebar() {
+  const pathname = usePathname()
   return (
     <div className="fixed left-0 top-0 z-40 h-full w-16 bg-[#1a3a6c] border-r border-[#2a4a7c] flex flex-col">
       {/* Header */}
@@ -33,11 +33,13 @@ export function Sidebar({ activeTab, onTabChange }: SidebarProps) {
       <nav className="flex-1 p-2 space-y-2">
         {menuItems.map((item) => {
           const Icon = item.icon
-          const isActive = activeTab === item.id
+          const isActive =
+            pathname === item.href || pathname.startsWith(item.href + "/")
 
           return (
             <Button
               key={item.id}
+              asChild
               variant="ghost"
               className={cn(
                 "w-full h-12 p-0 flex items-center justify-center transition-all duration-200 rounded-lg",
@@ -45,10 +47,11 @@ export function Sidebar({ activeTab, onTabChange }: SidebarProps) {
                   ? "bg-white/20 text-white hover:bg-white/25"
                   : "text-white/70 hover:bg-white/10 hover:text-white",
               )}
-              onClick={() => onTabChange(item.id)}
               title={item.label}
             >
-              <Icon className="h-5 w-5" />
+              <Link href={item.href}>
+                <Icon className="h-5 w-5" />
+              </Link>
             </Button>
           )
         })}

@@ -408,6 +408,7 @@ class ApiService {
   }
 
 
+
   async getClaims(
     params: Record<string, string | number | undefined> = {},
   ): Promise<{ items: ClaimListItemDto[]; totalCount: number }> {
@@ -438,6 +439,7 @@ class ApiService {
       : data.length
 
     return { items: data ?? [], totalCount }
+
   }
 
   async getClaim(id: string): Promise<ClaimDto> {
@@ -451,10 +453,12 @@ class ApiService {
     })
   }
 
+
   async updateClaim(
     id: string,
     claim: ClaimUpsertDto,
   ): Promise<ClaimDto | undefined> {
+
     return this.request<ClaimDto | undefined>(`/claims/${id}`, {
       method: "PUT",
       body: JSON.stringify(claim),

@@ -98,7 +98,7 @@ export const DocumentsSection = ({
     setLoading(true)
     try {
       console.log("Loading documents for eventId:", eventId)
-      const response = await fetch(`/api/documents?eventId=${eventId}`)
+      const response = await fetch(`/api/documents/event/${encodeURIComponent(eventId)}`)
 
       if (response.ok) {
         const data = await response.json()

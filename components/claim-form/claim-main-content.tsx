@@ -2020,7 +2020,7 @@ const renderParticipantDetails = (participant: ParticipantInfo | undefined, titl
                   setUploadedFiles={setUploadedFiles}
                   requiredDocuments={requiredDocuments}
                   setRequiredDocuments={setRequiredDocuments}
-                  eventId={claimFormData.id}
+                  eventId={claimFormData.id as string}
                 />
               )}
             </CardContent>
@@ -2778,7 +2778,7 @@ const renderParticipantDetails = (participant: ParticipantInfo | undefined, titl
                   setUploadedFiles={setUploadedFiles}
                   requiredDocuments={[]}
                   setRequiredDocuments={() => {}}
-                  eventId={claimFormData.id}
+                  eventId={claimFormData.id as string}
                   hideRequiredDocuments={true}
                 />
               )}

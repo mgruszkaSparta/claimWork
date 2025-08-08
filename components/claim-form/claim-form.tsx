@@ -366,7 +366,7 @@ export function ClaimForm({ initialData, mode }: ClaimFormProps) {
               setPendingFiles={setPendingFiles}
               requiredDocuments={requiredDocuments}
               setRequiredDocuments={setRequiredDocuments}
-              eventId={formData.id}
+              eventId={formData.id as string}
             />
 
           </CardContent>

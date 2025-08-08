@@ -5,11 +5,19 @@ const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5200"
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url)
+    const eventId = searchParams.get("eventId")
     const queryString = searchParams.toString()
 
-    console.log("Fetching documents with params:", queryString)
+    const url = eventId
+      ? `${API_BASE_URL}/api/documents/event/${encodeURIComponent(eventId)}`
+      : `${API_BASE_URL}/api/documents${queryString ? `?${queryString}` : ""}`
 
-    const response = await fetch(`${API_BASE_URL}/api/documents?${queryString}`, {
+    console.log(
+      "Fetching documents with params:",
+      eventId ? `event/${eventId}` : queryString,
+    )
+
+    const response = await fetch(url, {
       method: "GET",
       headers: {
         "Content-Type": "application/json",

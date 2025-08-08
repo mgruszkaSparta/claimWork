@@ -115,7 +115,7 @@ export default function ViewClaimPage() {
       setIsLoading(true)
       setLoadError(null)
 
-      const response = await fetch(`/api/events/${id}`)
+      const response = await fetch(`/api/claims/${id}`)
       if (!response.ok) {
         throw new Error(`HTTP ${response.status}: ${response.statusText}`)
       }

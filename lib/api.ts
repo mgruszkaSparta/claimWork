@@ -400,15 +400,26 @@ class ApiService {
       throw new Error(`API Error: ${response.status} - ${errorText}`)
     }
 
-    const contentLength = response.headers.get("content-length")
-    if (response.status === 204 || !contentLength || contentLength === "0") {
+    if (response.status === 204) {
       console.log("No content in response")
       return undefined as T
     }
 
-    const data = await response.json()
-    console.log("Response data:", data)
-    return data
+    const contentType = response.headers.get("content-type") ?? ""
+    if (contentType.includes("application/json")) {
+      try {
+        const data = await response.json()
+        console.log("Response data:", data)
+        return data
+      } catch {
+        console.log("No content in response")
+        return undefined as T
+      }
+    }
+
+    const text = await response.text()
+    console.log("Response text:", text)
+    return text as unknown as T
   }
 
   async getClaims(): Promise<EventListItemDto[]> {

@@ -190,6 +190,7 @@ export const ClaimMainContent = ({
   setRequiredDocuments,
 }: ClaimMainContentProps) => {
   const { toast } = useToast()
+
   const { initDamage, deleteDamage } = useDamages(claimFormData.id)
 
   // State for dropdown data
@@ -408,14 +409,18 @@ export const ClaimMainContent = ({
 
     try {
       if (existing) {
+
         if (existing.eventId && existing.id) {
           await deleteDamage(existing.id)
+
         }
         const newDamages = currentDamages.filter((d) => d.description !== partName)
         handleFormChange("damages", newDamages)
       } else {
+
         const unsaved = initDamage({ description: partName, detail: "Do opisu" })
         const newDamages = [...currentDamages, unsaved]
+
         handleFormChange("damages", newDamages)
       }
     } catch (error: any) {
@@ -432,8 +437,10 @@ export const ClaimMainContent = ({
     const toRemove = currentDamages.find((d) => d.description === description)
 
     try {
+
       if (toRemove?.eventId && toRemove.id) {
         await deleteDamage(toRemove.id)
+
       }
       const newDamages = currentDamages.filter((d) => d.description !== description)
       handleFormChange("damages", newDamages)

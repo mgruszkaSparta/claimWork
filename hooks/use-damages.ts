@@ -27,6 +27,27 @@ export function useDamages(eventId?: string) {
     return response.json()
   }, [])
 
+  const fetchDamages = useCallback(
+    async (id?: string): Promise<Damage[]> => {
+      const targetId = id || eventId
+      if (!targetId) {
+        throw new Error("Brak identyfikatora zdarzenia")
+      }
+
+      const response = await fetch(
+        `${API_ENDPOINTS.DAMAGES}/event/${targetId}`,
+      )
+
+      if (!response.ok) {
+        const errorText = await response.text()
+        throw new Error(errorText || "Nie udało się pobrać szkód")
+      }
+
+      return response.json()
+    },
+    [eventId],
+  )
+
   const createDamage = useCallback(
     async (damage: Omit<Damage, "id" | "eventId">): Promise<void> => {
       if (!eventId) {
@@ -78,7 +99,7 @@ export function useDamages(eventId?: string) {
     }
   }, [])
 
-  return { createDamage, updateDamage, deleteDamage, initDamages }
+  return { createDamage, updateDamage, deleteDamage, initDamages, fetchDamages }
 
 }
 

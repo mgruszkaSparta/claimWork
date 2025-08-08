@@ -16,6 +16,11 @@ export async function GET(request: NextRequest) {
       },
     })
 
+    if (response.status === 404) {
+      console.warn("Documents not found on backend, returning empty array")
+      return NextResponse.json([], { status: 200 })
+    }
+
     if (!response.ok) {
       console.error("Backend API error:", response.status, response.statusText)
       const errorText = await response.text()

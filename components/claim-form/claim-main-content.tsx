@@ -24,6 +24,7 @@ import type { Claim, Service, ParticipantInfo, DriverInfo, UploadedFile, Require
 import { EmailSection } from "../email/email-section-compact"
 import { DependentSelect } from "@/components/ui/dependent-select"
 import { useToast } from "@/hooks/use-toast"
+import { useDamages } from "@/hooks/use-damages"
 import InsuranceDropdown from "@/components/insurance-dropdown"
 import type { CompanySelectionEvent } from "@/types/insurance"
 import LeasingDropdown from "@/components/leasing-dropdown"
@@ -189,6 +190,7 @@ export const ClaimMainContent = ({
   setRequiredDocuments,
 }: ClaimMainContentProps) => {
   const { toast } = useToast()
+  const { createDamage, deleteDamage } = useDamages(claimFormData.id)
 
   // State for dropdown data
   const [riskTypes, setRiskTypes] = useState<RiskType[]>([])
@@ -400,23 +402,48 @@ export const ClaimMainContent = ({
     }
   }
 
-  const handleDamagePartToggle = (partName: string) => {
+  const handleDamagePartToggle = async (partName: string) => {
     const currentDamages = claimFormData.damages || []
-    const isAlreadyDamaged = currentDamages.some((d) => d.description === partName)
+    const existing = currentDamages.find((d) => d.description === partName)
 
-    let newDamages
-    if (isAlreadyDamaged) {
-      newDamages = currentDamages.filter((d) => d.description !== partName)
-    } else {
-      newDamages = [...currentDamages, { description: partName, detail: "Do opisu" }]
+    try {
+      if (existing) {
+        if (existing.id) {
+          await deleteDamage(existing.id)
+        }
+        const newDamages = currentDamages.filter((d) => d.description !== partName)
+        handleFormChange("damages", newDamages)
+      } else {
+        const saved = await createDamage({ description: partName, detail: "Do opisu" })
+        const newDamages = [...currentDamages, saved]
+        handleFormChange("damages", newDamages)
+      }
+    } catch (error: any) {
+      toast({
+        title: "Błąd",
+        description: error.message || "Nie udało się zapisać szkody",
+        variant: "destructive",
+      })
     }
-    handleFormChange("damages", newDamages)
   }
 
-  const removeDamageItem = (description: string) => {
+  const removeDamageItem = async (description: string) => {
     const currentDamages = claimFormData.damages || []
-    const newDamages = currentDamages.filter((d) => d.description !== description)
-    handleFormChange("damages", newDamages)
+    const toRemove = currentDamages.find((d) => d.description === description)
+
+    try {
+      if (toRemove?.id) {
+        await deleteDamage(toRemove.id)
+      }
+      const newDamages = currentDamages.filter((d) => d.description !== description)
+      handleFormChange("damages", newDamages)
+    } catch (error: any) {
+      toast({
+        title: "Błąd",
+        description: error.message || "Nie udało się usunąć szkody",
+        variant: "destructive",
+      })
+    }
   }
 
   const handleDecisionsChange = (decisions: Decision[]) => {

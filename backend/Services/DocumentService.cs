@@ -243,6 +243,7 @@ namespace AutomotiveClaimsApi.Services
                 Description = doc.Description,
                 UploadedBy = doc.UploadedBy,
                 IsActive = !doc.IsDeleted,
+                Status = doc.Status,
                 CreatedAt = doc.CreatedAt,
                 UpdatedAt = doc.UpdatedAt,
                 DownloadUrl = $"/api/documents/{doc.Id}/download",

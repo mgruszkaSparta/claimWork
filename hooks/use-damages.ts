@@ -1,6 +1,7 @@
 "use client"
 
 import { useCallback } from "react"
+import { generateId } from "@/lib/constants"
 
 export interface Damage {
   id?: string
@@ -15,30 +16,21 @@ export interface Damage {
 }
 
 export function useDamages(eventId?: string) {
-  const initDamage = useCallback(async (): Promise<string> => {
-    if (!eventId) {
-      throw new Error("Brak identyfikatora zdarzenia")
-    }
 
-    const response = await fetch("/api/damages/init", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ eventId }),
-    })
+  const initDamage = useCallback(
+    (damage: Pick<Damage, "description" | "detail">): Damage => ({
+      id: generateId(),
+      description: damage.description,
+      detail: damage.detail,
+    }),
+    [],
+  )
 
-    if (!response.ok) {
-      const errorText = await response.text()
-      throw new Error(errorText || "Nie udało się zainicjować szkody")
-    }
+  const createDamage = useCallback(
+    async (damage: Omit<Damage, "id" | "eventId">): Promise<Damage> => {
+      if (!eventId) {
+        throw new Error("Brak identyfikatora zdarzenia")
 
-    const data = await response.json()
-    return data.id
-  }, [eventId])
-
-  const saveDamage = useCallback(
-    async (damage: Damage): Promise<void> => {
-      if (!damage.id) {
-        throw new Error("Brak identyfikatora szkody")
       }
 
       const response = await fetch("/api/damages/save", {
@@ -86,6 +78,8 @@ export function useDamages(eventId?: string) {
     [],
   )
 
-  return { initDamage, saveDamage, updateDamage, deleteDamage }
+
+  return { initDamage, createDamage, updateDamage, deleteDamage }
+
 }
 

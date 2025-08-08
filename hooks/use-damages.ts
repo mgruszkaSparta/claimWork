@@ -32,18 +32,15 @@ export function useDamages(eventId?: string) {
 
 
   const createDamage = useCallback(
-    async (damage: Omit<Damage, "id" | "eventId">): Promise<Damage> => {
+    async (damage: Omit<Damage, "id" | "eventId">): Promise<void> => {
       if (!eventId) {
         throw new Error("Brak identyfikatora zdarzenia")
-
       }
 
-
       const response = await fetch(API_ENDPOINTS.DAMAGES, {
-
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...damage, eventId: damage.eventId || eventId }),
+        body: JSON.stringify({ ...damage, eventId }),
       })
 
       if (!response.ok) {
@@ -70,17 +67,12 @@ export function useDamages(eventId?: string) {
     [eventId],
   )
 
-
   const deleteDamage = useCallback(async (id: string): Promise<void> => {
-    const response = await fetch(`${API_ENDPOINTS.DAMAGES}/${id}`, {
+    await fetch(`${API_ENDPOINTS.DAMAGES}/${id}`, {
       method: "DELETE",
     })
-
-
-  return { initDamage, createDamage, updateDamage, deleteDamage }
-
+  }, [])
 
   return { createDamage, updateDamage, deleteDamage, initDamages }
-
 }
 

@@ -118,6 +118,8 @@ export interface DriverInfo {
 }
 
 export interface DamageItem {
+  id?: string
+  eventId?: string
   description: string
   detail: string
 }

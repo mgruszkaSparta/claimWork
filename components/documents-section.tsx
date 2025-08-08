@@ -11,8 +11,8 @@ import type { DocumentsSectionProps } from "@/types"
 
 interface Document {
   id: string
-  eventId?: number
-  damageId?: number
+  eventId?: string
+  damageId?: string
   fileName: string
   originalFileName: string
   contentType: string

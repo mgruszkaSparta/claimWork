@@ -183,7 +183,7 @@ export function ClaimsList({ onEditClaim, onNewClaim }: ClaimsListProps) {
   // Loading state
   if (loading) {
     return (
-      <div className="w-full h-screen bg-white flex flex-col">
+      <div className="w-full h-full bg-white flex flex-col">
         <div className="flex items-center justify-between p-6 border-b border-gray-200">
           <h1 className="text-xl font-semibold text-gray-900">Lista Szkód</h1>
           <Button disabled className="bg-[#1a3a6c] hover:bg-[#1a3a6c]/90 text-sm">
@@ -203,7 +203,7 @@ export function ClaimsList({ onEditClaim, onNewClaim }: ClaimsListProps) {
   }
 
   return (
-    <div className="w-full h-screen bg-white flex flex-col">
+    <div className="w-full h-full bg-white flex flex-col">
       {/* Header */}
       <div className="flex items-center justify-between p-6 border-b border-gray-200 flex-shrink-0">
         <div className="flex items-center space-x-3">

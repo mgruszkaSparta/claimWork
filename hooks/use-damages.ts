@@ -63,6 +63,20 @@ export function useDamages(eventId?: string) {
     }
   }, [])
 
-  return { createDamage, updateDamage, deleteDamage }
+  const fetchDamages = useCallback(
+    async (eventIdToFetch: string): Promise<Damage[]> => {
+      const response = await fetch(`/api/damages/event/${eventIdToFetch}`)
+
+      if (!response.ok) {
+        const errorText = await response.text()
+        throw new Error(errorText || "Nie udało się pobrać listy szkód")
+      }
+
+      return response.json()
+    },
+    [],
+  )
+
+  return { createDamage, updateDamage, deleteDamage, fetchDamages }
 }
 

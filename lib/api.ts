@@ -133,18 +133,8 @@ export interface EmailUpsertDto {
   messageId?: string
   inReplyTo?: string
   references?: string
-
-
+  
   documents?: DocumentDto[]
-
-
-  damages?: DamageDto[]
-  decisions?: DecisionDto[]
-  appeals?: AppealDto[]
-  clientClaims?: ClientClaimDto[]
-  recourses?: RecourseDto[]
-  settlements?: SettlementDto[]
-
   damages?: DamageUpsertDto[]
   decisions?: DecisionUpsertDto[]
   appeals?: AppealUpsertDto[]

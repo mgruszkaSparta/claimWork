@@ -27,6 +27,9 @@ import { ClaimTopHeader } from "@/components/claim-form/claim-top-header"
 import { ClaimMainContent } from "@/components/claim-form/claim-main-content"
 import { useClaimForm } from "@/hooks/use-claim-form"
 import { useClaims, transformApiClaimToFrontend } from "@/hooks/use-claims"
+import { useDamages } from "@/hooks/use-damages"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
 import { generateId } from "@/lib/constants"
 import type { Claim, UploadedFile, RequiredDocument } from "@/types"
 
@@ -50,6 +53,9 @@ export default function ClaimPage() {
   const [isLoading, setIsLoading] = useState(!isNew)
   const [loadError, setLoadError] = useState<string | null>(null)
   const [claim, setClaim] = useState<Claim | null>(null)
+
+  const { damages, fetchDamages, createDamage } = useDamages()
+  const [damageForm, setDamageForm] = useState({ description: "", detail: "" })
 
   const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([
     {
@@ -134,6 +140,12 @@ export default function ClaimPage() {
     }
   }, [loadClaimData])
 
+  useEffect(() => {
+    if (claimId) {
+      fetchDamages(claimId)
+    }
+  }, [claimId, fetchDamages])
+
   const handleSaveClaim = async (exitAfterSave = false) => {
     if (isSaving) return
 
@@ -200,6 +212,24 @@ export default function ClaimPage() {
   const handleEdit = () => {
     if (claimId) {
       router.push(`/claims/${claimId}/edit`)
+    }
+  }
+
+  const handleAddDamage = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!claimId) return
+    try {
+      await createDamage({
+        eventId: claimId,
+        description: damageForm.description,
+        detail: damageForm.detail,
+      })
+      setDamageForm({ description: "", detail: "" })
+      await fetchDamages(claimId)
+      toast({ title: "Uszkodzenie dodane" })
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Nie udało się dodać uszkodzenia"
+      toast({ title: "Błąd", description: message, variant: "destructive" })
     }
   }
 
@@ -654,18 +684,43 @@ export default function ClaimPage() {
             </div>
 
             {/* Damages */}
-            {claim.damages && claim.damages.length > 0 && (
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center">
-                    <Car className="h-5 w-5 mr-2 text-orange-600" />
-                    Uszkodzenia ({claim.damages.length})
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center">
+                  <Car className="h-5 w-5 mr-2 text-orange-600" />
+                  Uszkodzenia {damages.length > 0 && `(${damages.length})`}
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <form onSubmit={handleAddDamage} className="space-y-2 mb-4">
+                  <div>
+                    <Label htmlFor="damageDescription" className="text-sm font-medium text-gray-700">
+                      Opis
+                    </Label>
+                    <Input
+                      id="damageDescription"
+                      value={damageForm.description}
+                      onChange={(e) => setDamageForm((prev) => ({ ...prev, description: e.target.value }))}
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="damageDetail" className="text-sm font-medium text-gray-700">
+                      Szczegóły
+                    </Label>
+                    <Input
+                      id="damageDetail"
+                      value={damageForm.detail}
+                      onChange={(e) => setDamageForm((prev) => ({ ...prev, detail: e.target.value }))}
+                    />
+                  </div>
+                  <Button type="submit" disabled={!damageForm.description} className="bg-[#1a3a6c] hover:bg-[#1a3a6c]/90">
+                    Dodaj uszkodzenie
+                  </Button>
+                </form>
+                {damages.length > 0 && (
                   <div className="space-y-3">
-                    {claim.damages.map((damage, index) => (
-                      <div key={index} className="border rounded-lg p-3 bg-gray-50">
+                    {damages.map((damage, index) => (
+                      <div key={damage.id || index} className="border rounded-lg p-3 bg-gray-50">
                         <div className="flex justify-between items-start mb-2">
                           <h4 className="font-medium">{damage.description}</h4>
                           {damage.estimatedCost && (
@@ -696,9 +751,9 @@ export default function ClaimPage() {
                       </div>
                     ))}
                   </div>
-                </CardContent>
-              </Card>
-            )}
+                )}
+              </CardContent>
+            </Card>
 
             {/* Services Called */}
             {claim.servicesCalled && claim.servicesCalled.length > 0 && (

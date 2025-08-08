@@ -103,7 +103,13 @@ export const DocumentsSection = ({
       console.log("Loading documents for eventId:", eventId)
       const response = await fetch(`/api/documents?eventId=${eventId}`)
 
-      if (response.ok) {
+      if (response.status === 404) {
+        setDocuments([])
+        toast({
+          title: "Brak dokumentów",
+          description: "Nie znaleziono dokumentów dla tego zdarzenia.",
+        })
+      } else if (response.ok) {
         const data: Document[] = await response.json()
         console.log("Loaded documents:", data)
         const mappedDocs: Document[] = data.map((d: any) => ({

@@ -408,10 +408,23 @@ class ApiService {
   }
 
 
-  async getClaims(): Promise<ClaimListItemDto[]> {
-    const claims = await this.request<ClaimListItemDto[] | undefined>("/events")
-    return claims ?? []
+  async getClaims(
+    params: { page?: number; pageSize?: number; [key: string]: any } = {},
+  ): Promise<{ items: ClaimListItemDto[]; totalCount: number }> {
+    const query = new URLSearchParams(
+      Object.entries(params).reduce((acc, [key, value]) => {
+        if (value !== undefined && value !== null) {
+          acc[key] = String(value)
+        }
+        return acc
+      }, {} as Record<string, string>),
+    ).toString()
 
+    const result = await this.request<
+      { items: ClaimListItemDto[]; totalCount: number } | undefined
+    >(`/events${query ? `?${query}` : ""}`)
+
+    return result ?? { items: [], totalCount: 0 }
   }
 
   async getClaim(id: string): Promise<ClaimDto> {

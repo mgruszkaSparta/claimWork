@@ -7,6 +7,9 @@ using Microsoft.Extensions.Logging.Abstractions;
 using AutomotiveClaimsApi.Controllers;
 using AutomotiveClaimsApi.Data;
 using AutomotiveClaimsApi.Models;
+using AutomotiveClaimsApi.DTOs;
+using System.Collections.Generic;
+using System.Reflection;
 using Xunit;
 
 namespace AutomotiveClaimsApi.Tests
@@ -60,6 +63,40 @@ namespace AutomotiveClaimsApi.Tests
             Assert.False(context.Events.Any());
             Assert.False(context.Participants.Any());
             Assert.False(context.Drivers.Any());
+        }
+
+        [Fact]
+        public async Task CreateClaim_WithExistingId_UpdatesEventAndLinksSchedules()
+        {
+            using var context = CreateContext();
+            var claimsController = new ClaimsController(context, NullLogger<ClaimsController>.Instance);
+            var schedulesController = new RepairSchedulesController();
+
+            // Reset static schedules list
+            typeof(RepairSchedulesController)
+                .GetField("_schedules", BindingFlags.NonPublic | BindingFlags.Static)?
+                .SetValue(null, new List<RepairSchedule>());
+
+            var eventId = Guid.NewGuid();
+            context.Events.Add(new Event { Id = eventId, CreatedAt = DateTime.UtcNow, UpdatedAt = DateTime.UtcNow });
+            await context.SaveChangesAsync();
+
+            var dto = new ClaimUpsertDto { Id = eventId, ClaimNumber = "CL-1" };
+            var createResult = await claimsController.CreateClaim(dto);
+
+            var created = Assert.IsType<CreatedAtActionResult>(createResult.Result);
+            var claimDto = Assert.IsType<ClaimDto>(created.Value);
+            Assert.Equal(eventId.ToString(), claimDto.Id);
+            Assert.Single(context.Events);
+
+            var scheduleResult = schedulesController.CreateSchedule(new CreateRepairScheduleDto
+            {
+                EventId = eventId,
+            });
+
+            var scheduleCreated = Assert.IsType<CreatedAtActionResult>(scheduleResult.Result);
+            var scheduleDto = Assert.IsType<RepairScheduleDto>(scheduleCreated.Value);
+            Assert.Equal(eventId, scheduleDto.EventId);
         }
     }
 }

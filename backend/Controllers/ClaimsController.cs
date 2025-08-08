@@ -177,18 +177,40 @@ namespace AutomotiveClaimsApi.Controllers
         {
             try
             {
-                var eventEntity = new Event
-                {
-                    Id = Guid.NewGuid(),
-                    CreatedAt = DateTime.UtcNow,
-                    UpdatedAt = DateTime.UtcNow
-                };
-                MapUpsertDtoToEvent(eventDto, eventEntity);
+                Event eventEntity;
 
-                // Always generate SpartaNumber on the backend
+                if (eventDto.Id.HasValue)
+                {
+                    eventEntity = await _context.Events.FirstOrDefaultAsync(e => e.Id == eventDto.Id.Value) ?? new Event
+                    {
+                        Id = eventDto.Id.Value,
+                        CreatedAt = DateTime.UtcNow
+                    };
+
+
+                    if (_context.Entry(eventEntity).State == EntityState.Detached)
+                    {
+                        _context.Events.Add(eventEntity);
+                    }
+
+                    eventEntity.UpdatedAt = DateTime.UtcNow;
+                }
+                else
+                {
+                    eventEntity = new Event
+                    {
+                        Id = Guid.NewGuid(),
+                        CreatedAt = DateTime.UtcNow,
+                        UpdatedAt = DateTime.UtcNow
+                    };
+                    _context.Events.Add(eventEntity);
+                }
+
+
                 eventEntity.SpartaNumber = await GenerateNextSpartaNumber();
 
                 _context.Events.Add(eventEntity);
+
 
                 if (eventDto.Documents != null && eventDto.Documents.Any())
                 {

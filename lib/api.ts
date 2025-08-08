@@ -1,5 +1,7 @@
 // API Configuration
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5200/api"
+const API_BASE_URL =
+  process.env.NEXT_PUBLIC_API_URL ||
+  (process.env.API_BASE_URL ? `${process.env.API_BASE_URL}/api` : "https://claim-work-backend.azurewebsites.net/api")
 
 // Types for API responses
 export interface EventListItemDto {

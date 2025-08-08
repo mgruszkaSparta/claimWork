@@ -408,38 +408,67 @@ class ApiService {
   }
 
 
-  async getClaims(): Promise<ClaimListItemDto[]> {
-    const claims = await this.request<ClaimListItemDto[] | undefined>("/events")
-    return claims ?? []
+  async getClaims(
+    params: Record<string, string | number | undefined> = {},
+  ): Promise<{ items: ClaimListItemDto[]; totalCount: number }> {
+    const searchParams = new URLSearchParams()
+    Object.entries(params).forEach(([key, value]) => {
+      if (value !== undefined && value !== null && value !== "") {
+        searchParams.append(key, String(value))
+      }
+    })
 
+    const url = `/claims${searchParams.toString() ? `?${searchParams.toString()}` : ""}`
+
+    const response = await fetch(`${API_BASE_URL}${url}`, {
+      headers: {
+        "Content-Type": "application/json",
+      },
+    })
+
+    if (!response.ok) {
+      const errorText = await response.text()
+      throw new Error(`API Error: ${response.status} - ${errorText}`)
+    }
+
+    const data = (await response.json()) as ClaimListItemDto[]
+    const totalCountHeader = response.headers.get("X-Total-Count")
+    const totalCount = totalCountHeader
+      ? parseInt(totalCountHeader, 10)
+      : data.length
+
+    return { items: data ?? [], totalCount }
   }
 
   async getClaim(id: string): Promise<ClaimDto> {
-    return this.request<ClaimDto>(`/events/${id}`)
+    return this.request<ClaimDto>(`/claims/${id}`)
   }
 
   async createClaim(claim: ClaimUpsertDto): Promise<ClaimDto> {
-    return this.request<ClaimDto>("/events", {
+    return this.request<ClaimDto>("/claims", {
       method: "POST",
       body: JSON.stringify(claim),
     })
   }
 
-  async updateClaim(id: string, claim: ClaimUpsertDto): Promise<ClaimDto | undefined> {
-    return this.request<ClaimDto | undefined>(`/events/${id}`, {
+  async updateClaim(
+    id: string,
+    claim: ClaimUpsertDto,
+  ): Promise<ClaimDto | undefined> {
+    return this.request<ClaimDto | undefined>(`/claims/${id}`, {
       method: "PUT",
       body: JSON.stringify(claim),
     })
   }
 
   async deleteClaim(id: string): Promise<void> {
-    return this.request<void>(`/events/${id}`, {
+    return this.request<void>(`/claims/${id}`, {
       method: "DELETE",
     })
   }
 
   async initializeClaim(): Promise<{ id: string }> {
-    return this.request<{ id: string }>("/events/initialize", {
+    return this.request<{ id: string }>("/claims/initialize", {
       method: "POST",
     })
   }

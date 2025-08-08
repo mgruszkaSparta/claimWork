@@ -11,8 +11,8 @@ import type { DocumentsSectionProps, UploadedFile } from "@/types"
 
 interface Document {
   id: string
-  eventId?: number
-  damageId?: number
+  eventId?: string
+  damageId?: string
   fileName: string
   originalFileName: string
   contentType: string
@@ -60,6 +60,7 @@ export const DocumentsSection = ({
   const [currentPreviewIndex, setCurrentPreviewIndex] = useState(0)
   const [previewDocuments, setPreviewDocuments] = useState<Document[]>([])
 
+
   const uploadedFileToDocument = (file: UploadedFile): Document => ({
     id: file.id,
     fileName: file.name,
@@ -82,6 +83,7 @@ export const DocumentsSection = ({
     () => [...documents, ...pendingFiles.map(uploadedFileToDocument)],
     [documents, pendingFiles]
   )
+
 
   // Load documents from API
   useEffect(() => {
@@ -137,7 +139,9 @@ export const DocumentsSection = ({
   }, [requiredDocuments, allDocuments])
 
   const handleFileUpload = async (files: FileList | null, category: string | null) => {
+
     if (!files || !category) {
+
       console.error("Missing required parameters:", { files: !!files, category })
       toast({
         title: "Błąd",
@@ -285,14 +289,20 @@ export const DocumentsSection = ({
 
     try {
       const uploadedDocuments = await Promise.all(uploadPromises)
-      const successfulUploads = uploadedDocuments.filter((doc) => doc !== null)
+      const successfulUploads = uploadedDocuments.filter(
+        (doc): doc is Document => doc !== null,
+      )
+      const successfulUploadsWithIds = successfulUploads.map((doc) => ({
+        ...doc,
+        id: doc.id?.toString() ?? crypto.randomUUID(),
+      }))
 
-      if (successfulUploads.length > 0) {
-        setDocuments((prev) => [...prev, ...successfulUploads])
+      if (successfulUploadsWithIds.length > 0) {
+        setDocuments((prev) => [...prev, ...successfulUploadsWithIds])
         setUploadedFiles((prev) => [
           ...prev,
-          ...successfulUploads.map((doc) => ({
-            id: doc.id.toString(),
+          ...successfulUploadsWithIds.map((doc) => ({
+            id: doc.id,
             name: doc.originalFileName || doc.fileName,
             size: doc.fileSize,
             type: doc.contentType.includes("image")
@@ -310,12 +320,12 @@ export const DocumentsSection = ({
         ])
         toast({
           title: "Przesłano pliki",
-          description: `Pomyślnie dodano ${successfulUploads.length} plik(ów) do kategorii "${category}".`,
+          description: `Pomyślnie dodano ${successfulUploadsWithIds.length} plik(ów) do kategorii "${category}".`,
         })
-        console.log("All successful uploads:", successfulUploads)
+        console.log("All successful uploads:", successfulUploadsWithIds)
       }
 
-      const failedUploads = files.length - successfulUploads.length
+      const failedUploads = files.length - successfulUploadsWithIds.length
       if (failedUploads > 0) {
         toast({
           title: "Częściowy błąd",
@@ -365,6 +375,7 @@ export const DocumentsSection = ({
   }
 
   const handleFileDelete = async (documentId: string | number) => {
+
     const isPending = pendingFiles.some((f) => f.id === documentId)
     if (isPending) {
       if (!window.confirm("Czy na pewno chcesz usunąć ten dokument?")) return
@@ -375,6 +386,7 @@ export const DocumentsSection = ({
       })
       return
     }
+
 
     if (!window.confirm("Czy na pewno chcesz usunąć ten dokument?")) {
       return
@@ -406,11 +418,13 @@ export const DocumentsSection = ({
   }
 
   const handleDescriptionChange = async (documentId: string | number, description: string) => {
+
     const pendingIndex = pendingFiles.findIndex((f) => f.id === documentId)
     if (pendingIndex !== -1) {
       setPendingFiles?.((prev) => prev.map((f) => (f.id === documentId ? { ...f, description } : f)))
       return
     }
+
     try {
       const response = await fetch(`/api/documents/${documentId}`, {
         method: "PUT",
@@ -464,7 +478,9 @@ export const DocumentsSection = ({
   }
 
   const handlePreview = (document: Document, documentsArray?: Document[]) => {
+
     const docsToPreview = documentsArray || allDocuments
+
     const index = docsToPreview.findIndex((d) => d.id === document.id)
 
     setPreviewDocuments(docsToPreview)
@@ -929,7 +945,11 @@ export const DocumentsSection = ({
                   ) : documentsForCategory.length > 0 ? (
                     <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
                       {documentsForCategory.map((document) => (
-                        <FileCard key={document.id} document={document} onDelete={handleFileDelete} />
+                        <FileCard
+                          key={document.id}
+                          document={document}
+                          onDelete={handleFileDelete}
+                        />
                       ))}
                     </div>
                   ) : (
@@ -970,7 +990,7 @@ export const DocumentsSection = ({
               <div className="border rounded-md">
                 {missingRequiredDocs.map((doc, index, arr) => (
                   <div
-                    key={doc.id}
+                    key={`required-${doc.id ?? doc.name}`}
                     className={`flex items-center justify-between p-4 ${index < arr.length - 1 ? "border-b" : ""}`}
                   >
                     <div className="flex items-center gap-3">
@@ -1133,6 +1153,7 @@ export const DocumentsSection = ({
               <div className="flex justify-between items-center p-4 bg-gray-50 border-b">
                 <div className="flex items-center gap-4">
                   <h3 className="text-lg font-semibold truncate max-w-md">{previewDocument.originalFileName}</h3>
+                  <Badge variant="secondary">{previewDocument.documentType}</Badge>
                   <div className="text-sm text-gray-500">
                     {currentPreviewIndex + 1} z {previewDocuments.length}
                   </div>

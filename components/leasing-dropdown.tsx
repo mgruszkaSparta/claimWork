@@ -168,7 +168,7 @@ export default function LeasingDropdown({
           ) : (
             filteredCompanies.map((company) => (
               <div
-                key={company.id}
+                key={`leasing-${company.id}`}
                 className={`dropdown-item ${selectedCompany?.id === company.id ? "selected" : ""}`}
                 onClick={() => selectCompany(company)}
               >

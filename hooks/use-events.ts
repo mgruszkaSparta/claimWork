@@ -55,7 +55,7 @@ const transformToApiEvent = (event: Partial<Event>): Partial<EventDto> => ({
   eventTime: event.eventTime || "",
   location: event.location || "",
   description: event.eventDescription,
-  servicesCalled: event.policeInvolved ? "policja" : "",
+  servicesCalled: event.policeInvolved ? ["policja"] : [],
 })
 
 export function useEvents() {
@@ -113,7 +113,12 @@ export function useEvents() {
       setError(null)
       const apiEventData = transformToApiEvent(eventData)
       const apiEvent = await apiService.updateEvent(id, apiEventData)
-      const updatedEvent = transformApiEvent(apiEvent)
+      const existingEvent = events.find((event) => event.id === id)
+
+      const updatedEvent: Event = apiEvent
+        ? transformApiEvent(apiEvent)
+        : { ...(existingEvent || {}), ...eventData } as Event
+
       setEvents((prev) => prev.map((event) => (event.id === id ? updatedEvent : event)))
       return updatedEvent
     } catch (err) {

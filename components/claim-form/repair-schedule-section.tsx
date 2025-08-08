@@ -13,10 +13,12 @@ import { Badge } from "@/components/ui/badge"
 import { Separator } from "@/components/ui/separator"
 import { useToast } from "@/hooks/use-toast"
 import { Calendar, Clock, Car, User, Mail, Plus, Trash2, Save, Edit, X } from 'lucide-react'
+import { pksData } from "@/lib/pks-data"
 
 interface RepairSchedule {
   id?: string
   eventId: string
+  branchId?: string
   companyName: string
   damageNumber: string
   vehicleFleetNumber: string
@@ -41,74 +43,6 @@ interface RepairScheduleSectionProps {
   eventId: string
 }
 
-// PKS contact database
-const PKS_CONTACTS = {
-  "PKS Gostynin": {
-    locations: {
-      Gostynin: {
-        dispatcher: "dyspozytornia@pksgostynin.pl",
-        manager: "sogostynin@pksgostynin.pl",
-      },
-      Elbląg: {
-        dispatcher: "elblag@pksgostynin.pl",
-        manager: "p.jaglowski@pksgostynin.pl",
-      },
-    },
-  },
-  "PKS Grodzisk Maz.": {
-    locations: {
-      "Grodzisk Mazowiecki": {
-        dispatcher: "przewozy@pksgrodzisk.com.pl",
-        manager: "b.domanska@pksgrodzisk.pl",
-      },
-      Sosnowiec: {
-        dispatcher: "slask@pksgrodzisk.pl",
-        manager: "k.chajdas@pksgrodzisk.pl",
-      },
-      Sochaczew: {
-        dispatcher: "sochaczew@pksgrodzisk.com.pl",
-        manager: "m.wadecki@pksgrodzisk.pl",
-      },
-      Pruszków: {
-        dispatcher: "pruszkow@pksgrodzisk.pl",
-        manager: "m.konopka@pksgrodzisk.pl",
-      },
-      Warszawa: {
-        dispatcher: "klementowicka@pksgrodzisk.pl",
-        manager: "m.kaczor@pksgrodzisk.pl",
-      },
-      Żyrardów: {
-        dispatcher: "zyrardow@pksgrodzisk.com.pl",
-        manager: "d.pater@pksgrodzisk.pl",
-      },
-    },
-  },
-  "PKS Skierniewice": {
-    locations: {
-      Skierniewice: {
-        dispatcher: "skierniewice@pksskierniewice.pl",
-        manager: "s.marat@pksskierniewice.pl",
-      },
-      Łowicz: {
-        dispatcher: "lowicz@pksskierniewice.pl",
-        manager: "m.wadecki@pksgrodzisk.pl",
-      },
-      "Rawa Mazowiecka": {
-        dispatcher: "rawa@pksskierniewice.pl",
-        manager: "sorawa@pksskierniewice.pl",
-      },
-    },
-  },
-  "PKS Kutno": {
-    locations: {
-      Kutno: {
-        dispatcher: "cpn@pkskutno.pl",
-        manager: "i.garstka@pkskutno.pl",
-      },
-    },
-  },
-}
-
 export const RepairScheduleSection: React.FC<RepairScheduleSectionProps> = ({ eventId }) => {
   const { toast } = useToast()
   const [schedules, setSchedules] = useState<RepairSchedule[]>([])
@@ -119,6 +53,7 @@ export const RepairScheduleSection: React.FC<RepairScheduleSectionProps> = ({ ev
   // Form state
   const [formData, setFormData] = useState<Partial<RepairSchedule>>({
     eventId,
+    branchId: "",
     companyName: "Przedsiębiorstwo Komunikacji Samochodowej w Grodzisku Maz. Sp. z o.o.",
     damageNumber: "1",
     vehicleFleetNumber: "",
@@ -161,6 +96,17 @@ export const RepairScheduleSection: React.FC<RepairScheduleSectionProps> = ({ ev
     } finally {
       setLoading(false)
     }
+  }
+
+  const handleBranchChange = (branchId: string) => {
+    const branch = pksData.find((b) => b.id === branchId)
+    setFormData((prev) => ({
+      ...prev,
+      branchId,
+      companyName: branch?.company || prev.companyName,
+      contactDispatcher: branch?.employees.find((e) => e.role === "dyspozytor")?.email || "",
+      contactManager: branch?.employees.find((e) => e.role === "kierownik")?.email || "",
+    }))
   }
 
   const handleSubmit = async () => {
@@ -219,6 +165,7 @@ export const RepairScheduleSection: React.FC<RepairScheduleSectionProps> = ({ ev
   }
 
   const handleDelete = async (scheduleId: string) => {
+    if (!confirm('Czy na pewno chcesz usunąć harmonogram?')) return;
     try {
       const response = await fetch(`/api/repair-schedules/${scheduleId}`, {
         method: "DELETE",
@@ -246,6 +193,7 @@ export const RepairScheduleSection: React.FC<RepairScheduleSectionProps> = ({ ev
   const resetForm = () => {
     setFormData({
       eventId,
+      branchId: "",
       companyName: "Przedsiębiorstwo Komunikacji Samochodowej w Grodzisku Maz. Sp. z o.o.",
       damageNumber: "1",
       vehicleFleetNumber: "",
@@ -323,6 +271,21 @@ export const RepairScheduleSection: React.FC<RepairScheduleSectionProps> = ({ ev
           <CardContent className="p-6 space-y-6">
             {/* Basic Information */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <Label htmlFor="branch">Oddział</Label>
+                <Select value={formData.branchId} onValueChange={handleBranchChange}>
+                  <SelectTrigger id="branch" className="mt-1">
+                    <SelectValue placeholder="Wybierz oddział" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {pksData.map((branch) => (
+                      <SelectItem key={branch.id} value={branch.id}>
+                        {branch.company} - {branch.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
               <div>
                 <Label htmlFor="companyName">Nazwa przedsiębiorstwa</Label>
                 <Input

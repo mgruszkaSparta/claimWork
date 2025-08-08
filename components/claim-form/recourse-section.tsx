@@ -38,7 +38,7 @@ import {
 
 interface Recourse {
   recourseId: number
-  claimId: string
+  eventId: string
   isJustified: boolean
   filingDate?: string
   insuranceCompany?: string
@@ -234,7 +234,7 @@ export function RecourseSection({ eventId }: RecourseSectionProps) {
     setLoading(true)
     try {
       const submitFormData = new FormData()
-      submitFormData.append("claimId", eventId)
+      submitFormData.append("eventId", eventId)
       submitFormData.append("isJustified", formData.isJustified.toString())
       submitFormData.append("filingDate", formData.filingDate)
       submitFormData.append("insuranceCompany", formData.insuranceCompany)

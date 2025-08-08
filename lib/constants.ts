@@ -205,6 +205,7 @@ export const EVENT_STATUSES = [
 export const API_ENDPOINTS = {
   EVENTS: "/api/events",
   DAMAGES: "/api/damages",
+  DAMAGES_INIT: "/api/damages/init",
   DOCUMENTS: "/api/documents",
   CLIENTS: "/api/clients",
   RISK_TYPES: "/api/risk-types",

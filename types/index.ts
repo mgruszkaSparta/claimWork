@@ -1,17 +1,35 @@
 import type React from "react"
+import type { EventDto } from "@/lib/api"
 
-export interface Claim {
+export interface Claim
+  extends Omit<
+    EventDto,
+    | "id"
+    | "clientId"
+    | "insuranceCompanyId"
+    | "leasingCompanyId"
+    | "handlerId"
+    | "servicesCalled"
+    | "participants"
+    | "damages"
+    | "decisions"
+    | "appeals"
+    | "clientClaims"
+    | "recourses"
+    | "settlements"
+  > {
   id?: string
-  spartaNumber?: string
-  claimNumber?: string
+  clientId?: string
+  insuranceCompanyId?: string
+  leasingCompanyId?: string
+  handlerId?: string
+  /**
+   * List of services called.
+   * API stores this as a comma-separated string
+   * (e.g. "policja,pogotowie").
+   */
+  servicesCalled?: Service[]
   insurerClaimNumber?: string
-  status?: string
-  riskType?: string
-  damageType?: string
-  damageDate?: string
-  eventTime?: string
-  reportDate?: string
-  reportDateToInsurer?: string
   eventLocation?: string
   eventDescription?: string
   comments?: string
@@ -20,7 +38,6 @@ export interface Claim {
   statementWithPerpetrator?: boolean
   perpetratorFined?: boolean
   reportingChannel?: string
-  servicesCalled?: Service[]
   policeDescription?: string
   ambulanceDescription?: string
   fireDescription?: string
@@ -38,24 +55,8 @@ export interface Claim {
   clientClaims?: ClientClaim[]
   recourses?: Recourse[]
   settlements?: Settlement[]
-  client?: string
-  clientId?: string
-  handler?: string
-  handlerId?: string
   handlerEmail?: string
   handlerPhone?: string
-  insuranceCompany?: string
-  insuranceCompanyId?: string
-  leasingCompany?: string
-  leasingCompanyId?: string
-  totalClaim?: number
-  payout?: number
-  currency?: string
-  liquidator?: string
-  brand?: string
-  vehicleNumber?: string
-  location?: string
-  description?: string
   documents?: UploadedFile[]
   pendingFiles?: UploadedFile[]
   documentsSectionProps?: DocumentsSectionProps
@@ -118,8 +119,11 @@ export interface DriverInfo {
 }
 
 export interface DamageItem {
+  id?: string
+  eventId?: string
   description: string
   detail: string
+  isSaved?: boolean
 }
 
 export interface Decision {
@@ -202,7 +206,10 @@ export interface DocumentsSectionProps {
   setUploadedFiles: React.Dispatch<React.SetStateAction<UploadedFile[]>>
   requiredDocuments: RequiredDocument[]
   setRequiredDocuments: React.Dispatch<React.SetStateAction<RequiredDocument[]>>
+
   eventId?: number | string
   pendingFiles?: UploadedFile[]
   setPendingFiles?: React.Dispatch<React.SetStateAction<UploadedFile[]>>
+
+
 }

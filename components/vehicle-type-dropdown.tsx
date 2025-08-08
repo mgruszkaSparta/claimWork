@@ -141,7 +141,7 @@ export default function VehicleTypeDropdown({
                   <CommandGroup>
                     {filteredVehicleTypes.map((vehicleType) => (
                       <CommandItem
-                        key={vehicleType.id}
+                        key={`vehicle-type-${vehicleType.id}`}
                         value={vehicleType.id}
                         onSelect={() => handleVehicleTypeSelect(vehicleType)}
                         className="cursor-pointer"

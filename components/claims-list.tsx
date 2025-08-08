@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useMemo } from "react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -26,7 +26,7 @@ export function ClaimsList({ onEditClaim, onNewClaim }: ClaimsListProps) {
   const [showFilters, setShowFilters] = useState(false)
   const [isRefreshing, setIsRefreshing] = useState(false)
 
-  const { claims, loading, error, deleteClaim, fetchClaims } = useClaims()
+  const { claims, loading, error, deleteClaim, fetchClaims, clearError } = useClaims()
   const { toast } = useToast()
 
   // Refresh data on component mount
@@ -45,24 +45,29 @@ export function ClaimsList({ onEditClaim, onNewClaim }: ClaimsListProps) {
     loadClaims()
   }, [fetchClaims, toast])
 
-  const filteredClaims = claims.filter((claim) => {
-    const lowerCaseSearchTerm = searchTerm.toLowerCase()
-    const matchesSearch =
-      claim.vehicleNumber?.toLowerCase().includes(lowerCaseSearchTerm) ||
-      claim.claimNumber?.toLowerCase().includes(lowerCaseSearchTerm) ||
-      claim.spartaNumber?.toLowerCase().includes(lowerCaseSearchTerm) ||
-      claim.client?.toLowerCase().includes(lowerCaseSearchTerm) ||
-      claim.liquidator?.toLowerCase().includes(lowerCaseSearchTerm) ||
-      claim.brand?.toLowerCase().includes(lowerCaseSearchTerm)
+  // TODO: consider moving this filtering to use-claims or the API to reduce client workload
+  const filteredClaims = useMemo(
+    () =>
+      claims.filter((claim) => {
+        const lowerCaseSearchTerm = searchTerm.toLowerCase()
+        const matchesSearch =
+          claim.vehicleNumber?.toLowerCase().includes(lowerCaseSearchTerm) ||
+          claim.claimNumber?.toLowerCase().includes(lowerCaseSearchTerm) ||
+          claim.spartaNumber?.toLowerCase().includes(lowerCaseSearchTerm) ||
+          claim.client?.toLowerCase().includes(lowerCaseSearchTerm) ||
+          claim.liquidator?.toLowerCase().includes(lowerCaseSearchTerm) ||
+          claim.brand?.toLowerCase().includes(lowerCaseSearchTerm)
 
-    const matchesFilter = filterStatus === "all" || claim.status === filterStatus
-    const matchesBrand =
-      !filterBrand || claim.brand?.toLowerCase().includes(filterBrand.toLowerCase())
-    const matchesHandler =
-      !filterHandler || claim.liquidator?.toLowerCase().includes(filterHandler.toLowerCase())
+        const matchesFilter = filterStatus === "all" || claim.status === filterStatus
+        const matchesBrand =
+          !filterBrand || claim.brand?.toLowerCase().includes(filterBrand.toLowerCase())
+        const matchesHandler =
+          !filterHandler || claim.liquidator?.toLowerCase().includes(filterHandler.toLowerCase())
 
-    return matchesSearch && matchesFilter && matchesBrand && matchesHandler
-  })
+        return matchesSearch && matchesFilter && matchesBrand && matchesHandler
+      }),
+    [claims, searchTerm, filterStatus, filterBrand, filterHandler]
+  )
 
   const getStatusColor = (status: string) => {
     switch (status?.toUpperCase()) {
@@ -201,7 +206,12 @@ export function ClaimsList({ onEditClaim, onNewClaim }: ClaimsListProps) {
               <br />
               <span className="text-sm">Sprawdź połączenie z API lub konfigurację backendu.</span>
             </AlertDescription>
-            <Button variant="ghost" size="sm" className="absolute top-2 right-2 h-6 w-6 p-0">
+            <Button
+              variant="ghost"
+              size="sm"
+              className="absolute top-2 right-2 h-6 w-6 p-0"
+              onClick={clearError}
+            >
               <X className="h-3 w-3" />
             </Button>
           </Alert>

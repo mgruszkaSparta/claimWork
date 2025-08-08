@@ -1,12 +1,20 @@
 import type { VehicleType, VehicleTypeResponse } from "@/types/vehicle-type"
-import { API_ENDPOINTS } from "@/lib/constants"
 
-const VEHICLE_TYPES_URL = API_ENDPOINTS.VEHICLE_TYPES
+const API_BASE_URL = "/api/dictionaries/vehicle-types"
 
 export const vehicleTypeService = {
-  async getVehicleTypes(): Promise<VehicleType[]> {
+  async getVehicleTypes(search?: string): Promise<VehicleType[]> {
     try {
-      const response = await fetch(VEHICLE_TYPES_URL)
+      const params = new URLSearchParams()
+      if (search) {
+        params.append("search", search)
+      }
+
+      const url = `${API_BASE_URL}${params.toString() ? `?${params.toString()}` : ""}`
+      console.log("Fetching vehicle types from:", url)
+
+      const response = await fetch(url)
+
 
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`)
@@ -27,7 +35,8 @@ export const vehicleTypeService = {
 
   async getVehicleTypeById(id: string): Promise<VehicleType | null> {
     try {
-      const response = await fetch(`${VEHICLE_TYPES_URL}/${id}`)
+
+      const response = await fetch(`${API_BASE_URL}/${id}`)
 
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`)

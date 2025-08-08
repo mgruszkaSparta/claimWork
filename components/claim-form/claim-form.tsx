@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
@@ -11,6 +11,7 @@ import { Checkbox } from '@/components/ui/checkbox'
 import { ParticipantsSection } from './participants-section'
 import { DocumentsSection } from '../documents-section'
 import { useClaims } from '@/hooks/use-claims'
+import { useDamages } from '@/hooks/use-damages'
 import { useRouter } from 'next/navigation'
 import type { Claim, ParticipantInfo, UploadedFile, RequiredDocument } from '@/types'
 
@@ -21,8 +22,8 @@ interface ClaimFormProps {
 
 export function ClaimForm({ initialData, mode }: ClaimFormProps) {
   const router = useRouter()
-  const { createClaim, updateClaim, loading, error } = useClaims()
-  
+  const { createClaim, updateClaim, initializeClaim, loading, error } = useClaims()
+  const initialized = useRef(false)
   const [formData, setFormData] = useState<Claim>({
     spartaNumber: '',
     claimNumber: '',
@@ -82,6 +83,18 @@ export function ClaimForm({ initialData, mode }: ClaimFormProps) {
   ])
 
   const isDisabled = mode === 'view'
+  const { createDamage } = useDamages(formData.id)
+
+  useEffect(() => {
+    if (!initialized.current && mode === 'create' && !formData.id) {
+      initialized.current = true
+      initializeClaim().then((id) => {
+        if (id) {
+          setFormData((prev) => ({ ...prev, id }))
+        }
+      })
+    }
+  }, [mode, formData.id, initializeClaim])
 
   const handleInputChange = (field: keyof Claim, value: any) => {
     setFormData(prev => ({
@@ -125,7 +138,8 @@ export function ClaimForm({ initialData, mode }: ClaimFormProps) {
     e.preventDefault()
 
     try {
-      const payload = { ...formData, documents: uploadedFiles }
+      let finalDamages = formData.damages || []
+
 
       if (mode === 'create') {
         const result = await createClaim(payload)
@@ -147,11 +161,21 @@ export function ClaimForm({ initialData, mode }: ClaimFormProps) {
             )
           }
           router.push(`/claims/${result.id}/view`)
+
         }
-      } else if (mode === 'edit' && formData.id) {
+      } else {
+        finalDamages = finalDamages.map(d => ({ ...d, id: undefined }))
+      }
+
+      setFormData(prev => ({ ...prev, damages: finalDamages }))
+      const payload = { ...formData, damages: finalDamages, documents: uploadedFiles }
+
+      if (formData.id) {
         const result = await updateClaim(formData.id, payload)
         if (result) {
           router.push(`/claims/${formData.id}/view`)
+
+
         }
       }
     } catch (err) {
@@ -334,6 +358,7 @@ export function ClaimForm({ initialData, mode }: ClaimFormProps) {
             <CardTitle>Dokumenty</CardTitle>
           </CardHeader>
           <CardContent>
+
             <DocumentsSection
               uploadedFiles={uploadedFiles}
               setUploadedFiles={setUploadedFiles}
@@ -343,6 +368,7 @@ export function ClaimForm({ initialData, mode }: ClaimFormProps) {
               setRequiredDocuments={setRequiredDocuments}
               eventId={formData.id}
             />
+
           </CardContent>
         </Card>
 

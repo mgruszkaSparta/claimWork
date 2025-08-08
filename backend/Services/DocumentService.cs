@@ -84,7 +84,8 @@ namespace AutomotiveClaimsApi.Services
                 RelatedEntityType = createDto.RelatedEntityType,
                 FileName = uniqueFileName,
                 OriginalFileName = file.FileName,
-                FilePath = Path.Combine("uploads", createDto.Category ?? "other", uniqueFileName),
+                FilePath = Path.Combine("uploads", createDto.Category ?? "other", uniqueFileName)
+                    .Replace("\\", "/"),
                 FileSize = file.Length,
                 ContentType = file.ContentType,
                 DocumentType = createDto.Category ?? "other",
@@ -114,17 +115,66 @@ namespace AutomotiveClaimsApi.Services
             document.IsDeleted = true;
             await _context.SaveChangesAsync();
             _logger.LogInformation("Document with ID {DocumentId} soft-deleted.", id);
+
+            try
+            {
+                var deleted = await DeleteDocumentAsync(document.FilePath);
+                if (!deleted)
+                {
+                    _logger.LogWarning(
+                        "File deletion failed for Document ID {DocumentId} at {FilePath}",
+                        id, document.FilePath);
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex,
+                    "Unexpected error deleting file for Document ID {DocumentId} at {FilePath}",
+                    id, document.FilePath);
+            }
+
             return true;
         }
 
-        public Task<DocumentDownloadResult?> DownloadDocumentAsync(Guid id)
+        public async Task<DocumentDownloadResult?> DownloadDocumentAsync(Guid id)
         {
-            throw new NotImplementedException();
+            var document = await _context.Documents
+                .Where(d => d.Id == id && !d.IsDeleted)
+                .FirstOrDefaultAsync();
+
+            if (document == null)
+            {
+                return null;
+            }
+
+            var fullPath = Path.Combine(_uploadsPath, document.FilePath.Replace("uploads/", ""));
+            if (!File.Exists(fullPath))
+            {
+                return null;
+            }
+
+            var memoryStream = new MemoryStream(await File.ReadAllBytesAsync(fullPath));
+
+            return new DocumentDownloadResult
+            {
+                FileStream = memoryStream,
+                ContentType = GetContentType(fullPath),
+                FileName = document.OriginalFileName ?? document.FileName
+            };
+        }
+
+        private static string NormalizePath(string filePath)
+        {
+            var normalized = filePath
+                .Replace("/", Path.DirectorySeparatorChar.ToString())
+                .Replace("\\", Path.DirectorySeparatorChar.ToString());
+            normalized = normalized.Replace("uploads" + Path.DirectorySeparatorChar, "");
+            return normalized.TrimStart(Path.DirectorySeparatorChar);
         }
 
         public async Task<bool> DeleteDocumentAsync(string filePath)
         {
-            var fullPath = Path.Combine(_uploadsPath, filePath.Replace("uploads/", ""));
+            var fullPath = Path.Combine(_uploadsPath, NormalizePath(filePath));
             try
             {
                 if (File.Exists(fullPath))
@@ -142,7 +192,7 @@ namespace AutomotiveClaimsApi.Services
 
         public async Task<DocumentDownloadResult?> GetDocumentAsync(string filePath)
         {
-            var fullPath = Path.Combine(_uploadsPath, filePath.Replace("uploads/", ""));
+            var fullPath = Path.Combine(_uploadsPath, NormalizePath(filePath));
             if (!File.Exists(fullPath)) return null;
 
             var memoryStream = new MemoryStream(await File.ReadAllBytesAsync(fullPath));
@@ -156,7 +206,7 @@ namespace AutomotiveClaimsApi.Services
 
         public async Task<Stream> GetDocumentStreamAsync(string filePath)
         {
-            var fullPath = Path.Combine(_uploadsPath, filePath.Replace("uploads/", ""));
+            var fullPath = Path.Combine(_uploadsPath, NormalizePath(filePath));
             if (!File.Exists(fullPath)) throw new FileNotFoundException("Document not found", filePath);
             return new MemoryStream(await File.ReadAllBytesAsync(fullPath));
         }

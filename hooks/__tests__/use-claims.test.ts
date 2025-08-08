@@ -8,7 +8,7 @@ import { transformFrontendClaimToApiPayload } from '../use-claims'
 test('includes dropdown selections in payload', () => {
   const payload = transformFrontendClaimToApiPayload({
     riskType: 'RT',
-    damageType: 'DT',
+    damageType: { code: 'DT', name: 'Damage' } as any,
     insuranceCompanyId: '5',
     clientId: '7',
     handlerId: '9',
@@ -19,4 +19,26 @@ test('includes dropdown selections in payload', () => {
   assert.equal(payload.insuranceCompanyId, 5)
   assert.equal(payload.clientId, 7)
   assert.equal(payload.handlerId, 9)
+})
+
+test('maps damageType object to its code value', () => {
+  const payload = transformFrontendClaimToApiPayload({
+    damageType: { code: 'DT', name: 'Damage' } as any,
+  } as any)
+
+  assert.equal(payload.damageType, 'DT')
+})
+
+test('participant and driver ids are numeric', () => {
+  const payload = transformFrontendClaimToApiPayload({
+    injuredParty: {
+      id: '123',
+      drivers: [{ id: '456' }],
+    },
+  } as any)
+
+  const participant = payload.participants?.[0]
+  const driver = participant?.drivers?.[0]
+  assert.equal(participant?.id, 123)
+  assert.equal(driver?.id, 456)
 })

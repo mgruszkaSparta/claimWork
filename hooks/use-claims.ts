@@ -1,16 +1,31 @@
 "use client"
 
 import { useState, useCallback } from "react"
-import { apiService, type EventUpsertDto, type EventDto, type ParticipantUpsertDto, type EventListItemDto } from "@/lib/api"
+import {
+  apiService,
+  type EventUpsertDto,
+  type EventDto,
+  type ParticipantUpsertDto,
+  type EventListItemDto,
+} from "@/lib/api"
 import type { Claim, ParticipantInfo, DriverInfo } from "@/types"
 
-const transformApiClaimToFrontend = (apiClaim: EventDto): Claim => {
+export const transformApiClaimToFrontend = (apiClaim: EventDto): Claim => {
   const injuredParty = apiClaim.participants?.find((p: any) => p.role === "Poszkodowany")
   const perpetrator = apiClaim.participants?.find((p: any) => p.role === "Sprawca")
 
+  const mapParticipantDto = (p: any): ParticipantInfo => ({
+    ...p,
+    id: p.id?.toString() || "",
+    drivers: p.drivers?.map((d: any) => ({
+      ...d,
+      id: d.id?.toString() || "",
+    })) || [],
+  })
+
   return {
     ...apiClaim,
-    id: apiClaim.id?.toString(),
+    id: apiClaim.id,
     insuranceCompanyId: apiClaim.insuranceCompanyId?.toString(),
     leasingCompanyId: apiClaim.leasingCompanyId?.toString(),
     handlerId: apiClaim.handlerId?.toString(),
@@ -18,29 +33,30 @@ const transformApiClaimToFrontend = (apiClaim: EventDto): Claim => {
     totalClaim: apiClaim.totalClaim ?? 0,
     payout: apiClaim.payout ?? 0,
     currency: apiClaim.currency ?? "PLN",
-    servicesCalled: apiClaim.servicesCalled?.split(",").filter(Boolean) || [],
-    damages: apiClaim.damages || [],
+
+    servicesCalled: Array.isArray(apiClaim.servicesCalled)
+      ? apiClaim.servicesCalled
+      : (apiClaim.servicesCalled?.split(",").filter(Boolean) ?? []),
+
+    damages: apiClaim.damages?.map((d: any) => ({
+      id: d.id?.toString(),
+      eventId: d.eventId?.toString(),
+      description: d.description,
+      detail: d.detail,
+    })) || [],
     decisions: apiClaim.decisions || [],
     appeals: apiClaim.appeals || [],
     clientClaims: apiClaim.clientClaims || [],
     recourses: apiClaim.recourses || [],
     settlements: apiClaim.settlements || [],
-    injuredParty: injuredParty
-      ? {
-          ...injuredParty,
-          drivers: injuredParty.drivers || [],
-        }
-      : undefined,
-    perpetrator: perpetrator
-      ? {
-          ...perpetrator,
-          drivers: perpetrator.drivers || [],
-        }
-      : undefined,
+    injuredParty: injuredParty ? mapParticipantDto(injuredParty) : undefined,
+    perpetrator: perpetrator ? mapParticipantDto(perpetrator) : undefined,
   }
 }
 
-const transformFrontendClaimToApiPayload = (claimData: Partial<Claim>): EventUpsertDto => {
+export const transformFrontendClaimToApiPayload = (
+  claimData: Partial<Claim>,
+): EventUpsertDto => {
   const {
     id,
     decisions,
@@ -57,19 +73,28 @@ const transformFrontendClaimToApiPayload = (claimData: Partial<Claim>): EventUps
     leasingCompanyId,
     handlerId,
     clientId,
-    clientId,
-    handlerId,
     riskType,
     damageType,
 
     ...rest
   } = claimData
 
+  let damageTypeValue: string | undefined
+  if (typeof damageType === "object" && damageType !== null) {
+    damageTypeValue = (damageType as any).code ?? (damageType as any).id
+  } else if (typeof damageType === "number") {
+    damageTypeValue = damageType.toString()
+  } else if (typeof damageType === "string") {
+    damageTypeValue = damageType
+  }
+
   const participants: ParticipantUpsertDto[] = []
 
   const mapParticipant = (p: ParticipantInfo, role: string): ParticipantUpsertDto => ({
-    id: p.id ? parseInt(p.id) : undefined,
-    role: role,
+
+    id: p.id ? Number(p.id) : undefined,
+    role,
+
     name: p.name,
     phone: p.phone,
     email: p.email,
@@ -88,7 +113,9 @@ const transformFrontendClaimToApiPayload = (claimData: Partial<Claim>): EventUps
     inspectionContactPhone: p.inspectionContactPhone,
     inspectionContactEmail: p.inspectionContactEmail,
     drivers: p.drivers?.map((d: DriverInfo) => ({
-      id: d.id ? parseInt(d.id) : undefined,
+
+      id: d.id ? Number(d.id) : undefined,
+
       name: d.name,
       licenseNumber: d.licenseNumber,
       firstName: d.firstName,
@@ -114,17 +141,13 @@ const transformFrontendClaimToApiPayload = (claimData: Partial<Claim>): EventUps
   return {
     ...rest,
 
-    insuranceCompanyId: insuranceCompanyId ? parseInt(insuranceCompanyId) : undefined,
-    leasingCompanyId: leasingCompanyId ? parseInt(leasingCompanyId) : undefined,
-    handlerId: handlerId ? parseInt(handlerId) : undefined,
-    clientId: clientId ? parseInt(clientId) : undefined,
-
+    // Convert string identifiers to numbers for API payload
+    insuranceCompanyId: insuranceCompanyId ? parseInt(insuranceCompanyId, 10) : undefined,
+    leasingCompanyId: leasingCompanyId ? parseInt(leasingCompanyId, 10) : undefined,
+    clientId: clientId ? parseInt(clientId, 10) : undefined,
+    handlerId: handlerId ? parseInt(handlerId, 10) : undefined,
     riskType,
-    damageType,
-    insuranceCompanyId: insuranceCompanyId ? parseInt(insuranceCompanyId) : undefined,
-    clientId: clientId ? parseInt(clientId) : undefined,
-    handlerId: handlerId ? parseInt(handlerId) : undefined,
-
+    ...(damageTypeValue ? { damageType: damageTypeValue } : {}),
     damageDate: rest.damageDate ? new Date(rest.damageDate).toISOString() : undefined,
     reportDate: rest.reportDate ? new Date(rest.reportDate).toISOString() : undefined,
     reportDateToInsurer: rest.reportDateToInsurer ? new Date(rest.reportDateToInsurer).toISOString() : undefined,
@@ -134,7 +157,12 @@ const transformFrontendClaimToApiPayload = (claimData: Partial<Claim>): EventUps
 
     documents: documents?.map((d) => ({ id: d.id, filePath: d.url })),
 
-    damages: damages?.map((d) => ({ description: d.description, detail: d.detail } as any)),
+    damages: damages?.map((d) => ({
+      id: d.id,
+      eventId: d.eventId,
+      description: d.description,
+      detail: d.detail,
+    })),
     decisions: decisions?.map((d) => ({
       ...d,
       decisionDate: d.decisionDate ? new Date(d.decisionDate).toISOString() : undefined,
@@ -169,13 +197,20 @@ export function useClaims() {
       setLoading(true)
       setError(null)
 
-      console.log("Fetching claims from API...")
+      const isDev = process.env.NODE_ENV !== "production"
+      if (isDev) {
+        console.log("Fetching claims from API...")
+      }
+
       const apiClaims: EventListItemDto[] = await apiService.getClaims()
-      console.log("API response:", apiClaims)
+
+      if (isDev) {
+        console.log("API response:", apiClaims)
+      }
 
       const frontendClaims = apiClaims.map((claim) => ({
         ...claim,
-        id: claim.id.toString(),
+        id: claim.id,
         totalClaim: claim.totalClaim ?? 0,
         payout: claim.payout ?? 0,
         currency: claim.currency ?? "PLN",
@@ -186,7 +221,9 @@ export function useClaims() {
       })) as Claim[]
 
       setClaims(frontendClaims)
-      console.log("Claims set in state:", frontendClaims)
+      if (isDev) {
+        console.log("Claims set in state:", frontendClaims)
+      }
     } catch (err) {
       console.error("Error fetching claims:", err)
       const message = err instanceof Error ? err.message : "An unknown error occurred"
@@ -205,6 +242,18 @@ export function useClaims() {
     } catch (err) {
       const message = err instanceof Error ? err.message : "An unknown error occurred"
       setError(`Failed to fetch claim ${id}: ${message}`)
+      return null
+    }
+  }
+
+  const initializeClaim = async (): Promise<string | null> => {
+    try {
+      setError(null)
+      const { id } = await apiService.initializeClaim()
+      return id
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "An unknown error occurred"
+      setError(`Failed to initialize claim: ${message}`)
       return null
     }
   }
@@ -229,7 +278,12 @@ export function useClaims() {
       setError(null)
       const payload = transformFrontendClaimToApiPayload(claimData)
       const updatedApiClaim = await apiService.updateClaim(id, payload)
-      const updatedClaim = transformApiClaimToFrontend(updatedApiClaim)
+      const existingClaim = claims.find((c) => c.id === id)
+
+      const updatedClaim: Claim = updatedApiClaim
+        ? transformApiClaimToFrontend(updatedApiClaim)
+        : { ...(existingClaim || {}), ...claimData } as Claim
+
       setClaims((prev) => prev.map((c) => (c.id === id ? updatedClaim : c)))
       return updatedClaim
     } catch (err) {
@@ -262,6 +316,7 @@ export function useClaims() {
     error,
     fetchClaims,
     getClaim,
+    initializeClaim,
     createClaim,
     updateClaim,
     deleteClaim,

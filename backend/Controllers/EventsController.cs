@@ -146,8 +146,34 @@ namespace AutomotiveClaimsApi.Controllers
             }
         }
 
+        [HttpPost("initialize")]
+        public async Task<ActionResult<object>> InitializeEvent()
+        {
+            try
+            {
+                var eventEntity = new Event
+                {
+                    Id = Guid.NewGuid(),
+                    Status = "Nowa",
+                    Currency = "PLN",
+                    CreatedAt = DateTime.UtcNow,
+                    UpdatedAt = DateTime.UtcNow
+                };
+
+                _context.Events.Add(eventEntity);
+                await _context.SaveChangesAsync();
+
+                return Ok(new { id = eventEntity.Id });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error initializing event");
+                return StatusCode(500, new { error = "Failed to initialize event" });
+            }
+        }
+
         [HttpPost]
-        public async Task<ActionResult<EventDto>> CreateEvent(EventUpsertDto eventDto)
+        public async Task<ActionResult<EventDto>> CreateEvent([FromBody] EventUpsertDto eventDto)
         {
             try
             {
@@ -233,7 +259,20 @@ namespace AutomotiveClaimsApi.Controllers
                 {
                     foreach (var cDto in eventDto.ClientClaims)
                     {
-                        _context.ClientClaims.Add(MapClientClaimDtoToModel(cDto, eventEntity.Id));
+                        Guid? clientClaimId = null;
+                        if (!string.IsNullOrEmpty(cDto.Id))
+                        {
+                            if (Guid.TryParse(cDto.Id, out var parsedId))
+                            {
+                                clientClaimId = parsedId;
+                            }
+                            else
+                            {
+                                return BadRequest($"Invalid ClientClaim Id format: {cDto.Id}");
+                            }
+                        }
+
+                        _context.ClientClaims.Add(MapClientClaimDtoToModel(cDto, eventEntity.Id, clientClaimId));
                     }
                 }
 
@@ -273,6 +312,10 @@ namespace AutomotiveClaimsApi.Controllers
                 var createdEventDto = MapEventToDto(createdEvent!);
                 return CreatedAtAction(nameof(GetEvent), new { id = eventEntity.Id }, createdEventDto);
             }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(ex.Message);
+            }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error creating event");
@@ -281,7 +324,7 @@ namespace AutomotiveClaimsApi.Controllers
         }
 
         [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateEvent(Guid id, EventUpsertDto eventDto)
+        public async Task<IActionResult> UpdateEvent(Guid id, [FromBody] EventUpsertDto eventDto)
         {
             try
             {
@@ -395,7 +438,20 @@ namespace AutomotiveClaimsApi.Controllers
                 {
                     foreach (var cDto in eventDto.ClientClaims)
                     {
-                        _context.ClientClaims.Add(MapClientClaimDtoToModel(cDto, eventEntity.Id));
+                        Guid? clientClaimId = null;
+                        if (!string.IsNullOrEmpty(cDto.Id))
+                        {
+                            if (Guid.TryParse(cDto.Id, out var parsedId))
+                            {
+                                clientClaimId = parsedId;
+                            }
+                            else
+                            {
+                                return BadRequest($"Invalid ClientClaim Id format: {cDto.Id}");
+                            }
+                        }
+
+                        _context.ClientClaims.Add(MapClientClaimDtoToModel(cDto, eventEntity.Id, clientClaimId));
                     }
                 }
 
@@ -421,6 +477,10 @@ namespace AutomotiveClaimsApi.Controllers
 
                 return NoContent();
             }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(ex.Message);
+            }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error updating event {EventId}", id);
@@ -433,16 +493,34 @@ namespace AutomotiveClaimsApi.Controllers
         {
             try
             {
-                var eventEntity = await _context.Events.FindAsync(id);
+                var eventEntity = await _context.Events
+                    .Include(e => e.Participants)
+                    .ThenInclude(p => p.Drivers)
+                    .FirstOrDefaultAsync(e => e.Id == id);
+
                 if (eventEntity == null)
                 {
                     return NotFound(new { error = "Event not found" });
+                }
+
+                foreach (var participant in eventEntity.Participants.ToList())
+                {
+                    foreach (var driver in participant.Drivers.ToList())
+                    {
+                        _context.Drivers.Remove(driver);
+                    }
+                    _context.Participants.Remove(participant);
                 }
 
                 _context.Events.Remove(eventEntity);
                 await _context.SaveChangesAsync();
 
                 return NoContent();
+            }
+            catch (DbUpdateException ex)
+            {
+                _logger.LogError(ex, "Event deletion blocked due to related entities {EventId}", id);
+                return Conflict(new { error = "Event has related entities and cannot be deleted" });
             }
             catch (Exception ex)
             {
@@ -666,17 +744,42 @@ namespace AutomotiveClaimsApi.Controllers
             if (dto.ClientClaims != null)
             {
                 var dtoIds = dto.ClientClaims
-                    .Where(c => c.Id.HasValue)
-                    .Select(c => c.Id.Value)
+                    .Select(c =>
+                    {
+                        if (!string.IsNullOrEmpty(c.Id))
+                        {
+                            if (Guid.TryParse(c.Id, out var parsedId))
+                            {
+                                return (Guid?)parsedId;
+                            }
+                            else
+                            {
+                                throw new ArgumentException($"Invalid ClientClaim Id format: {c.Id}");
+                            }
+                        }
+                        return null;
+                    })
+                    .Where(id => id.HasValue)
+                    .Select(id => id.Value)
                     .ToHashSet();
                 var toRemove = entity.ClientClaims.Where(c => !dtoIds.Contains(c.Id)).ToList();
                 foreach (var r in toRemove) entity.ClientClaims.Remove(r);
 
                 foreach (var cDto in dto.ClientClaims)
                 {
-                    var hasId = cDto.Id.HasValue;
-                    var claimId = cDto.Id ?? Guid.Empty;
-                    var existing = hasId ? entity.ClientClaims.FirstOrDefault(c => c.Id == claimId) : null;
+                    Guid? claimId = null;
+                    if (!string.IsNullOrEmpty(cDto.Id))
+                    {
+                        if (Guid.TryParse(cDto.Id, out var parsedId))
+                        {
+                            claimId = parsedId;
+                        }
+                        else
+                        {
+                            throw new ArgumentException($"Invalid ClientClaim Id format: {cDto.Id}");
+                        }
+                    }
+                    var existing = claimId.HasValue ? entity.ClientClaims.FirstOrDefault(c => c.Id == claimId.Value) : null;
                     if (existing != null)
                     {
                         existing.ClaimNumber = cDto.ClaimNumber;
@@ -696,7 +799,7 @@ namespace AutomotiveClaimsApi.Controllers
                     {
                         entity.ClientClaims.Add(new ClientClaim
                         {
-                            Id = hasId ? claimId : Guid.NewGuid(),
+                            Id = claimId ?? Guid.NewGuid(),
                             EventId = entity.Id,
                             ClaimNumber = cDto.ClaimNumber,
                             ClaimDate = cDto.ClaimDate,
@@ -999,11 +1102,11 @@ namespace AutomotiveClaimsApi.Controllers
             };
         }
 
-        private static ClientClaim MapClientClaimDtoToModel(ClientClaimUpsertDto dto, Guid eventId)
+        private static ClientClaim MapClientClaimDtoToModel(ClientClaimUpsertDto dto, Guid eventId, Guid? clientClaimId = null)
         {
             return new ClientClaim
             {
-                Id = dto.Id ?? Guid.NewGuid(),
+                Id = clientClaimId ?? Guid.NewGuid(),
                 EventId = dto.EventId ?? eventId,
                 ClaimNumber = dto.ClaimNumber,
                 ClaimDate = dto.ClaimDate,

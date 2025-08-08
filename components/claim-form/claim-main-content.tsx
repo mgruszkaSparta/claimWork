@@ -24,6 +24,7 @@ import type { Claim, Service, ParticipantInfo, DriverInfo, UploadedFile, Require
 import { EmailSection } from "../email/email-section-compact"
 import { DependentSelect } from "@/components/ui/dependent-select"
 import { useToast } from "@/hooks/use-toast"
+import { useDamages } from "@/hooks/use-damages"
 import InsuranceDropdown from "@/components/insurance-dropdown"
 import type { CompanySelectionEvent } from "@/types/insurance"
 import LeasingDropdown from "@/components/leasing-dropdown"
@@ -190,6 +191,10 @@ export const ClaimMainContent = ({
 }: ClaimMainContentProps) => {
   const { toast } = useToast()
 
+  const { createDamage, deleteDamage, fetchDamages } = useDamages(claimFormData.id)
+
+
+
   // State for dropdown data
   const [riskTypes, setRiskTypes] = useState<RiskType[]>([])
   const [loadingRiskTypes, setLoadingRiskTypes] = useState(false)
@@ -200,19 +205,7 @@ export const ClaimMainContent = ({
   const [loadingHandlers, setLoadingHandlers] = useState(false)
 
   // Notes state
-  const [notes, setNotes] = useState<Note[]>([
-    {
-      id: "1",
-      type: "task",
-      title: "Skontaktuj się z klientem",
-      description: "Zadzwoń do klienta, aby potwierdzić szczegóły zgłoszenia szkody.",
-      user: "Jan Kowalski",
-      createdAt: "2025-07-27T13:39:00",
-      status: "active",
-      priority: "high",
-      dueDate: "2025-08-05",
-    },
-  ])
+  const [notes, setNotes] = useState<Note[]>([])
 
   // Form states
   const [showNoteForm, setShowNoteForm] = useState<string | null>(null)
@@ -228,6 +221,57 @@ export const ClaimMainContent = ({
     priority: "wszystkie",
     search: "",
   })
+
+  useEffect(() => {
+    if (!claimFormData.id) return
+
+    const loadDamages = async () => {
+      try {
+        const data = await fetchDamages(claimFormData.id)
+        handleFormChange("damages", data)
+      } catch (error) {
+        toast({
+          title: "Błąd",
+          description: "Nie udało się pobrać szkód.",
+          variant: "destructive",
+        })
+      }
+    }
+
+    loadDamages()
+  }, [claimFormData.id])
+
+  useEffect(() => {
+    if (!claimFormData.id) return
+
+    const loadNotes = async () => {
+      try {
+        const response = await fetch(`/api/notes?eventId=${claimFormData.id}`)
+        if (!response.ok) throw new Error()
+        const data = await response.json()
+        const mappedNotes: Note[] = data.map((note: any) => ({
+          id: note.id,
+          type: (note.category as Note["type"]) || "note",
+          title: note.title,
+          description: note.content,
+          user: note.createdBy || "",
+          createdAt: note.createdAt,
+          priority: note.priority,
+          status: note.status,
+          dueDate: note.dueDate,
+        }))
+        setNotes(mappedNotes)
+      } catch (error) {
+        toast({
+          title: "Błąd",
+          description: "Nie udało się pobrać notatek.",
+          variant: "destructive",
+        })
+      }
+    }
+
+    loadNotes()
+  }, [claimFormData.id])
 
   // State for expanded sections in teczka-szkodowa
   const [expandedSections, setExpandedSections] = useState({
@@ -380,23 +424,54 @@ export const ClaimMainContent = ({
     }
   }
 
-  const handleDamagePartToggle = (partName: string) => {
+  const handleDamagePartToggle = async (partName: string) => {
     const currentDamages = claimFormData.damages || []
-    const isAlreadyDamaged = currentDamages.some((d) => d.description === partName)
+    const existing = currentDamages.find((d) => d.description === partName)
 
-    let newDamages
-    if (isAlreadyDamaged) {
-      newDamages = currentDamages.filter((d) => d.description !== partName)
-    } else {
-      newDamages = [...currentDamages, { description: partName, detail: "Do opisu" }]
+    try {
+      if (existing) {
+
+        if (existing.eventId && existing.id) {
+          await deleteDamage(existing.id)
+
+        }
+        const newDamages = currentDamages.filter((d) => d.description !== partName)
+        handleFormChange("damages", newDamages)
+      } else {
+
+        const unsaved = initDamage({ description: partName, detail: "Do opisu" })
+        const newDamages = [...currentDamages, unsaved]
+
+        handleFormChange("damages", newDamages)
+      }
+    } catch (error: any) {
+      toast({
+        title: "Błąd",
+        description: error.message || "Nie udało się zapisać szkody",
+        variant: "destructive",
+      })
     }
-    handleFormChange("damages", newDamages)
   }
 
-  const removeDamageItem = (description: string) => {
+  const removeDamageItem = async (description: string) => {
     const currentDamages = claimFormData.damages || []
-    const newDamages = currentDamages.filter((d) => d.description !== description)
-    handleFormChange("damages", newDamages)
+    const toRemove = currentDamages.find((d) => d.description === description)
+
+    try {
+
+      if (toRemove?.eventId && toRemove.id) {
+        await deleteDamage(toRemove.id)
+
+      }
+      const newDamages = currentDamages.filter((d) => d.description !== description)
+      handleFormChange("damages", newDamages)
+    } catch (error: any) {
+      toast({
+        title: "Błąd",
+        description: error.message || "Nie udało się usunąć szkody",
+        variant: "destructive",
+      })
+    }
   }
 
   const handleDecisionsChange = (decisions: Decision[]) => {
@@ -404,7 +479,7 @@ export const ClaimMainContent = ({
   }
 
   // Notes functions
-  const addNote = (type: Note["type"]) => {
+  const addNote = async (type: Note["type"]) => {
     if (!noteForm.title.trim() || !noteForm.description.trim()) {
       toast({
         title: "Błąd",
@@ -414,45 +489,109 @@ export const ClaimMainContent = ({
       return
     }
 
-    const newNote: Note = {
-      id: Date.now().toString(),
-      type,
-      title: noteForm.title,
-      description: noteForm.description,
-      user: "Aktualny użytkownik",
-      createdAt: new Date().toISOString(),
-      ...(type === "task" && {
-        status: "active" as const,
-        priority: noteForm.priority,
-        dueDate: noteForm.dueDate,
-      }),
+    const eventId = claimFormData.id
+    if (!eventId) {
+      toast({
+        title: "Błąd",
+        description: "Brak identyfikatora zdarzenia.",
+        variant: "destructive",
+      })
+      return
     }
 
-    setNotes((prev) => [newNote, ...prev])
-    setNoteForm({ title: "", description: "", priority: "medium", dueDate: "" })
-    setShowNoteForm(null)
+    try {
+      const response = await fetch("/api/notes", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          eventId,
+          category: type,
+          title: noteForm.title,
+          content: noteForm.description,
+          priority: noteForm.priority,
+          dueDate: noteForm.dueDate || undefined,
+        }),
+      })
+      if (!response.ok) throw new Error()
+      const data = await response.json()
 
-    toast({
-      title: "Sukces",
-      description: `${getTypeLabel(type)} została dodana pomyślnie.`,
-    })
+      const newNote: Note = {
+        id: data.id,
+        type: (data.category as Note["type"]) || type,
+        title: data.title,
+        description: data.content,
+        user: data.createdBy || "",
+        createdAt: data.createdAt,
+        priority: data.priority,
+        status: data.status,
+        dueDate: data.dueDate,
+      }
+
+      setNotes((prev) => [newNote, ...prev])
+      setNoteForm({ title: "", description: "", priority: "medium", dueDate: "" })
+      setShowNoteForm(null)
+
+      toast({
+        title: "Sukces",
+        description: `${getTypeLabel(type)} została dodana pomyślnie.`,
+      })
+    } catch (error) {
+      toast({
+        title: "Błąd",
+        description: "Nie udało się dodać notatki.",
+        variant: "destructive",
+      })
+    }
   }
 
-  const updateTaskStatus = (noteId: string, status: "active" | "completed" | "cancelled") => {
-    setNotes((prev) => prev.map((note) => (note.id === noteId ? { ...note, status } : note)))
+  const updateTaskStatus = async (
+    noteId: string,
+    status: "active" | "completed" | "cancelled",
+  ) => {
+    try {
+      const response = await fetch(`/api/notes/${noteId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status }),
+      })
+      if (!response.ok) throw new Error()
 
-    toast({
-      title: "Zaktualizowano",
-      description: "Status zadania został zmieniony.",
-    })
+      setNotes((prev) =>
+        prev.map((note) => (note.id === noteId ? { ...note, status } : note)),
+      )
+
+      toast({
+        title: "Zaktualizowano",
+        description: "Status zadania został zmieniony.",
+      })
+    } catch (error) {
+      toast({
+        title: "Błąd",
+        description: "Nie udało się zaktualizować statusu.",
+        variant: "destructive",
+      })
+    }
   }
 
-  const deleteNote = (noteId: string) => {
-    setNotes((prev) => prev.filter((note) => note.id !== noteId))
-    toast({
-      title: "Usunięto",
-      description: "Notatka została usunięta.",
-    })
+  const deleteNote = async (noteId: string) => {
+    try {
+      const response = await fetch(`/api/notes/${noteId}`, {
+        method: "DELETE",
+      })
+      if (!response.ok) throw new Error()
+
+      setNotes((prev) => prev.filter((note) => note.id !== noteId))
+      toast({
+        title: "Usunięto",
+        description: "Notatka została usunięta.",
+      })
+    } catch (error) {
+      toast({
+        title: "Błąd",
+        description: "Nie udało się usunąć notatki.",
+        variant: "destructive",
+      })
+    }
   }
 
   const cancelNoteForm = () => {
@@ -717,7 +856,13 @@ const renderParticipantDetails = (participant: ParticipantInfo | undefined, titl
           {participant.drivers && participant.drivers.length > 0 && participant.drivers.some(d => d.firstName || d.lastName || d.phone || d.email || d.licenseNumber) ? (
             <div className="space-y-4">
               {participant.drivers.map((driver, index) => (
-                <div key={index} className="bg-gray-50 rounded-lg p-4 border border-gray-200">
+                <div
+                  key={
+                    driver.id ||
+                    `${driver.firstName}-${driver.lastName}-${driver.licenseNumber}`
+                  }
+                  className="bg-gray-50 rounded-lg p-4 border border-gray-200"
+                >
                   <div className="flex items-center justify-between mb-3">
                     <h5 className="font-medium text-gray-900 flex items-center">
                       <UserCheck className="h-4 w-4 mr-2 text-blue-600" />
@@ -1772,7 +1917,7 @@ const renderParticipantDetails = (participant: ParticipantInfo | undefined, titl
                     {claimFormData.damages && claimFormData.damages.length > 0 ? (
                       claimFormData.damages.map((damage, index) => (
                         <div
-                          key={index}
+                          key={damage.id || `${damage.description}-${damage.detail}`}
                           className="flex items-center justify-between text-sm hover:bg-gray-100 p-2 rounded bg-white border"
                         >
                           <span className="font-medium">
@@ -1859,7 +2004,6 @@ const renderParticipantDetails = (participant: ParticipantInfo | undefined, titl
       )
 
     case "dokumenty": {
-      const eventId = claimFormData.id || claimFormData.spartaNumber
       return (
         <div className="space-y-4">
           <Card className="overflow-hidden shadow-sm border-gray-200 rounded-xl">
@@ -1870,18 +2014,14 @@ const renderParticipantDetails = (participant: ParticipantInfo | undefined, titl
               <CardTitle className="text-lg font-semibold">Dokumenty</CardTitle>
             </CardHeader>
             <CardContent className="p-0 bg-white">
-              {eventId ? (
+              {claimFormData.id && (
                 <DocumentsSection
                   uploadedFiles={uploadedFiles}
                   setUploadedFiles={setUploadedFiles}
                   requiredDocuments={requiredDocuments}
                   setRequiredDocuments={setRequiredDocuments}
-                  eventId={eventId}
+                  eventId={claimFormData.id}
                 />
-              ) : (
-                <div className="p-4 text-sm text-gray-500">
-                  Zapisz roszczenie, aby dodać dokumenty.
-                </div>
               )}
             </CardContent>
           </Card>
@@ -2532,7 +2672,10 @@ const renderParticipantDetails = (participant: ParticipantInfo | undefined, titl
                   <div className="space-y-1 max-h-32 overflow-y-auto">
                     {claimFormData.damages && claimFormData.damages.length > 0 ? (
                       claimFormData.damages.map((damage, index) => (
-                        <div key={index} className="text-sm text-gray-900 p-2 bg-white rounded border">
+                        <div
+                          key={damage.id || `${damage.description}-${damage.detail}`}
+                          className="text-sm text-gray-900 p-2 bg-white rounded border"
+                        >
                           <span className="font-medium">{damage.description}</span>
                           <span className="text-gray-600 ml-2">- {damage.detail}</span>
                         </div>
@@ -2563,8 +2706,11 @@ const renderParticipantDetails = (participant: ParticipantInfo | undefined, titl
               </div>
               <div className="p-4">
                 <div className="flex flex-wrap gap-2 mb-4">
-                  {claimFormData.servicesCalled.map((service, index) => (
-                    <span key={index} className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm font-medium capitalize">
+                  {claimFormData.servicesCalled.map((service) => (
+                    <span
+                      key={service}
+                      className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm font-medium capitalize"
+                    >
                       {service}
                     </span>
                   ))}
@@ -2626,19 +2772,15 @@ const renderParticipantDetails = (participant: ParticipantInfo | undefined, titl
               </div>
             </div>
             <div className="p-4">
-              {eventId ? (
+              {claimFormData.id && (
                 <DocumentsSection
                   uploadedFiles={uploadedFiles}
                   setUploadedFiles={setUploadedFiles}
-                  requiredDocuments={[]} // Empty array to hide required documents section
-                  setRequiredDocuments={() => {}} // No-op function
-                  eventId={eventId}
-                  hideRequiredDocuments={true} // Add this prop to hide required docs
+                  requiredDocuments={[]}
+                  setRequiredDocuments={() => {}}
+                  eventId={claimFormData.id}
+                  hideRequiredDocuments={true}
                 />
-              ) : (
-                <p className="text-sm text-gray-500">
-                  Zapisz roszczenie, aby dodać dokumenty.
-                </p>
               )}
             </div>
           </div>

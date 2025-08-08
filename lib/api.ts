@@ -1,15 +1,16 @@
 // API Configuration
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5200/api"
+const API_BASE_URL =
+  process.env.NEXT_PUBLIC_API_URL ||
+  (process.env.API_BASE_URL ? `${process.env.API_BASE_URL}/api` : "https://claim-work-backend.azurewebsites.net/api")
 
 // Types for API responses
 export interface EventListItemDto {
-  id: number
+  id: string
   spartaNumber?: string
   claimNumber?: string
   vehicleNumber?: string
   clientId?: number
   client?: string
-  clientId?: number
   liquidator?: string
   brand?: string
   status?: string
@@ -31,7 +32,13 @@ export interface EventDto extends EventListItemDto {
   eventTime?: string
   location?: string
   description?: string
+
+  /**
+   * Comma-separated list of services that were called
+   * e.g. "policja,pogotowie,straz".
+   */
   servicesCalled?: string
+
   insuranceCompanyId?: number
   handlerId?: number
   riskType?: string
@@ -56,30 +63,33 @@ export interface EventUpsertDto {
   vehicleNumber?: string
   clientId?: number
   client?: string
-  clientId?: number
   liquidator?: string
   brand?: string
   status?: string
   riskType?: string
   damageType?: string
   insuranceCompanyId?: number
+  insuranceCompany?: string
+  leasingCompanyId?: number
+  leasingCompany?: string
   handlerId?: number
+  handler?: string
   damageDate?: string
   reportDate?: string
   reportDateToInsurer?: string
   eventTime?: string
   location?: string
   description?: string
+
+  /**
+   * Comma-separated list of services that were called
+   * e.g. "policja,pogotowie,straz".
+   */
   servicesCalled?: string
+
   totalClaim?: number
   payout?: number
   currency?: string
-  insuranceCompanyId?: number
-  insuranceCompany?: string
-  leasingCompanyId?: number
-  leasingCompany?: string
-  handlerId?: number
-  handler?: string
   participants?: ParticipantUpsertDto[]
 
   notes?: NoteUpsertDto[]
@@ -123,18 +133,8 @@ export interface EmailUpsertDto {
   messageId?: string
   inReplyTo?: string
   references?: string
-
-
+  
   documents?: DocumentDto[]
-
-
-  damages?: DamageDto[]
-  decisions?: DecisionDto[]
-  appeals?: AppealDto[]
-  clientClaims?: ClientClaimDto[]
-  recourses?: RecourseDto[]
-  settlements?: SettlementDto[]
-
   damages?: DamageUpsertDto[]
   decisions?: DecisionUpsertDto[]
   appeals?: AppealUpsertDto[]
@@ -145,7 +145,7 @@ export interface EmailUpsertDto {
 }
 
 export interface ParticipantDto {
-  id?: number
+  id?: string
   role?: string
   name?: string
   phone?: string
@@ -168,7 +168,7 @@ export interface ParticipantDto {
 }
 
 export interface ParticipantUpsertDto {
-  id?: number
+  id?: string
   role?: string
   name?: string
   phone?: string
@@ -191,7 +191,7 @@ export interface ParticipantUpsertDto {
 }
 
 export interface DriverDto {
-  id?: number
+  id?: string
   name?: string
   licenseNumber?: string
   firstName?: string
@@ -207,7 +207,7 @@ export interface DriverDto {
 }
 
 export interface DriverUpsertDto {
-  id?: number
+  id?: string
   name?: string
   licenseNumber?: string
   firstName?: string
@@ -223,8 +223,8 @@ export interface DriverUpsertDto {
 }
 
 export interface DamageDto {
-  id?: number
-  eventId?: number
+  id?: string
+  eventId?: string
   damageTypeId?: number
   description?: string
   estimatedCost?: number
@@ -233,6 +233,7 @@ export interface DamageDto {
 }
 
 export interface DamageUpsertDto {
+  id?: string
   eventId?: string
   description?: string
   detail?: string
@@ -389,13 +390,31 @@ class ApiService {
       throw new Error(`API Error: ${response.status} - ${errorText}`)
     }
 
-    const data = await response.json()
-    console.log("Response data:", data)
-    return data
+    if (response.status === 204) {
+      console.log("No content in response")
+      return undefined as T
+    }
+
+    const contentType = response.headers.get("content-type") ?? ""
+    if (contentType.includes("application/json")) {
+      try {
+        const data = await response.json()
+        console.log("Response data:", data)
+        return data
+      } catch {
+        console.log("No content in response")
+        return undefined as T
+      }
+    }
+
+    const text = await response.text()
+    console.log("Response text:", text)
+    return text as unknown as T
   }
 
   async getClaims(): Promise<EventListItemDto[]> {
-    return this.request<EventListItemDto[]>("/events")
+    const claims = await this.request<EventListItemDto[] | undefined>("/events")
+    return claims ?? []
   }
 
   async getClaim(id: string): Promise<EventDto> {
@@ -409,8 +428,8 @@ class ApiService {
     })
   }
 
-  async updateClaim(id: string, claim: EventUpsertDto): Promise<EventDto> {
-    return this.request<EventDto>(`/events/${id}`, {
+  async updateClaim(id: string, claim: EventUpsertDto): Promise<EventDto | undefined> {
+    return this.request<EventDto | undefined>(`/events/${id}`, {
       method: "PUT",
       body: JSON.stringify(claim),
     })
@@ -419,6 +438,12 @@ class ApiService {
   async deleteClaim(id: string): Promise<void> {
     return this.request<void>(`/events/${id}`, {
       method: "DELETE",
+    })
+  }
+
+  async initializeClaim(): Promise<{ id: string }> {
+    return this.request<{ id: string }>("/events/initialize", {
+      method: "POST",
     })
   }
 
@@ -438,8 +463,8 @@ class ApiService {
     })
   }
 
-  async updateEvent(id: string, event: Partial<EventDto>): Promise<EventDto> {
-    return this.request<EventDto>(`/events/${id}`, {
+  async updateEvent(id: string, event: Partial<EventDto>): Promise<EventDto | undefined> {
+    return this.request<EventDto | undefined>(`/events/${id}`, {
       method: "PUT",
       body: JSON.stringify(event),
     })

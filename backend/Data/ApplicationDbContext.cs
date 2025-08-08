@@ -73,6 +73,14 @@ namespace AutomotiveClaimsApi.Data
                 entity.HasMany(p => p.Drivers)
                       .WithOne(d => d.Participant)
                       .HasForeignKey(d => d.ParticipantId)
+                      .OnDelete(DeleteBehavior.Restrict);
+            });
+
+            modelBuilder.Entity<Driver>(entity =>
+            {
+                entity.HasOne(d => d.Event)
+                      .WithMany()
+                      .HasForeignKey(d => d.EventId)
                       .OnDelete(DeleteBehavior.Cascade);
             });
 

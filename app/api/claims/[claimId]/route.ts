@@ -7,13 +7,13 @@ const API_BASE_URL =
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } },
+  { params }: { params: { claimId: string } },
 ) {
   try {
-    const { id } = params
-    console.log(`Fetching claim ${id} from backend`)
+    const { claimId } = params
+    console.log(`Fetching claim ${claimId} from backend`)
 
-    const response = await fetch(`${API_BASE_URL}/claims/${id}`, {
+    const response = await fetch(`${API_BASE_URL}/claims/${claimId}`, {
       headers: {
         "Content-Type": "application/json",
       },
@@ -42,14 +42,14 @@ export async function GET(
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } },
+  { params }: { params: { claimId: string } },
 ) {
   try {
-    const { id } = params
+    const { claimId } = params
     const body = await request.json()
-    console.log(`Updating claim ${id}:`, body)
+    console.log(`Updating claim ${claimId}:`, body)
 
-    const response = await fetch(`${API_BASE_URL}/claims/${id}`, {
+    const response = await fetch(`${API_BASE_URL}/claims/${claimId}`, {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
@@ -79,13 +79,13 @@ export async function PUT(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } },
+  { params }: { params: { claimId: string } },
 ) {
   try {
-    const { id } = params
-    console.log(`Deleting claim ${id}`)
+    const { claimId } = params
+    console.log(`Deleting claim ${claimId}`)
 
-    const response = await fetch(`${API_BASE_URL}/claims/${id}`, {
+    const response = await fetch(`${API_BASE_URL}/claims/${claimId}`, {
       method: "DELETE",
       headers: {
         "Content-Type": "application/json",

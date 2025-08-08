@@ -26,7 +26,7 @@ export function ClaimsList({ onEditClaim, onNewClaim }: ClaimsListProps) {
   const [showFilters, setShowFilters] = useState(false)
   const [isRefreshing, setIsRefreshing] = useState(false)
 
-  const { claims, loading, error, deleteClaim, fetchClaims } = useClaims()
+  const { claims, loading, error, deleteClaim, fetchClaims, clearError } = useClaims()
   const { toast } = useToast()
 
   // Refresh data on component mount
@@ -201,7 +201,12 @@ export function ClaimsList({ onEditClaim, onNewClaim }: ClaimsListProps) {
               <br />
               <span className="text-sm">Sprawdź połączenie z API lub konfigurację backendu.</span>
             </AlertDescription>
-            <Button variant="ghost" size="sm" className="absolute top-2 right-2 h-6 w-6 p-0">
+            <Button
+              variant="ghost"
+              size="sm"
+              className="absolute top-2 right-2 h-6 w-6 p-0"
+              onClick={clearError}
+            >
               <X className="h-3 w-3" />
             </Button>
           </Alert>

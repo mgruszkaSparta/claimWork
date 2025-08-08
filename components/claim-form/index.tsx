@@ -138,45 +138,40 @@ export function ClaimForm({ initialData, mode }: ClaimFormProps) {
     e.preventDefault()
 
     try {
-      let finalDamages = formData.damages || []
-
-
-      if (mode === 'create') {
-        const result = await createClaim(payload)
-        if (result && result.id) {
-          if (pendingFiles.length > 0) {
-            await Promise.all(
-              pendingFiles.map(async (file) => {
-                if (!file.file) return
-                const formDataFile = new FormData()
-                formDataFile.append('file', file.file)
-                formDataFile.append('eventId', result.id.toString())
-                formDataFile.append('documentType', file.category || 'Inne dokumenty')
-                formDataFile.append('uploadedBy', 'Current User')
-                await fetch('/api/documents/upload', {
-                  method: 'POST',
-                  body: formDataFile,
-                })
-              })
-            )
-          }
-          router.push(`/claims/${result.id}/view`)
-
-        }
-      } else {
-        finalDamages = finalDamages.map(d => ({ ...d, id: undefined }))
+      const payload: Claim = {
+        ...formData,
+        damages: formData.damages?.map((d) => ({ ...d, id: mode === 'create' ? undefined : d.id })) || [],
+        documents: uploadedFiles,
       }
 
-      setFormData(prev => ({ ...prev, damages: finalDamages }))
-      const payload = { ...formData, damages: finalDamages, documents: uploadedFiles }
+      let saved: Claim | null = null
 
-      if (formData.id) {
-        const result = await updateClaim(formData.id, payload)
-        if (result) {
-          router.push(`/claims/${formData.id}/view`)
+      if (mode === 'create') {
+        saved = await createClaim(payload)
+      } else if (formData.id) {
+        saved = await updateClaim(formData.id, payload)
+      }
 
-
+      if (saved && saved.id) {
+        if (pendingFiles.length > 0) {
+          await Promise.all(
+            pendingFiles.map(async (file) => {
+              if (!file.file) return
+              const formDataFile = new FormData()
+              formDataFile.append('file', file.file)
+              formDataFile.append('eventId', saved!.id.toString())
+              formDataFile.append('documentType', file.category || 'Inne dokumenty')
+              formDataFile.append('uploadedBy', 'Current User')
+              await fetch('/api/documents/upload', {
+                method: 'POST',
+                body: formDataFile,
+              })
+            })
+          )
         }
+
+        setFormData(saved)
+        router.push(`/claims/${saved.id}/view`)
       }
     } catch (err) {
       console.error('Error submitting form:', err)

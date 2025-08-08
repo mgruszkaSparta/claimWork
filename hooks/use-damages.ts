@@ -1,6 +1,7 @@
 "use client"
 
 import { useCallback } from "react"
+import { generateId } from "@/lib/constants"
 
 export interface Damage {
   id?: string
@@ -14,6 +15,15 @@ export interface Damage {
 }
 
 export function useDamages(eventId?: string) {
+  const initDamage = useCallback(
+    (damage: Pick<Damage, "description" | "detail">): Damage => ({
+      id: generateId(),
+      description: damage.description,
+      detail: damage.detail,
+    }),
+    [],
+  )
+
   const createDamage = useCallback(
     async (damage: Omit<Damage, "id" | "eventId">): Promise<Damage> => {
       if (!eventId) {
@@ -63,6 +73,6 @@ export function useDamages(eventId?: string) {
     }
   }, [])
 
-  return { createDamage, updateDamage, deleteDamage }
+  return { initDamage, createDamage, updateDamage, deleteDamage }
 }
 

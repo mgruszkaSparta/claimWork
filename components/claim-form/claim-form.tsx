@@ -11,6 +11,7 @@ import { Checkbox } from '@/components/ui/checkbox'
 import { ParticipantsSection } from './participants-section'
 import { DocumentsSection } from '../documents-section'
 import { useClaims } from '@/hooks/use-claims'
+import { useDamages } from '@/hooks/use-damages'
 import { useRouter } from 'next/navigation'
 import type { Claim, ParticipantInfo, UploadedFile, RequiredDocument } from '@/types'
 
@@ -23,7 +24,6 @@ export function ClaimForm({ initialData, mode }: ClaimFormProps) {
   const router = useRouter()
   const { createClaim, updateClaim, initializeClaim, loading, error } = useClaims()
   const initialized = useRef(false)
-  
   const [formData, setFormData] = useState<Claim>({
     spartaNumber: '',
     claimNumber: '',
@@ -82,6 +82,7 @@ export function ClaimForm({ initialData, mode }: ClaimFormProps) {
   ])
 
   const isDisabled = mode === 'view'
+  const { createDamage } = useDamages(formData.id)
 
   useEffect(() => {
     if (!initialized.current && mode === 'create' && !formData.id) {
@@ -136,7 +137,24 @@ export function ClaimForm({ initialData, mode }: ClaimFormProps) {
     e.preventDefault()
 
     try {
-      const payload = { ...formData, documents: uploadedFiles }
+      let finalDamages = formData.damages || []
+
+      if (formData.id) {
+        const unsavedDamages = finalDamages.filter(d => !d.eventId)
+        if (unsavedDamages.length > 0) {
+          const savedDamages: typeof finalDamages = []
+          for (const d of unsavedDamages) {
+            const saved = await createDamage({ description: d.description, detail: d.detail })
+            savedDamages.push(saved)
+          }
+          finalDamages = [...finalDamages.filter(d => d.eventId), ...savedDamages]
+        }
+      } else {
+        finalDamages = finalDamages.map(d => ({ ...d, id: undefined }))
+      }
+
+      setFormData(prev => ({ ...prev, damages: finalDamages }))
+      const payload = { ...formData, damages: finalDamages, documents: uploadedFiles }
 
       if (formData.id) {
         const result = await updateClaim(formData.id, payload)

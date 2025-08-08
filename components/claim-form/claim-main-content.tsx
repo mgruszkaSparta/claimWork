@@ -191,7 +191,9 @@ export const ClaimMainContent = ({
 }: ClaimMainContentProps) => {
   const { toast } = useToast()
 
-  const { initDamage, deleteDamage } = useDamages(claimFormData.id)
+  const { createDamage, deleteDamage, fetchDamages } = useDamages(claimFormData.id)
+
+
 
   // State for dropdown data
   const [riskTypes, setRiskTypes] = useState<RiskType[]>([])
@@ -219,6 +221,25 @@ export const ClaimMainContent = ({
     priority: "wszystkie",
     search: "",
   })
+
+  useEffect(() => {
+    if (!claimFormData.id) return
+
+    const loadDamages = async () => {
+      try {
+        const data = await fetchDamages(claimFormData.id)
+        handleFormChange("damages", data)
+      } catch (error) {
+        toast({
+          title: "Błąd",
+          description: "Nie udało się pobrać szkód.",
+          variant: "destructive",
+        })
+      }
+    }
+
+    loadDamages()
+  }, [claimFormData.id])
 
   useEffect(() => {
     if (!claimFormData.id) return

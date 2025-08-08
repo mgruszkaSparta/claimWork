@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { useToast } from "@/hooks/use-toast"
 import { File, Search, Filter, Eye, Download, Upload, X, Trash2, Grid, List, Wand, Plus, FileText, Paperclip, ZoomIn, ZoomOut, ChevronLeft, ChevronRight, RotateCw, Maximize2, Minimize2 } from 'lucide-react'
-import type { DocumentsSectionProps } from "@/types"
+import type { DocumentsSectionProps, UploadedFile } from "@/types"
 
 interface Document {
   id: string
@@ -35,6 +35,8 @@ export const DocumentsSection = ({
   requiredDocuments,
   setRequiredDocuments,
   eventId,
+  pendingFiles = [],
+  setPendingFiles,
   hideRequiredDocuments = false,
 }: DocumentsSectionProps & { hideRequiredDocuments?: boolean }) => {
   const { toast } = useToast()
@@ -58,7 +60,30 @@ export const DocumentsSection = ({
   const [currentPreviewIndex, setCurrentPreviewIndex] = useState(0)
   const [previewDocuments, setPreviewDocuments] = useState<Document[]>([])
 
-  const allDocuments = documents
+
+  const uploadedFileToDocument = (file: UploadedFile): Document => ({
+    id: file.id,
+    fileName: file.name,
+    originalFileName: file.name,
+    contentType: file.file?.type || "",
+    fileSize: file.size,
+    filePath: file.url,
+    description: file.description,
+    status: "pending",
+    uploadedBy: "Current User",
+    createdAt: file.uploadedAt,
+    updatedAt: file.uploadedAt,
+    canPreview: file.type === "image" || file.type === "pdf",
+    previewUrl: file.url,
+    downloadUrl: file.url,
+    documentType: file.category || "Inne dokumenty",
+  })
+
+  const allDocuments = React.useMemo(
+    () => [...documents, ...pendingFiles.map(uploadedFileToDocument)],
+    [documents, pendingFiles]
+  )
+
 
   // Load documents from API
   useEffect(() => {
@@ -114,13 +139,63 @@ export const DocumentsSection = ({
   }, [requiredDocuments, allDocuments])
 
   const handleFileUpload = async (files: FileList | null, category: string | null) => {
-    if (!files || !category || !eventId) {
+
+    if (!files || !category) {
+
       console.error("Missing required parameters:", { files: !!files, category })
       toast({
         title: "Błąd",
         description: "Brak wymaganych parametrów do przesłania pliku",
         variant: "destructive",
       })
+      return
+    }
+
+    // Handle temporary uploads when eventId is not provided
+    if (!eventId) {
+      const newFiles: UploadedFile[] = []
+      Array.from(files).forEach((file, index) => {
+        if (file.size > 50 * 1024 * 1024) {
+          toast({
+            title: "Plik za duży",
+            description: `Plik "${file.name}" jest za duży. Maksymalny rozmiar to 50MB.`,
+            variant: "destructive",
+          })
+          return
+        }
+        if (file.size === 0) {
+          toast({
+            title: "Pusty plik",
+            description: `Plik "${file.name}" jest pusty.`,
+            variant: "destructive",
+          })
+          return
+        }
+        newFiles.push({
+          id: `temp-${Date.now()}-${index}`,
+          name: file.name,
+          size: file.size,
+          type: file.type.includes("image")
+            ? "image"
+            : file.type.includes("pdf")
+            ? "pdf"
+            : file.type.includes("msword") || file.type.includes("wordprocessingml")
+            ? "doc"
+            : "other",
+          uploadedAt: new Date().toISOString(),
+          url: URL.createObjectURL(file),
+          category: category || "Inne dokumenty",
+          file: file,
+        })
+      })
+
+      if (newFiles.length > 0) {
+        setPendingFiles?.((prev) => [...prev, ...newFiles])
+        toast({
+          title: "Dodano pliki",
+          description: `Dodano ${newFiles.length} plik(ów) do kategorii "${category}".`,
+        })
+      }
       return
     }
 
@@ -300,6 +375,19 @@ export const DocumentsSection = ({
   }
 
   const handleFileDelete = async (documentId: string | number) => {
+
+    const isPending = pendingFiles.some((f) => f.id === documentId)
+    if (isPending) {
+      if (!window.confirm("Czy na pewno chcesz usunąć ten dokument?")) return
+      setPendingFiles?.((prev) => prev.filter((f) => f.id !== documentId))
+      toast({
+        title: "Plik usunięty",
+        description: "Dokument został pomyślnie usunięty.",
+      })
+      return
+    }
+
+
     if (!window.confirm("Czy na pewno chcesz usunąć ten dokument?")) {
       return
     }
@@ -330,6 +418,13 @@ export const DocumentsSection = ({
   }
 
   const handleDescriptionChange = async (documentId: string | number, description: string) => {
+
+    const pendingIndex = pendingFiles.findIndex((f) => f.id === documentId)
+    if (pendingIndex !== -1) {
+      setPendingFiles?.((prev) => prev.map((f) => (f.id === documentId ? { ...f, description } : f)))
+      return
+    }
+
     try {
       const response = await fetch(`/api/documents/${documentId}`, {
         method: "PUT",
@@ -383,9 +478,9 @@ export const DocumentsSection = ({
   }
 
   const handlePreview = (document: Document, documentsArray?: Document[]) => {
-    const docsToPreview =
-      documentsArray ||
-      documents.filter((d) => d.documentType === document.documentType)
+
+    const docsToPreview = documentsArray || allDocuments
+
     const index = docsToPreview.findIndex((d) => d.id === document.id)
 
     setPreviewDocuments(docsToPreview)

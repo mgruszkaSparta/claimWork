@@ -73,6 +73,7 @@ export function ClaimForm({ initialData, mode }: ClaimFormProps) {
   })
 
   const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([])
+  const [pendingFiles, setPendingFiles] = useState<UploadedFile[]>([])
   const [requiredDocuments, setRequiredDocuments] = useState<RequiredDocument[]>([
     { id: '1', name: 'Zgłoszenie szkody', required: true, uploaded: false, description: 'Formularz zgłoszenia szkody' },
     { id: '2', name: 'Dowód rejestracyjny', required: true, uploaded: false, description: 'Kopia dowodu rejestracyjnego pojazdu' },
@@ -139,15 +140,28 @@ export function ClaimForm({ initialData, mode }: ClaimFormProps) {
     try {
       let finalDamages = formData.damages || []
 
-      if (formData.id) {
-        const unsavedDamages = finalDamages.filter(d => !d.eventId)
-        if (unsavedDamages.length > 0) {
-          const savedDamages: typeof finalDamages = []
-          for (const d of unsavedDamages) {
-            const saved = await createDamage({ description: d.description, detail: d.detail })
-            savedDamages.push(saved)
+
+      if (mode === 'create') {
+        const result = await createClaim(payload)
+        if (result && result.id) {
+          if (pendingFiles.length > 0) {
+            await Promise.all(
+              pendingFiles.map(async (file) => {
+                if (!file.file) return
+                const formDataFile = new FormData()
+                formDataFile.append('file', file.file)
+                formDataFile.append('eventId', result.id.toString())
+                formDataFile.append('documentType', file.category || 'Inne dokumenty')
+                formDataFile.append('uploadedBy', 'Current User')
+                await fetch('/api/documents/upload', {
+                  method: 'POST',
+                  body: formDataFile,
+                })
+              })
+            )
           }
-          finalDamages = [...finalDamages.filter(d => d.eventId), ...savedDamages]
+          router.push(`/claims/${result.id}/view`)
+
         }
       } else {
         finalDamages = finalDamages.map(d => ({ ...d, id: undefined }))
@@ -160,11 +174,8 @@ export function ClaimForm({ initialData, mode }: ClaimFormProps) {
         const result = await updateClaim(formData.id, payload)
         if (result) {
           router.push(`/claims/${formData.id}/view`)
-        }
-      } else {
-        const result = await createClaim(payload)
-        if (result && result.id) {
-          router.push(`/claims/${result.id}/view`)
+
+
         }
       }
     } catch (err) {
@@ -347,15 +358,17 @@ export function ClaimForm({ initialData, mode }: ClaimFormProps) {
             <CardTitle>Dokumenty</CardTitle>
           </CardHeader>
           <CardContent>
-            {formData.id && (
-              <DocumentsSection
-                uploadedFiles={uploadedFiles}
-                setUploadedFiles={setUploadedFiles}
-                requiredDocuments={requiredDocuments}
-                setRequiredDocuments={setRequiredDocuments}
-                eventId={formData.id}
-              />
-            )}
+
+            <DocumentsSection
+              uploadedFiles={uploadedFiles}
+              setUploadedFiles={setUploadedFiles}
+              pendingFiles={pendingFiles}
+              setPendingFiles={setPendingFiles}
+              requiredDocuments={requiredDocuments}
+              setRequiredDocuments={setRequiredDocuments}
+              eventId={formData.id}
+            />
+
           </CardContent>
         </Card>
 

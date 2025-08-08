@@ -3,8 +3,6 @@
 import { useCallback } from "react"
 import { API_ENDPOINTS } from "@/lib/constants"
 
-
-
 export interface Damage {
   id?: string
   eventId?: string
@@ -18,7 +16,6 @@ export interface Damage {
 }
 
 export function useDamages(eventId?: string) {
-
   const initDamages = useCallback(async (): Promise<Damage[]> => {
     const response = await fetch(API_ENDPOINTS.DAMAGES_INIT)
 
@@ -30,26 +27,24 @@ export function useDamages(eventId?: string) {
     return response.json()
   }, [])
 
-
   const createDamage = useCallback(
     async (damage: Omit<Damage, "id" | "eventId">): Promise<Damage> => {
       if (!eventId) {
         throw new Error("Brak identyfikatora zdarzenia")
-
       }
 
-
       const response = await fetch(API_ENDPOINTS.DAMAGES, {
-
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...damage, eventId: damage.eventId || eventId }),
+        body: JSON.stringify({ ...damage, eventId: (damage as any).eventId || eventId }),
       })
 
       if (!response.ok) {
         const errorText = await response.text()
         throw new Error(errorText || "Nie udało się zapisać szkody")
       }
+
+      return response.json()
     },
     [eventId],
   )
@@ -70,17 +65,17 @@ export function useDamages(eventId?: string) {
     [eventId],
   )
 
-
   const deleteDamage = useCallback(async (id: string): Promise<void> => {
     const response = await fetch(`${API_ENDPOINTS.DAMAGES}/${id}`, {
       method: "DELETE",
     })
 
-
-  return { initDamage, createDamage, updateDamage, deleteDamage }
-
+    if (!response.ok) {
+      const errorText = await response.text()
+      throw new Error(errorText || "Nie udało się usunąć szkody")
+    }
+  }, [])
 
   return { createDamage, updateDamage, deleteDamage, initDamages }
-
 }
 

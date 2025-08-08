@@ -1,9 +1,9 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useEffect } from "react"
+import { useRouter } from "next/navigation"
 import { Header } from "@/components/header"
 import { Sidebar } from "@/components/sidebar"
-import { ClaimsList } from "@/components/claims-list"
 import { AuthWrapper } from '@/components/auth-wrapper'
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -22,7 +22,7 @@ interface PageProps {
 }
 
 function HomePage({ user, onLogout }: PageProps) {
-  const [activeTab, setActiveTab] = useState("dashboard")
+  const router = useRouter()
 
   useEffect(() => {
     const isAuthenticated = localStorage.getItem('isAuthenticated')
@@ -117,7 +117,7 @@ function HomePage({ user, onLogout }: PageProps) {
     <div className="min-h-screen bg-gray-50">
       <Header onMenuClick={() => {}} user={user} onLogout={onLogout} />
       <div className="flex">
-        <Sidebar activeTab={activeTab} onTabChange={setActiveTab} />
+        <Sidebar />
         <main className="flex-1 p-6">
           <div className="max-w-7xl mx-auto">
             <div className="mb-8">
@@ -135,15 +135,17 @@ function HomePage({ user, onLogout }: PageProps) {
                 </div>
               )}
             </div>
-            {activeTab === "dashboard" ? (
-              <div className="space-y-6">
+            <div className="space-y-6">
                 {/* Page Header */}
                 <div className="flex items-center justify-between">
                   <div>
                     <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
                     <p className="text-gray-600">Przegląd systemu zarządzania szkodami</p>
                   </div>
-                  <Button className="bg-blue-600 hover:bg-blue-700" onClick={() => setActiveTab("claims")}>
+                  <Button
+                    className="bg-blue-600 hover:bg-blue-700"
+                    onClick={() => router.push("/claims/new")}
+                  >
                     <Plus className="h-4 w-4 mr-2" />
                     Nowa szkoda
                   </Button>
@@ -290,7 +292,7 @@ function HomePage({ user, onLogout }: PageProps) {
                             className={`h-20 flex-col space-y-2 ${action.color} text-white border-0`}
                             onClick={() => {
                               if (action.title === "Nowa szkoda") {
-                                setActiveTab("claims")
+                                router.push("/claims/new")
                               }
                             }}
                           >
@@ -326,9 +328,7 @@ function HomePage({ user, onLogout }: PageProps) {
                   </CardContent>
                 </Card>
               </div>
-            ) : (
-              <ClaimsList />
-            )}
+            </div>
           </div>
         </main>
       </div>

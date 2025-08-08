@@ -408,51 +408,40 @@ class ApiService {
   }
 
 
-  async getClaims(
-    params: { page?: number; pageSize?: number; [key: string]: any } = {},
-  ): Promise<{ items: ClaimListItemDto[]; totalCount: number }> {
-    const query = new URLSearchParams(
-      Object.entries(params).reduce((acc, [key, value]) => {
-        if (value !== undefined && value !== null) {
-          acc[key] = String(value)
-        }
-        return acc
-      }, {} as Record<string, string>),
-    ).toString()
 
-    const result = await this.request<
-      { items: ClaimListItemDto[]; totalCount: number } | undefined
-    >(`/events${query ? `?${query}` : ""}`)
+  async getClaims(): Promise<ClaimListItemDto[]> {
+    const claims = await this.request<ClaimListItemDto[] | undefined>("/claims")
+    return claims ?? []
 
-    return result ?? { items: [], totalCount: 0 }
+
   }
 
   async getClaim(id: string): Promise<ClaimDto> {
-    return this.request<ClaimDto>(`/events/${id}`)
+    return this.request<ClaimDto>(`/claims/${id}`)
   }
 
   async createClaim(claim: ClaimUpsertDto): Promise<ClaimDto> {
-    return this.request<ClaimDto>("/events", {
+    return this.request<ClaimDto>("/claims", {
       method: "POST",
       body: JSON.stringify(claim),
     })
   }
 
   async updateClaim(id: string, claim: ClaimUpsertDto): Promise<ClaimDto | undefined> {
-    return this.request<ClaimDto | undefined>(`/events/${id}`, {
+    return this.request<ClaimDto | undefined>(`/claims/${id}`, {
       method: "PUT",
       body: JSON.stringify(claim),
     })
   }
 
   async deleteClaim(id: string): Promise<void> {
-    return this.request<void>(`/events/${id}`, {
+    return this.request<void>(`/claims/${id}`, {
       method: "DELETE",
     })
   }
 
   async initializeClaim(): Promise<{ id: string }> {
-    return this.request<{ id: string }>("/events/initialize", {
+    return this.request<{ id: string }>("/claims/initialize", {
       method: "POST",
     })
   }

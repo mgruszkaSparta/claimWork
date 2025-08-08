@@ -7,7 +7,7 @@ import { ClaimsList } from "@/components/claims-list"
 import { AuthWrapper } from '@/components/auth-wrapper'
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { FileText, Clock, Calendar, DollarSign, TrendingUp, Users, Plus, Search, Filter, CheckSquare } from 'lucide-react'
+import { FileText, Clock, Calendar, DollarSign, TrendingUp, Users, Search, Filter, CheckSquare } from 'lucide-react'
 
 interface User {
   id: string
@@ -101,7 +101,6 @@ function HomePage({ user, onLogout }: PageProps) {
   ]
 
   const quickActions = [
-    { title: "Nowa szkoda", icon: Plus, color: "bg-blue-600 hover:bg-blue-700" },
     { title: "Wyszukaj szkodę", icon: Search, color: "bg-gray-600 hover:bg-gray-700" },
     { title: "Raporty", icon: TrendingUp, color: "bg-green-600 hover:bg-green-700" },
     { title: "Filtry", icon: Filter, color: "bg-purple-600 hover:bg-purple-700" },
@@ -138,15 +137,9 @@ function HomePage({ user, onLogout }: PageProps) {
             {activeTab === "dashboard" ? (
               <div className="space-y-6">
                 {/* Page Header */}
-                <div className="flex items-center justify-between">
-                  <div>
-                    <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
-                    <p className="text-gray-600">Przegląd systemu zarządzania szkodami</p>
-                  </div>
-                  <Button className="bg-blue-600 hover:bg-blue-700" onClick={() => setActiveTab("claims")}>
-                    <Plus className="h-4 w-4 mr-2" />
-                    Nowa szkoda
-                  </Button>
+                <div>
+                  <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
+                  <p className="text-gray-600">Przegląd systemu zarządzania szkodami</p>
                 </div>
 
                 {/* Stats Cards */}
@@ -288,11 +281,6 @@ function HomePage({ user, onLogout }: PageProps) {
                             key={index}
                             variant="outline"
                             className={`h-20 flex-col space-y-2 ${action.color} text-white border-0`}
-                            onClick={() => {
-                              if (action.title === "Nowa szkoda") {
-                                setActiveTab("claims")
-                              }
-                            }}
                           >
                             <Icon className="h-6 w-6" />
                             <span className="text-sm">{action.title}</span>

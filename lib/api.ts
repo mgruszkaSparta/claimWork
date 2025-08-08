@@ -45,6 +45,7 @@ export interface EventDto extends EventListItemDto {
   damageType?: string
   participants?: ParticipantDto[]
   damages?: DamageDto[]
+  notes?: NoteDto[]
   decisions?: DecisionDto[]
   appeals?: AppealDto[]
   clientClaims?: ClientClaimDto[]
@@ -99,6 +100,21 @@ export interface EventUpsertDto {
 export interface ClaimListItemDto extends EventListItemDto {}
 export interface ClaimDto extends EventDto {}
 export interface ClaimUpsertDto extends EventUpsertDto {}
+
+export interface NoteDto {
+  id: string
+  eventId: string
+  category?: string
+  title?: string
+  content: string
+  createdBy?: string
+  updatedBy?: string
+  createdAt: string
+  updatedAt: string
+  isPrivate: boolean
+  priority?: string
+  tags?: string[]
+}
 
 export interface NoteUpsertDto {
   eventId?: string

@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useCallback } from "react"
-import { apiService, type EventDto } from "@/lib/api"
+import { apiService, type EventDto, type NoteDto } from "@/lib/api"
 
 export interface Event {
   id: string
@@ -23,6 +23,7 @@ export interface Event {
   injuryDescription?: string
   createdAt: string
   updatedAt: string
+  notes?: NoteDto[]
 }
 
 // Transform API event to frontend event format
@@ -46,6 +47,7 @@ const transformApiEvent = (apiEvent: EventDto): Event => ({
   injuryDescription: "",
   createdAt: new Date().toISOString(),
   updatedAt: new Date().toISOString(),
+  notes: apiEvent.notes || [],
 })
 
 // Transform frontend event to API format
@@ -56,6 +58,7 @@ const transformToApiEvent = (event: Partial<Event>): Partial<EventDto> => ({
   location: event.location || "",
   description: event.eventDescription,
   servicesCalled: event.policeInvolved ? ["policja"] : [],
+  notes: event.notes,
 })
 
 export function useEvents() {

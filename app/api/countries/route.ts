@@ -1,10 +1,10 @@
 import { NextResponse } from "next/server"
 
-const API_BASE_URL = process.env.API_BASE_URL || "http://localhost:5200"
+const API_BASE_URL = process.env.API_BASE_URL || "http://localhost:5200/api"
 
 export async function GET() {
   try {
-    const response = await fetch(`${API_BASE_URL}/api/dictionaries/countries`, {
+    const response = await fetch(`${API_BASE_URL}/dictionaries/countries`, {
       headers: {
         "Content-Type": "application/json",
       },

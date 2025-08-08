@@ -1,4 +1,5 @@
 import { type NextRequest, NextResponse } from "next/server"
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5200/api"
 
 // Mock data - in production this would come from your database
 const mockAppeals = [
@@ -36,7 +37,7 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
 
     // In production, fetch from your backend
     if (process.env.NEXT_PUBLIC_API_URL) {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/appeals/${id}`, {
+      const response = await fetch(`${API_BASE_URL}/appeals/${id}`, {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
@@ -86,7 +87,7 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
         backendFormData.append("file", file)
       }
 
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/appeals/${id}`, {
+      const response = await fetch(`${API_BASE_URL}/appeals/${id}`, {
         method: "PUT",
         body: backendFormData,
       })
@@ -132,7 +133,7 @@ export async function DELETE(request: NextRequest, { params }: { params: { id: s
 
     // In production, send to your backend
     if (process.env.NEXT_PUBLIC_API_URL) {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/appeals/${id}`, {
+      const response = await fetch(`${API_BASE_URL}/appeals/${id}`, {
         method: "DELETE",
         headers: {
           "Content-Type": "application/json",

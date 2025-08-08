@@ -1,11 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server'
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5200/api"
 
 export async function GET(request: NextRequest) {
   const urlObj = new URL(request.url)
   const dependsOn = urlObj.searchParams.get('dependsOn') // This is the RiskId
 
   try {
-    const url = `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5200'}/api/damage-types`
+    const url = `${API_BASE_URL}/damage-types`
 
     const response = await fetch(url)
 

@@ -1,6 +1,6 @@
 import { type NextRequest, NextResponse } from "next/server"
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5200"
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5200/api"
 
 export async function GET(request: NextRequest) {
   try {
@@ -11,7 +11,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: "Event ID is required" }, { status: 400 })
     }
 
-    const response = await fetch(`${API_BASE_URL}/api/client-claims/event/${eventId}`, {
+    const response = await fetch(`${API_BASE_URL}/client-claims/event/${eventId}`, {
       headers: {
         "Content-Type": "application/json",
       },
@@ -63,7 +63,7 @@ export async function POST(request: NextRequest) {
     if (documentDescription) backendFormData.append("DocumentDescription", documentDescription)
     if (document) backendFormData.append("Document", document)
 
-    const response = await fetch(`${API_BASE_URL}/api/client-claims`, {
+    const response = await fetch(`${API_BASE_URL}/client-claims`, {
       method: "POST",
       body: backendFormData,
     })

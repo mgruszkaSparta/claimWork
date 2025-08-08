@@ -1,10 +1,10 @@
 import { type NextRequest, NextResponse } from "next/server"
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5200"
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5200/api"
 
 export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
   try {
-    const response = await fetch(`${API_BASE_URL}/api/decisions/${params.id}`, {
+    const response = await fetch(`${API_BASE_URL}/decisions/${params.id}`, {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
@@ -31,7 +31,7 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
   try {
     const formData = await request.formData()
 
-    const response = await fetch(`${API_BASE_URL}/api/decisions/${params.id}`, {
+    const response = await fetch(`${API_BASE_URL}/decisions/${params.id}`, {
       method: "PUT",
       body: formData,
     })
@@ -54,7 +54,7 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
 
 export async function DELETE(request: NextRequest, { params }: { params: { id: string } }) {
   try {
-    const response = await fetch(`${API_BASE_URL}/api/decisions/${params.id}`, {
+    const response = await fetch(`${API_BASE_URL}/decisions/${params.id}`, {
       method: "DELETE",
     })
 

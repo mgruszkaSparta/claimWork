@@ -3,7 +3,7 @@ const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5200/a
 
 // Types for API responses
 export interface EventListItemDto {
-  id: number
+  id: string
   spartaNumber?: string
   claimNumber?: string
   vehicleNumber?: string

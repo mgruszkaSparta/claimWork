@@ -25,7 +25,7 @@ export const transformApiClaimToFrontend = (apiClaim: EventDto): Claim => {
 
   return {
     ...apiClaim,
-    id: apiClaim.id?.toString(),
+    id: apiClaim.id,
     insuranceCompanyId: apiClaim.insuranceCompanyId?.toString(),
     leasingCompanyId: apiClaim.leasingCompanyId?.toString(),
     handlerId: apiClaim.handlerId?.toString(),
@@ -187,7 +187,7 @@ export function useClaims() {
 
       const frontendClaims = apiClaims.map((claim) => ({
         ...claim,
-        id: claim.id.toString(),
+        id: claim.id,
         totalClaim: claim.totalClaim ?? 0,
         payout: claim.payout ?? 0,
         currency: claim.currency ?? "PLN",

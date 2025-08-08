@@ -106,7 +106,11 @@ export const DocumentsSection = ({
       if (response.ok) {
         const data = await response.json()
         console.log("Loaded documents:", data)
-        setDocuments(data)
+        const mappedDocs: Document[] = data.map((d: any) => ({
+          ...d,
+          documentType: d.category,
+        }))
+        setDocuments(mappedDocs)
       } else {
         let errorMessage = "Nie udało się załadować dokumentów"
         try {

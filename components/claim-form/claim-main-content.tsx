@@ -190,7 +190,7 @@ export const ClaimMainContent = ({
   setRequiredDocuments,
 }: ClaimMainContentProps) => {
   const { toast } = useToast()
-  const { createDamage, deleteDamage } = useDamages(claimFormData.id)
+  const { initDamage, saveDamage, deleteDamage } = useDamages(claimFormData.id)
 
   // State for dropdown data
   const [riskTypes, setRiskTypes] = useState<RiskType[]>([])
@@ -409,13 +409,16 @@ export const ClaimMainContent = ({
     try {
       if (existing) {
         if (existing.id) {
-          await deleteDamage(existing.id)
+          await deleteDamage(existing.id, existing.isSaved !== false)
         }
         const newDamages = currentDamages.filter((d) => d.description !== partName)
         handleFormChange("damages", newDamages)
       } else {
-        const saved = await createDamage({ description: partName, detail: "Do opisu" })
-        const newDamages = [...currentDamages, saved]
+        const id = await initDamage()
+        const damage = { id, description: partName, detail: "Do opisu", isSaved: false }
+        await saveDamage(damage)
+        damage.isSaved = true
+        const newDamages = [...currentDamages, damage]
         handleFormChange("damages", newDamages)
       }
     } catch (error: any) {
@@ -433,7 +436,7 @@ export const ClaimMainContent = ({
 
     try {
       if (toRemove?.id) {
-        await deleteDamage(toRemove.id)
+        await deleteDamage(toRemove.id, toRemove.isSaved !== false)
       }
       const newDamages = currentDamages.filter((d) => d.description !== description)
       handleFormChange("damages", newDamages)

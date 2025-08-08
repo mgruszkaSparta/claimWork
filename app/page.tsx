@@ -118,8 +118,8 @@ function HomePage({ user, onLogout }: PageProps) {
       <Header onMenuClick={() => {}} user={user} onLogout={onLogout} />
       <div className="flex">
         <Sidebar activeTab={activeTab} onTabChange={setActiveTab} />
-        <main className="flex-1 p-6">
-          <div className="max-w-7xl mx-auto">
+        <main className="flex-1 p-0">
+          <div className="w-full">
             <div className="mb-8">
               <h1 className="text-3xl font-bold text-gray-900">
                 System zarządzania szkodami

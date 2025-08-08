@@ -1056,7 +1056,7 @@ namespace AutomotiveClaimsApi.Migrations
                     b.HasOne("AutomotiveClaimsApi.Models.Participant", "Participant")
                         .WithMany("Drivers")
                         .HasForeignKey("ParticipantId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("Event");

@@ -191,9 +191,16 @@ export function useClaims() {
       setLoading(true)
       setError(null)
 
-      console.log("Fetching claims from API...")
+      const isDev = process.env.NODE_ENV !== "production"
+      if (isDev) {
+        console.log("Fetching claims from API...")
+      }
+
       const apiClaims: EventListItemDto[] = await apiService.getClaims()
-      console.log("API response:", apiClaims)
+
+      if (isDev) {
+        console.log("API response:", apiClaims)
+      }
 
       const frontendClaims = apiClaims.map((claim) => ({
         ...claim,
@@ -208,7 +215,9 @@ export function useClaims() {
       })) as Claim[]
 
       setClaims(frontendClaims)
-      console.log("Claims set in state:", frontendClaims)
+      if (isDev) {
+        console.log("Claims set in state:", frontendClaims)
+      }
     } catch (err) {
       console.error("Error fetching claims:", err)
       const message = err instanceof Error ? err.message : "An unknown error occurred"

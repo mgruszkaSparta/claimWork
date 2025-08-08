@@ -191,48 +191,57 @@ export function useClaims() {
   const [claims, setClaims] = useState<Claim[]>([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [totalCount, setTotalCount] = useState(0)
 
-  const fetchClaims = useCallback(async () => {
-    try {
-      setLoading(true)
-      setError(null)
+  const fetchClaims = useCallback(
+    async ({ page = 1, pageSize = 50 } = {}): Promise<void> => {
+      try {
+        setLoading(true)
+        setError(null)
 
-      const isDev = process.env.NODE_ENV !== "production"
-      if (isDev) {
-        console.log("Fetching claims from API...")
+        const isDev = process.env.NODE_ENV !== "production"
+        if (isDev) {
+          console.log("Fetching claims from API...", { page, pageSize })
+        }
+
+        const { items: apiClaims, totalCount } = await apiService.getClaims(
+          page,
+          pageSize,
+        )
+
+        if (isDev) {
+          console.log("API response:", apiClaims)
+        }
+
+        const frontendClaims = apiClaims.map((claim) => ({
+          ...claim,
+          id: claim.id,
+          totalClaim: claim.totalClaim ?? 0,
+          payout: claim.payout ?? 0,
+          currency: claim.currency ?? "PLN",
+          clientId: claim.clientId?.toString(),
+          insuranceCompanyId: claim.insuranceCompanyId?.toString(),
+          leasingCompanyId: claim.leasingCompanyId?.toString(),
+          handlerId: claim.handlerId?.toString(),
+        })) as Claim[]
+
+        setClaims(frontendClaims)
+        setTotalCount(totalCount)
+        if (isDev) {
+          console.log("Claims set in state:", frontendClaims)
+        }
+      } catch (err) {
+        console.error("Error fetching claims:", err)
+        const message = err instanceof Error ? err.message : "An unknown error occurred"
+        setError(`Failed to fetch claims: ${message}`)
+        setClaims([])
+        setTotalCount(0)
+      } finally {
+        setLoading(false)
       }
-
-      const apiClaims: EventListItemDto[] = await apiService.getClaims()
-
-      if (isDev) {
-        console.log("API response:", apiClaims)
-      }
-
-      const frontendClaims = apiClaims.map((claim) => ({
-        ...claim,
-        id: claim.id,
-        totalClaim: claim.totalClaim ?? 0,
-        payout: claim.payout ?? 0,
-        currency: claim.currency ?? "PLN",
-        clientId: claim.clientId?.toString(),
-        insuranceCompanyId: claim.insuranceCompanyId?.toString(),
-        leasingCompanyId: claim.leasingCompanyId?.toString(),
-        handlerId: claim.handlerId?.toString(),
-      })) as Claim[]
-
-      setClaims(frontendClaims)
-      if (isDev) {
-        console.log("Claims set in state:", frontendClaims)
-      }
-    } catch (err) {
-      console.error("Error fetching claims:", err)
-      const message = err instanceof Error ? err.message : "An unknown error occurred"
-      setError(`Failed to fetch claims: ${message}`)
-      setClaims([])
-    } finally {
-      setLoading(false)
-    }
-  }, [])
+    },
+    [],
+  )
 
   const getClaim = async (id: string): Promise<Claim | null> => {
     try {
@@ -265,6 +274,7 @@ export function useClaims() {
       const newApiClaim = await apiService.createClaim(payload)
       const newClaim = transformApiClaimToFrontend(newApiClaim)
       setClaims((prev) => [newClaim, ...prev])
+      setTotalCount((prev) => prev + 1)
       return newClaim
     } catch (err) {
       const message = err instanceof Error ? err.message : "An unknown error occurred"
@@ -298,6 +308,7 @@ export function useClaims() {
       setError(null)
       await apiService.deleteClaim(id)
       setClaims((prev) => prev.filter((c) => c.id !== id))
+      setTotalCount((prev) => Math.max(0, prev - 1))
       return true
     } catch (err) {
       const message = err instanceof Error ? err.message : "An unknown error occurred"
@@ -314,6 +325,7 @@ export function useClaims() {
     claims,
     loading,
     error,
+    totalCount,
     fetchClaims,
     getClaim,
     initializeClaim,

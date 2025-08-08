@@ -38,7 +38,12 @@ export const transformApiClaimToFrontend = (apiClaim: EventDto): Claim => {
       ? apiClaim.servicesCalled
       : (apiClaim.servicesCalled?.split(",").filter(Boolean) ?? []),
 
-    damages: apiClaim.damages || [],
+    damages: apiClaim.damages?.map((d: any) => ({
+      id: d.id?.toString(),
+      eventId: d.eventId?.toString(),
+      description: d.description,
+      detail: d.detail,
+    })) || [],
     decisions: apiClaim.decisions || [],
     appeals: apiClaim.appeals || [],
     clientClaims: apiClaim.clientClaims || [],
@@ -146,7 +151,12 @@ export const transformFrontendClaimToApiPayload = (
 
     documents: documents?.map((d) => ({ id: d.id, filePath: d.url })),
 
-    damages: damages?.map((d) => ({ description: d.description, detail: d.detail } as any)),
+    damages: damages?.map((d) => ({
+      id: d.id,
+      eventId: d.eventId,
+      description: d.description,
+      detail: d.detail,
+    })),
     decisions: decisions?.map((d) => ({
       ...d,
       decisionDate: d.decisionDate ? new Date(d.decisionDate).toISOString() : undefined,

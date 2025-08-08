@@ -231,8 +231,8 @@ export interface DriverUpsertDto {
 }
 
 export interface DamageDto {
-  id?: number
-  eventId?: number
+  id?: string
+  eventId?: string
   damageTypeId?: number
   description?: string
   estimatedCost?: number
@@ -241,6 +241,7 @@ export interface DamageDto {
 }
 
 export interface DamageUpsertDto {
+  id?: string
   eventId?: string
   description?: string
   detail?: string

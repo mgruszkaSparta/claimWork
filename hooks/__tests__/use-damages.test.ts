@@ -4,6 +4,9 @@ import { strict as assert } from 'node:assert'
 // @ts-ignore
 import { test } from 'node:test'
 import { useDamages } from '../use-damages'
+import React from 'react'
+import { renderToString } from 'react-dom/server'
+import { API_ENDPOINTS } from '@/lib/constants'
 
 test('createDamage throws when eventId is missing', async () => {
   const { createDamage } = useDamages()
@@ -69,14 +72,6 @@ test('initDamages returns data on success', async () => {
   }
 })
 
-=======
-import { strict as assert } from 'node:assert'
-import { test } from 'node:test'
-import React from 'react'
-import { renderToString } from 'react-dom/server'
-import { useDamages } from '../use-damages'
-import { API_ENDPOINTS } from '@/lib/constants'
-
 test('initDamages fetches initial damages', async () => {
   const originalFetch = global.fetch
   const mockDamages = [{ description: 'Damage 1' }]
@@ -122,5 +117,42 @@ test('deleteDamage issues DELETE request', async () => {
   assert.equal(calledWith.url, `${API_ENDPOINTS.DAMAGES}/${id}`)
   assert.equal(calledWith.options?.method, 'DELETE')
   global.fetch = originalFetch
+})
+
+test('fetchDamages retrieves damages for event', async () => {
+  const originalFetch = global.fetch
+  const eventId = '123'
+  const damages = [{ id: '1', eventId, description: 'desc' }]
+
+  global.fetch = async (url: any) => {
+    assert.equal(url, `${API_ENDPOINTS.DAMAGES}/event/${eventId}`)
+    return { ok: true, json: async () => damages } as any
+  }
+
+  let hook: ReturnType<typeof useDamages>
+  function Wrapper() {
+    hook = useDamages()
+    return null
+  }
+  renderToString(React.createElement(Wrapper))
+
+  const result = await hook!.fetchDamages(eventId)
+  assert.deepEqual(result, damages)
+  global.fetch = originalFetch
+})
+
+test('fetchDamages throws on failed response', async () => {
+  const originalFetch = global.fetch
+  global.fetch = async () => ({ ok: false, text: async () => 'bad' }) as any
+
+  try {
+    const { fetchDamages } = useDamages()
+    await assert.rejects(
+      () => fetchDamages('e1'),
+      /Nie udało się pobrać szkód|bad/,
+    )
+  } finally {
+    global.fetch = originalFetch
+  }
 })
 

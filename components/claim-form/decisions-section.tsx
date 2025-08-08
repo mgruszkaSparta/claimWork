@@ -82,7 +82,7 @@ export function DecisionsSection({ claimId }: DecisionsSectionProps) {
 
     setIsLoading(true)
     try {
-      const response = await fetch(`/api/decisions?claimId=${claimId}`)
+      const response = await fetch(`/api/claims/${claimId}/decisions`)
       if (!response.ok) {
         let errorMessage = `${response.status} ${response.statusText}`
         try {
@@ -267,7 +267,10 @@ export function DecisionsSection({ claimId }: DecisionsSectionProps) {
         submitFormData.append(`documents`, file, file.name)
       })
 
-      const url = isEditing && editingDecisionId ? `/api/decisions/${editingDecisionId}` : "/api/decisions"
+      const url =
+        isEditing && editingDecisionId
+          ? `/api/claims/${claimId}/decisions/${editingDecisionId}`
+          : `/api/claims/${claimId}/decisions`
 
       const method = isEditing ? "PUT" : "POST"
 
@@ -325,7 +328,7 @@ export function DecisionsSection({ claimId }: DecisionsSectionProps) {
   const deleteDecision = async (id: string) => {
     setIsLoading(true)
     try {
-      const response = await fetch(`/api/decisions/${id}`, {
+      const response = await fetch(`/api/claims/${claimId}/decisions/${id}`, {
         method: "DELETE",
       })
 

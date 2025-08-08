@@ -122,6 +122,7 @@ export interface DamageItem {
   eventId?: string
   description: string
   detail: string
+  isSaved?: boolean
 }
 
 export interface Decision {

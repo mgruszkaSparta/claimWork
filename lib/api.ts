@@ -412,9 +412,23 @@ class ApiService {
     return text as unknown as T
   }
 
-  async getClaims(): Promise<EventListItemDto[]> {
-    const claims = await this.request<EventListItemDto[] | undefined>("/events")
-    return claims ?? []
+  async getClaims(
+    page = 1,
+    pageSize = 50,
+  ): Promise<{ items: EventListItemDto[]; totalCount: number }> {
+    const params = new URLSearchParams({
+      page: page.toString(),
+      pageSize: pageSize.toString(),
+    })
+
+    const result = await this.request<
+      { items: EventListItemDto[]; totalCount: number } | undefined
+    >(`/claims?${params.toString()}`)
+
+    return {
+      items: result?.items ?? (Array.isArray(result) ? result : []) ?? [],
+      totalCount: result?.totalCount ?? 0,
+    }
   }
 
   async getClaim(id: string): Promise<EventDto> {

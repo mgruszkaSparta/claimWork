@@ -193,6 +193,11 @@ export const ClaimMainContent = ({
 
   const { createDamage, deleteDamage, fetchDamages } = useDamages(claimFormData.id)
 
+  const isGuid = (value: string) =>
+    /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/.test(value)
+
+  const eventId = claimFormData.id && isGuid(claimFormData.id) ? claimFormData.id : undefined
+
 
 
   // State for dropdown data
@@ -242,11 +247,11 @@ export const ClaimMainContent = ({
   }, [claimFormData.id])
 
   useEffect(() => {
-    if (!claimFormData.id) return
+    if (!eventId) return
 
     const loadNotes = async () => {
       try {
-        const response = await fetch(`/api/notes?eventId=${claimFormData.id}`)
+        const response = await fetch(`/api/notes?eventId=${eventId}`)
         if (!response.ok) throw new Error()
         const data = await response.json()
         const mappedNotes: Note[] = data.map((note: any) => ({
@@ -271,7 +276,7 @@ export const ClaimMainContent = ({
     }
 
     loadNotes()
-  }, [claimFormData.id])
+  }, [eventId])
 
   // State for expanded sections in teczka-szkodowa
   const [expandedSections, setExpandedSections] = useState({
@@ -489,8 +494,8 @@ export const ClaimMainContent = ({
       return
     }
 
-    const eventId = claimFormData.id
-    if (!eventId) {
+    const eid = eventId
+    if (!eid) {
       toast({
         title: "Błąd",
         description: "Brak identyfikatora zdarzenia.",
@@ -504,7 +509,7 @@ export const ClaimMainContent = ({
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          eventId,
+          eventId: eid,
           category: type,
           title: noteForm.title,
           content: noteForm.description,
@@ -1112,9 +1117,9 @@ const renderParticipantDetails = (participant: ParticipantInfo | undefined, titl
                   </div>
                 </div>
                 <div className="p-4">
-                  {expandedSections.harmonogram ? (
+                  {expandedSections.harmonogram && eventId ? (
                     <div className="border rounded-lg overflow-hidden">
-                      <RepairScheduleSection eventId={claimFormData.id || claimFormData.spartaNumber || undefined} />
+                      <RepairScheduleSection eventId={eventId} />
                     </div>
                   ) : (
                     <div className="space-y-4">
@@ -1225,9 +1230,9 @@ const renderParticipantDetails = (participant: ParticipantInfo | undefined, titl
                   </div>
                 </div>
                 <div className="p-4">
-                  {expandedSections.naprawa ? (
+                  {expandedSections.naprawa && eventId ? (
                     <div className="border rounded-lg overflow-hidden">
-                      <RepairDetailsSection eventId={claimFormData.id || claimFormData.spartaNumber || undefined} />
+                      <RepairDetailsSection eventId={eventId} />
                     </div>
                   ) : (
                     <div className="space-y-4">
@@ -2014,13 +2019,13 @@ const renderParticipantDetails = (participant: ParticipantInfo | undefined, titl
               <CardTitle className="text-lg font-semibold">Dokumenty</CardTitle>
             </CardHeader>
             <CardContent className="p-0 bg-white">
-              {claimFormData.id && (
+              {eventId && (
                 <DocumentsSection
                   uploadedFiles={uploadedFiles}
                   setUploadedFiles={setUploadedFiles}
                   requiredDocuments={requiredDocuments}
                   setRequiredDocuments={setRequiredDocuments}
-                  eventId={claimFormData.id}
+                  eventId={eventId}
                 />
               )}
             </CardContent>
@@ -2040,7 +2045,7 @@ const renderParticipantDetails = (participant: ParticipantInfo | undefined, titl
               <CardTitle className="text-lg font-semibold">Decyzje</CardTitle>
             </CardHeader>
             <CardContent className="p-0 bg-white">
-              <DecisionsSection claimId={claimFormData.id || claimFormData.spartaNumber || undefined} />
+              <DecisionsSection claimId={claimFormData.id} />
             </CardContent>
           </Card>
         </div>
@@ -2057,7 +2062,7 @@ const renderParticipantDetails = (participant: ParticipantInfo | undefined, titl
               <CardTitle className="text-lg font-semibold">Odwołanie/Reklamacja</CardTitle>
             </CardHeader>
             <CardContent className="p-0 bg-white">
-              <AppealsSection eventId={claimFormData.id || claimFormData.spartaNumber || undefined} />
+              {eventId && <AppealsSection eventId={eventId} />}
             </CardContent>
           </Card>
         </div>
@@ -2095,7 +2100,7 @@ const renderParticipantDetails = (participant: ParticipantInfo | undefined, titl
               <CardTitle className="text-lg font-semibold">Regres</CardTitle>
             </CardHeader>
             <CardContent className="p-0 bg-white">
-              <RecourseSection eventId={claimFormData.id || claimFormData.spartaNumber || undefined} />
+              {eventId && <RecourseSection eventId={eventId} />}
             </CardContent>
           </Card>
         </div>
@@ -2538,14 +2543,13 @@ const renderParticipantDetails = (participant: ParticipantInfo | undefined, titl
               <CardTitle className="text-lg font-semibold">E-mail</CardTitle>
             </CardHeader>
             <CardContent className="p-0 bg-white">
-              <EmailSection claimId={claimFormData.id || claimFormData.spartaNumber} />
+              <EmailSection claimId={claimFormData.id} />
             </CardContent>
           </Card>
         </div>
       )
 
     case "teczka-szkodowa": {
-    const eventId = claimFormData.id || claimFormData.spartaNumber
     return (
       <div className="space-y-4">
         <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
@@ -2772,13 +2776,13 @@ const renderParticipantDetails = (participant: ParticipantInfo | undefined, titl
               </div>
             </div>
             <div className="p-4">
-              {claimFormData.id && (
+              {eventId && (
                 <DocumentsSection
                   uploadedFiles={uploadedFiles}
                   setUploadedFiles={setUploadedFiles}
                   requiredDocuments={[]}
                   setRequiredDocuments={() => {}}
-                  eventId={claimFormData.id}
+                  eventId={eventId}
                   hideRequiredDocuments={true}
                 />
               )}
@@ -2861,9 +2865,9 @@ const renderParticipantDetails = (participant: ParticipantInfo | undefined, titl
               </div>
             </div>
             <div className="p-4">
-              {expandedSections.harmonogram ? (
+              {expandedSections.harmonogram && eventId ? (
                 <div className="border rounded-lg overflow-hidden">
-                <RepairScheduleSection eventId={claimFormData.id || claimFormData.spartaNumber || undefined} />
+                <RepairScheduleSection eventId={eventId} />
                 </div>
               ) : (
                 <div className="space-y-4">
@@ -2957,9 +2961,9 @@ const renderParticipantDetails = (participant: ParticipantInfo | undefined, titl
               </div>
             </div>
             <div className="p-4">
-              {expandedSections.naprawa ? (
+              {expandedSections.naprawa && eventId ? (
                 <div className="border rounded-lg overflow-hidden">
-                <RepairDetailsSection eventId={claimFormData.id || claimFormData.spartaNumber || undefined} />
+                <RepairDetailsSection eventId={eventId} />
                 </div>
               ) : (
                 <div className="space-y-4">

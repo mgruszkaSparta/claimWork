@@ -210,7 +210,7 @@ export interface DocumentsSectionProps {
   requiredDocuments: RequiredDocument[]
   setRequiredDocuments: React.Dispatch<React.SetStateAction<RequiredDocument[]>>
 
-  eventId?: number | string
+  eventId?: string
   pendingFiles?: UploadedFile[]
   setPendingFiles?: React.Dispatch<React.SetStateAction<UploadedFile[]>>
 

@@ -60,6 +60,9 @@ export const DocumentsSection = ({
   const [currentPreviewIndex, setCurrentPreviewIndex] = useState(0)
   const [previewDocuments, setPreviewDocuments] = useState<Document[]>([])
 
+  const isGuid = (value: string) =>
+    /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/.test(value)
+
 
   const uploadedFileToDocument = (file: UploadedFile): Document => ({
     id: file.id,
@@ -87,13 +90,13 @@ export const DocumentsSection = ({
 
   // Load documents from API
   useEffect(() => {
-    if (eventId) {
+    if (eventId && isGuid(eventId)) {
       loadDocuments()
     }
   }, [eventId])
 
   const loadDocuments = async () => {
-    if (!eventId) return
+    if (!eventId || !isGuid(eventId)) return
 
     setLoading(true)
     try {

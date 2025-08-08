@@ -409,10 +409,36 @@ class ApiService {
 
 
 
-  async getClaims(): Promise<ClaimListItemDto[]> {
-    const claims = await this.request<ClaimListItemDto[] | undefined>("/claims")
-    return claims ?? []
+  async getClaims(
+    params: Record<string, string | number | undefined> = {},
+  ): Promise<{ items: ClaimListItemDto[]; totalCount: number }> {
+    const searchParams = new URLSearchParams()
+    Object.entries(params).forEach(([key, value]) => {
+      if (value !== undefined && value !== null && value !== "") {
+        searchParams.append(key, String(value))
+      }
+    })
 
+    const url = `/claims${searchParams.toString() ? `?${searchParams.toString()}` : ""}`
+
+    const response = await fetch(`${API_BASE_URL}${url}`, {
+      headers: {
+        "Content-Type": "application/json",
+      },
+    })
+
+    if (!response.ok) {
+      const errorText = await response.text()
+      throw new Error(`API Error: ${response.status} - ${errorText}`)
+    }
+
+    const data = (await response.json()) as ClaimListItemDto[]
+    const totalCountHeader = response.headers.get("X-Total-Count")
+    const totalCount = totalCountHeader
+      ? parseInt(totalCountHeader, 10)
+      : data.length
+
+    return { items: data ?? [], totalCount }
 
   }
 
@@ -427,7 +453,12 @@ class ApiService {
     })
   }
 
-  async updateClaim(id: string, claim: ClaimUpsertDto): Promise<ClaimDto | undefined> {
+
+  async updateClaim(
+    id: string,
+    claim: ClaimUpsertDto,
+  ): Promise<ClaimDto | undefined> {
+
     return this.request<ClaimDto | undefined>(`/claims/${id}`, {
       method: "PUT",
       body: JSON.stringify(claim),

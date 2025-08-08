@@ -203,7 +203,7 @@ export const EVENT_STATUSES = [
 
 // API endpoints
 export const API_ENDPOINTS = {
-  EVENTS: "/api/events",
+  EVENTS: "/api/claims",
   DAMAGES: "/api/damages",
   DAMAGES_INIT: "/api/damages/init",
   DOCUMENTS: "/api/documents",

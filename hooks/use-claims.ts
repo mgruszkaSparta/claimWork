@@ -193,7 +193,9 @@ export function useClaims() {
   const [totalCount, setTotalCount] = useState(0)
 
   const fetchClaims = useCallback(
-    async ({ page, pageSize, ...filters }: { page?: number; pageSize?: number; [key: string]: any } = {}) => {
+
+    async (params: Record<string, string | number | undefined> = {}) => {
+
       try {
         setLoading(true)
         setError(null)
@@ -203,17 +205,15 @@ export function useClaims() {
           console.log("Fetching claims from API...")
         }
 
-        const { items = [], totalCount = 0 } = await apiService.getClaims({
-          page,
-          pageSize,
-          ...filters,
-        })
+
+        const { items: apiClaims, totalCount } = await apiService.getClaims(params)
 
         if (isDev) {
-          console.log("API response:", { items, totalCount })
+          console.log("API response:", apiClaims)
         }
 
-        const frontendClaims = items.map((claim) => ({
+        const frontendClaims = apiClaims.map((claim) => ({
+
           ...claim,
           id: claim.id,
           totalClaim: claim.totalClaim ?? 0,
@@ -229,9 +229,13 @@ export function useClaims() {
         setTotalCount(totalCount)
         if (isDev) {
           console.log("Claims set in state:", frontendClaims)
+
+
         }
       } catch (err) {
-        const message = err instanceof Error ? err.message : "An unknown error occurred"
+        const message =
+          err instanceof Error ? err.message : "An unknown error occurred"
+
         setError(`Failed to fetch claims: ${message}`)
       } finally {
         setLoading(false)

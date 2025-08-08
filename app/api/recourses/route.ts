@@ -1,6 +1,6 @@
 import { type NextRequest, NextResponse } from "next/server"
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5200"
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5200/api"
 
 
 export async function GET(request: NextRequest) {
@@ -14,7 +14,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: "EventId is required" }, { status: 400 })
     }
 
-    const url = new URL(`${API_BASE_URL}/api/recourses`)
+    const url = new URL(`${API_BASE_URL}/recourses`)
     url.searchParams.set("claimId", claimId)
 
 
@@ -56,7 +56,7 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const response = await fetch(`${API_BASE_URL}/api/recourses`, {
+    const response = await fetch(`${API_BASE_URL}/recourses`, {
       method: "POST",
       body: formData,
     })

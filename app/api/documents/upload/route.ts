@@ -1,6 +1,6 @@
 import { type NextRequest, NextResponse } from "next/server"
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5200"
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5200/api"
 
 export async function POST(request: NextRequest) {
   try {
@@ -37,7 +37,7 @@ export async function POST(request: NextRequest) {
     backendFormData.append("Category", category || "OTHER")
     backendFormData.append("UploadedBy", uploadedBy || "System")
 
-    const response = await fetch(`${API_BASE_URL}/api/documents/upload`, {
+    const response = await fetch(`${API_BASE_URL}/documents/upload`, {
       method: "POST",
       body: backendFormData,
     })

@@ -1,10 +1,10 @@
 import { type NextRequest, NextResponse } from "next/server"
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5200"
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5200/api"
 
 export async function GET(request: NextRequest, { params }: { params: { claimId: string } }) {
   try {
-    const response = await fetch(`${API_BASE_URL}/api/claims/${params.claimId}/decisions`, {
+    const response = await fetch(`${API_BASE_URL}/claims/${params.claimId}/decisions`, {
       method: "GET",
       headers: { "Content-Type": "application/json" },
     })
@@ -32,7 +32,7 @@ export async function POST(request: NextRequest, { params }: { params: { claimId
   try {
     const formData = await request.formData()
 
-    const response = await fetch(`${API_BASE_URL}/api/claims/${params.claimId}/decisions`, {
+    const response = await fetch(`${API_BASE_URL}/claims/${params.claimId}/decisions`, {
       method: "POST",
       body: formData,
     })

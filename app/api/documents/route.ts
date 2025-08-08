@@ -1,6 +1,6 @@
 import { type NextRequest, NextResponse } from "next/server"
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5200"
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5200/api"
 
 export async function GET(request: NextRequest) {
   try {
@@ -9,7 +9,7 @@ export async function GET(request: NextRequest) {
 
     console.log("Fetching documents with params:", queryString)
 
-    const response = await fetch(`${API_BASE_URL}/api/documents?${queryString}`, {
+    const response = await fetch(`${API_BASE_URL}/documents?${queryString}`, {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
@@ -46,7 +46,7 @@ export async function POST(request: NextRequest) {
 
     console.log("Proxying document upload to backend API")
 
-    const response = await fetch(`${API_BASE_URL}/api/documents/upload`, {
+    const response = await fetch(`${API_BASE_URL}/documents/upload`, {
       method: "POST",
       body: formData,
     })

@@ -1,4 +1,5 @@
 import { type NextRequest, NextResponse } from "next/server"
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5200/api"
 
 export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
   try {
@@ -8,7 +9,7 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
 
     // In production, fetch file from your backend
     if (process.env.NEXT_PUBLIC_API_URL) {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/appeals/${id}/preview`, {
+      const response = await fetch(`${API_BASE_URL}/appeals/${id}/preview`, {
         method: "GET",
       })
 

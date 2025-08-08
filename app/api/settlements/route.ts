@@ -38,7 +38,7 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url)
     const claimId = searchParams.get("claimId")
 
-    let url = `${API_BASE_URL}/api/settlements`
+    let url = `${API_BASE_URL}/settlements`
     if (claimId) {
       url += `?claimId=${claimId}`
     }
@@ -82,7 +82,7 @@ export async function POST(request: NextRequest) {
   try {
     const formData = await request.formData()
 
-    const response = await fetchWithRetry(`${API_BASE_URL}/api/settlements`, {
+    const response = await fetchWithRetry(`${API_BASE_URL}/settlements`, {
       method: "POST",
       body: formData,
     })

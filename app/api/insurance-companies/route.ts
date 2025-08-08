@@ -1,13 +1,13 @@
 import { type NextRequest, NextResponse } from "next/server"
 
-const BACKEND_API_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5200/api"
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5200/api"
 
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url)
     const search = searchParams.get("search")
 
-    const url = `${BACKEND_API_URL}/dictionaries/insurance-companies`
+    const url = `${API_BASE_URL}/dictionaries/insurance-companies`
 
     const response = await fetch(url, {
       headers: {
@@ -49,7 +49,7 @@ export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
 
-    const response = await fetch(`${BACKEND_API_URL}/dictionaries/insurance-companies`, {
+    const response = await fetch(`${API_BASE_URL}/dictionaries/insurance-companies`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

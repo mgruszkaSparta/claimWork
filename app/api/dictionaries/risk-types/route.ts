@@ -1,11 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server'
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5200/api"
 
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url)
     const claimObjectTypeId = searchParams.get('claimObjectTypeId') || '1' // Default to communication claims
     
-    const url = `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5200'}/api/dictionaries/risk-types`
+    const url = `${API_BASE_URL}/dictionaries/risk-types`
     
     const response = await fetch(url)
     

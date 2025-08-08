@@ -68,12 +68,9 @@ export function useDamages(eventId?: string) {
   )
 
   const deleteDamage = useCallback(async (id: string): Promise<void> => {
-    await fetch(`${API_ENDPOINTS.DAMAGES}/${id}`, {
+    const response = await fetch(`${API_ENDPOINTS.DAMAGES}/${id}`, {
       method: "DELETE",
     })
-  }, [])
-
-
 
     if (!response.ok) {
       const errorText = await response.text()

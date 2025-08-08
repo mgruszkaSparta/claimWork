@@ -446,6 +446,9 @@ class ApiService {
     })
 
     if (!response.ok) {
+      if (response.status === 404) {
+        return { items: [], totalCount: 0 }
+      }
       const errorText = await response.text()
       throw new Error(`API Error: ${response.status} - ${errorText}`)
     }

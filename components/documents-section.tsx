@@ -107,6 +107,9 @@ export const DocumentsSection = ({
         const data = await response.json()
         console.log("Loaded documents:", data)
         setDocuments(data)
+      } else if (response.status === 404) {
+        console.log("No documents found for eventId:", eventId)
+        setDocuments([])
       } else {
         let errorMessage = "Nie udało się załadować dokumentów"
         try {
@@ -729,6 +732,9 @@ export const DocumentsSection = ({
             </div>
           </CardContent>
         </Card>
+        {!loading && allDocuments.length === 0 && (
+          <p className="text-center text-gray-500">Nie znaleziono dokumentów</p>
+        )}
 
         {documentCategories.map((category) => {
           const documentsForCategory = allDocuments.filter((d) => d.documentType === category)

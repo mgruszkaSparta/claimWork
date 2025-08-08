@@ -185,6 +185,9 @@ namespace AutomotiveClaimsApi.Controllers
                 };
                 MapUpsertDtoToEvent(eventDto, eventEntity);
 
+                // Always generate SpartaNumber on the backend
+                eventEntity.SpartaNumber = await GenerateNextSpartaNumber();
+
                 _context.Events.Add(eventEntity);
 
                 if (eventDto.Documents != null && eventDto.Documents.Any())
@@ -619,6 +622,30 @@ namespace AutomotiveClaimsApi.Controllers
             await _context.SaveChangesAsync();
 
             return NoContent();
+        }
+
+        private async Task<string> GenerateNextSpartaNumber()
+        {
+            var year = DateTime.UtcNow.Year;
+            var prefix = $"SPARTA/{year}/";
+
+            var lastNumber = await _context.Events
+                .Where(e => e.SpartaNumber != null && e.SpartaNumber.StartsWith(prefix))
+                .OrderByDescending(e => e.SpartaNumber)
+                .Select(e => e.SpartaNumber)
+                .FirstOrDefaultAsync();
+
+            var next = 1;
+            if (lastNumber != null)
+            {
+                var parts = lastNumber.Split('/');
+                if (parts.Length == 3 && int.TryParse(parts[2], out var parsed))
+                {
+                    next = parsed + 1;
+                }
+            }
+
+            return $"{prefix}{next:D4}";
         }
 
         private static Event MapUpsertDtoToEvent(ClaimUpsertDto dto, Event? entity = null)

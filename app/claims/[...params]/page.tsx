@@ -143,7 +143,6 @@ export default function ClaimPage() {
         const newClaimData = {
           ...claimFormData,
           id: generateId(),
-          spartaNumber: `SPARTA/2025/${String(Date.now()).slice(-4)}`,
           claimNumber: `PL${new Date().getFullYear()}${String(Date.now()).slice(-8)}`,
         } as Claim
 

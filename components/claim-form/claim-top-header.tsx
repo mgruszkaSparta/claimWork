@@ -93,7 +93,7 @@ export function ClaimTopHeader({ claimFormData, onClose }: ClaimTopHeaderProps) 
             <div className="flex-1 min-w-0">
               <span className="block text-sm font-medium text-gray-700 mb-1">Nr szkody Sparta</span>
               <span className="block text-sm text-gray-900 font-semibold truncate">
-                {claimFormData.spartaNumber || "SPARTA/2025/0297"}
+                {claimFormData.spartaNumber || "-"}
               </span>
             </div>
           </div>

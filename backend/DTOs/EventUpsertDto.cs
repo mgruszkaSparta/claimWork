@@ -140,7 +140,7 @@ namespace AutomotiveClaimsApi.DTOs
         public ICollection<DocumentDto>? Documents { get; set; }
 
         public ICollection<DamageUpsertDto>? Damages { get; set; }
-        public ICollection<DecisionUpsertDto>? Decisions { get; set; }
+        public ICollection<DecisionDto>? Decisions { get; set; }
         public ICollection<AppealUpsertDto>? Appeals { get; set; }
         public ICollection<ClientClaimUpsertDto>? ClientClaims { get; set; }
         public ICollection<RecourseUpsertDto>? Recourses { get; set; }

@@ -136,7 +136,7 @@ export interface EmailUpsertDto {
   
   documents?: DocumentDto[]
   damages?: DamageUpsertDto[]
-  decisions?: DecisionUpsertDto[]
+  decisions?: DecisionDto[]
   appeals?: AppealUpsertDto[]
   clientClaims?: ClientClaimUpsertDto[]
   recourses?: RecourseUpsertDto[]
@@ -248,25 +248,16 @@ export interface DamageUpsertDto {
 }
 
 export interface DecisionDto {
-  id?: number
-  eventId?: number
-  decisionDate?: string
-  decisionType?: string
-  description?: string
-  amount?: number
-}
-
-export interface DecisionUpsertDto {
+  id?: string
   eventId?: string
   decisionDate?: string
-  decisionType?: string
-  decisionDescription?: string
-  decisionAmount?: number
-  decisionStatus?: string
-  decisionNumber?: string
-  description?: string
-  reason?: string
-  notes?: string
+  status?: string
+  amount?: number
+  currency?: string
+  compensationTitle?: string
+  documentDescription?: string
+  documentName?: string
+  documentPath?: string
 }
 
 export interface AppealDto {

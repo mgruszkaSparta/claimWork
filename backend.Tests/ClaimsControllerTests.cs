@@ -11,7 +11,7 @@ using Xunit;
 
 namespace AutomotiveClaimsApi.Tests
 {
-    public class EventsControllerTests
+    public class ClaimsControllerTests
     {
         private static ApplicationDbContext CreateContext()
         {
@@ -22,26 +22,26 @@ namespace AutomotiveClaimsApi.Tests
         }
 
         [Fact]
-        public async Task DeleteEvent_NoParticipants_RemovesEvent()
+        public async Task DeleteClaim_NoParticipants_RemovesClaim()
         {
             using var context = CreateContext();
-            var controller = new EventsController(context, NullLogger<EventsController>.Instance);
+            var controller = new ClaimsController(context, NullLogger<ClaimsController>.Instance);
 
             var evt = new Event { Id = Guid.NewGuid() };
             context.Events.Add(evt);
             await context.SaveChangesAsync();
 
-            var result = await controller.DeleteEvent(evt.Id);
+            var result = await controller.DeleteClaim(evt.Id);
 
             Assert.IsType<NoContentResult>(result);
             Assert.False(context.Events.Any());
         }
 
         [Fact]
-        public async Task DeleteEvent_WithParticipants_RemovesDependents()
+        public async Task DeleteClaim_WithParticipants_RemovesDependents()
         {
             using var context = CreateContext();
-            var controller = new EventsController(context, NullLogger<EventsController>.Instance);
+            var controller = new ClaimsController(context, NullLogger<ClaimsController>.Instance);
 
             var evt = new Event { Id = Guid.NewGuid() };
             var participant = new Participant { Id = Guid.NewGuid(), EventId = evt.Id };
@@ -54,7 +54,7 @@ namespace AutomotiveClaimsApi.Tests
             context.Drivers.Add(driver);
             await context.SaveChangesAsync();
 
-            var result = await controller.DeleteEvent(evt.Id);
+            var result = await controller.DeleteClaim(evt.Id);
 
             Assert.IsType<NoContentResult>(result);
             Assert.False(context.Events.Any());

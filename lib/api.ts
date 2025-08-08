@@ -96,6 +96,10 @@ export interface EventUpsertDto {
   emails?: EmailUpsertDto[]
 }
 
+export interface ClaimListItemDto extends EventListItemDto {}
+export interface ClaimDto extends EventDto {}
+export interface ClaimUpsertDto extends EventUpsertDto {}
+
 export interface NoteUpsertDto {
   eventId?: string
   category?: string
@@ -403,37 +407,37 @@ class ApiService {
     return text as unknown as T
   }
 
-  async getClaims(): Promise<EventListItemDto[]> {
-    const claims = await this.request<EventListItemDto[] | undefined>("/events")
+  async getClaims(): Promise<ClaimListItemDto[]> {
+    const claims = await this.request<ClaimListItemDto[] | undefined>("/claims")
     return claims ?? []
   }
 
-  async getClaim(id: string): Promise<EventDto> {
-    return this.request<EventDto>(`/events/${id}`)
+  async getClaim(id: string): Promise<ClaimDto> {
+    return this.request<ClaimDto>(`/claims/${id}`)
   }
 
-  async createClaim(claim: EventUpsertDto): Promise<EventDto> {
-    return this.request<EventDto>("/events", {
+  async createClaim(claim: ClaimUpsertDto): Promise<ClaimDto> {
+    return this.request<ClaimDto>("/claims", {
       method: "POST",
       body: JSON.stringify(claim),
     })
   }
 
-  async updateClaim(id: string, claim: EventUpsertDto): Promise<EventDto | undefined> {
-    return this.request<EventDto | undefined>(`/events/${id}`, {
+  async updateClaim(id: string, claim: ClaimUpsertDto): Promise<ClaimDto | undefined> {
+    return this.request<ClaimDto | undefined>(`/claims/${id}`, {
       method: "PUT",
       body: JSON.stringify(claim),
     })
   }
 
   async deleteClaim(id: string): Promise<void> {
-    return this.request<void>(`/events/${id}`, {
+    return this.request<void>(`/claims/${id}`, {
       method: "DELETE",
     })
   }
 
   async initializeClaim(): Promise<{ id: string }> {
-    return this.request<{ id: string }>("/events/initialize", {
+    return this.request<{ id: string }>("/claims/initialize", {
       method: "POST",
     })
   }

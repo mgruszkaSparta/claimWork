@@ -1,9 +1,9 @@
 import type React from "react"
-import type { EventDto } from "@/lib/api"
+import type { ClaimDto } from "@/lib/api"
 
 export interface Claim
   extends Omit<
-    EventDto,
+    ClaimDto,
     | "id"
     | "clientId"
     | "insuranceCompanyId"

@@ -12,19 +12,19 @@ namespace AutomotiveClaimsApi.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    public class EventsController : ControllerBase
+    public class ClaimsController : ControllerBase
     {
         private readonly ApplicationDbContext _context;
-        private readonly ILogger<EventsController> _logger;
+        private readonly ILogger<ClaimsController> _logger;
 
-        public EventsController(ApplicationDbContext context, ILogger<EventsController> logger)
+        public ClaimsController(ApplicationDbContext context, ILogger<ClaimsController> logger)
         {
             _context = context;
             _logger = logger;
         }
 
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<EventListItemDto>>> GetEvents(
+        public async Task<ActionResult<IEnumerable<ClaimListItemDto>>> GetClaims(
             [FromQuery] string? search = null,
             [FromQuery] string? clientId = null,
             [FromQuery] string? status = null,
@@ -75,7 +75,7 @@ namespace AutomotiveClaimsApi.Controllers
                     .OrderByDescending(e => e.CreatedAt)
                     .Skip((page - 1) * pageSize)
                     .Take(pageSize)
-                    .Select(e => new EventListItemDto
+                    .Select(e => new ClaimListItemDto
                     {
                         Id = e.Id.ToString(),
                         ClaimNumber = e.ClaimNumber,
@@ -114,7 +114,7 @@ namespace AutomotiveClaimsApi.Controllers
         }
 
         [HttpGet("{id}")]
-        public async Task<ActionResult<EventDto>> GetEvent(Guid id)
+        public async Task<ActionResult<ClaimDto>> GetClaim(Guid id)
         {
             try
             {
@@ -147,7 +147,7 @@ namespace AutomotiveClaimsApi.Controllers
         }
 
         [HttpPost("initialize")]
-        public async Task<ActionResult<object>> InitializeEvent()
+        public async Task<ActionResult<object>> InitializeClaim()
         {
             try
             {
@@ -173,7 +173,7 @@ namespace AutomotiveClaimsApi.Controllers
         }
 
         [HttpPost]
-        public async Task<ActionResult<EventDto>> CreateEvent([FromBody] EventUpsertDto eventDto)
+        public async Task<ActionResult<ClaimDto>> CreateClaim([FromBody] ClaimUpsertDto eventDto)
         {
             try
             {
@@ -309,8 +309,8 @@ namespace AutomotiveClaimsApi.Controllers
                     .Include(e => e.Notes)
                     .FirstOrDefaultAsync(e => e.Id == eventEntity.Id);
 
-                var createdEventDto = MapEventToDto(createdEvent!);
-                return CreatedAtAction(nameof(GetEvent), new { id = eventEntity.Id }, createdEventDto);
+                var createdClaimDto = MapEventToDto(createdEvent!);
+                return CreatedAtAction(nameof(GetClaim), new { id = eventEntity.Id }, createdClaimDto);
             }
             catch (ArgumentException ex)
             {
@@ -324,7 +324,7 @@ namespace AutomotiveClaimsApi.Controllers
         }
 
         [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateEvent(Guid id, [FromBody] EventUpsertDto eventDto)
+        public async Task<IActionResult> UpdateClaim(Guid id, [FromBody] ClaimUpsertDto eventDto)
         {
             try
             {
@@ -489,7 +489,7 @@ namespace AutomotiveClaimsApi.Controllers
         }
 
         [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteEvent(Guid id)
+        public async Task<IActionResult> DeleteClaim(Guid id)
         {
             try
             {
@@ -529,7 +529,7 @@ namespace AutomotiveClaimsApi.Controllers
             }
         }
 
-        private static Event MapUpsertDtoToEvent(EventUpsertDto dto, Event? entity = null)
+        private static Event MapUpsertDtoToEvent(ClaimUpsertDto dto, Event? entity = null)
         {
             entity ??= new Event();
 
@@ -1165,7 +1165,7 @@ namespace AutomotiveClaimsApi.Controllers
             };
         }
 
-        private static EventDto MapEventToDto(Event e) => new EventDto
+        private static ClaimDto MapEventToDto(Event e) => new ClaimDto
         {
             Id = e.Id.ToString(),
             ClaimNumber = e.ClaimNumber,

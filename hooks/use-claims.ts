@@ -3,14 +3,14 @@
 import { useState, useCallback } from "react"
 import {
   apiService,
-  type EventUpsertDto,
-  type EventDto,
+  type ClaimUpsertDto,
+  type ClaimDto,
   type ParticipantUpsertDto,
-  type EventListItemDto,
+  type ClaimListItemDto,
 } from "@/lib/api"
 import type { Claim, ParticipantInfo, DriverInfo } from "@/types"
 
-export const transformApiClaimToFrontend = (apiClaim: EventDto): Claim => {
+export const transformApiClaimToFrontend = (apiClaim: ClaimDto): Claim => {
   const injuredParty = apiClaim.participants?.find((p: any) => p.role === "Poszkodowany")
   const perpetrator = apiClaim.participants?.find((p: any) => p.role === "Sprawca")
 
@@ -56,7 +56,7 @@ export const transformApiClaimToFrontend = (apiClaim: EventDto): Claim => {
 
 export const transformFrontendClaimToApiPayload = (
   claimData: Partial<Claim>,
-): EventUpsertDto => {
+): ClaimUpsertDto => {
   const {
     id,
     decisions,
@@ -202,7 +202,7 @@ export function useClaims() {
         console.log("Fetching claims from API...")
       }
 
-      const apiClaims: EventListItemDto[] = await apiService.getClaims()
+      const apiClaims: ClaimListItemDto[] = await apiService.getClaims()
 
       if (isDev) {
         console.log("API response:", apiClaims)

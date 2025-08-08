@@ -316,7 +316,7 @@ export const DocumentsSection = ({
               ? "doc"
               : "other",
             uploadedAt: doc.createdAt,
-            url: doc.filePath,
+            url: doc.previewUrl || doc.downloadUrl,
             category: doc.documentType,
             description: doc.description,
           })),

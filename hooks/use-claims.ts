@@ -6,7 +6,6 @@ import {
   type ClaimUpsertDto,
   type ClaimDto,
   type ParticipantUpsertDto,
-  type ClaimListItemDto,
 } from "@/lib/api"
 import type { Claim, ParticipantInfo, DriverInfo } from "@/types"
 
@@ -191,40 +190,51 @@ export function useClaims() {
   const [claims, setClaims] = useState<Claim[]>([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [totalCount, setTotalCount] = useState(0)
 
+  const fetchClaims = useCallback(
+    async ({ page, pageSize, ...filters }: { page?: number; pageSize?: number; [key: string]: any } = {}) => {
+      try {
+        setLoading(true)
+        setError(null)
 
-  const fetchClaims = useCallback(async () => {
-    try {
-      setLoading(true)
-      setError(null)
+        const isDev = process.env.NODE_ENV !== "production"
+        if (isDev) {
+          console.log("Fetching claims from API...")
+        }
 
-      const isDev = process.env.NODE_ENV !== "production"
-      if (isDev) {
-        console.log("Fetching claims from API...")
-      }
+        const { items = [], totalCount = 0 } = await apiService.getClaims({
+          page,
+          pageSize,
+          ...filters,
+        })
 
-      const apiClaims: ClaimListItemDto[] = await apiService.getClaims()
+        if (isDev) {
+          console.log("API response:", { items, totalCount })
+        }
 
-      if (isDev) {
-        console.log("API response:", apiClaims)
-      }
+        const frontendClaims = items.map((claim) => ({
+          ...claim,
+          id: claim.id,
+          totalClaim: claim.totalClaim ?? 0,
+          payout: claim.payout ?? 0,
+          currency: claim.currency ?? "PLN",
+          clientId: claim.clientId?.toString(),
+          insuranceCompanyId: claim.insuranceCompanyId?.toString(),
+          leasingCompanyId: claim.leasingCompanyId?.toString(),
+          handlerId: claim.handlerId?.toString(),
+        })) as Claim[]
 
-      const frontendClaims = apiClaims.map((claim) => ({
-        ...claim,
-        id: claim.id,
-        totalClaim: claim.totalClaim ?? 0,
-        payout: claim.payout ?? 0,
-        currency: claim.currency ?? "PLN",
-        clientId: claim.clientId?.toString(),
-        insuranceCompanyId: claim.insuranceCompanyId?.toString(),
-        leasingCompanyId: claim.leasingCompanyId?.toString(),
-        handlerId: claim.handlerId?.toString(),
-      })) as Claim[]
-
-      setClaims(frontendClaims)
-      if (isDev) {
-        console.log("Claims set in state:", frontendClaims)
-
+        setClaims(frontendClaims)
+        setTotalCount(totalCount)
+        if (isDev) {
+          console.log("Claims set in state:", frontendClaims)
+        }
+      } catch (err) {
+        const message = err instanceof Error ? err.message : "An unknown error occurred"
+        setError(`Failed to fetch claims: ${message}`)
+      } finally {
+        setLoading(false)
       }
     },
     [],

@@ -44,7 +44,14 @@ export function ClaimsList({ onEditClaim, onNewClaim }: ClaimsListProps) {
   useEffect(() => {
     const loadClaims = async () => {
       try {
-        await fetchClaims({ page, pageSize })
+        await fetchClaims({
+          page,
+          pageSize,
+          search: searchTerm,
+          status: filterStatus !== "all" ? filterStatus : undefined,
+          brand: filterBrand || undefined,
+          handler: filterHandler || undefined,
+        })
       } catch (err) {
         toast({
           title: "Błąd",
@@ -54,7 +61,16 @@ export function ClaimsList({ onEditClaim, onNewClaim }: ClaimsListProps) {
       }
     }
     loadClaims()
-  }, [fetchClaims, toast, page, pageSize])
+  }, [
+    fetchClaims,
+    toast,
+    page,
+    pageSize,
+    searchTerm,
+    filterStatus,
+    filterBrand,
+    filterHandler,
+  ])
 
   // TODO: consider moving this filtering to use-claims or the API to reduce client workload
   const filteredClaims = useMemo(
@@ -128,7 +144,14 @@ export function ClaimsList({ onEditClaim, onNewClaim }: ClaimsListProps) {
   const handleRefresh = async () => {
     setIsRefreshing(true)
     try {
-      await fetchClaims({ page, pageSize })
+      await fetchClaims({
+        page,
+        pageSize,
+        search: searchTerm,
+        status: filterStatus !== "all" ? filterStatus : undefined,
+        brand: filterBrand || undefined,
+        handler: filterHandler || undefined,
+      })
       toast({
         title: "Odświeżono",
         description: "Lista szkód została odświeżona.",

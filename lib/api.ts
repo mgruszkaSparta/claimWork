@@ -408,9 +408,11 @@ class ApiService {
   }
 
 
+
   async getClaims(): Promise<ClaimListItemDto[]> {
     const claims = await this.request<ClaimListItemDto[] | undefined>("/claims")
     return claims ?? []
+
 
   }
 

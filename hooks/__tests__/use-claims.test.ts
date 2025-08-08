@@ -42,3 +42,8 @@ test('participant and driver ids are numeric', () => {
   assert.equal(participant?.id, 123)
   assert.equal(driver?.id, 456)
 })
+
+test('includes id field when provided', () => {
+  const payload = transformFrontendClaimToApiPayload({ id: 'abc' } as any)
+  assert.equal(payload.id, 'abc')
+})

@@ -138,6 +138,7 @@ export const transformFrontendClaimToApiPayload = (
   }
 
   return {
+    id,
     ...rest,
 
     // Convert string identifiers to numbers for API payload

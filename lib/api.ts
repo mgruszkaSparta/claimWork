@@ -59,6 +59,7 @@ export interface DocumentDto {
 }
 
 export interface EventUpsertDto {
+  id?: string
   spartaNumber?: string
   claimNumber?: string
   vehicleNumber?: string

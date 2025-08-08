@@ -160,7 +160,7 @@ export function ClaimForm({ initialData, mode }: ClaimFormProps) {
               const formDataFile = new FormData()
               formDataFile.append('file', file.file)
               formDataFile.append('eventId', saved!.id.toString())
-              formDataFile.append('documentType', file.category || 'Inne dokumenty')
+              formDataFile.append('category', file.category || 'Inne dokumenty')
               formDataFile.append('uploadedBy', 'Current User')
               await fetch('/api/documents/upload', {
                 method: 'POST',

@@ -236,7 +236,7 @@ export const DocumentsSection = ({
       const formData = new FormData()
       formData.append("file", file)
       formData.append("eventId", eventId.toString())
-      formData.append("documentType", category)
+      formData.append("category", category)
       formData.append("uploadedBy", "Current User")
 
       try {

@@ -9,14 +9,14 @@ export async function POST(request: NextRequest) {
     const formData = await request.formData()
     const file = formData.get("file") as File
     const eventId = formData.get("eventId") as string
-    const documentType = formData.get("documentType") as string
+    const category = formData.get("category") as string
     const uploadedBy = formData.get("uploadedBy") as string
 
     console.log("Upload parameters:", {
       fileName: file?.name,
       fileSize: file?.size,
       eventId,
-      documentType,
+      category,
       uploadedBy,
     })
 
@@ -34,7 +34,7 @@ export async function POST(request: NextRequest) {
     const backendFormData = new FormData()
     backendFormData.append("File", file)
     backendFormData.append("EventId", eventId)
-    backendFormData.append("DocumentType", documentType || "OTHER")
+    backendFormData.append("Category", category || "OTHER")
     backendFormData.append("UploadedBy", uploadedBy || "System")
 
     const response = await fetch(`${API_BASE_URL}/api/documents/upload`, {

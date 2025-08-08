@@ -104,9 +104,13 @@ export const DocumentsSection = ({
       const response = await fetch(`/api/documents?eventId=${eventId}`)
 
       if (response.ok) {
-        const data = await response.json()
+        const data: Document[] = await response.json()
         console.log("Loaded documents:", data)
-        setDocuments(data)
+        const mappedDocs: Document[] = data.map((d: any) => ({
+          ...d,
+          documentType: d.category,
+        }))
+        setDocuments(mappedDocs)
       } else {
         let errorMessage = "Nie udało się załadować dokumentów"
         try {
@@ -316,7 +320,7 @@ export const DocumentsSection = ({
               ? "doc"
               : "other",
             uploadedAt: doc.createdAt,
-            url: doc.filePath,
+            url: doc.previewUrl || doc.downloadUrl,
             category: doc.documentType,
             description: doc.description,
           })),
@@ -621,6 +625,9 @@ export const DocumentsSection = ({
 
   const FileCard = ({ document, onDelete }: { document: Document; onDelete: (id: string | number) => void }) => (
     <Card className="overflow-hidden group relative">
+      <Badge variant="secondary" className="absolute top-2 left-2 capitalize">
+        {document.status}
+      </Badge>
       <div className="aspect-w-16 aspect-h-10 bg-gray-100 flex items-center justify-center min-h-[150px]">
         {document.contentType.startsWith("image/") ? (
           <img
@@ -858,6 +865,7 @@ export const DocumentsSection = ({
                             <th className="p-3 text-left font-medium text-gray-600 w-2/6">Opis pliku</th>
                             <th className="p-3 text-left font-medium text-gray-600 w-1/6">Rozmiar</th>
                             <th className="p-3 text-left font-medium text-gray-600 w-1/6">Data dodania</th>
+                            <th className="p-3 text-left font-medium text-gray-600 w-1/6">Status</th>
                             <th className="p-3 text-left font-medium text-gray-600 w-1/6">Akcja</th>
                           </tr>
                         </thead>
@@ -891,6 +899,7 @@ export const DocumentsSection = ({
                               </td>
                               <td className="p-3 text-gray-600">{formatBytes(document.fileSize)}</td>
                               <td className="p-3 text-gray-600">{new Date(document.createdAt).toLocaleDateString()}</td>
+                              <td className="p-3 text-gray-600 capitalize">{document.status}</td>
                               <td className="p-3">
                                 <div className="flex items-center gap-1">
                                   <Button

@@ -158,6 +158,7 @@ export interface ClientClaim {
   description: string
   amount?: number
   status?: string
+  documentDescription?: string
 }
 
 export interface Recourse {

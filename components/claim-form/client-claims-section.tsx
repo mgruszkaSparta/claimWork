@@ -162,11 +162,13 @@ export function ClientClaimsSection({ clientClaims, onClientClaimsChange, claimI
       const claimData: ClientClaim = {
         id: editingClaim?.id || Date.now().toString(),
         eventId: claimId,
-        submissionDate: formData.claimDate,
-        type: formData.claimType,
+        claimDate: formData.claimDate,
+        claimType: formData.claimType,
         amount: Number.parseFloat(formData.claimAmount),
+        currency: formData.currency,
         status: formData.status as any,
         description: formData.description,
+        documentDescription: formData.documentDescription,
         document: selectedFile
           ? {
               id: Date.now().toString(),
@@ -212,13 +214,13 @@ export function ClientClaimsSection({ clientClaims, onClientClaimsChange, claimI
     setEditingClaim(claim)
     setIsEditing(true)
     setFormData({
-      claimDate: claim.submissionDate,
-      claimType: claim.type,
+      claimDate: claim.claimDate,
+      claimType: claim.claimType,
       claimAmount: claim.amount?.toString() || "",
       currency: claim.currency || "PLN",
       status: claim.status,
       description: claim.description || "",
-      documentDescription: claim.document?.name || "",
+      documentDescription: claim.documentDescription || "",
     })
     setIsFormVisible(true)
   }
@@ -702,12 +704,12 @@ export function ClientClaimsSection({ clientClaims, onClientClaimsChange, claimI
                       <td className="py-3 px-4">
                         <div className="flex items-center space-x-2">
                           <Calendar className="h-4 w-4 text-gray-400" />
-                          <span className="text-sm">{formatDate(claim.submissionDate)}</span>
+                          <span className="text-sm">{formatDate(claim.claimDate)}</span>
                         </div>
                       </td>
                       <td className="py-3 px-4">
                         <Badge variant="outline" className="text-blue-600 border-blue-200">
-                          {claim.type}
+                          {claim.claimType}
                         </Badge>
                       </td>
                       <td className="py-3 px-4">
@@ -730,7 +732,9 @@ export function ClientClaimsSection({ clientClaims, onClientClaimsChange, claimI
                         {claim.document ? (
                           <div className="flex items-center space-x-2">
                             <FileText className="h-4 w-4 text-blue-600" />
-                            <span className="text-sm text-blue-600">Załącznik</span>
+                            <span className="text-sm text-blue-600">
+                              {claim.documentDescription || "Załącznik"}
+                            </span>
                             <div className="flex gap-1">
                               {isPreviewable(claim.document.name) && (
                                 <Button

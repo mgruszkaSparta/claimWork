@@ -409,37 +409,37 @@ class ApiService {
 
 
   async getClaims(): Promise<ClaimListItemDto[]> {
-    const claims = await this.request<ClaimListItemDto[] | undefined>("/claims")
+    const claims = await this.request<ClaimListItemDto[] | undefined>("/events")
     return claims ?? []
 
   }
 
   async getClaim(id: string): Promise<ClaimDto> {
-    return this.request<ClaimDto>(`/claims/${id}`)
+    return this.request<ClaimDto>(`/events/${id}`)
   }
 
   async createClaim(claim: ClaimUpsertDto): Promise<ClaimDto> {
-    return this.request<ClaimDto>("/claims", {
+    return this.request<ClaimDto>("/events", {
       method: "POST",
       body: JSON.stringify(claim),
     })
   }
 
   async updateClaim(id: string, claim: ClaimUpsertDto): Promise<ClaimDto | undefined> {
-    return this.request<ClaimDto | undefined>(`/claims/${id}`, {
+    return this.request<ClaimDto | undefined>(`/events/${id}`, {
       method: "PUT",
       body: JSON.stringify(claim),
     })
   }
 
   async deleteClaim(id: string): Promise<void> {
-    return this.request<void>(`/claims/${id}`, {
+    return this.request<void>(`/events/${id}`, {
       method: "DELETE",
     })
   }
 
   async initializeClaim(): Promise<{ id: string }> {
-    return this.request<{ id: string }>("/claims/initialize", {
+    return this.request<{ id: string }>("/events/initialize", {
       method: "POST",
     })
   }

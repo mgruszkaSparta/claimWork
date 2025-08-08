@@ -79,8 +79,14 @@ export const transformFrontendClaimToApiPayload = (
     ...rest
   } = claimData
 
-  const damageTypeValue =
-    typeof damageType === "object" ? (damageType as any).code : damageType
+  let damageTypeValue: string | undefined
+  if (typeof damageType === "object" && damageType !== null) {
+    damageTypeValue = (damageType as any).code ?? (damageType as any).id
+  } else if (typeof damageType === "number") {
+    damageTypeValue = damageType.toString()
+  } else if (typeof damageType === "string") {
+    damageTypeValue = damageType
+  }
 
   const participants: ParticipantUpsertDto[] = []
 
@@ -141,7 +147,7 @@ export const transformFrontendClaimToApiPayload = (
     clientId: clientId ? parseInt(clientId, 10) : undefined,
     handlerId: handlerId ? parseInt(handlerId, 10) : undefined,
     riskType,
-    damageType: damageTypeValue,
+    ...(damageTypeValue ? { damageType: damageTypeValue } : {}),
     damageDate: rest.damageDate ? new Date(rest.damageDate).toISOString() : undefined,
     reportDate: rest.reportDate ? new Date(rest.reportDate).toISOString() : undefined,
     reportDateToInsurer: rest.reportDateToInsurer ? new Date(rest.reportDateToInsurer).toISOString() : undefined,

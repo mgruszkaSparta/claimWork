@@ -268,51 +268,51 @@ export default function NewClaimPage() {
       } as Claim
 
       const createdClaim = await createClaim(newClaimData)
-      
-      if (createdClaim) {
-        // Save repair schedules and details if any exist
-        if (repairSchedules.length > 0) {
-          for (const schedule of repairSchedules) {
-            try {
-              await fetch("/api/repair-schedules", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ ...schedule, eventId: createdClaim.id }),
-              })
-            } catch (error) {
-              console.error("Error saving repair schedule:", error)
-            }
-          }
-        }
 
-        if (repairDetails.length > 0) {
-          for (const detail of repairDetails) {
-            try {
-              await fetch("/api/repair-details", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ ...detail, eventId: createdClaim.id }),
-              })
-            } catch (error) {
-              console.error("Error saving repair detail:", error)
-            }
-          }
-        }
-
-        toast({
-          title: "Szkoda dodana",
-          description: `Nowa szkoda ${createdClaim.spartaNumber} została pomyślnie dodana.`,
-        })
-        
-        if (exitAfterSave) {
-          router.push("/")
-        } else {
-          resetForm()
-          setRepairSchedules([])
-          setRepairDetails([])
-        }
-      } else {
+      if (!createdClaim) {
         throw new Error("Nie udało się utworzyć szkody")
+      }
+
+      // Save repair schedules and details if any exist
+      if (repairSchedules.length > 0) {
+        for (const schedule of repairSchedules) {
+          try {
+            await fetch("/api/repair-schedules", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ ...schedule, eventId: createdClaim.id }),
+            })
+          } catch (error) {
+            console.error("Error saving repair schedule:", error)
+          }
+        }
+      }
+
+      if (repairDetails.length > 0) {
+        for (const detail of repairDetails) {
+          try {
+            await fetch("/api/repair-details", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ ...detail, eventId: createdClaim.id }),
+            })
+          } catch (error) {
+            console.error("Error saving repair detail:", error)
+          }
+        }
+      }
+
+      toast({
+        title: "Szkoda dodana",
+        description: `Nowa szkoda ${createdClaim.spartaNumber} została pomyślnie dodana.`,
+      })
+
+      if (exitAfterSave) {
+        router.push("/")
+      } else {
+        resetForm()
+        setRepairSchedules([])
+        setRepairDetails([])
       }
     } catch (error) {
       console.error("Error saving claim:", error)

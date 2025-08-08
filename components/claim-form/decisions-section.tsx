@@ -32,7 +32,7 @@ export function DecisionsSection({ claimId }: DecisionsSectionProps) {
   const [decisions, setDecisions] = useState<Decision[]>([])
   const [isFormVisible, setIsFormVisible] = useState(false)
   const [isEditing, setIsEditing] = useState(false)
-  const [editingDecisionId, setEditingDecisionId] = useState<number | null>(null)
+  const [editingDecisionId, setEditingDecisionId] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(false)
   const [selectedFiles, setSelectedFiles] = useState<File[]>([])
   const [showFileDescription, setShowFileDescription] = useState(false)
@@ -50,7 +50,7 @@ export function DecisionsSection({ claimId }: DecisionsSectionProps) {
   const [formData, setFormData] = useState({
     decisionDate: new Date().toISOString().split("T")[0],
     status: "",
-    paymentAmount: "",
+    amount: "",
     currency: "PLN",
     compensationTitle: "",
     documentDescription: "",
@@ -116,11 +116,11 @@ export function DecisionsSection({ claimId }: DecisionsSectionProps) {
     const totals: Record<string, number> = {}
 
     decisions.forEach((decision) => {
-      if (decision.paymentAmount && decision.currency) {
+      if (decision.amount && decision.currency) {
         if (totals[decision.currency]) {
-          totals[decision.currency] += decision.paymentAmount
+          totals[decision.currency] += decision.amount
         } else {
-          totals[decision.currency] = decision.paymentAmount
+          totals[decision.currency] = decision.amount
         }
       }
     })
@@ -132,7 +132,7 @@ export function DecisionsSection({ claimId }: DecisionsSectionProps) {
     setFormData({
       decisionDate: new Date().toISOString().split("T")[0],
       status: "",
-      paymentAmount: "",
+      amount: "",
       currency: "PLN",
       compensationTitle: "",
       documentDescription: "",
@@ -248,8 +248,8 @@ export function DecisionsSection({ claimId }: DecisionsSectionProps) {
       submitFormData.append("decisionDate", new Date(formData.decisionDate).toISOString())
       submitFormData.append("status", formData.status)
 
-      if (formData.paymentAmount) {
-        submitFormData.append("paymentAmount", formData.paymentAmount)
+      if (formData.amount) {
+        submitFormData.append("amount", formData.amount)
       }
 
       submitFormData.append("currency", formData.currency)
@@ -301,7 +301,7 @@ export function DecisionsSection({ claimId }: DecisionsSectionProps) {
 
   const editDecision = (decision: Decision) => {
     setIsEditing(true)
-    setEditingDecisionId(decision.decisionId!)
+    setEditingDecisionId(decision.id!)
     setIsFormVisible(true)
 
     const decisionDate = new Date(decision.decisionDate)
@@ -313,7 +313,7 @@ export function DecisionsSection({ claimId }: DecisionsSectionProps) {
     setFormData({
       decisionDate: formattedDate,
       status: decision.status,
-      paymentAmount: decision.paymentAmount?.toString() || "",
+      amount: decision.amount?.toString() || "",
       currency: decision.currency || "PLN",
       compensationTitle: decision.compensationTitle || "",
       documentDescription: decision.documentDescription || "",
@@ -322,7 +322,7 @@ export function DecisionsSection({ claimId }: DecisionsSectionProps) {
     window.scrollTo({ top: 0, behavior: "smooth" })
   }
 
-  const deleteDecision = async (id: number) => {
+  const deleteDecision = async (id: string) => {
     setIsLoading(true)
     try {
       const response = await fetch(`/api/decisions/${id}`, {
@@ -361,7 +361,7 @@ export function DecisionsSection({ claimId }: DecisionsSectionProps) {
     }
 
     try {
-      const response = await fetch(`/api/decisions/${decision.decisionId}/download`)
+      const response = await fetch(`/api/decisions/${decision.id}/download`)
       if (response.ok) {
         const blob = await response.blob()
         const url = window.URL.createObjectURL(blob)
@@ -396,7 +396,7 @@ export function DecisionsSection({ claimId }: DecisionsSectionProps) {
     }
 
     try {
-      const response = await fetch(`/api/decisions/${decision.decisionId}/preview`)
+      const response = await fetch(`/api/decisions/${decision.id}/preview`)
       if (response.ok) {
         const blob = await response.blob()
         const url = window.URL.createObjectURL(blob)
@@ -533,16 +533,16 @@ export function DecisionsSection({ claimId }: DecisionsSectionProps) {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="paymentAmount" className="text-sm font-medium text-gray-700">
+                  <Label htmlFor="amount" className="text-sm font-medium text-gray-700">
                     Kwota wypłaty
                   </Label>
                   <div className="flex gap-2">
                     <Input
-                      id="paymentAmount"
+                      id="amount"
                       type="number"
                       step="0.01"
-                      value={formData.paymentAmount}
-                      onChange={(e) => handleInputChange("paymentAmount", e.target.value)}
+                      value={formData.amount}
+                      onChange={(e) => handleInputChange("amount", e.target.value)}
                       className="flex-1"
                       placeholder="0.00"
                     />
@@ -796,13 +796,13 @@ export function DecisionsSection({ claimId }: DecisionsSectionProps) {
                   </tr>
                 )}
                 {decisions.map((decision) => (
-                  <tr key={decision.decisionId} className="border-b hover:bg-muted/50">
+                  <tr key={decision.id} className="border-b hover:bg-muted/50">
                     <td className="py-3 px-4 text-sm">{new Date(decision.decisionDate).toLocaleDateString("pl-PL")}</td>
                     <td className="py-3 px-4">
                       <Badge variant={getStatusBadgeVariant(decision.status)}>{decision.status}</Badge>
                     </td>
                     <td className="py-3 px-4 text-sm">
-                      {decision.paymentAmount ? formatCurrency(decision.paymentAmount, decision.currency) : "-"}
+                      {decision.amount ? formatCurrency(decision.amount, decision.currency) : "-"}
                     </td>
                     <td className="py-3 px-4 text-sm">{decision.currency || "PLN"}</td>
                     <td className="py-3 px-4 text-sm">{decision.compensationTitle || "-"}</td>
@@ -846,7 +846,7 @@ export function DecisionsSection({ claimId }: DecisionsSectionProps) {
                             <AlertDialogFooter>
                               <AlertDialogCancel>Anuluj</AlertDialogCancel>
                               <AlertDialogAction
-                                onClick={() => deleteDecision(decision.decisionId!)}
+                                onClick={() => deleteDecision(decision.id!)}
                                 className="bg-red-600 hover:bg-red-700"
                               >
                                 Usuń

@@ -130,10 +130,13 @@ export interface Decision {
   id?: string
   eventId?: string
   decisionDate: string
-  decisionType: string
-  description: string
-  amount?: number
   status?: string
+  amount?: number
+  currency?: string
+  compensationTitle?: string
+  documentDescription?: string
+  documentName?: string
+  documentPath?: string
 }
 
 export interface Appeal {

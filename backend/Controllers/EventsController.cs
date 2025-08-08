@@ -640,28 +640,27 @@ namespace AutomotiveClaimsApi.Controllers
             if (dto.Decisions != null)
             {
                 var dtoIds = dto.Decisions
-                    .Where(d => d.Id.HasValue)
-                    .Select(d => d.Id.Value)
+                    .Select(d => Guid.TryParse(d.Id, out var id) ? id : (Guid?)null)
+                    .Where(id => id.HasValue)
+                    .Select(id => id!.Value)
                     .ToHashSet();
                 var toRemove = entity.Decisions.Where(d => !dtoIds.Contains(d.Id)).ToList();
                 foreach (var r in toRemove) entity.Decisions.Remove(r);
 
                 foreach (var dDto in dto.Decisions)
                 {
-                    var hasId = dDto.Id.HasValue;
-                    var decisionId = dDto.Id ?? Guid.Empty;
+                    var hasId = Guid.TryParse(dDto.Id, out var decisionId);
                     var existing = hasId ? entity.Decisions.FirstOrDefault(d => d.Id == decisionId) : null;
                     if (existing != null)
                     {
                         existing.DecisionDate = dDto.DecisionDate;
-                        existing.DecisionType = dDto.DecisionType;
-                        existing.DecisionDescription = dDto.DecisionDescription;
-                        existing.DecisionAmount = dDto.DecisionAmount;
-                        existing.DecisionStatus = dDto.DecisionStatus;
-                        existing.DecisionNumber = dDto.DecisionNumber;
-                        existing.Description = dDto.Description;
-                        existing.Reason = dDto.Reason;
-                        existing.Notes = dDto.Notes;
+                        existing.Status = dDto.Status;
+                        existing.Amount = dDto.Amount;
+                        existing.Currency = dDto.Currency;
+                        existing.CompensationTitle = dDto.CompensationTitle;
+                        existing.DocumentDescription = dDto.DocumentDescription;
+                        existing.DocumentName = dDto.DocumentName;
+                        existing.DocumentPath = dDto.DocumentPath;
                         existing.UpdatedAt = DateTime.UtcNow;
                     }
                     else
@@ -671,14 +670,13 @@ namespace AutomotiveClaimsApi.Controllers
                             Id = hasId ? decisionId : Guid.NewGuid(),
                             EventId = entity.Id,
                             DecisionDate = dDto.DecisionDate,
-                            DecisionType = dDto.DecisionType,
-                            DecisionDescription = dDto.DecisionDescription,
-                            DecisionAmount = dDto.DecisionAmount,
-                            DecisionStatus = dDto.DecisionStatus,
-                            DecisionNumber = dDto.DecisionNumber,
-                            Description = dDto.Description,
-                            Reason = dDto.Reason,
-                            Notes = dDto.Notes,
+                            Status = dDto.Status,
+                            Amount = dDto.Amount,
+                            Currency = dDto.Currency,
+                            CompensationTitle = dDto.CompensationTitle,
+                            DocumentDescription = dDto.DocumentDescription,
+                            DocumentName = dDto.DocumentName,
+                            DocumentPath = dDto.DocumentPath,
                             CreatedAt = DateTime.UtcNow,
                             UpdatedAt = DateTime.UtcNow
                         });
@@ -1062,21 +1060,20 @@ namespace AutomotiveClaimsApi.Controllers
             };
         }
 
-        private static Decision MapDecisionDtoToModel(DecisionUpsertDto dto, Guid eventId)
+        private static Decision MapDecisionDtoToModel(DecisionDto dto, Guid eventId)
         {
             return new Decision
             {
-                Id = dto.Id ?? Guid.NewGuid(),
-                EventId = dto.EventId ?? eventId,
+                Id = Guid.TryParse(dto.Id, out var id) ? id : Guid.NewGuid(),
+                EventId = Guid.TryParse(dto.EventId, out var eId) ? eId : eventId,
                 DecisionDate = dto.DecisionDate,
-                DecisionType = dto.DecisionType,
-                DecisionDescription = dto.DecisionDescription,
-                DecisionAmount = dto.DecisionAmount,
-                DecisionStatus = dto.DecisionStatus,
-                DecisionNumber = dto.DecisionNumber,
-                Description = dto.Description,
-                Reason = dto.Reason,
-                Notes = dto.Notes,
+                Status = dto.Status,
+                Amount = dto.Amount,
+                Currency = dto.Currency,
+                CompensationTitle = dto.CompensationTitle,
+                DocumentDescription = dto.DocumentDescription,
+                DocumentName = dto.DocumentName,
+                DocumentPath = dto.DocumentPath,
                 CreatedAt = DateTime.UtcNow,
                 UpdatedAt = DateTime.UtcNow
             };
@@ -1327,14 +1324,13 @@ namespace AutomotiveClaimsApi.Controllers
                 Id = d.Id.ToString(),
                 EventId = d.EventId.ToString(),
                 DecisionDate = d.DecisionDate,
-                DecisionType = d.DecisionType,
-                DecisionDescription = d.DecisionDescription,
-                DecisionAmount = d.DecisionAmount,
-                DecisionStatus = d.DecisionStatus,
-                DecisionNumber = d.DecisionNumber,
-                Description = d.Description,
-                Reason = d.Reason,
-                Notes = d.Notes,
+                Status = d.Status,
+                Amount = d.Amount,
+                Currency = d.Currency,
+                CompensationTitle = d.CompensationTitle,
+                DocumentDescription = d.DocumentDescription,
+                DocumentName = d.DocumentName,
+                DocumentPath = d.DocumentPath,
                 CreatedAt = d.CreatedAt,
                 UpdatedAt = d.UpdatedAt
             }).ToList(),

@@ -200,45 +200,39 @@ namespace AutomotiveClaimsApi.Migrations
                         .HasColumnType("uuid")
                         .HasDefaultValueSql("gen_random_uuid()");
 
+                    b.Property<decimal?>("Amount")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<string>("CompensationTitle")
+                        .HasColumnType("text");
+
                     b.Property<DateTime>("CreatedAt")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("timestamp with time zone")
                         .HasDefaultValueSql("NOW()");
 
-                    b.Property<decimal?>("DecisionAmount")
-                        .HasColumnType("decimal(18,2)");
+                    b.Property<string>("Currency")
+                        .HasColumnType("text");
 
                     b.Property<DateTime?>("DecisionDate")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<string>("DecisionDescription")
+                    b.Property<string>("DocumentDescription")
                         .HasMaxLength(1000)
-                        .HasColumnType("character varying(1000)")
-                        .HasColumnName("DecisionDescription");
+                        .HasColumnType("character varying(1000)");
 
-                    b.Property<string>("DecisionNumber")
+                    b.Property<string>("DocumentName")
                         .HasColumnType("text");
 
-                    b.Property<string>("DecisionStatus")
-                        .HasMaxLength(50)
-                        .HasColumnType("character varying(50)")
-                        .HasColumnName("DecisionStatus");
-
-                    b.Property<string>("DecisionType")
-                        .HasMaxLength(100)
-                        .HasColumnType("character varying(100)");
-
-                    b.Property<string>("Description")
+                    b.Property<string>("DocumentPath")
                         .HasColumnType("text");
 
                     b.Property<Guid>("EventId")
                         .HasColumnType("uuid");
 
-                    b.Property<string>("Notes")
-                        .HasColumnType("text");
-
-                    b.Property<string>("Reason")
-                        .HasColumnType("text");
+                    b.Property<string>("Status")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
 
                     b.Property<DateTime>("UpdatedAt")
                         .ValueGeneratedOnAdd()

@@ -8,6 +8,7 @@ namespace AutomotiveClaimsApi.DTOs
         public Guid? EventId { get; set; }
         public string? AppealNumber { get; set; }
         public DateTime? SubmissionDate { get; set; }
+        public DateTime? ExtensionDate { get; set; }
         public string? Reason { get; set; }
         public string? Status { get; set; }
         public string? Notes { get; set; }

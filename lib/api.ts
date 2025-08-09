@@ -283,18 +283,30 @@ export interface DecisionDto {
 }
 
 export interface AppealDto {
-  id?: number
-  eventId?: number
-  appealDate?: string
-  appealType?: string
-  description?: string
+  id: string
+  eventId?: string
+  submissionDate?: string
+  extensionDate?: string
+  decisionDate?: string
+  reason?: string
   status?: string
+  notes?: string
+  description?: string
+  appealNumber?: string
+  appealAmount?: number
+  decisionReason?: string
+  documentPath?: string
+  documentName?: string
+  documentDescription?: string
+  createdAt?: string
+  updatedAt?: string
 }
 
 export interface AppealUpsertDto {
   eventId?: string
   appealNumber?: string
   submissionDate?: string
+  extensionDate?: string
   reason?: string
   status?: string
   notes?: string
@@ -302,6 +314,9 @@ export interface AppealUpsertDto {
   appealAmount?: number
   decisionDate?: string
   decisionReason?: string
+  documentPath?: string
+  documentName?: string
+  documentDescription?: string
 }
 
 export interface ClientClaimDto {

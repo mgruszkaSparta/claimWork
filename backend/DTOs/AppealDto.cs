@@ -7,6 +7,7 @@ namespace AutomotiveClaimsApi.DTOs
         public string Id { get; set; } = string.Empty;
         public string EventId { get; set; } = string.Empty;
         public DateTime? SubmissionDate { get; set; }
+        public DateTime? ExtensionDate { get; set; }
         public string? Reason { get; set; }
         public string? Status { get; set; }
         public string? Notes { get; set; }

@@ -33,7 +33,6 @@ import {
 } from "@/lib/api/appeals"
 
 interface Appeal extends ApiAppeal {
-  extensionDate?: string
   alertDays?: number
 }
 
@@ -231,6 +230,7 @@ export const AppealsSection = ({ claimId }: AppealsSectionProps) => {
     try {
       const payload: AppealPayload = {
         filingDate: formData.filingDate,
+        extensionDate: formData.extensionDate || undefined,
         responseDate: formData.responseDate || undefined,
         status: formData.responseDate ? "Zamknięte" : formData.status,
         documentDescription: formData.documentDescription || undefined,

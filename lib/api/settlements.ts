@@ -30,10 +30,7 @@ export type Settlement = z.infer<typeof settlementSchema>;
 export type SettlementUpsert = z.infer<typeof settlementUpsertSchema>;
 
 async function request<T>(url: string, options: RequestInit = {}): Promise<T> {
-  const response = await fetch(`${API_BASE_URL}${url}`, {
-    headers: { "Content-Type": "application/json" },
-    ...options,
-  });
+  const response = await fetch(`${API_BASE_URL}${url}`, options);
   const text = await response.text();
   const data = text ? JSON.parse(text) : undefined;
   if (!response.ok) {
@@ -48,20 +45,21 @@ export async function getSettlements(eventId: string): Promise<Settlement[]> {
   return z.array(settlementSchema).parse(data);
 }
 
-export async function createSettlement(input: SettlementUpsert): Promise<Settlement> {
-  const body = settlementUpsertSchema.parse(input);
+export async function createSettlement(form: FormData): Promise<Settlement> {
   const data = await request<unknown>(`/settlements`, {
     method: "POST",
-    body: JSON.stringify(body),
+    body: form,
   });
   return settlementSchema.parse(data);
 }
 
-export async function updateSettlement(id: string, input: SettlementUpsert): Promise<Settlement> {
-  const body = settlementUpsertSchema.parse(input);
+export async function updateSettlement(
+  id: string,
+  form: FormData,
+): Promise<Settlement> {
   const data = await request<unknown>(`/settlements/${id}`, {
     method: "PUT",
-    body: JSON.stringify(body),
+    body: form,
   });
   return settlementSchema.parse(data);
 }

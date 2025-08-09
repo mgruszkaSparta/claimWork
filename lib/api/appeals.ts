@@ -10,6 +10,7 @@ export interface Appeal {
   filingDate: string;
   extensionDate?: string;
   responseDate?: string;
+  decisionDate?: string;
   status?: string;
   documentPath?: string;
   documentName?: string;
@@ -20,12 +21,14 @@ export interface AppealPayload {
   filingDate: string;
   extensionDate?: string;
   responseDate?: string;
+  decisionDate?: string;
   status?: string;
   documentDescription?: string;
   document?: File;
 }
 
 function mapDtoToAppeal(dto: AppealDto): Appeal {
+  const decisionDate = dto.decisionDate ?? undefined;
   return {
     id: dto.id,
     filingDate: dto.submissionDate ?? "",
@@ -61,11 +64,16 @@ export async function createAppeal(
   const formData = new FormData();
   formData.append("EventId", claimId);
   formData.append("FilingDate", appeal.filingDate);
+
   if (appeal.extensionDate) {
     formData.append("ExtensionDate", appeal.extensionDate);
   }
   if (appeal.responseDate) {
     formData.append("DecisionDate", appeal.responseDate);
+  const decisionDate = appeal.decisionDate ?? appeal.responseDate;
+  if (decisionDate) {
+    formData.append("DecisionDate", decisionDate);
+
   }
   if (appeal.status) {
     formData.append("Status", appeal.status);
@@ -94,11 +102,17 @@ export async function updateAppeal(
   ensureRequiredDates(appeal);
   const formData = new FormData();
   formData.append("FilingDate", appeal.filingDate);
+
   if (appeal.extensionDate) {
     formData.append("ExtensionDate", appeal.extensionDate);
   }
   if (appeal.responseDate) {
     formData.append("DecisionDate", appeal.responseDate);
+
+  const decisionDateUpdate = appeal.decisionDate ?? appeal.responseDate;
+  if (decisionDateUpdate) {
+    formData.append("DecisionDate", decisionDateUpdate);
+
   }
   if (appeal.status) {
     formData.append("Status", appeal.status);

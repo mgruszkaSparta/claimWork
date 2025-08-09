@@ -35,17 +35,30 @@ export async function POST(request: NextRequest) {
     const formData = await request.formData()
     const backendFormData = new FormData()
 
+    const fieldMap: Record<string, string> = {
+      claimId: "EventId",
+      filingDate: "FilingDate",
+      responseDate: "DecisionDate",
+      status: "Status",
+      documentDescription: "DocumentDescription",
+    }
+
+    const toBackendKey = (key: string) => {
+      return fieldMap[key] || `${key.charAt(0).toUpperCase()}${key.slice(1)}`
+    }
+
     formData.forEach((value, key) => {
       if (key === "documents" && value instanceof File) {
         if (!backendFormData.has("Document")) {
           backendFormData.append("Document", value)
         }
+
       } else if (key === "claimId" && typeof value === "string") {
         backendFormData.append("EventId", value)
       } else if (key === "extensionDate" && typeof value === "string") {
         backendFormData.append("ExtensionDate", value)
       } else if (typeof value === "string") {
-        backendFormData.append(key, value)
+        backendFormData.append(toBackendKey(key), value)
       }
     })
 

@@ -88,6 +88,7 @@ namespace AutomotiveClaimsApi.Controllers
                     Reason = createDto.Reason,
                     Status = createDto.Status,
                     Description = createDto.Description,
+                    DecisionDate = createDto.DecisionDate,
                     CreatedAt = DateTime.UtcNow,
                     UpdatedAt = DateTime.UtcNow
                 };
@@ -133,6 +134,7 @@ namespace AutomotiveClaimsApi.Controllers
                 appeal.Reason = updateDto.Reason;
                 appeal.Status = updateDto.Status;
                 appeal.Description = updateDto.Description;
+                appeal.DecisionDate = updateDto.DecisionDate;
                 appeal.UpdatedAt = DateTime.UtcNow;
 
                 if (updateDto.Document != null)

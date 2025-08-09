@@ -47,3 +47,17 @@ test('includes id field when provided', () => {
   const payload = transformFrontendClaimToApiPayload({ id: 'abc' } as any)
   assert.equal(payload.id, 'abc')
 })
+
+test('settlement ids are validated as GUIDs', () => {
+  const validId = '123e4567-e89b-12d3-a456-426614174000'
+  const payload = transformFrontendClaimToApiPayload({
+    settlements: [
+      { id: validId, settlementDate: '2024-01-01' },
+      { id: 'not-a-guid', settlementDate: '2024-01-01' },
+    ],
+  } as any)
+
+  const [valid, invalid] = (payload as any).settlements || []
+  assert.equal(valid?.id, validId)
+  assert.equal(invalid?.id, undefined)
+})

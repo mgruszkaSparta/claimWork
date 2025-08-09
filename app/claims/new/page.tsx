@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useRef } from "react"
+import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -18,7 +18,7 @@ import { Save, ArrowLeft, Plus, Calendar, Wrench, X } from 'lucide-react'
 import { ClaimFormSidebar } from "@/components/claim-form/claim-form-sidebar"
 import { ClaimTopHeader } from "@/components/claim-form/claim-top-header"
 import { ClaimMainContent } from "@/components/claim-form/claim-main-content"
-import { useClaimForm } from "@/hooks/use-claim-form"
+import { useClaimForm, getGlobalClaimId } from "@/hooks/use-claim-form"
 import { useClaims } from "@/hooks/use-claims"
 import { generateId } from "@/lib/constants"
 import { pksData, type Employee } from "@/lib/pks-data"
@@ -51,8 +51,8 @@ interface RepairSchedule {
 export default function NewClaimPage() {
   const router = useRouter()
   const { toast } = useToast()
-  const { createClaim, initializeClaim } = useClaims()
-  const initialized = useRef(false)
+  const { createClaim, deleteClaim } = useClaims()
+  const claimId = getGlobalClaimId()
   const [activeClaimSection, setActiveClaimSection] = useState("dane-zdarzenia")
   const [isSaving, setIsSaving] = useState(false)
   
@@ -103,15 +103,8 @@ export default function NewClaimPage() {
   } = useClaimForm()
 
   useEffect(() => {
-    if (!initialized.current) {
-      initialized.current = true
-      initializeClaim().then((id) => {
-        if (id) {
-          setClaimFormData((prev) => ({ ...prev, id }))
-        }
-      })
-    }
-  }, [initializeClaim, setClaimFormData])
+    setClaimFormData((prev) => ({ ...prev, id: claimId }))
+  }, [claimId, setClaimFormData])
 
   const getInitialScheduleData = (): Partial<RepairSchedule> => ({
     eventId: "new",
@@ -179,7 +172,7 @@ export default function NewClaimPage() {
     const newSchedule: RepairSchedule = {
       ...scheduleFormData,
       id: generateId(),
-      eventId: "new",
+      eventId: claimId,
       createdAt: new Date().toISOString(),
     } as RepairSchedule
 
@@ -197,7 +190,7 @@ export default function NewClaimPage() {
     const newDetail: RepairDetail = {
       ...repairDetailFormData,
       id: generateId(),
-      eventId: "new",
+      eventId: claimId,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     } as RepairDetail
@@ -258,12 +251,19 @@ export default function NewClaimPage() {
   const handleSaveClaim = async (exitAfterSave = false) => {
     if (isSaving) return
     setIsSaving(true)
-    
+
+    const savedScheduleIds: string[] = []
+    const savedDetailIds: string[] = []
+    let createdClaimId: string | null = null
+
     try {
+      const currentClaimId = claimFormData.id || claimId
       const newClaimData = {
         ...claimFormData,
-        id: generateId(),
-        claimNumber: `PL${new Date().getFullYear()}${String(Date.now()).slice(-8)}`,
+        id: currentClaimId,
+        claimNumber:
+          claimFormData.claimNumber ||
+          `PL${new Date().getFullYear()}${String(Date.now()).slice(-8)}`,
       } as Claim
 
       const createdClaim = await createClaim(newClaimData)
@@ -271,34 +271,34 @@ export default function NewClaimPage() {
       if (!createdClaim) {
         throw new Error("Nie udało się utworzyć szkody")
       }
+      createdClaimId = createdClaim.id
 
-      // Save repair schedules and details if any exist
-      if (repairSchedules.length > 0) {
-        for (const schedule of repairSchedules) {
-          try {
-            await fetch("/api/repair-schedules", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ ...schedule, eventId: createdClaim.id }),
-            })
-          } catch (error) {
-            console.error("Error saving repair schedule:", error)
-          }
+      // Save repair schedules sequentially
+      for (const schedule of repairSchedules) {
+        const response = await fetch("/api/repair-schedules", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ ...schedule, claimId: currentClaimId }),
+        })
+        if (!response.ok) {
+          throw new Error("Nie udało się zapisać harmonogramu naprawy")
         }
+        const saved = await response.json()
+        if (saved?.id) savedScheduleIds.push(saved.id)
       }
 
-      if (repairDetails.length > 0) {
-        for (const detail of repairDetails) {
-          try {
-            await fetch("/api/repair-details", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ ...detail, eventId: createdClaim.id }),
-            })
-          } catch (error) {
-            console.error("Error saving repair detail:", error)
-          }
+      // Save repair details sequentially
+      for (const detail of repairDetails) {
+        const response = await fetch("/api/repair-details", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ ...detail, claimId: currentClaimId }),
+        })
+        if (!response.ok) {
+          throw new Error("Nie udało się zapisać szczegółów naprawy")
         }
+        const saved = await response.json()
+        if (saved?.id) savedDetailIds.push(saved.id)
       }
 
       toast({
@@ -314,10 +314,27 @@ export default function NewClaimPage() {
         setRepairDetails([])
       }
     } catch (error) {
+      // rollback
+      for (const id of savedDetailIds) {
+        await fetch(`/api/repair-details/${id}`, { method: "DELETE" }).catch(
+          () => {},
+        )
+      }
+      for (const id of savedScheduleIds) {
+        await fetch(`/api/repair-schedules/${id}`, { method: "DELETE" }).catch(
+          () => {},
+        )
+      }
+      if (createdClaimId) {
+        await deleteClaim(createdClaimId)
+      }
       console.error("Error saving claim:", error)
       toast({
         title: "Błąd",
-        description: error instanceof Error ? error.message : "Wystąpił błąd podczas zapisywania szkody.",
+        description:
+          error instanceof Error
+            ? error.message
+            : "Wystąpił błąd podczas zapisywania szkody.",
         variant: "destructive",
       })
     } finally {

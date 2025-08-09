@@ -2062,7 +2062,7 @@ const renderParticipantDetails = (participant: ParticipantInfo | undefined, titl
               <CardTitle className="text-lg font-semibold">Odwołanie/Reklamacja</CardTitle>
             </CardHeader>
             <CardContent className="p-0 bg-white">
-              {eventId && <AppealsSection eventId={eventId} />}
+              {eventId && <AppealsSection claimId={eventId} />}
             </CardContent>
           </Card>
         </div>

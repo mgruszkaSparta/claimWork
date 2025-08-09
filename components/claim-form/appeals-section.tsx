@@ -23,24 +23,25 @@ import {
 import { ArrowUpDown, Plus, Edit, Trash2, Eye, Download, Upload, FileText, X, Info, Loader2, Minus } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 import { useDragDrop } from "@/hooks/use-drag-drop"
+import {
+  getAppeals,
+  createAppeal,
+  updateAppeal,
+  deleteAppeal as apiDeleteAppeal,
+  Appeal as ApiAppeal,
+  AppealPayload,
+} from "@/lib/api/appeals"
 
-interface Appeal {
-  id: string
-  filingDate: string
+interface Appeal extends ApiAppeal {
   extensionDate?: string
-  responseDate?: string
-  status: "W toku" | "Zamknięte"
-  documentPath?: string
-  documentName?: string
-  documentDescription?: string
   alertDays?: number
 }
 
 interface AppealsSectionProps {
-  eventId: string
+  claimId: string
 }
 
-export const AppealsSection = ({ eventId }: AppealsSectionProps) => {
+export const AppealsSection = ({ claimId }: AppealsSectionProps) => {
   const { toast } = useToast()
   const fileInputRef = useRef<HTMLInputElement>(null)
   const { dragState, handleDragOver, handleDragLeave, handleDrop, handlePaste } = useDragDrop()
@@ -61,13 +62,14 @@ export const AppealsSection = ({ eventId }: AppealsSectionProps) => {
     filingDate: "",
     extensionDate: "",
     responseDate: "",
+    status: "W toku",
     documentDescription: "",
   })
 
   // Load appeals on component mount
   useEffect(() => {
     loadAppeals()
-  }, [eventId])
+  }, [claimId])
 
   // Handle paste events
   useEffect(() => {
@@ -88,13 +90,9 @@ export const AppealsSection = ({ eventId }: AppealsSectionProps) => {
   const loadAppeals = async () => {
     setIsLoading(true)
     try {
-      const response = await fetch(`/api/appeals?eventId=${eventId}`)
-      if (!response.ok) {
-        throw new Error("Failed to fetch appeals")
-      }
-      const data = await response.json()
+      const data = await getAppeals(claimId)
       setAppeals(data)
-    } catch (error) {
+    } catch {
       toast({
         title: "Błąd",
         description: "Nie udało się załadować odwołań",
@@ -156,6 +154,7 @@ export const AppealsSection = ({ eventId }: AppealsSectionProps) => {
       filingDate: new Date().toISOString().split("T")[0],
       extensionDate: "",
       responseDate: "",
+      status: "W toku",
       documentDescription: "",
     })
     setSelectedFiles([])
@@ -187,6 +186,7 @@ export const AppealsSection = ({ eventId }: AppealsSectionProps) => {
       filingDate: appeal.filingDate,
       extensionDate: appeal.extensionDate || "",
       responseDate: appeal.responseDate || "",
+      status: appeal.status || "W toku",
       documentDescription: appeal.documentDescription || "",
     })
     setSelectedFiles([])
@@ -204,56 +204,47 @@ export const AppealsSection = ({ eventId }: AppealsSectionProps) => {
       })
       return
     }
+    if (
+      formData.extensionDate &&
+      new Date(formData.extensionDate) < new Date(formData.filingDate)
+    ) {
+      toast({
+        title: "Błąd",
+        description: "Termin przedłużenia nie może być wcześniejszy niż data złożenia",
+        variant: "destructive",
+      })
+      return
+    }
+    if (
+      formData.responseDate &&
+      new Date(formData.responseDate) < new Date(formData.filingDate)
+    ) {
+      toast({
+        title: "Błąd",
+        description: "Data odpowiedzi nie może być wcześniejsza niż data złożenia",
+        variant: "destructive",
+      })
+      return
+    }
 
     setIsLoading(true)
     try {
-      const appealData = {
-        eventId,
+      const payload: AppealPayload = {
         filingDate: formData.filingDate,
-        extensionDate: formData.extensionDate || null,
-        responseDate: formData.responseDate || null,
-        documentDescription: formData.documentDescription || null,
+        responseDate: formData.responseDate || undefined,
+        status: formData.responseDate ? "Zamknięte" : formData.status,
+        documentDescription: formData.documentDescription || undefined,
+        document: selectedFiles[0],
       }
 
-      // Create FormData for file upload if files are selected
-      const formDataToSend = new FormData()
-      Object.entries(appealData).forEach(([key, value]) => {
-        if (value !== null) {
-          formDataToSend.append(key, value)
-        }
-      })
-
-      // Add multiple files
-      selectedFiles.forEach((file, index) => {
-        formDataToSend.append(`documents`, file, file.name)
-      })
-
       if (isEditing && editingId) {
-        // Update existing appeal
-        const response = await fetch(`/api/appeals/${editingId}`, {
-          method: "PUT",
-          body: formDataToSend,
-        })
-
-        if (!response.ok) {
-          throw new Error("Failed to update appeal")
-        }
-
+        await updateAppeal(editingId, payload)
         toast({
           title: "Sukces",
           description: "Odwołanie zostało zaktualizowane",
         })
       } else {
-        // Create new appeal
-        const response = await fetch("/api/appeals", {
-          method: "POST",
-          body: formDataToSend,
-        })
-
-        if (!response.ok) {
-          throw new Error("Failed to create appeal")
-        }
-
+        await createAppeal(claimId, payload)
         toast({
           title: "Sukces",
           description: "Odwołanie zostało dodane",
@@ -274,25 +265,16 @@ export const AppealsSection = ({ eventId }: AppealsSectionProps) => {
     }
   }
 
-  const deleteAppeal = async (id: string) => {
+  const handleDeleteAppeal = async (id: string) => {
     setIsLoading(true)
     try {
-      const response = await fetch(`/api/appeals/${id}`, {
-        method: "DELETE",
-      })
-
-      if (!response.ok) {
-        throw new Error("Failed to delete appeal")
-      }
-
+      await apiDeleteAppeal(id)
       toast({
         title: "Sukces",
         description: "Odwołanie zostało usunięte",
       })
-
-      // Reload appeals list
       await loadAppeals()
-    } catch (error) {
+    } catch {
       toast({
         title: "Błąd",
         description: "Nie udało się usunąć odwołania",
@@ -723,7 +705,7 @@ export const AppealsSection = ({ eventId }: AppealsSectionProps) => {
                             <AlertDialogFooter>
                               <AlertDialogCancel>Anuluj</AlertDialogCancel>
                               <AlertDialogAction
-                                onClick={() => deleteAppeal(appeal.id)}
+                                onClick={() => handleDeleteAppeal(appeal.id)}
                                 className="bg-red-600 hover:bg-red-700"
                               >
                                 Usuń

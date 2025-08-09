@@ -134,9 +134,9 @@ export interface Decision {
   amount?: number
   currency?: string
   compensationTitle?: string
-  documentDescription?: string
-  documentName?: string
-  documentPath?: string
+  documentDescription?: string | null
+  documentName?: string | null
+  documentPath?: string | null
 }
 
 export interface Appeal {

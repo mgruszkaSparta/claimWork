@@ -7,15 +7,14 @@ export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url)
 
-    const claimId = searchParams.get("claimId") || searchParams.get("eventId")
-
+    const eventId = searchParams.get("eventId") || searchParams.get("claimId")
 
     if (!eventId) {
       return NextResponse.json({ error: "EventId is required" }, { status: 400 })
     }
 
     const url = new URL(`${API_BASE_URL}/recourses`)
-    url.searchParams.set("claimId", claimId)
+    url.searchParams.set("eventId", eventId)
 
 
     const response = await fetch(url.toString(), {
@@ -44,17 +43,19 @@ export async function POST(request: NextRequest) {
   try {
     const formData = await request.formData()
 
-
-    const claimId = formData.get("claimId") as string | null
+    const eventId = (formData.get("eventId") as string | null) || (formData.get("claimId") as string | null)
     const filingDate = formData.get("filingDate") as string | null
     const insuranceCompany = formData.get("insuranceCompany") as string | null
 
-    if (!claimId || !filingDate || !insuranceCompany) {
+    if (!eventId || !filingDate || !insuranceCompany) {
       return NextResponse.json(
-        { error: "ClaimId, filingDate, and insuranceCompany are required" },
+        { error: "EventId, filingDate, and insuranceCompany are required" },
         { status: 400 },
       )
     }
+
+    formData.set("eventId", eventId)
+    formData.delete("claimId")
 
     const response = await fetch(`${API_BASE_URL}/recourses`, {
       method: "POST",

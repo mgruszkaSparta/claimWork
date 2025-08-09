@@ -5,7 +5,7 @@ const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "https://localhost:5200/
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url)
-    const eventId = searchParams.get("eventId")
+    const eventId = searchParams.get("eventId") || searchParams.get("claimId")
 
     let url = `${API_BASE_URL}/repair-schedules`
     if (eventId) {
@@ -42,6 +42,12 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
+
+    if (!body.eventId && body.claimId) {
+      body.eventId = body.claimId
+      delete body.claimId
+    }
+
     console.log("Creating new repair schedule:", body)
 
     const response = await fetch(`${API_BASE_URL}/repair-schedules`, {

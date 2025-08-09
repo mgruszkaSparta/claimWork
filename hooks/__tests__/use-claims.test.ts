@@ -85,3 +85,8 @@ test('settlement ids are validated as GUIDs', () => {
   assert.equal(valid?.id, validId)
   assert.equal(invalid?.id, undefined)
 })
+
+test('omits decisions when none are provided', () => {
+  const payload = transformFrontendClaimToApiPayload({ decisions: [] } as any)
+  assert.ok(!('decisions' in payload))
+})

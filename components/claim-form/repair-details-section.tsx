@@ -11,10 +11,16 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Checkbox } from "@/components/ui/checkbox"
 import { Badge } from "@/components/ui/badge"
 import { Trash2, Plus, Save, Edit, X } from 'lucide-react'
-import { toast } from "@/hooks/use-toast"
-import type { RepairDetail } from "@/lib/repair-details-store"
+import { useToast } from "@/hooks/use-toast"
+import {
+  getRepairDetails,
+  createRepairDetail,
+  updateRepairDetail,
+  deleteRepairDetail,
+  repairDetailUpsertSchema,
+  type RepairDetail,
+} from "@/lib/api/repair-details"
 import { pksData, type Employee } from "@/lib/pks-data"
-import { z } from "zod"
 
 interface RepairDetailsSectionProps {
   eventId: string
@@ -26,6 +32,7 @@ export function RepairDetailsSection({ eventId }: RepairDetailsSectionProps) {
   const [editingId, setEditingId] = useState<string | null>(null)
   const [employeesForSelectedBranch, setEmployeesForSelectedBranch] = useState<Employee[]>([])
   const [isFormVisible, setIsFormVisible] = useState(false)
+  const { toast } = useToast()
 
   const getInitialFormData = (): Omit<RepairDetail, "id" | "eventId" | "createdAt" | "updatedAt"> => ({
     branchId: "",
@@ -52,17 +59,6 @@ export function RepairDetailsSection({ eventId }: RepairDetailsSectionProps) {
 
   const [formData, setFormData] = useState(getInitialFormData())
 
-  const repairDetailsValidationSchema = z.object({
-    branchId: z.string().min(1, "Oddział jest wymagany"),
-    employeeEmail: z.string().min(1, "Pracownik jest wymagany"),
-    vehicleTabNumber: z.string().min(1, "Nr taborowy pojazdu jest wymagany"),
-    vehicleRegistration: z.string().min(1, "Nr rejestracyjny jest wymagany"),
-    damageDateTime: z.string().min(1, "Data i godzina szkody są wymagane"),
-    appraiserWaitingDate: z.string().min(1, "Data oczekiwania na rzeczoznawcę jest wymagana"),
-    repairStartDate: z.string().min(1, "Data przystąpienia do naprawy jest wymagana"),
-    repairEndDate: z.string().min(1, "Data zakończenia naprawy jest wymagana"),
-  })
-
   useEffect(() => {
     fetchRepairDetails()
   }, [eventId])
@@ -83,16 +79,13 @@ export function RepairDetailsSection({ eventId }: RepairDetailsSectionProps) {
   const fetchRepairDetails = async () => {
     try {
       setIsLoading(true)
-      const response = await fetch(`/api/repair-details?eventId=${eventId}`)
-      if (response.ok) {
-        const data = await response.json()
-        setRepairDetails(data)
-      }
+      const data = await getRepairDetails(eventId)
+      setRepairDetails(data)
     } catch (error) {
       console.error("Error fetching repair details:", error)
       toast({
         title: "Błąd",
-        description: "Nie udało się pobrać szczegółów naprawy",
+        description: error instanceof Error ? error.message : "Nie udało się pobrać szczegółów naprawy",
         variant: "destructive",
       })
     } finally {
@@ -112,7 +105,7 @@ export function RepairDetailsSection({ eventId }: RepairDetailsSectionProps) {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    const validation = repairDetailsValidationSchema.safeParse(formData)
+    const validation = repairDetailUpsertSchema.safeParse({ ...formData, eventId })
 
     if (!validation.success) {
       toast({
@@ -124,36 +117,27 @@ export function RepairDetailsSection({ eventId }: RepairDetailsSectionProps) {
     }
 
     try {
-      const url = editingId ? `/api/repair-details/${editingId}` : "/api/repair-details"
-      const method = editingId ? "PUT" : "POST"
-
-      const response = await fetch(url, {
-        method,
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          ...formData,
-          eventId,
-        }),
-      })
-
-      if (response.ok) {
+      if (editingId) {
+        await updateRepairDetail(editingId, { ...formData, eventId })
         toast({
           title: "Sukces",
-          description: editingId ? "Opis naprawy został zaktualizowany" : "Opis naprawy został dodany",
+          description: "Opis naprawy został zaktualizowany",
         })
-        resetForm()
-        fetchRepairDetails()
-        setIsFormVisible(false)
       } else {
-        throw new Error("Failed to save repair details")
+        await createRepairDetail({ ...formData, eventId })
+        toast({
+          title: "Sukces",
+          description: "Opis naprawy został dodany",
+        })
       }
+      resetForm()
+      fetchRepairDetails()
+      setIsFormVisible(false)
     } catch (error) {
       console.error("Error saving repair details:", error)
       toast({
         title: "Błąd",
-        description: "Nie udało się zapisać opisu naprawy",
+        description: error instanceof Error ? error.message : "Nie udało się zapisać opisu naprawy",
         variant: "destructive",
       })
     }
@@ -177,24 +161,17 @@ export function RepairDetailsSection({ eventId }: RepairDetailsSectionProps) {
     if (!confirm("Czy na pewno chcesz usunąć ten opis naprawy?")) return
 
     try {
-      const response = await fetch(`/api/repair-details/${id}`, {
-        method: "DELETE",
+      await deleteRepairDetail(id)
+      toast({
+        title: "Sukces",
+        description: "Opis naprawy został usunięty",
       })
-
-      if (response.ok) {
-        toast({
-          title: "Sukces",
-          description: "Opis naprawy został usunięty",
-        })
-        fetchRepairDetails()
-      } else {
-        throw new Error("Failed to delete repair details")
-      }
+      fetchRepairDetails()
     } catch (error) {
       console.error("Error deleting repair details:", error)
       toast({
         title: "Błąd",
-        description: "Nie udało się usunąć opisu naprawy",
+        description: error instanceof Error ? error.message : "Nie udało się usunąć opisu naprawy",
         variant: "destructive",
       })
     }

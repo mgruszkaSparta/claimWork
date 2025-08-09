@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect } from "react"
+import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import { Header } from "@/components/header"
 import { Sidebar } from "@/components/sidebar"
@@ -23,6 +23,7 @@ interface PageProps {
 
 function HomePage({ user, onLogout }: PageProps) {
   const router = useRouter()
+  const [activeTab, setActiveTab] = useState("dashboard")
 
   useEffect(() => {
     const isAuthenticated = localStorage.getItem('isAuthenticated')

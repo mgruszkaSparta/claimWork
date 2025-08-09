@@ -168,10 +168,16 @@ export const transformFrontendClaimToApiPayload = (
       description: d.description,
       detail: d.detail,
     })),
-    decisions: decisions?.map((d) => ({
-      ...d,
-      decisionDate: d.decisionDate ? new Date(d.decisionDate).toISOString() : undefined,
-    })),
+    ...(Array.isArray(decisions) && decisions.length > 0
+      ? {
+          decisions: decisions.map((d) => ({
+            ...d,
+            decisionDate: d.decisionDate
+              ? new Date(d.decisionDate).toISOString()
+              : undefined,
+          })),
+        }
+      : {}),
     appeals: appeals?.map((a) => ({
       ...a,
       appealDate: a.appealDate ? new Date(a.appealDate).toISOString() : undefined,

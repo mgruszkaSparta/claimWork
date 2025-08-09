@@ -1,5 +1,5 @@
-import { strict as assert } from 'node:assert'
 import { test } from 'node:test'
+import assert from 'node:assert/strict'
 import { transformFrontendClaimToApiPayload } from '../use-claims'
 
 // Basic test to ensure dropdown selections are mapped
@@ -43,7 +43,45 @@ test('participant and driver ids are numeric', () => {
   assert.equal(driver?.id, 456)
 })
 
+test('settlement ids are validated and converted', () => {
+  const payload = transformFrontendClaimToApiPayload({
+    settlements: [
+      {
+        id: 'not-a-guid',
+        settlementDate: '2024-01-01',
+        settlementType: 'type',
+        description: 'x',
+      },
+      {
+        id: '550e8400-e29b-41d4-a716-446655440000',
+        settlementDate: '2024-01-02',
+        settlementType: 'type',
+        description: 'y',
+      },
+    ],
+  } as any)
+
+  const first = payload.settlements?.[0]
+  const second = payload.settlements?.[1]
+  assert.ok(first && !('id' in first))
+  assert.equal(second?.id, '550e8400-e29b-41d4-a716-446655440000')
+})
+
 test('includes id field when provided', () => {
   const payload = transformFrontendClaimToApiPayload({ id: 'abc' } as any)
   assert.equal(payload.id, 'abc')
+})
+
+test('settlement ids are validated as GUIDs', () => {
+  const validId = '123e4567-e89b-12d3-a456-426614174000'
+  const payload = transformFrontendClaimToApiPayload({
+    settlements: [
+      { id: validId, settlementDate: '2024-01-01' },
+      { id: 'not-a-guid', settlementDate: '2024-01-01' },
+    ],
+  } as any)
+
+  const [valid, invalid] = (payload as any).settlements || []
+  assert.equal(valid?.id, validId)
+  assert.equal(invalid?.id, undefined)
 })

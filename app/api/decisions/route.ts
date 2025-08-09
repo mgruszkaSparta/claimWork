@@ -4,14 +4,14 @@ const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5200/a
 
 export async function GET(request: NextRequest) {
   try {
-    const { searchParams } = new URL(request.url)
-    const claimId = searchParams.get("claimId")
+      const { searchParams } = new URL(request.url)
+      const eventId = searchParams.get("eventId") || searchParams.get("claimId")
 
-    if (!claimId) {
-      return NextResponse.json({ error: "ClaimId is required" }, { status: 400 })
-    }
+      if (!eventId) {
+        return NextResponse.json({ error: "EventId is required" }, { status: 400 })
+      }
 
-    const url = `${API_BASE_URL}/decisions?claimId=${claimId}`
+      const url = `${API_BASE_URL}/decisions?eventId=${eventId}`
 
 
     const response = await fetch(url, {
@@ -44,6 +44,12 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const formData = await request.formData()
+
+    const eventId = (formData.get("eventId") as string | null) || (formData.get("claimId") as string | null)
+    if (eventId) {
+      formData.set("eventId", eventId)
+      formData.delete("claimId")
+    }
 
     const response = await fetch(`${API_BASE_URL}/decisions`, {
       method: "POST",

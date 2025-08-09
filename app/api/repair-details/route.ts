@@ -5,7 +5,7 @@ import type { RepairDetail } from "@/lib/repair-details-store"
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url)
-    const eventId = searchParams.get("eventId")
+    const eventId = searchParams.get("eventId") || searchParams.get("claimId")
 
     let filteredDetails = repairDetails
 
@@ -24,9 +24,11 @@ export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
 
+    const eventId = body.eventId || body.claimId
+
     const newRepairDetail: RepairDetail = {
       id: Math.random().toString(36).substr(2, 9),
-      eventId: body.eventId,
+      eventId,
       branchId: body.branchId || "",
       employeeEmail: body.employeeEmail || "",
       replacementVehicleRequired: body.replacementVehicleRequired || false,

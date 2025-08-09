@@ -36,11 +36,11 @@ export async function GET(request: NextRequest) {
 
   try {
     const { searchParams } = new URL(request.url)
-    const claimId = searchParams.get("claimId")
+    const eventId = searchParams.get("eventId") || searchParams.get("claimId")
 
     let url = `${API_BASE_URL}/settlements`
-    if (claimId) {
-      url += `?claimId=${claimId}`
+    if (eventId) {
+      url += `?eventId=${eventId}`
     }
 
     const response = await fetchWithRetry(url, {
@@ -81,6 +81,12 @@ export async function POST(request: NextRequest) {
 
   try {
     const formData = await request.formData()
+
+    const eventId = (formData.get("eventId") as string | null) || (formData.get("claimId") as string | null)
+    if (eventId) {
+      formData.set("eventId", eventId)
+      formData.delete("claimId")
+    }
 
     const response = await fetchWithRetry(`${API_BASE_URL}/settlements`, {
       method: "POST",

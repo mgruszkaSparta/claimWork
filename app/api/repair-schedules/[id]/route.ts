@@ -32,6 +32,12 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
   try {
     const { id } = params
     const body = await request.json()
+
+    if (!body.eventId && body.claimId) {
+      body.eventId = body.claimId
+      delete body.claimId
+    }
+
     console.log(`Updating repair schedule ${id}:`, body)
 
     const response = await fetch(`${API_BASE_URL}/repair-schedules/${id}`, {

@@ -122,6 +122,7 @@ CREATE TABLE "Appeals" (
     "ApprovedAmount" DECIMAL(18,2),
     "Status" VARCHAR(50) DEFAULT 'Pending',
     "ReviewDate" TIMESTAMP,
+    "DecisionDate" TIMESTAMP,
     "ReviewNotes" VARCHAR(1000),
     "ReviewedBy" VARCHAR(100),
     "CreatedAt" TIMESTAMP NOT NULL DEFAULT NOW(),

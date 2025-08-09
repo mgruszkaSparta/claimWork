@@ -178,6 +178,7 @@ CREATE TABLE dbo.Appeals (
     ApprovedAmount DECIMAL(18,2),
     Status NVARCHAR(50),
     ReviewDate DATETIME2,
+    DecisionDate DATETIME2,
     ReviewerNotes NVARCHAR(1000),
     CreatedAt DATETIME2 NOT NULL DEFAULT GETUTCDATE(),
     UpdatedAt DATETIME2 NOT NULL DEFAULT GETUTCDATE(),

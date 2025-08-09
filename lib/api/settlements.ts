@@ -45,18 +45,22 @@ export async function getSettlements(eventId: string): Promise<Settlement[]> {
   return z.array(settlementSchema).parse(data);
 }
 
-export async function createSettlement(body: FormData): Promise<Settlement> {
+export async function createSettlement(form: FormData): Promise<Settlement> {
   const data = await request<unknown>(`/settlements`, {
     method: "POST",
-    body,
+    body: form,
+
+
   });
   return settlementSchema.parse(data);
 }
+
 
 export async function updateSettlement(id: string, body: FormData): Promise<Settlement> {
   const data = await request<unknown>(`/settlements/${id}`, {
     method: "PUT",
     body,
+
   });
   return settlementSchema.parse(data);
 }

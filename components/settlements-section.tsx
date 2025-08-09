@@ -79,11 +79,23 @@ export function SettlementsSection({ eventId }: SettlementsSectionProps) {
       }
     })
     try {
+      const data = validation.data
+      const payload = new FormData()
+      payload.append("eventId", data.eventId)
+      if (data.externalEntity) payload.append("externalEntity", data.externalEntity)
+      if (data.transferDate) payload.append("transferDate", data.transferDate)
+      if (data.settlementDate) payload.append("settlementDate", data.settlementDate)
+      if (data.settlementAmount !== undefined)
+        payload.append("settlementAmount", data.settlementAmount.toString())
+      if (data.currency) payload.append("currency", data.currency)
+      payload.append("status", data.status)
       if (editingId) {
+
         await updateSettlement(editingId, body)
         toast({ title: "Sukces", description: "Rozliczenie zaktualizowane" })
       } else {
         await createSettlement(body)
+
         toast({ title: "Sukces", description: "Rozliczenie dodane" })
       }
       resetForm()

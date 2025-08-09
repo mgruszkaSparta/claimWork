@@ -31,10 +31,11 @@ import {
 } from "@/components/ui/alert-dialog"
 
 interface DecisionsSectionProps {
-  claimId: string
+  claimId?: string
+  onChange?: (decisions: Decision[]) => void
 }
 
-export function DecisionsSection({ claimId }: DecisionsSectionProps) {
+export function DecisionsSection({ claimId, onChange }: DecisionsSectionProps) {
   const [decisions, setDecisions] = useState<Decision[]>([])
   const [isFormVisible, setIsFormVisible] = useState(false)
   const [isEditing, setIsEditing] = useState(false)
@@ -90,6 +91,7 @@ export function DecisionsSection({ claimId }: DecisionsSectionProps) {
     try {
       const data = await apiGetDecisions(claimId)
       setDecisions(data)
+      onChange?.(data)
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error)
       console.error("Error loading decisions:", message)

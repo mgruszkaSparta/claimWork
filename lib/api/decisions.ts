@@ -10,9 +10,9 @@ export const decisionSchema = z.object({
   amount: z.number().nullable().optional(),
   currency: z.string().optional(),
   compensationTitle: z.string().optional(),
-  documentDescription: z.string().optional(),
-  documentName: z.string().optional(),
-  documentPath: z.string().optional(),
+  documentDescription: z.string().nullish(),
+  documentName: z.string().nullish(),
+  documentPath: z.string().nullish(),
   createdAt: z.string(),
   updatedAt: z.string(),
 });

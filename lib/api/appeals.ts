@@ -1,0 +1,121 @@
+import { AppealDto } from "../api";
+
+const API_BASE_URL =
+  process.env.NEXT_PUBLIC_API_URL ||
+  process.env.API_BASE_URL ||
+  "https://claim-work-backend.azurewebsites.net/api";
+
+export interface Appeal {
+  id: string;
+  filingDate: string;
+  responseDate?: string;
+  status?: string;
+  documentPath?: string;
+  documentName?: string;
+  documentDescription?: string;
+}
+
+export interface AppealPayload {
+  filingDate: string;
+  responseDate?: string;
+  status?: string;
+  documentDescription?: string;
+  document?: File;
+}
+
+function mapDtoToAppeal(dto: AppealDto): Appeal {
+  return {
+    id: dto.id,
+    filingDate: dto.submissionDate ?? "",
+    responseDate: dto.decisionDate ?? undefined,
+    status: dto.status,
+    documentPath: dto.documentPath,
+    documentName: dto.documentName,
+    documentDescription: dto.documentDescription,
+  };
+}
+
+function ensureRequiredDates(data: { filingDate?: string }) {
+  if (!data.filingDate) {
+    throw new Error("filingDate is required");
+  }
+}
+
+export async function getAppeals(claimId: string): Promise<Appeal[]> {
+  const response = await fetch(`${API_BASE_URL}/appeals/event/${claimId}`);
+  if (!response.ok) {
+    throw new Error("Failed to fetch appeals");
+  }
+  const data = (await response.json()) as AppealDto[];
+  return data.map(mapDtoToAppeal);
+}
+
+export async function createAppeal(
+  claimId: string,
+  appeal: AppealPayload,
+): Promise<Appeal> {
+  ensureRequiredDates(appeal);
+  const formData = new FormData();
+  formData.append("EventId", claimId);
+  formData.append("FilingDate", appeal.filingDate);
+  if (appeal.responseDate) {
+    formData.append("DecisionDate", appeal.responseDate);
+  }
+  if (appeal.status) {
+    formData.append("Status", appeal.status);
+  }
+  if (appeal.documentDescription) {
+    formData.append("DocumentDescription", appeal.documentDescription);
+  }
+  if (appeal.document) {
+    formData.append("Document", appeal.document);
+  }
+  const response = await fetch(`${API_BASE_URL}/appeals`, {
+    method: "POST",
+    body: formData,
+  });
+  if (!response.ok) {
+    throw new Error("Failed to create appeal");
+  }
+  const dto = (await response.json()) as AppealDto;
+  return mapDtoToAppeal(dto);
+}
+
+export async function updateAppeal(
+  id: string,
+  appeal: AppealPayload,
+): Promise<Appeal> {
+  ensureRequiredDates(appeal);
+  const formData = new FormData();
+  formData.append("FilingDate", appeal.filingDate);
+  if (appeal.responseDate) {
+    formData.append("DecisionDate", appeal.responseDate);
+  }
+  if (appeal.status) {
+    formData.append("Status", appeal.status);
+  }
+  if (appeal.documentDescription) {
+    formData.append("DocumentDescription", appeal.documentDescription);
+  }
+  if (appeal.document) {
+    formData.append("Document", appeal.document);
+  }
+  const response = await fetch(`${API_BASE_URL}/appeals/${id}`, {
+    method: "PUT",
+    body: formData,
+  });
+  if (!response.ok) {
+    throw new Error("Failed to update appeal");
+  }
+  const dto = (await response.json()) as AppealDto;
+  return mapDtoToAppeal(dto);
+}
+
+export async function deleteAppeal(id: string): Promise<void> {
+  const response = await fetch(`${API_BASE_URL}/appeals/${id}`, {
+    method: "DELETE",
+  });
+  if (!response.ok) {
+    throw new Error("Failed to delete appeal");
+  }
+}

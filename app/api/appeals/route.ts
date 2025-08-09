@@ -5,7 +5,7 @@ const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5200/a
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url)
-    const eventId = searchParams.get("eventId")
+    const eventId = searchParams.get("eventId") || searchParams.get("claimId")
 
     if (!eventId) {
       return NextResponse.json({ error: "eventId is required" }, { status: 400 })
@@ -40,6 +40,8 @@ export async function POST(request: NextRequest) {
         if (!backendFormData.has("Document")) {
           backendFormData.append("Document", value)
         }
+      } else if (key === "claimId" && typeof value === "string") {
+        backendFormData.append("EventId", value)
       } else if (typeof value === "string") {
         backendFormData.append(key, value)
       }

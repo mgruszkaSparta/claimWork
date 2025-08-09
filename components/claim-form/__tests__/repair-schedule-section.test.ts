@@ -1,5 +1,6 @@
 import { strict as assert } from 'node:assert'
 import { test } from 'node:test'
+import { deleteRepairSchedule } from '@/lib/api/repair-schedules'
 
 type Schedule = { id: string }
 
@@ -25,8 +26,7 @@ async function testHandleDelete(confirmResult: boolean) {
   const handleDelete = async (scheduleId: string) => {
     if (!confirm('Czy na pewno chcesz usunąć harmonogram?')) return
     try {
-      const response = await fetch(`/api/repair-schedules/${scheduleId}`, { method: 'DELETE' })
-      if (!response.ok) throw new Error('Failed to delete repair schedule')
+      await deleteRepairSchedule(scheduleId)
       setSchedules((prev) => prev.filter((s) => s.id !== scheduleId))
       toast({})
     } catch (error) {

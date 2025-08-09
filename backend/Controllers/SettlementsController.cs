@@ -205,6 +205,9 @@ namespace AutomotiveClaimsApi.Controllers
             {
                 Id = s.Id.ToString(),
                 EventId = s.EventId.ToString(),
+                ExternalEntity = s.ExternalEntity,
+                CustomExternalEntity = s.CustomExternalEntity,
+                TransferDate = s.TransferDate,
                 Status = s.Status,
                 SettlementDate = s.SettlementDate,
                 Amount = s.Amount,

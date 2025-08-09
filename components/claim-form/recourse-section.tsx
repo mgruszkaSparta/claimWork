@@ -36,21 +36,16 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
 
-interface Recourse {
-  recourseId: number
-  eventId: string
-  isJustified: boolean
-  filingDate?: string
-  insuranceCompany?: string
-  obtainDate?: string
-  amount?: number
-  documentPath?: string
-  documentName?: string
-  documentDescription?: string
-  createdDate?: string
-  modifiedDate?: string
-  currencyCode: string
-}
+import {
+  getRecourses as fetchRecourses,
+  createRecourse as createRecourseApi,
+  updateRecourse as updateRecourseApi,
+  deleteRecourse as deleteRecourseApi,
+  downloadRecourseDocument as downloadRecourseDocumentApi,
+  previewRecourseDocument as previewRecourseDocumentApi,
+  type Recourse,
+  type RecourseUpsert,
+} from "@/lib/api/recourses"
 
 interface RecourseSectionProps {
   eventId: string
@@ -64,7 +59,7 @@ export function RecourseSection({ eventId }: RecourseSectionProps) {
   const [loading, setLoading] = useState(false)
   const [isFormVisible, setIsFormVisible] = useState(false)
   const [isEditing, setIsEditing] = useState(false)
-  const [editingRecourseId, setEditingRecourseId] = useState<number | null>(null)
+  const [editingRecourseId, setEditingRecourseId] = useState<string | null>(null)
   const [selectedFile, setSelectedFile] = useState<File | null>(null)
   const [showFileDescription, setShowFileDescription] = useState(false)
   const [totalRecourseAmount, setTotalRecourseAmount] = useState(0)
@@ -105,20 +100,16 @@ export function RecourseSection({ eventId }: RecourseSectionProps) {
   useEffect(() => {
     if (eventId) {
       loadRecourses()
-      loadTotalRecourseAmount()
     }
   }, [eventId])
 
   const loadRecourses = async () => {
     setLoading(true)
     try {
-      const response = await fetch(`/api/recourses?eventId=${eventId}`)
-      if (response.ok) {
-        const data = await response.json()
-        setRecourses(data)
-      } else {
-        throw new Error("Failed to load recourses")
-      }
+      const data = await fetchRecourses(eventId)
+      setRecourses(data)
+      const total = data.reduce((sum, r) => sum + (r.amount ?? 0), 0)
+      setTotalRecourseAmount(total)
     } catch (error) {
       console.error("Error loading recourses:", error)
       toast({
@@ -131,17 +122,6 @@ export function RecourseSection({ eventId }: RecourseSectionProps) {
     }
   }
 
-  const loadTotalRecourseAmount = async () => {
-    try {
-      const response = await fetch(`/api/recourses/total?eventId=${eventId}`)
-      if (response.ok) {
-        const amount = await response.json()
-        setTotalRecourseAmount(amount)
-      }
-    } catch (error) {
-      console.error("Error loading total recourse amount:", error)
-    }
-  }
 
   const processOutlookAttachment = async (file: File) => {
     console.log("Processing potential Outlook attachment:", file.name)
@@ -222,65 +202,45 @@ export function RecourseSection({ eventId }: RecourseSectionProps) {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
 
-    if (!formData.filingDate || !formData.insuranceCompany) {
-      toast({
-        title: "Błąd",
-        description: "Data wniesienia regresu i nazwa towarzystwa są wymagane",
-        variant: "destructive",
-      })
-      return
-    }
-
     setLoading(true)
     try {
-      const submitFormData = new FormData()
-      submitFormData.append("eventId", eventId)
-      submitFormData.append("isJustified", formData.isJustified.toString())
-      submitFormData.append("filingDate", formData.filingDate)
-      submitFormData.append("insuranceCompany", formData.insuranceCompany)
-
-      if (formData.obtainDate) {
-        submitFormData.append("obtainDate", formData.obtainDate)
-      }
-      if (formData.amount) {
-        submitFormData.append("amount", formData.amount)
-      }
-      if (formData.documentDescription) {
-        submitFormData.append("documentDescription", formData.documentDescription)
-      }
-      if (selectedFile) {
-        submitFormData.append("document", selectedFile)
-      }
-
-      const url = isEditing ? `/api/recourses/${editingRecourseId}` : "/api/recourses"
-      const method = isEditing ? "PUT" : "POST"
-
-      const response = await fetch(url, {
-        method,
-        body: submitFormData,
-      })
-
-      if (response.ok) {
-        const result = await response.json()
-        console.log("Recourse saved successfully:", result)
+      if (!formData.filingDate || !formData.insuranceCompany) {
         toast({
-          title: "Sukces",
-          description: isEditing ? "Regres został zaktualizowany" : "Regres został dodany",
+          title: "Błąd",
+          description: "Data wniesienia regresu i nazwa towarzystwa są wymagane",
+          variant: "destructive",
         })
-        resetForm()
-        setIsFormVisible(false)
-        loadRecourses()
-        loadTotalRecourseAmount()
-      } else {
-        const errorData = await response.json()
-        console.error("Error response:", errorData)
-        throw new Error(errorData.error || "Failed to save recourse")
+        setLoading(false)
+        return
       }
+
+      const payload: RecourseUpsert = {
+        eventId,
+        isJustified: formData.isJustified,
+        filingDate: formData.filingDate,
+        insuranceCompany: formData.insuranceCompany,
+        obtainDate: formData.obtainDate || undefined,
+        amount: formData.amount ? parseFloat(formData.amount) : undefined,
+        documentDescription: formData.documentDescription || undefined,
+      }
+
+      const result = isEditing
+        ? await updateRecourseApi(editingRecourseId!, payload, selectedFile || undefined)
+        : await createRecourseApi(payload, selectedFile || undefined)
+
+      console.log("Recourse saved successfully:", result)
+      toast({
+        title: "Sukces",
+        description: isEditing ? "Regres został zaktualizowany" : "Regres został dodany",
+      })
+      resetForm()
+      setIsFormVisible(false)
+      loadRecourses()
     } catch (error) {
       console.error("Error saving recourse:", error)
       toast({
         title: "Błąd",
-        description: `Nie udało się zapisać regresu: ${error.message}`,
+        description: `Nie udało się zapisać regresu: ${error instanceof Error ? error.message : error}`,
         variant: "destructive",
       })
     } finally {
@@ -290,7 +250,7 @@ export function RecourseSection({ eventId }: RecourseSectionProps) {
 
   const editRecourse = (recourse: Recourse) => {
     setIsEditing(true)
-    setEditingRecourseId(recourse.recourseId)
+    setEditingRecourseId(recourse.id)
     setIsFormVisible(true)
 
     // Format dates for input fields
@@ -328,23 +288,15 @@ export function RecourseSection({ eventId }: RecourseSectionProps) {
     window.scrollTo({ top: 0, behavior: "smooth" })
   }
 
-  const deleteRecourse = async (recourseId: number) => {
+  const removeRecourse = async (recourseId: string) => {
     setLoading(true)
     try {
-      const response = await fetch(`/api/recourses/${recourseId}`, {
-        method: "DELETE",
+      await deleteRecourseApi(recourseId)
+      toast({
+        title: "Sukces",
+        description: "Regres został usunięty",
       })
-
-      if (response.ok) {
-        toast({
-          title: "Sukces",
-          description: "Regres został usunięty",
-        })
-        loadRecourses()
-        loadTotalRecourseAmount()
-      } else {
-        throw new Error("Failed to delete recourse")
-      }
+      loadRecourses()
     } catch (error) {
       console.error("Error deleting recourse:", error)
       toast({
@@ -368,20 +320,15 @@ export function RecourseSection({ eventId }: RecourseSectionProps) {
     }
 
     try {
-      const response = await fetch(`/api/recourses/${recourse.recourseId}/download`)
-      if (response.ok) {
-        const blob = await response.blob()
-        const url = window.URL.createObjectURL(blob)
-        const link = document.createElement("a")
-        link.href = url
-        link.download = recourse.documentName || "document"
-        document.body.appendChild(link)
-        link.click()
-        document.body.removeChild(link)
-        window.URL.revokeObjectURL(url)
-      } else {
-        throw new Error("Failed to download file")
-      }
+      const blob = await downloadRecourseDocumentApi(recourse.id)
+      const url = window.URL.createObjectURL(blob)
+      const link = document.createElement("a")
+      link.href = url
+      link.download = recourse.documentName || "document"
+      document.body.appendChild(link)
+      link.click()
+      document.body.removeChild(link)
+      window.URL.revokeObjectURL(url)
     } catch (error) {
       console.error("Error downloading file:", error)
       toast({
@@ -403,18 +350,13 @@ export function RecourseSection({ eventId }: RecourseSectionProps) {
     }
 
     try {
-      const response = await fetch(`/api/recourses/${recourse.recourseId}/preview`)
-      if (response.ok) {
-        const blob = await response.blob()
-        const url = window.URL.createObjectURL(blob)
-        setPreviewUrl(url)
-        setPreviewRecourse(recourse)
-        setPreviewFileName(recourse.documentName || "")
-        setPreviewFileType(getFileType(recourse.documentName || ""))
-        setIsPreviewVisible(true)
-      } else {
-        throw new Error("Failed to preview file")
-      }
+      const blob = await previewRecourseDocumentApi(recourse.id)
+      const url = window.URL.createObjectURL(blob)
+      setPreviewUrl(url)
+      setPreviewRecourse(recourse)
+      setPreviewFileName(recourse.documentName || "")
+      setPreviewFileType(getFileType(recourse.documentName || ""))
+      setIsPreviewVisible(true)
     } catch (error) {
       console.error("Error previewing file:", error)
       toast({
@@ -754,7 +696,7 @@ export function RecourseSection({ eventId }: RecourseSectionProps) {
                   </tr>
                 )}
                 {recourses.map((recourse) => (
-                  <tr key={recourse.recourseId} className="border-b hover:bg-muted/50">
+                  <tr key={recourse.id} className="border-b hover:bg-muted/50">
                     <td className="py-3 px-4">
                       <Badge
                         className={`px-2 py-1 rounded-full text-xs font-medium ${
@@ -814,7 +756,7 @@ export function RecourseSection({ eventId }: RecourseSectionProps) {
                             <AlertDialogFooter>
                               <AlertDialogCancel>Anuluj</AlertDialogCancel>
                               <AlertDialogAction
-                                onClick={() => deleteRecourse(recourse.recourseId)}
+                                onClick={() => removeRecourse(recourse.id)}
                                 className="bg-red-600 hover:bg-red-700"
                               >
                                 Usuń

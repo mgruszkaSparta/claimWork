@@ -14,6 +14,7 @@ import { Separator } from "@/components/ui/separator"
 import { useToast } from "@/hooks/use-toast"
 import { Calendar, Clock, Car, User, Mail, Plus, Trash2, Save, Edit, X } from 'lucide-react'
 import { pksData } from "@/lib/pks-data"
+import { getRepairSchedules, createRepairSchedule, updateRepairSchedule, deleteRepairSchedule } from "@/lib/api/repair-schedules"
 
 interface RepairSchedule {
   id?: string
@@ -79,13 +80,8 @@ export const RepairScheduleSection: React.FC<RepairScheduleSectionProps> = ({ ev
   const loadSchedules = async () => {
     try {
       setLoading(true)
-      const response = await fetch(`/api/repair-schedules?eventId=${eventId}`)
-      if (response.ok) {
-        const data = await response.json()
-        setSchedules(data)
-      } else {
-        console.error("Failed to load repair schedules")
-      }
+      const data = await getRepairSchedules(eventId)
+      setSchedules(data)
     } catch (error) {
       console.error("Error loading repair schedules:", error)
       toast({
@@ -120,24 +116,9 @@ export const RepairScheduleSection: React.FC<RepairScheduleSectionProps> = ({ ev
         return
       }
 
-      const url = editingSchedule ? `/api/repair-schedules/${editingSchedule.id}` : "/api/repair-schedules"
-
-      const method = editingSchedule ? "PUT" : "POST"
-
-      const response = await fetch(url, {
-        method,
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(formData),
-      })
-
-      if (!response.ok) {
-        const errorData = await response.text()
-        throw new Error(`HTTP ${response.status}: ${errorData}`)
-      }
-
-      const savedSchedule = await response.json()
+      const savedSchedule = editingSchedule
+        ? await updateRepairSchedule(editingSchedule.id!, formData)
+        : await createRepairSchedule(formData as any)
 
       if (editingSchedule) {
         setSchedules((prev) => prev.map((s) => (s.id === savedSchedule.id ? savedSchedule : s)))
@@ -167,14 +148,7 @@ export const RepairScheduleSection: React.FC<RepairScheduleSectionProps> = ({ ev
   const handleDelete = async (scheduleId: string) => {
     if (!confirm('Czy na pewno chcesz usunąć harmonogram?')) return;
     try {
-      const response = await fetch(`/api/repair-schedules/${scheduleId}`, {
-        method: "DELETE",
-      })
-
-      if (!response.ok) {
-        throw new Error("Failed to delete repair schedule")
-      }
-
+      await deleteRepairSchedule(scheduleId)
       setSchedules((prev) => prev.filter((s) => s.id !== scheduleId))
       toast({
         title: "Sukces",

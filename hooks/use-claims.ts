@@ -184,14 +184,22 @@ export const transformFrontendClaimToApiPayload = (
       ...r,
       recourseDate: r.recourseDate ? new Date(r.recourseDate).toISOString() : undefined,
     })),
-    ...(settlements && settlements.length
+
+    // Settlements may be managed through dedicated endpoints. When included
+    // in the claim payload, ensure IDs are valid GUID strings; otherwise omit
+    // them to prevent backend validation errors.
+    ...(settlements && settlements.length > 0
+
       ? {
           settlements: settlements.map((s) => {
             const { id, settlementDate, ...rest } = s
+            const isGuid =
+              typeof id === "string" &&
+              /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/.test(id)
 
             return {
               ...rest,
-              ...(id && isGuid(id) ? { id } : {}),
+              ...(isGuid ? { id } : {}),
               settlementDate: settlementDate
                 ? new Date(settlementDate).toISOString()
                 : undefined,

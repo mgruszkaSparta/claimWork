@@ -72,12 +72,18 @@ export function SettlementsSection({ eventId }: SettlementsSectionProps) {
       })
       return
     }
+    const body = new FormData()
+    Object.entries(validation.data).forEach(([key, value]) => {
+      if (value !== undefined && value !== null) {
+        body.append(key, value.toString())
+      }
+    })
     try {
       if (editingId) {
-        await updateSettlement(editingId, { ...formData, eventId })
+        await updateSettlement(editingId, body)
         toast({ title: "Sukces", description: "Rozliczenie zaktualizowane" })
       } else {
-        await createSettlement({ ...formData, eventId })
+        await createSettlement(body)
         toast({ title: "Sukces", description: "Rozliczenie dodane" })
       }
       resetForm()

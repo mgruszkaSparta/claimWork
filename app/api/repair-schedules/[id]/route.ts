@@ -1,13 +1,13 @@
 import { type NextRequest, NextResponse } from "next/server"
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "https://localhost:5200/api"
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5200/api"
 
 export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
   try {
     const { id } = params
     console.log(`Fetching repair schedule ${id} from backend`)
 
-    const response = await fetch(`${API_BASE_URL}/repair-schedules/${id}`, {
+    const response = await fetch(`${API_BASE_URL}/RepairSchedules/${id}`, {
       headers: {
         "Content-Type": "application/json",
       },
@@ -40,7 +40,7 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
 
     console.log(`Updating repair schedule ${id}:`, body)
 
-    const response = await fetch(`${API_BASE_URL}/repair-schedules/${id}`, {
+    const response = await fetch(`${API_BASE_URL}/RepairSchedules/${id}`, {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
@@ -67,7 +67,7 @@ export async function DELETE(request: NextRequest, { params }: { params: { id: s
     const { id } = params
     console.log(`Deleting repair schedule ${id}`)
 
-    const response = await fetch(`${API_BASE_URL}/repair-schedules/${id}`, {
+    const response = await fetch(`${API_BASE_URL}/RepairSchedules/${id}`, {
       method: "DELETE",
       headers: {
         "Content-Type": "application/json",

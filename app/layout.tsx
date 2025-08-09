@@ -4,7 +4,6 @@ import { GeistSans } from "geist/font/sans"
 import { GeistMono } from "geist/font/mono"
 import { ThemeProvider } from "@/components/theme-provider"
 import { Toaster } from "@/components/ui/toaster"
-import { Sidebar } from "@/components/sidebar"
 import "./globals.css"
 
 export const metadata: Metadata = {
@@ -31,10 +30,7 @@ html {
       </head>
       <body className="min-h-screen bg-gray-50">
         <ThemeProvider attribute="class" defaultTheme="light" enableSystem disableTransitionOnChange>
-          <div className="flex">
-            <Sidebar />
-            <main className="flex-1 ml-16">{children}</main>
-          </div>
+          <main className="flex-1">{children}</main>
           <Toaster />
         </ThemeProvider>
       </body>

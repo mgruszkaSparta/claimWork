@@ -330,16 +330,7 @@ export interface ClientClaimUpsertDto {
 }
 
 export interface RecourseDto {
-  id?: number
-  eventId?: number
-  recourseDate?: string
-  recourseType?: string
-  description?: string
-  amount?: number
-  status?: string
-}
-
-export interface RecourseUpsertDto {
+  id?: string
   eventId?: string
   status?: string
   initiationDate?: string
@@ -347,6 +338,37 @@ export interface RecourseUpsertDto {
   notes?: string
   recourseNumber?: string
   recourseAmount?: number
+  isJustified?: boolean
+  filingDate?: string
+  insuranceCompany?: string
+  obtainDate?: string
+  amount?: number
+  currencyCode?: string
+  documentPath?: string
+  documentName?: string
+  documentDescription?: string
+  createdAt?: string
+  updatedAt?: string
+}
+
+export interface RecourseUpsertDto {
+  id?: string
+  eventId?: string
+  status?: string
+  initiationDate?: string
+  description?: string
+  notes?: string
+  recourseNumber?: string
+  recourseAmount?: number
+  isJustified?: boolean
+  filingDate?: string
+  insuranceCompany?: string
+  obtainDate?: string
+  amount?: number
+  currencyCode?: string
+  documentDescription?: string
+  documentPath?: string
+  documentName?: string
 }
 
 export interface SettlementDto {

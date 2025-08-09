@@ -70,29 +70,29 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
   try {
     const id = Number.parseInt(params.id)
     const formData = await request.formData()
-    const data = formData.get("data") as string
-    const file = formData.get("file") as File | null
+    const backendFormData = new FormData()
 
-    const appealData = JSON.parse(data)
-
-    console.log("PUT /api/appeals/[id] - id:", id)
-    console.log("PUT /api/appeals/[id] - data:", appealData)
-    console.log("PUT /api/appeals/[id] - file:", file ? `${file.name} (${file.size} bytes)` : "No file")
-
-    // In production, send to your backend
-    if (process.env.NEXT_PUBLIC_API_URL) {
-      const backendFormData = new FormData()
-      backendFormData.append("data", data)
-      if (file) {
-        backendFormData.append("file", file)
+    formData.forEach((value, key) => {
+      if (key === "documents" && value instanceof File) {
+        if (!backendFormData.has("Document")) {
+          backendFormData.append("Document", value)
+        }
+      } else if (key === "extensionDate" && typeof value === "string") {
+        backendFormData.append("ExtensionDate", value)
+      } else if (typeof value === "string") {
+        backendFormData.append(key, value)
       }
+    })
 
+    if (process.env.NEXT_PUBLIC_API_URL) {
       const response = await fetch(`${API_BASE_URL}/appeals/${id}`, {
         method: "PUT",
         body: backendFormData,
       })
 
       if (!response.ok) {
+        const errorText = await response.text()
+        console.error("Backend error in PUT /api/appeals/[id]:", errorText)
         throw new Error(`Backend request failed: ${response.status}`)
       }
 
@@ -109,14 +109,18 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
 
     const updatedAppeal = {
       ...mockAppeals[appealIndex],
-      ...appealData,
+      ...Object.fromEntries(formData.entries()),
       appealId: id,
-      documentPath: file ? `/uploads/appeals/${file.name}` : mockAppeals[appealIndex].documentPath,
-      documentName: file ? file.name : mockAppeals[appealIndex].documentName,
-      alertDays: appealData.responseDate ? 0 : Math.floor(Math.random() * 45),
+      documentPath: formData.get("documents")
+        ? `/uploads/appeals/${(formData.get("documents") as File).name}`
+        : mockAppeals[appealIndex].documentPath,
+      documentName: formData.get("documents")
+        ? (formData.get("documents") as File).name
+        : mockAppeals[appealIndex].documentName,
+      alertDays: formData.get("responseDate") ? 0 : Math.floor(Math.random() * 45),
     }
 
-    mockAppeals[appealIndex] = updatedAppeal
+    mockAppeals[appealIndex] = updatedAppeal as any
 
     return NextResponse.json(updatedAppeal)
   } catch (error) {

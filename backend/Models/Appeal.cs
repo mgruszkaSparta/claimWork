@@ -23,9 +23,11 @@ namespace AutomotiveClaimsApi.Models
         public string? Description { get; set; }
         
         public decimal? AppealAmount { get; set; }
-        
+
+        public DateTime? ExtensionDate { get; set; }
+
         public DateTime? DecisionDate { get; set; }
-        
+
         public string? DecisionReason { get; set; }
         
         public string? DocumentPath { get; set; }

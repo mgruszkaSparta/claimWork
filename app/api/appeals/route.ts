@@ -42,6 +42,8 @@ export async function POST(request: NextRequest) {
         }
       } else if (key === "claimId" && typeof value === "string") {
         backendFormData.append("EventId", value)
+      } else if (key === "extensionDate" && typeof value === "string") {
+        backendFormData.append("ExtensionDate", value)
       } else if (typeof value === "string") {
         backendFormData.append(key, value)
       }

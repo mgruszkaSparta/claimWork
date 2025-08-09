@@ -7,6 +7,8 @@ namespace AutomotiveClaimsApi.DTOs
         [Required]
         public DateTime FilingDate { get; set; }
 
+        public DateTime? ExtensionDate { get; set; }
+
         [StringLength(500)]
         public string? Reason { get; set; }
 

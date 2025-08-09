@@ -84,6 +84,7 @@ namespace AutomotiveClaimsApi.Controllers
                     Id = Guid.NewGuid(),
                     EventId = createDto.EventId,
                     SubmissionDate = createDto.FilingDate,
+                    ExtensionDate = createDto.ExtensionDate,
                     Reason = createDto.Reason,
                     Status = createDto.Status,
                     Description = createDto.Description,
@@ -128,6 +129,7 @@ namespace AutomotiveClaimsApi.Controllers
                 }
 
                 appeal.SubmissionDate = updateDto.FilingDate;
+                appeal.ExtensionDate = updateDto.ExtensionDate;
                 appeal.Reason = updateDto.Reason;
                 appeal.Status = updateDto.Status;
                 appeal.Description = updateDto.Description;
@@ -247,6 +249,7 @@ namespace AutomotiveClaimsApi.Controllers
                 Id = a.Id.ToString(),
                 EventId = a.EventId.ToString(),
                 SubmissionDate = a.SubmissionDate,
+                ExtensionDate = a.ExtensionDate,
                 Reason = a.Reason,
                 Status = a.Status,
                 Notes = a.Notes,

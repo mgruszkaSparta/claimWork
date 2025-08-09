@@ -8,6 +8,7 @@ const API_BASE_URL =
 export interface Appeal {
   id: string;
   filingDate: string;
+  extensionDate?: string;
   responseDate?: string;
   status?: string;
   documentPath?: string;
@@ -17,6 +18,7 @@ export interface Appeal {
 
 export interface AppealPayload {
   filingDate: string;
+  extensionDate?: string;
   responseDate?: string;
   status?: string;
   documentDescription?: string;
@@ -27,6 +29,7 @@ function mapDtoToAppeal(dto: AppealDto): Appeal {
   return {
     id: dto.id,
     filingDate: dto.submissionDate ?? "",
+    extensionDate: dto.extensionDate ?? undefined,
     responseDate: dto.decisionDate ?? undefined,
     status: dto.status,
     documentPath: dto.documentPath,
@@ -58,6 +61,9 @@ export async function createAppeal(
   const formData = new FormData();
   formData.append("EventId", claimId);
   formData.append("FilingDate", appeal.filingDate);
+  if (appeal.extensionDate) {
+    formData.append("ExtensionDate", appeal.extensionDate);
+  }
   if (appeal.responseDate) {
     formData.append("DecisionDate", appeal.responseDate);
   }
@@ -88,6 +94,9 @@ export async function updateAppeal(
   ensureRequiredDates(appeal);
   const formData = new FormData();
   formData.append("FilingDate", appeal.filingDate);
+  if (appeal.extensionDate) {
+    formData.append("ExtensionDate", appeal.extensionDate);
+  }
   if (appeal.responseDate) {
     formData.append("DecisionDate", appeal.responseDate);
   }

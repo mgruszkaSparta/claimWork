@@ -1,0 +1,29 @@
+using System;
+using System.ComponentModel.DataAnnotations;
+using Microsoft.AspNetCore.Http;
+
+namespace AutomotiveClaimsApi.DTOs
+{
+    public class CreateDecisionDto
+    {
+        [Required]
+        public DateTime DecisionDate { get; set; }
+
+        [Required]
+        [StringLength(100)]
+        public string Status { get; set; } = string.Empty;
+
+        public decimal? Amount { get; set; }
+
+        [StringLength(10)]
+        public string? Currency { get; set; } = "PLN";
+
+        [StringLength(200)]
+        public string? CompensationTitle { get; set; }
+
+        public IFormFile? Document { get; set; }
+
+        [StringLength(500)]
+        public string? DocumentDescription { get; set; }
+    }
+}

@@ -13,6 +13,12 @@ import { useToast } from "@/hooks/use-toast"
 import { Plus, Minus, Edit, Trash2, Download, Eye, Upload, X, FileText, Loader2, Gavel } from 'lucide-react'
 import type { Decision } from "@/types"
 import {
+  getDecisions as apiGetDecisions,
+  createDecision as apiCreateDecision,
+  updateDecision as apiUpdateDecision,
+  deleteDecision as apiDeleteDecision,
+} from "@/lib/api/decisions"
+import {
   AlertDialog,
   AlertDialogAction,
   AlertDialogCancel,
@@ -82,22 +88,7 @@ export function DecisionsSection({ claimId }: DecisionsSectionProps) {
 
     setIsLoading(true)
     try {
-      const response = await fetch(`/api/claims/${claimId}/decisions`)
-      if (!response.ok) {
-        let errorMessage = `${response.status} ${response.statusText}`
-        try {
-          const errorData = await response.json()
-          const detail = errorData?.error || errorData?.message
-          if (detail) {
-            errorMessage += ` - ${detail}`
-          }
-        } catch {
-          // ignore json parse errors
-        }
-        throw new Error(errorMessage)
-      }
-
-      const data = await response.json()
+      const data = await apiGetDecisions(claimId)
       setDecisions(data)
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error)
@@ -243,53 +234,27 @@ export function DecisionsSection({ claimId }: DecisionsSectionProps) {
     setIsLoading(true)
 
     try {
-      const submitFormData = new FormData()
-      submitFormData.append("claimId", claimId)
-      submitFormData.append("decisionDate", new Date(formData.decisionDate).toISOString())
-      submitFormData.append("status", formData.status)
-
-      if (formData.amount) {
-        submitFormData.append("amount", formData.amount)
+      const payload = {
+        decisionDate: formData.decisionDate,
+        status: formData.status,
+        amount: formData.amount ? Number(formData.amount) : undefined,
+        currency: formData.currency,
+        compensationTitle: formData.compensationTitle || undefined,
+        documentDescription: formData.documentDescription || undefined,
+        document: selectedFiles[0],
       }
 
-      submitFormData.append("currency", formData.currency)
-
-      if (formData.compensationTitle) {
-        submitFormData.append("compensationTitle", formData.compensationTitle)
-      }
-
-      if (formData.documentDescription) {
-        submitFormData.append("documentDescription", formData.documentDescription)
-      }
-
-      // Add multiple files
-      selectedFiles.forEach((file, index) => {
-        submitFormData.append(`documents`, file, file.name)
-      })
-
-      const url =
-        isEditing && editingDecisionId
-          ? `/api/claims/${claimId}/decisions/${editingDecisionId}`
-          : `/api/claims/${claimId}/decisions`
-
-      const method = isEditing ? "PUT" : "POST"
-
-      const response = await fetch(url, {
-        method,
-        body: submitFormData,
-      })
-
-      if (response.ok) {
-        toast({
-          title: "Sukces",
-          description: isEditing ? "Decyzja została zaktualizowana" : "Decyzja została dodana",
-        })
-        resetForm()
-        setIsFormVisible(false)
-        loadDecisions()
+      if (isEditing && editingDecisionId) {
+        await apiUpdateDecision(claimId, editingDecisionId, payload)
+        toast({ title: "Sukces", description: "Decyzja została zaktualizowana" })
       } else {
-        throw new Error("Failed to save decision")
+        await apiCreateDecision(claimId, payload)
+        toast({ title: "Sukces", description: "Decyzja została dodana" })
       }
+
+      resetForm()
+      setIsFormVisible(false)
+      loadDecisions()
     } catch (error) {
       console.error("Error saving decision:", error)
       toast({
@@ -328,19 +293,12 @@ export function DecisionsSection({ claimId }: DecisionsSectionProps) {
   const deleteDecision = async (id: string) => {
     setIsLoading(true)
     try {
-      const response = await fetch(`/api/claims/${claimId}/decisions/${id}`, {
-        method: "DELETE",
+      await apiDeleteDecision(claimId, id)
+      toast({
+        title: "Sukces",
+        description: "Decyzja została usunięta",
       })
-
-      if (response.ok) {
-        toast({
-          title: "Sukces",
-          description: "Decyzja została usunięta",
-        })
-        loadDecisions()
-      } else {
-        throw new Error("Failed to delete decision")
-      }
+      loadDecisions()
     } catch (error) {
       console.error("Error deleting decision:", error)
       toast({

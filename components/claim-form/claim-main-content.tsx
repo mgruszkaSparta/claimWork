@@ -24,7 +24,7 @@ import type { Claim, Service, ParticipantInfo, DriverInfo, UploadedFile, Require
 import { EmailSection } from "../email/email-section-compact"
 import { DependentSelect } from "@/components/ui/dependent-select"
 import { useToast } from "@/hooks/use-toast"
-import { useDamages } from "@/hooks/use-damages"
+import { useDamages, initDamage } from "@/hooks/use-damages"
 import InsuranceDropdown from "@/components/insurance-dropdown"
 import type { CompanySelectionEvent } from "@/types/insurance"
 import LeasingDropdown from "@/components/leasing-dropdown"

@@ -145,10 +145,14 @@ export default function EditClaimPage() {
     setIsSaving(true)
     try {
       const updatedClaim = await updateClaim(id, claimFormData)
-      toast({
-        title: "Szkoda zaktualizowana",
-        description: `Szkoda ${updatedClaim.spartaNumber || updatedClaim.claimNumber} została pomyślnie zaktualizowana.`,
-      })
+
+      if (updatedClaim) {
+        setClaimFormData(updatedClaim)
+        toast({
+          title: "Szkoda zaktualizowana",
+          description: `Szkoda ${updatedClaim.spartaNumber || updatedClaim.claimNumber} została pomyślnie zaktualizowana.`,
+        })
+
 
       if (exitAfterSave) {
         router.push("/")

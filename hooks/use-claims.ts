@@ -186,8 +186,8 @@ export const transformFrontendClaimToApiPayload = (
       ? {
           appeals: appeals.map((a) => ({
             ...a,
-            appealDate: a.appealDate
-              ? new Date(a.appealDate).toISOString()
+            submissionDate: a.submissionDate
+              ? new Date(a.submissionDate).toISOString()
               : undefined,
           })),
         }

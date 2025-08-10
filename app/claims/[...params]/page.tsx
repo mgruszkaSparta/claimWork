@@ -164,20 +164,16 @@ export default function ClaimPage() {
         }
       } else if (mode === "edit" && claimId) {
         const updatedClaim = await updateClaim(claimId, claimFormData)
-        if (updatedClaim) {
-          toast({
-            title: "Szkoda zaktualizowana",
-            description: `Szkoda ${updatedClaim.spartaNumber || updatedClaim.claimNumber} została pomyślnie zaktualizowana.`,
-          })
+        toast({
+          title: "Szkoda zaktualizowana",
+          description: `Szkoda ${updatedClaim.spartaNumber || updatedClaim.claimNumber} została pomyślnie zaktualizowana.`,
+        })
 
-          if (exitAfterSave) {
-            router.push("/")
-          } else {
-            // Refresh the data
-            await loadClaimData()
-          }
+        if (exitAfterSave) {
+          router.push("/")
         } else {
-          throw new Error("Nie udało się zaktualizować szkody")
+          // Refresh the data
+          await loadClaimData()
         }
       }
     } catch (error) {

@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { useToast } from "@/hooks/use-toast"
@@ -62,7 +63,7 @@ export function RecourseSection({ eventId }: RecourseSectionProps) {
   const [editingRecourseId, setEditingRecourseId] = useState<string | null>(null)
   const [selectedFile, setSelectedFile] = useState<File | null>(null)
   const [showFileDescription, setShowFileDescription] = useState(false)
-  const [totalRecourseAmount, setTotalRecourseAmount] = useState(0)
+  const [totalRecourseAmounts, setTotalRecourseAmounts] = useState<Record<string, number>>({})
 
   // Form state
   const [formData, setFormData] = useState({
@@ -71,6 +72,7 @@ export function RecourseSection({ eventId }: RecourseSectionProps) {
     insuranceCompany: "",
     obtainDate: "",
     amount: "",
+    currency: "PLN",
     documentDescription: "",
   })
 
@@ -108,8 +110,14 @@ export function RecourseSection({ eventId }: RecourseSectionProps) {
     try {
       const data = await fetchRecourses(eventId)
       setRecourses(data)
-      const total = data.reduce((sum, r) => sum + (r.amount ?? 0), 0)
-      setTotalRecourseAmount(total)
+      const totals: Record<string, number> = {}
+      data.forEach((r) => {
+        const currency = r.currencyCode || "PLN"
+        if (r.amount) {
+          totals[currency] = (totals[currency] || 0) + r.amount
+        }
+      })
+      setTotalRecourseAmounts(totals)
     } catch (error) {
       console.error("Error loading recourses:", error)
       toast({
@@ -176,6 +184,7 @@ export function RecourseSection({ eventId }: RecourseSectionProps) {
       insuranceCompany: "",
       obtainDate: "",
       amount: "",
+      currency: "PLN",
       documentDescription: "",
     })
     setSelectedFile(null)
@@ -221,6 +230,7 @@ export function RecourseSection({ eventId }: RecourseSectionProps) {
         insuranceCompany: formData.insuranceCompany,
         obtainDate: formData.obtainDate || undefined,
         amount: formData.amount ? parseFloat(formData.amount) : undefined,
+        currencyCode: formData.currency,
         documentDescription: formData.documentDescription || undefined,
       }
 
@@ -279,6 +289,7 @@ export function RecourseSection({ eventId }: RecourseSectionProps) {
       insuranceCompany: recourse.insuranceCompany || "",
       obtainDate: formatDateForInput(recourse.obtainDate),
       amount: recourse.amount?.toString() || "",
+      currency: recourse.currencyCode || "PLN",
       documentDescription: recourse.documentDescription || "",
     })
     setSelectedFile(null)
@@ -530,16 +541,30 @@ export function RecourseSection({ eventId }: RecourseSectionProps) {
 
                 <div className="space-y-2 md:col-span-2">
                   <Label className="text-sm font-medium text-gray-700">Kwota otrzymanego regresu</Label>
-                  <div className="relative">
+                  <div className="flex gap-2">
                     <Input
                       type="number"
                       step="0.01"
                       value={formData.amount}
                       onChange={(e) => setFormData({ ...formData, amount: e.target.value })}
-                      className="w-full pr-12"
+                      className="flex-1"
                       placeholder="0.00"
                     />
-                    <span className="absolute right-3 top-2 text-gray-500">PLN</span>
+                    <Select
+                      value={formData.currency}
+                      onValueChange={(value) => setFormData({ ...formData, currency: value })}
+                    >
+                      <SelectTrigger className="w-24">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="PLN">PLN</SelectItem>
+                        <SelectItem value="EUR">EUR</SelectItem>
+                        <SelectItem value="USD">USD</SelectItem>
+                        <SelectItem value="CHF">CHF</SelectItem>
+                        <SelectItem value="GBP">GBP</SelectItem>
+                      </SelectContent>
+                    </Select>
                   </div>
                 </div>
               </div>
@@ -634,7 +659,22 @@ export function RecourseSection({ eventId }: RecourseSectionProps) {
 
               <div className="flex justify-between items-center pt-6 border-t border-gray-200">
                 <div className="text-sm font-medium text-blue-600">
-                  Łączna kwota regresów: <span className="font-bold">{totalRecourseAmount.toFixed(2)} PLN</span>
+                  {Object.keys(totalRecourseAmounts).length > 0 ? (
+                    <div>
+                      Łączna kwota regresów:
+                      <ul className="list-none ml-2 mt-1">
+                        {Object.entries(totalRecourseAmounts).map(([currency, amount]) => (
+                          <li key={currency} className="font-bold">
+                            {formatCurrency(amount, currency)}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  ) : (
+                    <span>
+                      Łączna kwota regresów: <span className="font-bold">0.00 PLN</span>
+                    </span>
+                  )}
                 </div>
                 <div className="flex gap-3">
                   <Button type="button" variant="outline" onClick={cancelForm} className="px-6 bg-transparent">
@@ -657,8 +697,21 @@ export function RecourseSection({ eventId }: RecourseSectionProps) {
           <div className="p-4 bg-[#f8fafc] border-b border-[#d1d9e6] flex flex-row items-center justify-between">
             <h3 className="text-md font-semibold text-[#1a3a6c]">Lista regresów</h3>
             <div className="text-sm text-gray-500">
-              Łączna kwota regresów:{" "}
-              <span className="font-bold text-primary">{totalRecourseAmount.toFixed(2)} PLN</span>
+              {Object.keys(totalRecourseAmounts).length > 0 ? (
+                <div>
+                  Łączne kwoty regresów:{" "}
+                  {Object.entries(totalRecourseAmounts).map(([currency, amount], index) => (
+                    <span key={currency}>
+                      <span className="font-bold text-primary">{formatCurrency(amount, currency)}</span>
+                      {index < Object.entries(totalRecourseAmounts).length - 1 ? "; " : ""}
+                    </span>
+                  ))}
+                </div>
+              ) : (
+                <span>
+                  Łączna kwota regresów: <span className="font-bold text-primary">0.00 PLN</span>
+                </span>
+              )}
             </div>
           </div>
           <div className="overflow-x-auto">
@@ -670,6 +723,7 @@ export function RecourseSection({ eventId }: RecourseSectionProps) {
                   <th className="py-3 px-4 text-left font-medium">Towarzystwo</th>
                   <th className="py-3 px-4 text-left font-medium">Data uzyskania</th>
                   <th className="py-3 px-4 text-left font-medium">Kwota</th>
+                  <th className="py-3 px-4 text-left font-medium">Waluta</th>
                   <th className="py-3 px-4 text-left font-medium">Dokument</th>
                   <th className="py-3 px-4 text-center font-medium">Akcje</th>
                 </tr>
@@ -677,7 +731,7 @@ export function RecourseSection({ eventId }: RecourseSectionProps) {
               <tbody>
                 {loading && recourses.length === 0 && (
                   <tr>
-                    <td colSpan={7} className="py-8 text-center text-muted-foreground">
+                    <td colSpan={8} className="py-8 text-center text-muted-foreground">
                       <div className="flex items-center justify-center gap-2">
                         <Loader2 className="h-4 w-4 animate-spin" />
                         Ładowanie danych...
@@ -687,7 +741,7 @@ export function RecourseSection({ eventId }: RecourseSectionProps) {
                 )}
                 {!loading && recourses.length === 0 && (
                   <tr>
-                    <td colSpan={7} className="py-8 text-center text-muted-foreground">
+                    <td colSpan={8} className="py-8 text-center text-muted-foreground">
                       <div className="space-y-2">
                         <DollarSign className="h-8 w-8 mx-auto text-gray-300" />
                         <p>Brak regresów do wyświetlenia</p>
@@ -714,8 +768,11 @@ export function RecourseSection({ eventId }: RecourseSectionProps) {
                       {recourse.obtainDate ? new Date(recourse.obtainDate).toLocaleDateString("pl-PL") : "-"}
                     </td>
                     <td className="py-3 px-4 text-sm">
-                      {recourse.amount ? formatCurrency(recourse.amount, "PLN") : "-"}
+                      {recourse.amount
+                        ? formatCurrency(recourse.amount, recourse.currencyCode || "PLN")
+                        : "-"}
                     </td>
+                    <td className="py-3 px-4 text-sm">{recourse.currencyCode || "PLN"}</td>
                     <td className="py-3 px-4">
                       {recourse.documentPath ? (
                         <div className="flex items-center gap-2">

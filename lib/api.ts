@@ -303,6 +303,7 @@ export interface AppealDto {
 }
 
 export interface AppealUpsertDto {
+  id?: string
   eventId?: string
   appealNumber?: string
   submissionDate?: string

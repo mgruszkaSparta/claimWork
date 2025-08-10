@@ -502,6 +502,10 @@ namespace AutomotiveClaimsApi.Controllers
 
                 return NoContent();
             }
+            catch (DbUpdateConcurrencyException)
+            {
+                return Conflict(new { error = "The record was modified by another process." });
+            }
             catch (ArgumentException ex)
             {
                 return BadRequest(ex.Message);
@@ -673,6 +677,11 @@ namespace AutomotiveClaimsApi.Controllers
         private static Event MapUpsertDtoToEvent(ClaimUpsertDto dto, Event? entity = null)
         {
             entity ??= new Event();
+
+            if (dto.RowVersion != null)
+            {
+                entity.RowVersion = dto.RowVersion;
+            }
 
             entity.ClaimNumber = dto.ClaimNumber;
             entity.SpartaNumber = dto.SpartaNumber;
@@ -1365,6 +1374,7 @@ namespace AutomotiveClaimsApi.Controllers
             VehicleType = e.VehicleType,
             DamageDescription = e.DamageDescription,
             Description = e.Description,
+            RowVersion = e.RowVersion,
             CreatedAt = e.CreatedAt,
             UpdatedAt = e.UpdatedAt,
             Participants = e.Participants.Select(p => new ParticipantDto

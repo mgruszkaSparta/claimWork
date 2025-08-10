@@ -115,10 +115,9 @@ function HomePage({ user, onLogout }: PageProps) {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <Header onMenuClick={() => {}} user={user} onLogout={onLogout} />
-      <div className="flex">
-
-        <Sidebar activeTab={activeTab} onTabChange={setActiveTab} />
+      <Sidebar activeTab={activeTab} onTabChange={setActiveTab} />
+      <div className="ml-16 flex flex-col min-h-screen">
+        <Header onMenuClick={() => {}} user={user} onLogout={onLogout} />
         <main className="flex-1 p-0">
           <div className="w-full">
 

@@ -209,7 +209,10 @@ namespace AutomotiveClaimsApi.Controllers
 
                 eventEntity.SpartaNumber = await GenerateNextSpartaNumber();
 
-                _context.Events.Add(eventEntity);
+                if (_context.Entry(eventEntity).State == EntityState.Detached)
+                {
+                    _context.Events.Add(eventEntity);
+                }
 
 
                 if (eventDto.Documents != null && eventDto.Documents.Any())

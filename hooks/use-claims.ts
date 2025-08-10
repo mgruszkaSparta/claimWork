@@ -323,7 +323,7 @@ export function useClaims() {
     }
   }
 
-  const updateClaim = async (id: string, claimData: Partial<Claim>): Promise<Claim | null> => {
+  const updateClaim = async (id: string, claimData: Partial<Claim>): Promise<Claim> => {
     try {
       setError(null)
       const payload = transformFrontendClaimToApiPayload(claimData)
@@ -332,14 +332,18 @@ export function useClaims() {
 
       const updatedClaim: Claim = updatedApiClaim
         ? transformApiClaimToFrontend(updatedApiClaim)
-        : { ...(existingClaim || {}), ...claimData } as Claim
+        : ({ ...(existingClaim || {}), ...claimData } as Claim)
 
       setClaims((prev) => prev.map((c) => (c.id === id ? updatedClaim : c)))
       return updatedClaim
-    } catch (err) {
-      const message = err instanceof Error ? err.message : "An unknown error occurred"
+    } catch (err: any) {
+      let message = err instanceof Error ? err.message : "An unknown error occurred"
+      const status = err?.status || err?.response?.status
+      if (status === 409 || message.includes("409")) {
+        message = "Another user has modified this claim. Please reload."
+      }
       setError(`Failed to update claim ${id}: ${message}`)
-      return null
+      throw new Error(message)
     }
   }
 

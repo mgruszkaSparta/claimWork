@@ -272,14 +272,6 @@ namespace AutomotiveClaimsApi.Controllers
                     }
                 }
 
-                if (eventDto.Appeals != null)
-                {
-                    foreach (var aDto in eventDto.Appeals)
-                    {
-                        _context.Appeals.Add(MapAppealDtoToModel(aDto, eventEntity.Id));
-                    }
-                }
-
                 if (eventDto.ClientClaims != null)
                 {
                     foreach (var cDto in eventDto.ClientClaims)
@@ -371,6 +363,15 @@ namespace AutomotiveClaimsApi.Controllers
                 }
 
                 MapUpsertDtoToEvent(eventDto, eventEntity);
+
+                if (eventDto.DeletedAppealIds != null && eventDto.DeletedAppealIds.Any())
+                {
+                    var appealsToDelete = await _context.Appeals
+                        .Where(a => eventDto.DeletedAppealIds.Contains(a.Id))
+                        .ToListAsync();
+                    _context.Appeals.RemoveRange(appealsToDelete);
+                }
+
                 eventEntity.UpdatedAt = DateTime.UtcNow;
 
                 // Remove existing related entities
@@ -379,7 +380,6 @@ namespace AutomotiveClaimsApi.Controllers
                 _context.Participants.RemoveRange(eventEntity.Participants);
                 _context.Damages.RemoveRange(eventEntity.Damages);
                 _context.Decisions.RemoveRange(eventEntity.Decisions);
-                _context.Appeals.RemoveRange(eventEntity.Appeals);
                 _context.ClientClaims.RemoveRange(eventEntity.ClientClaims);
                 _context.Recourses.RemoveRange(eventEntity.Recourses);
                 _context.Settlements.RemoveRange(eventEntity.Settlements);
@@ -825,15 +825,16 @@ namespace AutomotiveClaimsApi.Controllers
                 }
             }
 
-            if (dto.Appeals != null)
+            if (dto.DeletedAppealIds != null && dto.DeletedAppealIds.Any())
             {
-                var dtoIds = dto.Appeals
-                    .Where(a => a.Id.HasValue)
-                    .Select(a => a.Id.Value)
-                    .ToHashSet();
-                var toRemove = entity.Appeals.Where(a => !dtoIds.Contains(a.Id)).ToList();
+                var toRemove = entity.Appeals
+                    .Where(a => dto.DeletedAppealIds.Contains(a.Id))
+                    .ToList();
                 foreach (var r in toRemove) entity.Appeals.Remove(r);
+            }
 
+            if (dto.Appeals != null && dto.Appeals.Any())
+            {
                 foreach (var aDto in dto.Appeals)
                 {
                     var hasId = aDto.Id.HasValue;

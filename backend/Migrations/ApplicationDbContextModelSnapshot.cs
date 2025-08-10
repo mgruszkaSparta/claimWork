@@ -987,6 +987,81 @@ namespace AutomotiveClaimsApi.Migrations
                     b.ToTable("Settlements");
                 });
 
+            modelBuilder.Entity("AutomotiveClaimsApi.Models.Dictionary.CaseHandler", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasAnnotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn);
+
+                    b.Property<string>("Code")
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("CaseHandlers", "dict");
+                });
+
+            modelBuilder.Entity("AutomotiveClaimsApi.Models.Dictionary.CaseHandlerVacation", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasAnnotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn);
+
+                    b.Property<int>("CaseHandlerId")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime>("EndDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime>("StartDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int?>("SubstituteHandlerId")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CaseHandlerId");
+
+                    b.HasIndex("SubstituteHandlerId");
+
+                    b.ToTable("CaseHandlerVacations", "dict");
+                });
+
+            modelBuilder.Entity("AutomotiveClaimsApi.Models.Dictionary.CaseHandlerVacation", b =>
+                {
+                    b.HasOne("AutomotiveClaimsApi.Models.Dictionary.CaseHandler", "CaseHandler")
+                        .WithMany()
+                        .HasForeignKey("CaseHandlerId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("AutomotiveClaimsApi.Models.Dictionary.CaseHandler", "SubstituteHandler")
+                        .WithMany()
+                        .HasForeignKey("SubstituteHandlerId");
+
+                    b.Navigation("CaseHandler");
+
+                    b.Navigation("SubstituteHandler");
+                });
+
             modelBuilder.Entity("AutomotiveClaimsApi.Models.Appeal", b =>
                 {
                     b.HasOne("AutomotiveClaimsApi.Models.Event", "Event")

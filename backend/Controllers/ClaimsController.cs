@@ -349,6 +349,7 @@ namespace AutomotiveClaimsApi.Controllers
             try
             {
                 var eventEntity = await _context.Events
+                    .AsNoTracking()
                     .Include(e => e.Participants).ThenInclude(p => p.Drivers)
                     .Include(e => e.Damages)
                     .Include(e => e.Appeals)
@@ -368,6 +369,12 @@ namespace AutomotiveClaimsApi.Controllers
                 MapUpsertDtoToEvent(eventDto, eventEntity, _context);
 
                 eventEntity.UpdatedAt = DateTime.UtcNow;
+
+                _context.Events.Update(eventEntity);
+                if (eventDto.RowVersion != null)
+                {
+                    _context.Entry(eventEntity).Property(e => e.RowVersion).OriginalValue = eventDto.RowVersion;
+                }
 
                 if (eventDto.Documents != null && eventDto.Documents.Any())
                 {

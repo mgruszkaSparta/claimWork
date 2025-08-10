@@ -742,6 +742,7 @@ namespace AutomotiveClaimsApi.Controllers
 
             if (dto.Notes != null)
             {
+                context?.Notes.RemoveRange(entity.Notes);
                 entity.Notes.Clear();
                 foreach (var nDto in dto.Notes)
                 {
@@ -751,6 +752,7 @@ namespace AutomotiveClaimsApi.Controllers
 
             if (dto.Emails != null)
             {
+                context?.Emails.RemoveRange(entity.Emails);
                 entity.Emails.Clear();
                 foreach (var eDto in dto.Emails)
                 {

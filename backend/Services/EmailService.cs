@@ -189,9 +189,12 @@ namespace AutomotiveClaimsApi.Services
             return await _context.Emails.Select(e => MapEmailToDto(e)).ToListAsync();
         }
 
-        public async Task<IEnumerable<EmailDto>> GetEmailsByClaimNumberAsync(string claimNumber)
+        public async Task<IEnumerable<EmailDto>> GetEmailsByClaimAsync(string claimId, string claimNumber)
         {
-            return await _context.Emails.Where(e => e.ClaimNumber == claimNumber).Select(e => MapEmailToDto(e)).ToListAsync();
+            return await _context.Emails
+                .Where(e => e.ClaimId == claimId && e.ClaimNumber == claimNumber)
+                .Select(e => MapEmailToDto(e))
+                .ToListAsync();
         }
 
         public Task<EmailDto> SendEmailAsync(SendEmailDto sendEmailDto)

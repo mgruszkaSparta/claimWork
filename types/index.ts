@@ -142,11 +142,19 @@ export interface Decision {
 export interface Appeal {
   id?: string
   eventId?: string
-  appealDate: string
-  appealType: string
-  description: string
+  appealNumber?: string
+  submissionDate?: string
+  extensionDate?: string
+  decisionDate?: string
+  reason?: string
   status?: string
-  amount?: number
+  notes?: string
+  description?: string
+  appealAmount?: number
+  decisionReason?: string
+  documentPath?: string
+  documentName?: string
+  documentDescription?: string
 }
 
 export interface ClientClaim {

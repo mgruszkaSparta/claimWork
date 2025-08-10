@@ -178,6 +178,7 @@ export const transformFrontendClaimToApiPayload = (
           })),
         }
       : {}),
+
     ...(Array.isArray(appeals) && appeals.length > 0
       ? {
           appeals: appeals.map((a) => ({
@@ -188,6 +189,7 @@ export const transformFrontendClaimToApiPayload = (
           })),
         }
       : {}),
+
     clientClaims: clientClaims?.map((c) => ({
       ...c,
       claimDate: c.claimDate ? new Date(c.claimDate).toISOString() : undefined,

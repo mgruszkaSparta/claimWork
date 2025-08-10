@@ -15,6 +15,14 @@ export interface Damage {
   isSaved?: boolean
 }
 
+export function initDamage(params: Partial<Damage> = {}): Damage {
+  return {
+    description: "",
+    isSaved: false,
+    ...params,
+  }
+}
+
 export function useDamages(eventId?: string) {
   const initDamages = useCallback(async (): Promise<Damage[]> => {
     const response = await fetch(API_ENDPOINTS.DAMAGES_INIT)

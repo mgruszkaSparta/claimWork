@@ -708,6 +708,10 @@ namespace AutomotiveClaimsApi.Migrations
                         .HasMaxLength(50)
                         .HasColumnType("character varying(50)");
 
+                    b.Property<byte[]>("RowVersion")
+                        .IsRowVersion()
+                        .HasColumnType("rowversion");
+
                     b.Property<decimal?>("TotalClaim")
                         .HasColumnType("decimal(18,2)");
 

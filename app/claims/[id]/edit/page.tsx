@@ -146,6 +146,7 @@ export default function EditClaimPage() {
     try {
       const updatedClaim = await updateClaim(id, claimFormData)
       if (updatedClaim) {
+        setClaimFormData(updatedClaim)
         toast({
           title: "Szkoda zaktualizowana",
           description: `Szkoda ${updatedClaim.spartaNumber || updatedClaim.claimNumber} została pomyślnie zaktualizowana.`,

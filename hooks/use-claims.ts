@@ -25,6 +25,7 @@ export const transformApiClaimToFrontend = (apiClaim: ClaimDto): Claim => {
   return {
     ...apiClaim,
     id: apiClaim.id,
+    rowVersion: apiClaim.rowVersion,
     insuranceCompanyId: apiClaim.insuranceCompanyId?.toString(),
     leasingCompanyId: apiClaim.leasingCompanyId?.toString(),
     handlerId: apiClaim.handlerId?.toString(),
@@ -58,6 +59,7 @@ export const transformFrontendClaimToApiPayload = (
 ): ClaimUpsertDto => {
   const {
     id,
+    rowVersion,
     decisions,
     appeals,
     clientClaims,
@@ -144,6 +146,7 @@ export const transformFrontendClaimToApiPayload = (
 
   return {
     id,
+    rowVersion,
     ...rest,
 
     // Convert string identifiers to numbers for API payload

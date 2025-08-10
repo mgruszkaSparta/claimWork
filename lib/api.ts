@@ -33,6 +33,7 @@ export interface EventDto extends EventListItemDto {
   eventTime?: string
   location?: string
   description?: string
+  rowVersion?: string
 
   /**
    * Comma-separated list of services that were called
@@ -61,6 +62,7 @@ export interface DocumentDto {
 
 export interface EventUpsertDto {
   id?: string
+  rowVersion?: string
   spartaNumber?: string
   claimNumber?: string
   vehicleNumber?: string

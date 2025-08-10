@@ -60,5 +60,71 @@ namespace AutomotiveClaimsApi.Tests
             Assert.Single(updated.Appeals);
             Assert.Equal(appealId, updated.Appeals.First().Id);
         }
+
+        [Fact]
+        public async Task UpdateClaim_RemovesMissingDrivers()
+        {
+            var options = new DbContextOptionsBuilder<ApplicationDbContext>()
+                .UseInMemoryDatabase(Guid.NewGuid().ToString())
+                .Options;
+
+            using var context = new ApplicationDbContext(options);
+
+            var claimId = Guid.NewGuid();
+            var participantId = Guid.NewGuid();
+            var driverId = Guid.NewGuid();
+
+            context.Events.Add(new Event
+            {
+                Id = claimId,
+                ClaimNumber = "CLAIM-DRIVER",
+                Participants =
+                {
+                    new Participant
+                    {
+                        Id = participantId,
+                        EventId = claimId,
+                        CreatedAt = DateTime.UtcNow,
+                        UpdatedAt = DateTime.UtcNow,
+                        Drivers =
+                        {
+                            new Driver
+                            {
+                                Id = driverId,
+                                EventId = claimId,
+                                ParticipantId = participantId,
+                                FirstName = "John",
+                                LastName = "Doe",
+                                CreatedAt = DateTime.UtcNow,
+                                UpdatedAt = DateTime.UtcNow
+                            }
+                        }
+                    }
+                }
+            });
+
+            await context.SaveChangesAsync();
+
+            var logger = LoggerFactory.Create(b => { }).CreateLogger<ClaimsController>();
+            var controller = new ClaimsController(context, logger);
+
+            var dto = new ClaimUpsertDto
+            {
+                ClaimNumber = "CLAIM-DRIVER",
+                Participants = new[]
+                {
+                    new ParticipantUpsertDto
+                    {
+                        Id = participantId.ToString(),
+                        Drivers = Array.Empty<DriverUpsertDto>()
+                    }
+                }
+            };
+
+            var result = await controller.UpdateClaim(claimId, dto);
+
+            Assert.IsType<NoContentResult>(result);
+            Assert.Empty(await context.Drivers.ToListAsync());
+        }
     }
 }

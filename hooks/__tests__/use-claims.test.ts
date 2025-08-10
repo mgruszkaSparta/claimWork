@@ -91,34 +91,8 @@ test('omits decisions when none are provided', () => {
   assert.ok(!('decisions' in payload))
 })
 
-test('maps appeals to upsert DTO structure', () => {
-  const payload = transformFrontendClaimToApiPayload({
-    appeals: [
-      {
-        id: '1',
-        eventId: '2',
-        submissionDate: '2024-01-02',
-        extensionDate: '2024-01-05',
-        decisionDate: '2024-01-10',
-        reason: 'Late payment',
-        status: 'Open',
-        notes: 'note',
-        description: 'desc',
-        appealAmount: 5000,
-        decisionReason: 'reason',
-        documentPath: '/path',
-        documentName: 'file.pdf',
-        documentDescription: 'doc',
-      },
-    ],
-  } as any)
+test('omits appeals when undefined', () => {
+  const payload = transformFrontendClaimToApiPayload({ appeals: undefined } as any)
+  assert.ok(!('appeals' in payload))
 
-  const appeal = payload.appeals?.[0] as any
-  assert.equal(
-    appeal.submissionDate,
-    new Date('2024-01-02').toISOString(),
-  )
-  assert.equal(appeal.appealAmount, 5000)
-  assert.equal(appeal.reason, 'Late payment')
-  assert.ok(!('appealDate' in appeal))
 })

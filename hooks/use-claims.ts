@@ -44,7 +44,7 @@ export const transformApiClaimToFrontend = (apiClaim: ClaimDto): Claim => {
       detail: d.detail,
     })) || [],
     decisions: apiClaim.decisions || [],
-    appeals: apiClaim.appeals || [],
+    appeals: apiClaim.appeals,
     clientClaims: apiClaim.clientClaims || [],
     recourses: apiClaim.recourses || [],
     settlements: apiClaim.settlements || [],
@@ -178,47 +178,18 @@ export const transformFrontendClaimToApiPayload = (
           })),
         }
       : {}),
-    appeals: appeals?.map(
-      ({
-        id,
-        eventId,
-        appealNumber,
-        submissionDate,
-        extensionDate,
-        reason,
-        status,
-        notes,
-        description,
-        appealAmount,
-        decisionDate,
-        decisionReason,
-        documentPath,
-        documentName,
-        documentDescription,
-      }) => ({
-        ...(id ? { id } : {}),
-        ...(eventId ? { eventId } : {}),
-        ...(appealNumber ? { appealNumber } : {}),
-        submissionDate: submissionDate
-          ? new Date(submissionDate).toISOString()
-          : undefined,
-        extensionDate: extensionDate
-          ? new Date(extensionDate).toISOString()
-          : undefined,
-        reason,
-        status,
-        notes,
-        description,
-        appealAmount,
-        decisionDate: decisionDate
-          ? new Date(decisionDate).toISOString()
-          : undefined,
-        decisionReason,
-        documentPath,
-        documentName,
-        documentDescription,
-      }),
-    ),
+
+    ...(Array.isArray(appeals) && appeals.length > 0
+      ? {
+          appeals: appeals.map((a) => ({
+            ...a,
+            appealDate: a.appealDate
+              ? new Date(a.appealDate).toISOString()
+              : undefined,
+          })),
+        }
+      : {}),
+
     clientClaims: clientClaims?.map((c) => ({
       ...c,
       claimDate: c.claimDate ? new Date(c.claimDate).toISOString() : undefined,

@@ -1,4 +1,6 @@
 using AutomotiveClaimsApi.Models;
+using Google.Apis.Auth.OAuth2;
+using Google.Cloud.Storage.V1;
 using Microsoft.Extensions.Options;
 
 namespace AutomotiveClaimsApi.Services
@@ -7,13 +9,27 @@ namespace AutomotiveClaimsApi.Services
     {
         private readonly GoogleCloudStorageSettings _settings;
         private readonly ILogger<GoogleCloudStorageService> _logger;
+        private readonly StorageClient _storageClient;
 
         public GoogleCloudStorageService(
             IOptions<GoogleCloudStorageSettings> settings,
-            ILogger<GoogleCloudStorageService> logger)
+            ILogger<GoogleCloudStorageService> logger,
+            StorageClient? storageClient = null)
         {
             _settings = settings.Value;
             _logger = logger;
+            _storageClient = storageClient ?? CreateStorageClient();
+        }
+
+        private StorageClient CreateStorageClient()
+        {
+            if (!string.IsNullOrEmpty(_settings.CredentialsPath))
+            {
+                var credential = GoogleCredential.FromFile(_settings.CredentialsPath);
+                return StorageClient.Create(credential);
+            }
+
+            return StorageClient.Create();
         }
 
         public async Task<string> UploadFileAsync(Stream fileStream, string fileName, string contentType)
@@ -25,13 +41,15 @@ namespace AutomotiveClaimsApi.Services
                     throw new InvalidOperationException("Google Cloud Storage is not enabled");
                 }
 
-                // This is a placeholder implementation
-                // In a real implementation, you would use Google.Cloud.Storage.V1 package
-                await Task.Delay(100); // Simulate upload time
-                
+                await _storageClient.UploadObjectAsync(
+                    _settings.BucketName,
+                    fileName,
+                    contentType,
+                    fileStream);
+
                 var cloudUrl = $"https://storage.googleapis.com/{_settings.BucketName}/{fileName}";
-                _logger.LogInformation($"File uploaded to cloud storage: {cloudUrl}");
-                
+                _logger.LogInformation("File uploaded to cloud storage: {Url}", cloudUrl);
+
                 return cloudUrl;
             }
             catch (Exception ex)
@@ -50,9 +68,9 @@ namespace AutomotiveClaimsApi.Services
                     return;
                 }
 
-                // Extract file name from URL and delete
-                await Task.Delay(50); // Simulate delete time
-                _logger.LogInformation($"File deleted from cloud storage: {fileUrl}");
+                var fileName = ExtractFileName(fileUrl);
+                await _storageClient.DeleteObjectAsync(_settings.BucketName, fileName);
+                _logger.LogInformation("File deleted from cloud storage: {Url}", fileUrl);
             }
             catch (Exception ex)
             {
@@ -70,17 +88,22 @@ namespace AutomotiveClaimsApi.Services
                     throw new InvalidOperationException("Google Cloud Storage is not enabled");
                 }
 
-                // This is a placeholder implementation
-                await Task.Delay(50); // Simulate download time
-                
-                // In a real implementation, you would download the file from GCS
-                return new MemoryStream();
+                var fileName = ExtractFileName(fileUrl);
+                var memoryStream = new MemoryStream();
+                await _storageClient.DownloadObjectAsync(_settings.BucketName, fileName, memoryStream);
+                memoryStream.Position = 0;
+                return memoryStream;
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, $"Failed to get file stream for {fileUrl} from cloud storage");
                 throw;
             }
+        }
+
+        private static string ExtractFileName(string fileUrl)
+        {
+            return Path.GetFileName(new Uri(fileUrl).AbsolutePath);
         }
     }
 }

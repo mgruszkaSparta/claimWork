@@ -348,13 +348,13 @@ namespace AutomotiveClaimsApi.Controllers
                 var eventEntity = await _context.Events
                     .Include(e => e.Participants).ThenInclude(p => p.Drivers)
                     .Include(e => e.Damages)
-
                     .Include(e => e.Appeals)
                     .Include(e => e.ClientClaims)
                     .Include(e => e.Decisions)
-
                     .Include(e => e.Recourses)
                     .Include(e => e.Settlements)
+                    .Include(e => e.Notes)
+                    .Include(e => e.Emails)
                     .FirstOrDefaultAsync(e => e.Id == id);
 
                 if (eventEntity == null)
@@ -364,65 +364,7 @@ namespace AutomotiveClaimsApi.Controllers
 
                 MapUpsertDtoToEvent(eventDto, eventEntity);
 
-                if (eventDto.DeletedAppealIds != null && eventDto.DeletedAppealIds.Any())
-                {
-                    var appealsToDelete = await _context.Appeals
-                        .Where(a => eventDto.DeletedAppealIds.Contains(a.Id))
-                        .ToListAsync();
-                    _context.Appeals.RemoveRange(appealsToDelete);
-                }
-
                 eventEntity.UpdatedAt = DateTime.UtcNow;
-
-                // Remove existing related entities
-                var existingDrivers = eventEntity.Participants.SelectMany(p => p.Drivers).ToList();
-                _context.Drivers.RemoveRange(existingDrivers);
-                _context.Participants.RemoveRange(eventEntity.Participants);
-                _context.Damages.RemoveRange(eventEntity.Damages);
-                _context.Decisions.RemoveRange(eventEntity.Decisions);
-                _context.ClientClaims.RemoveRange(eventEntity.ClientClaims);
-                _context.Recourses.RemoveRange(eventEntity.Recourses);
-                _context.Settlements.RemoveRange(eventEntity.Settlements);
-
-                var existingNotes = await _context.Notes.Where(n => n.EventId == eventEntity.Id).ToListAsync();
-                _context.Notes.RemoveRange(existingNotes);
-
-                var existingEmails = await _context.Emails.Where(e => e.EventId == eventEntity.Id).ToListAsync();
-                _context.Emails.RemoveRange(existingEmails);
-
-                // Add new participants
-                if (eventDto.Participants != null)
-                {
-                    foreach (var pDto in eventDto.Participants)
-                    {
-                        var participant = MapParticipantDtoToModel(pDto, eventEntity.Id);
-                        _context.Participants.Add(participant);
-                        if (pDto.Drivers != null)
-                        {
-                            foreach (var dDto in pDto.Drivers)
-                            {
-                                _context.Drivers.Add(MapDriverDtoToModel(dDto, eventEntity.Id, participant.Id));
-                            }
-                        }
-                    }
-                }
-
-
-                if (eventDto.Notes != null)
-                {
-                    foreach (var nDto in eventDto.Notes)
-                    {
-                        _context.Notes.Add(MapNoteDtoToModel(nDto, eventEntity.Id));
-                    }
-                }
-
-                if (eventDto.Emails != null)
-                {
-                    foreach (var eDto in eventDto.Emails)
-                    {
-                        _context.Emails.Add(MapEmailDtoToModel(eDto, eventEntity.Id));
-                    }
-                }
 
                 if (eventDto.Documents != null && eventDto.Documents.Any())
                 {
@@ -432,69 +374,6 @@ namespace AutomotiveClaimsApi.Controllers
                     {
                         doc.EventId = eventEntity.Id;
                         doc.UpdatedAt = DateTime.UtcNow;
-                    }
-                }
-
-                if (eventDto.Damages != null)
-                {
-                    foreach (var dDto in eventDto.Damages)
-                    {
-                        _context.Damages.Add(MapDamageDtoToModel(dDto, eventEntity.Id));
-                    }
-                }
-
-                if (eventDto.Decisions != null)
-                {
-                    foreach (var dDto in eventDto.Decisions)
-                    {
-                        _context.Decisions.Add(MapDecisionDtoToModel(dDto, eventEntity.Id));
-                    }
-                }
-
-                if (eventDto.Appeals != null)
-                {
-                    foreach (var aDto in eventDto.Appeals)
-                    {
-                        _context.Appeals.Add(MapAppealDtoToModel(aDto, eventEntity.Id));
-                    }
-                }
-
-                if (eventDto.ClientClaims != null)
-                {
-                    foreach (var cDto in eventDto.ClientClaims)
-                    {
-                        Guid? clientClaimId = null;
-                        if (!string.IsNullOrEmpty(cDto.Id))
-                        {
-                            if (Guid.TryParse(cDto.Id, out var parsedId))
-                            {
-                                clientClaimId = parsedId;
-                            }
-                            else
-                            {
-                                return BadRequest($"Invalid ClientClaim Id format: {cDto.Id}");
-                            }
-                        }
-
-                        _context.ClientClaims.Add(MapClientClaimDtoToModel(cDto, eventEntity.Id, clientClaimId));
-                    }
-                }
-
-                if (eventDto.Recourses != null)
-                {
-                    foreach (var rDto in eventDto.Recourses)
-                    {
-                        _context.Recourses.Add(MapRecourseDtoToModel(rDto, eventEntity.Id));
-                    }
-                }
-
-                if (eventDto.Settlements != null)
-                {
-                    foreach (var sDto in eventDto.Settlements)
-                    {
-                        _context.Settlements.Add(MapSettlementDtoToModel(sDto, eventEntity.Id));
-
-
                     }
                 }
 
@@ -727,6 +606,142 @@ namespace AutomotiveClaimsApi.Controllers
             entity.Description = dto.Description;
 
             // Upsert nested collections
+            if (dto.Participants != null)
+            {
+                var dtoIds = dto.Participants
+                    .Where(p => !string.IsNullOrEmpty(p.Id))
+                    .Select(p => Guid.Parse(p.Id!))
+                    .ToHashSet();
+                var toRemove = entity.Participants.Where(p => !dtoIds.Contains(p.Id)).ToList();
+                foreach (var r in toRemove) entity.Participants.Remove(r);
+
+                foreach (var pDto in dto.Participants)
+                {
+                    var hasId = Guid.TryParse(pDto.Id, out var participantId);
+                    var existing = hasId ? entity.Participants.FirstOrDefault(p => p.Id == participantId) : null;
+                    if (existing != null)
+                    {
+                        existing.Role = pDto.Role;
+                        existing.Name = pDto.Name;
+                        existing.Phone = pDto.Phone;
+                        existing.Email = pDto.Email;
+                        existing.Address = pDto.Address;
+                        existing.City = pDto.City;
+                        existing.PostalCode = pDto.PostalCode;
+                        existing.Country = pDto.Country;
+                        existing.InsuranceCompany = pDto.InsuranceCompany;
+                        existing.PolicyNumber = pDto.PolicyNumber;
+                        existing.VehicleRegistration = pDto.VehicleRegistration;
+                        existing.VehicleVin = pDto.VehicleVin;
+                        existing.VehicleType = pDto.VehicleType;
+                        existing.VehicleBrand = pDto.VehicleBrand;
+                        existing.VehicleModel = pDto.VehicleModel;
+                        existing.VehicleYear = pDto.VehicleYear;
+                        existing.InspectionContactName = pDto.InspectionContactName;
+                        existing.InspectionContactPhone = pDto.InspectionContactPhone;
+                        existing.InspectionContactEmail = pDto.InspectionContactEmail;
+                        existing.IsAtFault = pDto.IsAtFault;
+                        existing.IsInjured = pDto.IsInjured;
+                        existing.InjuryDescription = pDto.InjuryDescription;
+                        existing.LicenseNumber = pDto.LicenseNumber;
+                        existing.LicenseClass = pDto.LicenseClass;
+                        existing.LicenseExpiryDate = pDto.LicenseExpiryDate;
+                        existing.DateOfBirth = pDto.DateOfBirth;
+                        existing.ParticipantType = pDto.ParticipantType;
+                        existing.ContactInfo = pDto.ContactInfo;
+                        existing.Notes = pDto.Notes;
+                        existing.UpdatedAt = DateTime.UtcNow;
+
+                        var driverIds = pDto.Drivers?
+                            .Where(d => !string.IsNullOrEmpty(d.Id))
+                            .Select(d => Guid.Parse(d.Id!))
+                            .ToHashSet() ?? new HashSet<Guid>();
+                        var driversToRemove = existing.Drivers.Where(d => !driverIds.Contains(d.Id)).ToList();
+                        foreach (var d in driversToRemove) existing.Drivers.Remove(d);
+
+                        if (pDto.Drivers != null)
+                        {
+                            foreach (var dDto in pDto.Drivers)
+                            {
+                                var hasDriverId = Guid.TryParse(dDto.Id, out var driverId);
+                                var driver = hasDriverId ? existing.Drivers.FirstOrDefault(dr => dr.Id == driverId) : null;
+                                if (driver != null)
+                                {
+                                    driver.FirstName = dDto.FirstName;
+                                    driver.LastName = dDto.LastName;
+                                    driver.Phone = dDto.Phone;
+                                    driver.LicenseNumber = dDto.LicenseNumber;
+                                    driver.LicenseState = dDto.LicenseState;
+                                    driver.LicenseExpirationDate = dDto.LicenseExpirationDate;
+                                    driver.IsMainDriver = dDto.IsMainDriver;
+                                    driver.UpdatedAt = DateTime.UtcNow;
+                                }
+                                else
+                                {
+                                    existing.Drivers.Add(new Driver
+                                    {
+                                        Id = hasDriverId ? driverId : Guid.NewGuid(),
+                                        EventId = entity.Id,
+                                        ParticipantId = existing.Id,
+                                        FirstName = dDto.FirstName,
+                                        LastName = dDto.LastName,
+                                        Phone = dDto.Phone,
+                                        LicenseNumber = dDto.LicenseNumber,
+                                        LicenseState = dDto.LicenseState,
+                                        LicenseExpirationDate = dDto.LicenseExpirationDate,
+                                        IsMainDriver = dDto.IsMainDriver,
+                                        CreatedAt = DateTime.UtcNow,
+                                        UpdatedAt = DateTime.UtcNow
+                                    });
+                                }
+                            }
+                        }
+                    }
+                    else
+                    {
+                        var participant = MapParticipantDtoToModel(pDto, entity.Id);
+                        participant.Drivers.Clear();
+                        foreach (var dDto in pDto.Drivers ?? Enumerable.Empty<DriverUpsertDto>())
+                        {
+                            participant.Drivers.Add(new Driver
+                            {
+                                Id = string.IsNullOrEmpty(dDto.Id) ? Guid.NewGuid() : Guid.Parse(dDto.Id),
+                                EventId = entity.Id,
+                                ParticipantId = participant.Id,
+                                FirstName = dDto.FirstName,
+                                LastName = dDto.LastName,
+                                Phone = dDto.Phone,
+                                LicenseNumber = dDto.LicenseNumber,
+                                LicenseState = dDto.LicenseState,
+                                LicenseExpirationDate = dDto.LicenseExpirationDate,
+                                IsMainDriver = dDto.IsMainDriver,
+                                CreatedAt = DateTime.UtcNow,
+                                UpdatedAt = DateTime.UtcNow
+                            });
+                        }
+                        entity.Participants.Add(participant);
+                    }
+                }
+            }
+
+            if (dto.Notes != null)
+            {
+                entity.Notes.Clear();
+                foreach (var nDto in dto.Notes)
+                {
+                    entity.Notes.Add(MapNoteDtoToModel(nDto, entity.Id));
+                }
+            }
+
+            if (dto.Emails != null)
+            {
+                entity.Emails.Clear();
+                foreach (var eDto in dto.Emails)
+                {
+                    entity.Emails.Add(MapEmailDtoToModel(eDto, entity.Id));
+                }
+            }
+
             if (dto.Damages != null)
             {
                 var dtoIds = dto.Damages

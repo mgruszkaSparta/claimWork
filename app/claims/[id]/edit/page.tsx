@@ -145,6 +145,7 @@ export default function EditClaimPage() {
     setIsSaving(true)
     try {
       const updatedClaim = await updateClaim(id, claimFormData)
+
       if (updatedClaim) {
         setClaimFormData(updatedClaim)
         toast({
@@ -152,11 +153,9 @@ export default function EditClaimPage() {
           description: `Szkoda ${updatedClaim.spartaNumber || updatedClaim.claimNumber} została pomyślnie zaktualizowana.`,
         })
 
-        if (exitAfterSave) {
-          router.push("/")
-        }
-      } else {
-        throw new Error("Nie udało się zaktualizować szkody")
+
+      if (exitAfterSave) {
+        router.push("/")
       }
     } catch (error) {
       console.error("Error updating claim:", error)

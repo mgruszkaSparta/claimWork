@@ -13,6 +13,7 @@ import { DocumentsSection } from '../documents-section'
 import { useClaims } from '@/hooks/use-claims'
 import { useDamages } from '@/hooks/use-damages'
 import { useRouter } from 'next/navigation'
+import { useToast } from '@/hooks/use-toast'
 import type { Claim, ParticipantInfo, UploadedFile, RequiredDocument } from '@/types'
 
 interface ClaimFormProps {
@@ -23,6 +24,7 @@ interface ClaimFormProps {
 export function ClaimForm({ initialData, mode }: ClaimFormProps) {
   const router = useRouter()
   const { createClaim, updateClaim, initializeClaim, loading, error } = useClaims()
+  const { toast } = useToast()
   const initialized = useRef(false)
   const [formData, setFormData] = useState<Claim>({
     spartaNumber: '',
@@ -175,6 +177,11 @@ export function ClaimForm({ initialData, mode }: ClaimFormProps) {
       }
     } catch (err) {
       console.error('Error submitting form:', err)
+      toast({
+        title: 'Błąd',
+        description: err instanceof Error ? err.message : 'Wystąpił błąd podczas zapisywania szkody.',
+        variant: 'destructive',
+      })
     }
   }
 

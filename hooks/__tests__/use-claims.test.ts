@@ -90,3 +90,8 @@ test('omits decisions when none are provided', () => {
   const payload = transformFrontendClaimToApiPayload({ decisions: [] } as any)
   assert.ok(!('decisions' in payload))
 })
+
+test('omits appeals when undefined', () => {
+  const payload = transformFrontendClaimToApiPayload({ appeals: undefined } as any)
+  assert.ok(!('appeals' in payload))
+})

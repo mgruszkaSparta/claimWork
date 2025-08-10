@@ -44,7 +44,7 @@ export const transformApiClaimToFrontend = (apiClaim: ClaimDto): Claim => {
       detail: d.detail,
     })) || [],
     decisions: apiClaim.decisions || [],
-    appeals: apiClaim.appeals || [],
+    appeals: apiClaim.appeals,
     clientClaims: apiClaim.clientClaims || [],
     recourses: apiClaim.recourses || [],
     settlements: apiClaim.settlements || [],
@@ -178,10 +178,16 @@ export const transformFrontendClaimToApiPayload = (
           })),
         }
       : {}),
-    appeals: appeals?.map((a) => ({
-      ...a,
-      appealDate: a.appealDate ? new Date(a.appealDate).toISOString() : undefined,
-    })),
+    ...(Array.isArray(appeals) && appeals.length > 0
+      ? {
+          appeals: appeals.map((a) => ({
+            ...a,
+            appealDate: a.appealDate
+              ? new Date(a.appealDate).toISOString()
+              : undefined,
+          })),
+        }
+      : {}),
     clientClaims: clientClaims?.map((c) => ({
       ...c,
       claimDate: c.claimDate ? new Date(c.claimDate).toISOString() : undefined,

@@ -362,7 +362,7 @@ namespace AutomotiveClaimsApi.Controllers
                     return NotFound(new { error = "Event not found" });
                 }
 
-                MapUpsertDtoToEvent(eventDto, eventEntity);
+                MapUpsertDtoToEvent(eventDto, eventEntity, _context);
 
                 eventEntity.UpdatedAt = DateTime.UtcNow;
 
@@ -549,7 +549,7 @@ namespace AutomotiveClaimsApi.Controllers
             return $"{prefix}{next:D4}";
         }
 
-        private static Event MapUpsertDtoToEvent(ClaimUpsertDto dto, Event? entity = null)
+        private static Event MapUpsertDtoToEvent(ClaimUpsertDto dto, Event? entity = null, ApplicationDbContext? context = null)
         {
             entity ??= new Event();
 
@@ -657,7 +657,11 @@ namespace AutomotiveClaimsApi.Controllers
                             .Select(d => Guid.Parse(d.Id!))
                             .ToHashSet() ?? new HashSet<Guid>();
                         var driversToRemove = existing.Drivers.Where(d => !driverIds.Contains(d.Id)).ToList();
-                        foreach (var d in driversToRemove) existing.Drivers.Remove(d);
+                        foreach (var d in driversToRemove)
+                        {
+                            context?.Drivers.Remove(d);
+                            existing.Drivers.Remove(d);
+                        }
 
                         if (pDto.Drivers != null)
                         {

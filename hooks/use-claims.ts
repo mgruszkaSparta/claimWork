@@ -7,7 +7,7 @@ import {
   type ClaimDto,
   type ParticipantUpsertDto,
 } from "@/lib/api"
-import type { Claim, ParticipantInfo, DriverInfo } from "@/types"
+import type { Claim, ParticipantInfo, DriverInfo, Note } from "@/types"
 
 export const transformApiClaimToFrontend = (apiClaim: ClaimDto): Claim => {
   const injuredParty = apiClaim.participants?.find((p: any) => p.role === "Poszkodowany")
@@ -44,6 +44,16 @@ export const transformApiClaimToFrontend = (apiClaim: ClaimDto): Claim => {
       description: d.description,
       detail: d.detail,
     })) || [],
+    notes:
+      apiClaim.notes?.map((n: any) => ({
+        id: n.id,
+        type: (n.category as Note["type"]) || "note",
+        title: n.title,
+        description: n.content,
+        user: n.createdBy,
+        createdAt: n.createdAt,
+        priority: n.priority as Note["priority"],
+      })) || [],
     decisions: apiClaim.decisions || [],
     appeals: apiClaim.appeals,
     clientClaims: apiClaim.clientClaims || [],
@@ -66,6 +76,7 @@ export const transformFrontendClaimToApiPayload = (
     recourses,
     settlements,
     damages,
+    notes,
     injuredParty,
     perpetrator,
     servicesCalled,
@@ -180,6 +191,18 @@ export const transformFrontendClaimToApiPayload = (
       description: d.description,
       detail: d.detail,
     })),
+    ...(Array.isArray(notes) && notes.length > 0
+      ? {
+          notes: notes.map((n: Note) => ({
+            id: n.id && n.id.startsWith("temp-") ? undefined : n.id,
+            category: n.type,
+            title: n.title,
+            content: n.description,
+            createdBy: n.user,
+            priority: n.priority,
+          })),
+        }
+      : {}),
     ...(Array.isArray(decisions) && decisions.length > 0
       ? {
           decisions: decisions.map((d) => ({

@@ -102,8 +102,12 @@ export interface EventUpsertDto {
 }
 
 export interface ClaimListItemDto extends EventListItemDto {}
-export interface ClaimDto extends EventDto {}
-export interface ClaimUpsertDto extends EventUpsertDto {}
+export interface ClaimDto extends EventDto {
+  notes?: NoteDto[]
+}
+export interface ClaimUpsertDto extends EventUpsertDto {
+  notes?: NoteUpsertDto[]
+}
 
 export interface NoteDto {
   id: string

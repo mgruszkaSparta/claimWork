@@ -918,6 +918,11 @@ namespace AutomotiveClaimsApi.Controllers
 
         private static void UpdateRecourseFromDto(Event entity, RecourseUpsertDto rDto, ApplicationDbContext context)
         {
+            if (!rDto.FilingDate.HasValue || string.IsNullOrWhiteSpace(rDto.InsuranceCompany))
+            {
+                throw new ArgumentException("FilingDate and InsuranceCompany are required for recourse");
+            }
+
             var hasId = rDto.Id.HasValue;
             var recourseId = rDto.Id ?? Guid.Empty;
             var existing = hasId ? entity.Recourses.FirstOrDefault(r => r.Id == recourseId) : null;
@@ -929,6 +934,15 @@ namespace AutomotiveClaimsApi.Controllers
                 existing.Notes = rDto.Notes;
                 existing.RecourseNumber = rDto.RecourseNumber;
                 existing.RecourseAmount = rDto.RecourseAmount;
+                existing.IsJustified = rDto.IsJustified ?? existing.IsJustified;
+                existing.FilingDate = rDto.FilingDate.Value;
+                existing.InsuranceCompany = rDto.InsuranceCompany!;
+                existing.ObtainDate = rDto.ObtainDate;
+                existing.Amount = rDto.Amount;
+                existing.CurrencyCode = rDto.CurrencyCode;
+                existing.DocumentPath = rDto.DocumentPath;
+                existing.DocumentName = rDto.DocumentName;
+                existing.DocumentDescription = rDto.DocumentDescription;
                 existing.UpdatedAt = DateTime.UtcNow;
                 context.Recourses.Update(existing);
             }
@@ -944,6 +958,15 @@ namespace AutomotiveClaimsApi.Controllers
                     Notes = rDto.Notes,
                     RecourseNumber = rDto.RecourseNumber,
                     RecourseAmount = rDto.RecourseAmount,
+                    IsJustified = rDto.IsJustified ?? false,
+                    FilingDate = rDto.FilingDate.Value,
+                    InsuranceCompany = rDto.InsuranceCompany!,
+                    ObtainDate = rDto.ObtainDate,
+                    Amount = rDto.Amount,
+                    CurrencyCode = rDto.CurrencyCode,
+                    DocumentPath = rDto.DocumentPath,
+                    DocumentName = rDto.DocumentName,
+                    DocumentDescription = rDto.DocumentDescription,
                     CreatedAt = DateTime.UtcNow,
                     UpdatedAt = DateTime.UtcNow
                 };

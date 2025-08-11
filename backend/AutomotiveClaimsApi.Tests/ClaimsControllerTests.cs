@@ -122,6 +122,136 @@ namespace AutomotiveClaimsApi.Tests
             var updated = await context.Decisions.FirstAsync(d => d.Id == decision.Id);
             Assert.Equal("new", updated.Status);
         }
+
+        [Fact]
+        public async Task UpdateClaim_AddsRecourse_WithAllProperties()
+        {
+            var options = new DbContextOptionsBuilder<ApplicationDbContext>()
+                .UseInMemoryDatabase(Guid.NewGuid().ToString())
+                .Options;
+
+            await using var context = new ApplicationDbContext(options);
+            var ev = new Event { Id = Guid.NewGuid(), CreatedAt = DateTime.UtcNow, UpdatedAt = DateTime.UtcNow };
+            context.Events.Add(ev);
+            await context.SaveChangesAsync();
+
+            var controller = new ClaimsController(context, NullLogger<ClaimsController>.Instance);
+            var recourseDto = new RecourseUpsertDto
+            {
+                Status = "pending",
+                InitiationDate = DateTime.UtcNow.Date,
+                Description = "desc",
+                Notes = "notes",
+                RecourseNumber = "RN1",
+                RecourseAmount = 10m,
+                IsJustified = true,
+                FilingDate = new DateTime(2024, 1, 1),
+                InsuranceCompany = "InsureCo",
+                ObtainDate = new DateTime(2024, 1, 2),
+                Amount = 20m,
+                CurrencyCode = "USD",
+                DocumentPath = "/tmp/doc.pdf",
+                DocumentName = "doc",
+                DocumentDescription = "doc desc"
+            };
+            var dto = new ClaimUpsertDto { Id = ev.Id, Recourses = new[] { recourseDto } };
+
+            await controller.UpdateClaim(ev.Id, dto);
+
+            var recourse = await context.Recourses.FirstAsync();
+            Assert.Equal(recourseDto.Status, recourse.Status);
+            Assert.Equal(recourseDto.InitiationDate, recourse.InitiationDate);
+            Assert.Equal(recourseDto.Description, recourse.Description);
+            Assert.Equal(recourseDto.Notes, recourse.Notes);
+            Assert.Equal(recourseDto.RecourseNumber, recourse.RecourseNumber);
+            Assert.Equal(recourseDto.RecourseAmount, recourse.RecourseAmount);
+            Assert.Equal(recourseDto.IsJustified, recourse.IsJustified);
+            Assert.Equal(recourseDto.FilingDate, recourse.FilingDate);
+            Assert.Equal(recourseDto.InsuranceCompany, recourse.InsuranceCompany);
+            Assert.Equal(recourseDto.ObtainDate, recourse.ObtainDate);
+            Assert.Equal(recourseDto.Amount, recourse.Amount);
+            Assert.Equal(recourseDto.CurrencyCode, recourse.CurrencyCode);
+            Assert.Equal(recourseDto.DocumentPath, recourse.DocumentPath);
+            Assert.Equal(recourseDto.DocumentName, recourse.DocumentName);
+            Assert.Equal(recourseDto.DocumentDescription, recourse.DocumentDescription);
+        }
+
+        [Fact]
+        public async Task UpdateClaim_UpdatesRecourse_WithAllProperties()
+        {
+            var options = new DbContextOptionsBuilder<ApplicationDbContext>()
+                .UseInMemoryDatabase(Guid.NewGuid().ToString())
+                .Options;
+
+            await using var context = new ApplicationDbContext(options);
+            var ev = new Event { Id = Guid.NewGuid(), CreatedAt = DateTime.UtcNow, UpdatedAt = DateTime.UtcNow };
+            var recourse = new Recourse
+            {
+                Id = Guid.NewGuid(),
+                EventId = ev.Id,
+                Status = "old",
+                InitiationDate = new DateTime(2023, 1, 1),
+                Description = "old",
+                Notes = "old",
+                RecourseNumber = "OLD",
+                RecourseAmount = 1m,
+                IsJustified = false,
+                FilingDate = new DateTime(2023, 1, 2),
+                InsuranceCompany = "OldCo",
+                ObtainDate = new DateTime(2023, 1, 3),
+                Amount = 5m,
+                CurrencyCode = "EUR",
+                DocumentPath = "oldpath",
+                DocumentName = "oldname",
+                DocumentDescription = "olddesc",
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow
+            };
+            ev.Recourses.Add(recourse);
+            context.Events.Add(ev);
+            await context.SaveChangesAsync();
+
+            var controller = new ClaimsController(context, NullLogger<ClaimsController>.Instance);
+            var recourseDto = new RecourseUpsertDto
+            {
+                Id = recourse.Id,
+                Status = "new",
+                InitiationDate = new DateTime(2024, 2, 2),
+                Description = "new",
+                Notes = "new",
+                RecourseNumber = "NEW",
+                RecourseAmount = 2m,
+                IsJustified = true,
+                FilingDate = new DateTime(2024, 2, 3),
+                InsuranceCompany = "NewCo",
+                ObtainDate = new DateTime(2024, 2, 4),
+                Amount = 10m,
+                CurrencyCode = "USD",
+                DocumentPath = "newpath",
+                DocumentName = "newname",
+                DocumentDescription = "newdesc"
+            };
+            var dto = new ClaimUpsertDto { Id = ev.Id, Recourses = new[] { recourseDto } };
+
+            await controller.UpdateClaim(ev.Id, dto);
+
+            var updated = await context.Recourses.FirstAsync(r => r.Id == recourse.Id);
+            Assert.Equal(recourseDto.Status, updated.Status);
+            Assert.Equal(recourseDto.InitiationDate, updated.InitiationDate);
+            Assert.Equal(recourseDto.Description, updated.Description);
+            Assert.Equal(recourseDto.Notes, updated.Notes);
+            Assert.Equal(recourseDto.RecourseNumber, updated.RecourseNumber);
+            Assert.Equal(recourseDto.RecourseAmount, updated.RecourseAmount);
+            Assert.Equal(recourseDto.IsJustified, updated.IsJustified);
+            Assert.Equal(recourseDto.FilingDate, updated.FilingDate);
+            Assert.Equal(recourseDto.InsuranceCompany, updated.InsuranceCompany);
+            Assert.Equal(recourseDto.ObtainDate, updated.ObtainDate);
+            Assert.Equal(recourseDto.Amount, updated.Amount);
+            Assert.Equal(recourseDto.CurrencyCode, updated.CurrencyCode);
+            Assert.Equal(recourseDto.DocumentPath, updated.DocumentPath);
+            Assert.Equal(recourseDto.DocumentName, updated.DocumentName);
+            Assert.Equal(recourseDto.DocumentDescription, updated.DocumentDescription);
+        }
     }
 }
 

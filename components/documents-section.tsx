@@ -8,6 +8,8 @@ import { Input } from "@/components/ui/input"
 import { useToast } from "@/hooks/use-toast"
 import { File, Search, Filter, Eye, Download, Upload, X, Trash2, Grid, List, Wand, Plus, FileText, Paperclip, ZoomIn, ZoomOut, ChevronLeft, ChevronRight, RotateCw, Maximize2, Minimize2 } from 'lucide-react'
 import type { DocumentsSectionProps, UploadedFile } from "@/types"
+import JSZip from "jszip"
+import { saveAs } from "file-saver"
 
 interface Document {
   id: string
@@ -599,11 +601,30 @@ export const DocumentsSection = ({
       description: `Rozpoczęto pobieranie ${documentsForCategory.length} plik(ów) z kategorii "${category}".`,
     })
 
-    documentsForCategory.forEach((document, index) => {
-      setTimeout(() => {
-        handleDownload(document)
-      }, index * 500)
-    })
+    try {
+      const zip = new JSZip()
+
+      for (const document of documentsForCategory) {
+        const response = await fetch(document.downloadUrl)
+        const blob = await response.blob()
+        zip.file(document.originalFileName, blob)
+      }
+
+      const content = await zip.generateAsync({ type: "blob" })
+      saveAs(content, `${category}.zip`)
+
+      toast({
+        title: "Pobieranie zakończone",
+        description: `Pliki z kategorii "${category}" zostały pobrane w archiwum zip.`,
+      })
+    } catch (error) {
+      console.error("Failed to download all documents", error)
+      toast({
+        title: "Błąd",
+        description: "Nie udało się pobrać wszystkich plików.",
+        variant: "destructive",
+      })
+    }
   }
 
   const handleDrag = (e: React.DragEvent) => {

@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState, useEffect } from "react"
+import React, { useState, useEffect, useCallback } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -59,6 +59,41 @@ export const DocumentsSection = ({
   const [previewFullscreen, setPreviewFullscreen] = useState(false)
   const [currentPreviewIndex, setCurrentPreviewIndex] = useState(0)
   const [previewDocuments, setPreviewDocuments] = useState<Document[]>([])
+
+  const previewContainerRef = React.useRef<HTMLDivElement>(null)
+
+  const closePreview = useCallback(() => {
+    if (document.fullscreenElement) {
+      document.exitFullscreen()
+    }
+    setPreviewDocument(null)
+  }, [setPreviewDocument])
+
+  useEffect(() => {
+    const handleFullscreenChange = () => {
+      setPreviewFullscreen(!!document.fullscreenElement)
+    }
+    document.addEventListener("fullscreenchange", handleFullscreenChange)
+    return () => document.removeEventListener("fullscreenchange", handleFullscreenChange)
+  }, [])
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        if (document.fullscreenElement) {
+          document.exitFullscreen()
+        } else {
+          closePreview()
+        }
+      }
+    }
+    if (previewDocument) {
+      document.addEventListener("keydown", handleKeyDown)
+    }
+    return () => {
+      document.removeEventListener("keydown", handleKeyDown)
+    }
+  }, [previewDocument, closePreview])
 
   const isGuid = (value: string) =>
     /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/.test(value)
@@ -628,7 +663,12 @@ export const DocumentsSection = ({
   }
 
   const toggleFullscreen = () => {
-    setPreviewFullscreen((prev) => !prev)
+    const element = previewContainerRef.current
+    if (!document.fullscreenElement) {
+      element?.requestFullscreen()
+    } else {
+      document.exitFullscreen()
+    }
   }
 
   const formatBytes = (bytes: number, decimals = 2) => {
@@ -1187,6 +1227,7 @@ export const DocumentsSection = ({
         {/* Enhanced Preview Modal */}
         {previewDocument && (
           <div
+            ref={previewContainerRef}
             className={`fixed inset-0 bg-black bg-opacity-90 flex items-center justify-center z-50 ${previewFullscreen ? "p-0" : "p-4"}`}
           >
             <div
@@ -1253,7 +1294,7 @@ export const DocumentsSection = ({
                   </Button>
 
                   {/* Close button */}
-                  <Button variant="ghost" size="sm" onClick={() => setPreviewDocument(null)}>
+                  <Button variant="ghost" size="sm" onClick={closePreview}>
                     <X className="h-4 w-4" />
                   </Button>
                 </div>

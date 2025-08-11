@@ -16,6 +16,12 @@ export const transformApiClaimToFrontend = (apiClaim: ClaimDto): Claim => {
   const mapParticipantDto = (p: any): ParticipantInfo => ({
     ...p,
     id: p.id?.toString() || "",
+    policyDealDate: p.policyDealDate ? p.policyDealDate.split("T")[0] : undefined,
+    policyStartDate: p.policyStartDate ? p.policyStartDate.split("T")[0] : undefined,
+    policyEndDate: p.policyEndDate ? p.policyEndDate.split("T")[0] : undefined,
+    firstRegistrationDate: p.firstRegistrationDate
+      ? p.firstRegistrationDate.split("T")[0]
+      : undefined,
     drivers: p.drivers?.map((d: any) => ({
       ...d,
       id: d.id?.toString() || "",
@@ -130,11 +136,16 @@ export const transformFrontendClaimToApiPayload = (
     policyEndDate: p.policyEndDate
       ? new Date(p.policyEndDate).toISOString()
       : undefined,
+    firstRegistrationDate: p.firstRegistrationDate
+      ? new Date(p.firstRegistrationDate).toISOString()
+      : undefined,
+    policySumAmount: p.policySumAmount,
     vehicleRegistration: p.vehicleRegistration,
     vehicleVin: p.vehicleVin,
     vehicleType: p.vehicleType,
     vehicleBrand: p.vehicleBrand,
     vehicleModel: p.vehicleModel,
+    inspectionNotes: p.inspectionNotes,
     inspectionContactName: p.inspectionContactName,
     inspectionContactPhone: p.inspectionContactPhone,
     inspectionContactEmail: p.inspectionContactEmail,

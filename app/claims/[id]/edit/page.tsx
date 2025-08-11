@@ -155,7 +155,7 @@ export default function EditClaimPage() {
 
 
       if (exitAfterSave) {
-        router.push("/")
+        router.push("/claims")
       }
     } catch (error) {
       console.error("Error updating claim:", error)
@@ -170,7 +170,7 @@ export default function EditClaimPage() {
   }
 
   const handleClose = () => {
-    router.push("/")
+    router.push("/claims")
   }
 
   if (isLoading) {

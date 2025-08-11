@@ -307,7 +307,7 @@ export default function NewClaimPage() {
       })
 
       if (exitAfterSave) {
-        router.push("/")
+        router.push("/claims")
       } else {
         resetForm()
         setRepairSchedules([])
@@ -343,7 +343,7 @@ export default function NewClaimPage() {
   }
 
   const handleClose = () => {
-    router.push("/")
+    router.push("/claims")
   }
 
   return (

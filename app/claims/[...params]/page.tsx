@@ -154,7 +154,7 @@ export default function ClaimPage() {
           })
 
           if (exitAfterSave) {
-            router.push("/")
+            router.push("/claims")
           } else {
             // Redirect to edit mode of the newly created claim
             router.push(`/claims/${createdClaim.id}/edit`)
@@ -170,7 +170,7 @@ export default function ClaimPage() {
         })
 
         if (exitAfterSave) {
-          router.push("/")
+          router.push("/claims")
         } else {
           // Refresh the data
           await loadClaimData()
@@ -189,7 +189,7 @@ export default function ClaimPage() {
   }
 
   const handleClose = () => {
-    router.push("/")
+    router.push("/claims")
   }
 
   const handleEdit = () => {

@@ -7,6 +7,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace AutomotiveClaimsApi.Controllers
 {
@@ -348,7 +350,7 @@ namespace AutomotiveClaimsApi.Controllers
         {
             try
             {
-                var eventEntity = await _context.Events
+                var existing = await _context.Events
                     .AsNoTracking()
                     .Include(e => e.Participants).ThenInclude(p => p.Drivers)
                     .Include(e => e.Damages)
@@ -361,9 +363,72 @@ namespace AutomotiveClaimsApi.Controllers
                     .Include(e => e.Emails)
                     .FirstOrDefaultAsync(e => e.Id == id);
 
-                if (eventEntity == null)
+                if (existing == null)
                 {
                     return NotFound(new { error = "Event not found" });
+                }
+
+                var existingDto = JsonSerializer.Deserialize<ClaimUpsertDto>(
+                    JsonSerializer.Serialize(MapEventToDto(existing)));
+                var options = new JsonSerializerOptions
+                {
+                    DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
+                };
+                var existingJson = JsonSerializer.Serialize(existingDto, options);
+                var incomingJson = JsonSerializer.Serialize(eventDto, options);
+                if (existingJson == incomingJson)
+                {
+                    return NoContent();
+                }
+
+                _context.ChangeTracker.Clear();
+                var eventEntity = new Event { Id = id };
+                _context.Events.Attach(eventEntity);
+
+                foreach (var p in existing.Participants)
+                {
+                    _context.Participants.Attach(p);
+                    eventEntity.Participants.Add(p);
+                }
+                foreach (var d in existing.Damages)
+                {
+                    _context.Damages.Attach(d);
+                    eventEntity.Damages.Add(d);
+                }
+                foreach (var a in existing.Appeals)
+                {
+                    _context.Appeals.Attach(a);
+                    eventEntity.Appeals.Add(a);
+                }
+                foreach (var c in existing.ClientClaims)
+                {
+                    _context.ClientClaims.Attach(c);
+                    eventEntity.ClientClaims.Add(c);
+                }
+                foreach (var dec in existing.Decisions)
+                {
+                    _context.Decisions.Attach(dec);
+                    eventEntity.Decisions.Add(dec);
+                }
+                foreach (var r in existing.Recourses)
+                {
+                    _context.Recourses.Attach(r);
+                    eventEntity.Recourses.Add(r);
+                }
+                foreach (var s in existing.Settlements)
+                {
+                    _context.Settlements.Attach(s);
+                    eventEntity.Settlements.Add(s);
+                }
+                foreach (var n in existing.Notes)
+                {
+                    _context.Notes.Attach(n);
+                    eventEntity.Notes.Add(n);
+                }
+                foreach (var e in existing.Emails)
+                {
+                    _context.Emails.Attach(e);
+                    eventEntity.Emails.Add(e);
                 }
 
                 UpdateEventFromDto(eventDto, eventEntity);
@@ -381,6 +446,7 @@ namespace AutomotiveClaimsApi.Controllers
                         {
                             _context.Drivers.Remove(d);
                         }
+                        _context.Participants.Remove(r);
                         eventEntity.Participants.Remove(r);
                     }
                     foreach (var pDto in eventDto.Participants)
@@ -412,11 +478,15 @@ namespace AutomotiveClaimsApi.Controllers
                 if (eventDto.Damages != null)
                 {
                     var dtoIds = eventDto.Damages
-                        .Where(d => d.Id.HasValue)
-                        .Select(d => d.Id!.Value)
+                        .Where(dmg => dmg.Id.HasValue)
+                        .Select(dmg => dmg.Id!.Value)
                         .ToHashSet();
-                    var toRemove = eventEntity.Damages.Where(d => !dtoIds.Contains(d.Id)).ToList();
-                    foreach (var r in toRemove) eventEntity.Damages.Remove(r);
+                    var toRemove = eventEntity.Damages.Where(dmg => !dtoIds.Contains(dmg.Id)).ToList();
+                    foreach (var r in toRemove)
+                    {
+                        _context.Damages.Remove(r);
+                        eventEntity.Damages.Remove(r);
+                    }
                     foreach (var dDto in eventDto.Damages)
                     {
                         UpdateDamageFromDto(eventEntity, dDto);
@@ -426,12 +496,16 @@ namespace AutomotiveClaimsApi.Controllers
                 if (eventDto.Decisions != null)
                 {
                     var dtoIds = eventDto.Decisions
-                        .Select(d => Guid.TryParse(d.Id, out var id) ? id : (Guid?)null)
-                        .Where(id => id.HasValue)
-                        .Select(id => id!.Value)
+                        .Select(d => Guid.TryParse(d.Id, out var gid) ? gid : (Guid?)null)
+                        .Where(gid => gid.HasValue)
+                        .Select(gid => gid!.Value)
                         .ToHashSet();
                     var toRemove = eventEntity.Decisions.Where(d => !dtoIds.Contains(d.Id)).ToList();
-                    foreach (var r in toRemove) eventEntity.Decisions.Remove(r);
+                    foreach (var r in toRemove)
+                    {
+                        _context.Decisions.Remove(r);
+                        eventEntity.Decisions.Remove(r);
+                    }
                     foreach (var dDto in eventDto.Decisions)
                     {
                         UpdateDecisionFromDto(eventEntity, dDto);
@@ -443,7 +517,11 @@ namespace AutomotiveClaimsApi.Controllers
                     var toRemove = eventEntity.Appeals
                         .Where(a => eventDto.DeletedAppealIds.Contains(a.Id))
                         .ToList();
-                    foreach (var r in toRemove) eventEntity.Appeals.Remove(r);
+                    foreach (var r in toRemove)
+                    {
+                        _context.Appeals.Remove(r);
+                        eventEntity.Appeals.Remove(r);
+                    }
                 }
 
                 if (eventDto.Appeals != null && eventDto.Appeals.Any())
@@ -463,11 +541,15 @@ namespace AutomotiveClaimsApi.Controllers
                                 return (Guid?)parsed;
                             return null;
                         })
-                        .Where(id => id.HasValue)
-                        .Select(id => id!.Value)
+                        .Where(idv => idv.HasValue)
+                        .Select(idv => idv!.Value)
                         .ToHashSet();
                     var toRemove = eventEntity.ClientClaims.Where(c => !dtoIds.Contains(c.Id)).ToList();
-                    foreach (var r in toRemove) eventEntity.ClientClaims.Remove(r);
+                    foreach (var r in toRemove)
+                    {
+                        _context.ClientClaims.Remove(r);
+                        eventEntity.ClientClaims.Remove(r);
+                    }
                     foreach (var cDto in eventDto.ClientClaims)
                     {
                         UpdateClientClaimFromDto(eventEntity, cDto);
@@ -477,11 +559,15 @@ namespace AutomotiveClaimsApi.Controllers
                 if (eventDto.Recourses != null)
                 {
                     var dtoIds = eventDto.Recourses
-                        .Where(r => r.Id.HasValue)
-                        .Select(r => r.Id!.Value)
+                        .Where(rc => rc.Id.HasValue)
+                        .Select(rc => rc.Id!.Value)
                         .ToHashSet();
-                    var toRemove = eventEntity.Recourses.Where(r => !dtoIds.Contains(r.Id)).ToList();
-                    foreach (var r in toRemove) eventEntity.Recourses.Remove(r);
+                    var toRemove = eventEntity.Recourses.Where(rc => !dtoIds.Contains(rc.Id)).ToList();
+                    foreach (var r in toRemove)
+                    {
+                        _context.Recourses.Remove(r);
+                        eventEntity.Recourses.Remove(r);
+                    }
                     foreach (var rDto in eventDto.Recourses)
                     {
                         UpdateRecourseFromDto(eventEntity, rDto);
@@ -495,7 +581,11 @@ namespace AutomotiveClaimsApi.Controllers
                         .Select(s => s.Id!.Value)
                         .ToHashSet();
                     var toRemove = eventEntity.Settlements.Where(s => !dtoIds.Contains(s.Id)).ToList();
-                    foreach (var r in toRemove) eventEntity.Settlements.Remove(r);
+                    foreach (var r in toRemove)
+                    {
+                        _context.Settlements.Remove(r);
+                        eventEntity.Settlements.Remove(r);
+                    }
                     foreach (var sDto in eventDto.Settlements)
                     {
                         UpdateSettlementFromDto(eventEntity, sDto);
@@ -504,7 +594,6 @@ namespace AutomotiveClaimsApi.Controllers
 
                 eventEntity.UpdatedAt = DateTime.UtcNow;
 
-                _context.Events.Update(eventEntity);
                 if (eventDto.RowVersion != null)
                 {
                     _context.Entry(eventEntity).Property(e => e.RowVersion).OriginalValue = eventDto.RowVersion;

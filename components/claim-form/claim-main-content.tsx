@@ -2460,6 +2460,7 @@ const renderParticipantDetails = (participant: ParticipantInfo | undefined, titl
       )
 
     case "teczka-szkodowa": {
+    const visibleNotes = notes.filter((note) => !note.type || note.type === "note")
     return (
       <div className="space-y-4">
         <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
@@ -2708,9 +2709,9 @@ const renderParticipantDetails = (participant: ParticipantInfo | undefined, titl
               </div>
             </div>
             <div className="p-4">
-              {notes && notes.length > 0 ? (
+              {visibleNotes.length > 0 ? (
                 <div className="space-y-3">
-                  {notes.map((note) => (
+                  {visibleNotes.map((note) => (
                     <div key={note.id} className="border-l-4 border-blue-500 pl-4 py-2 bg-gray-50 rounded-r-lg">
                       <div className="flex items-start justify-between">
                         <div className="flex-1">

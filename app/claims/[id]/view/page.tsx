@@ -187,7 +187,7 @@ export default function ViewClaimPage() {
   }
 
   const handleClose = () => {
-    router.push("/")
+    router.push("/claims")
   }
 
   const handleGoToRepairSection = () => {

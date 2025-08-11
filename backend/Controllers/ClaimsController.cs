@@ -371,10 +371,6 @@ namespace AutomotiveClaimsApi.Controllers
 
                 return NoContent();
             }
-            catch (DbUpdateConcurrencyException)
-            {
-                return Conflict(new { error = "The record was modified by another process." });
-            }
             catch (ArgumentException ex)
             {
                 return BadRequest(ex.Message);

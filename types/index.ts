@@ -195,7 +195,7 @@ export interface UploadedFile {
   id: string
   name: string
   size: number
-  type: "image" | "pdf" | "doc" | "other"
+  type: "image" | "pdf" | "doc" | "video" | "other"
   uploadedAt: string // ISO timestamp when the file was uploaded
   url: string
   category?: string

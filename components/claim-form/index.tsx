@@ -87,6 +87,9 @@ export function ClaimForm({ initialData, mode }: ClaimFormProps) {
   const isDisabled = mode === 'view'
   const { createDamage } = useDamages(formData.id)
 
+  const mapCategoryNameToCode = (name?: string | null) =>
+    requiredDocuments.find((d) => d.name === name)?.category || name || 'Inne dokumenty'
+
   useEffect(() => {
     if (!initialized.current && mode === 'create' && !formData.id) {
       initialized.current = true
@@ -162,7 +165,7 @@ export function ClaimForm({ initialData, mode }: ClaimFormProps) {
               const formDataFile = new FormData()
               formDataFile.append('file', file.file)
               formDataFile.append('eventId', saved!.id.toString())
-              formDataFile.append('category', file.category || 'Inne dokumenty')
+              formDataFile.append('category', mapCategoryNameToCode(file.category || 'Inne dokumenty'))
               formDataFile.append('uploadedBy', 'Current User')
               await fetch('/api/documents/upload', {
                 method: 'POST',

@@ -76,7 +76,10 @@ export const DocumentsSection = ({
     uploadedBy: "Current User",
     createdAt: file.uploadedAt,
     updatedAt: file.uploadedAt,
-    canPreview: file.type === "image" || file.type === "pdf",
+    canPreview:
+      file.type === "image" ||
+      file.type === "pdf" ||
+      file.type === "video",
     previewUrl: file.url,
     downloadUrl: file.url,
     documentType: file.category || "Inne dokumenty",
@@ -94,6 +97,12 @@ export const DocumentsSection = ({
       loadDocuments()
     }
   }, [eventId])
+
+  const mapCategoryCodeToName = (code?: string) =>
+    requiredDocuments.find((d) => d.category === code)?.name || code || "Inne dokumenty"
+
+  const mapCategoryNameToCode = (name?: string | null) =>
+    requiredDocuments.find((d) => d.name === name)?.category || name || "Inne dokumenty"
 
   const loadDocuments = async () => {
     if (!eventId || !isGuid(eventId)) return
@@ -114,7 +123,7 @@ export const DocumentsSection = ({
         console.log("Loaded documents:", data)
         const mappedDocs: Document[] = data.map((d: any) => ({
           ...d,
-          documentType: d.category,
+          documentType: mapCategoryCodeToName(d.documentType || d.category),
         }))
         setDocuments(mappedDocs)
       } else {
@@ -151,11 +160,11 @@ export const DocumentsSection = ({
     return [...new Set(["Inne dokumenty", ...categoriesFromRequired, ...categoriesFromDocuments])]
   }, [requiredDocuments, allDocuments])
 
-  const handleFileUpload = async (files: FileList | null, category: string | null) => {
+  const handleFileUpload = async (files: FileList | null, categoryName: string | null) => {
 
-    if (!files || !category) {
+    if (!files || !categoryName) {
 
-      console.error("Missing required parameters:", { files: !!files, category })
+      console.error("Missing required parameters:", { files: !!files, category: categoryName })
       toast({
         title: "Błąd",
         description: "Brak wymaganych parametrów do przesłania pliku",
@@ -188,7 +197,9 @@ export const DocumentsSection = ({
           id: `temp-${Date.now()}-${index}`,
           name: file.name,
           size: file.size,
-          type: file.type.includes("image")
+          type: file.type.includes("video")
+            ? "video"
+            : file.type.includes("image")
             ? "image"
             : file.type.includes("pdf")
             ? "pdf"
@@ -197,7 +208,7 @@ export const DocumentsSection = ({
             : "other",
           uploadedAt: new Date().toISOString(),
           url: URL.createObjectURL(file),
-          category: category || "Inne dokumenty",
+          category: categoryName || "Inne dokumenty",
           file: file,
         })
       })
@@ -206,13 +217,13 @@ export const DocumentsSection = ({
         setPendingFiles?.((prev) => [...prev, ...newFiles])
         toast({
           title: "Dodano pliki",
-          description: `Dodano ${newFiles.length} plik(ów) do kategorii "${category}".`,
+          description: `Dodano ${newFiles.length} plik(ów) do kategorii "${categoryName}".`,
         })
       }
       return
     }
 
-    console.log("Starting file upload:", { fileCount: files.length, category, eventId })
+    console.log("Starting file upload:", { fileCount: files.length, category: categoryName, eventId })
     setUploading(true)
 
     const uploadPromises = Array.from(files).map(async (file, index) => {
@@ -246,7 +257,7 @@ export const DocumentsSection = ({
       const formData = new FormData()
       formData.append("file", file)
       formData.append("eventId", eventId.toString())
-      formData.append("category", category)
+      formData.append("category", mapCategoryNameToCode(categoryName))
       formData.append("uploadedBy", "Current User")
 
       try {
@@ -264,7 +275,19 @@ export const DocumentsSection = ({
         })
 
         if (response.ok) {
-          const document = await response.json()
+          const documentDto = await response.json()
+          const serverCategory = documentDto.documentType || documentDto.category
+          const document: Document = {
+            ...documentDto,
+            documentType: serverCategory
+              ? mapCategoryCodeToName(serverCategory)
+              : categoryName || "Inne dokumenty",
+            canPreview:
+              documentDto.canPreview ??
+              documentDto.contentType?.startsWith("image/") ||
+              documentDto.contentType === "application/pdf" ||
+              documentDto.contentType?.startsWith("video/"),
+          }
           console.log(`File uploaded successfully:`, document)
           return document
         } else {
@@ -318,7 +341,9 @@ export const DocumentsSection = ({
             id: doc.id,
             name: doc.originalFileName || doc.fileName,
             size: doc.fileSize,
-            type: doc.contentType.includes("image")
+            type: doc.contentType.includes("video")
+              ? "video"
+              : doc.contentType.includes("image")
               ? "image"
               : doc.contentType.includes("pdf")
               ? "pdf"
@@ -333,7 +358,7 @@ export const DocumentsSection = ({
         ])
         toast({
           title: "Przesłano pliki",
-          description: `Pomyślnie dodano ${successfulUploadsWithIds.length} plik(ów) do kategorii "${category}".`,
+          description: `Pomyślnie dodano ${successfulUploadsWithIds.length} plik(ów) do kategorii "${categoryName}".`,
         })
         console.log("All successful uploads:", successfulUploadsWithIds)
       }
@@ -1261,11 +1286,17 @@ export const DocumentsSection = ({
                     </video>
                   </div>
                 ) : previewDocument.contentType === "application/pdf" ? (
-                  <iframe
-                    src={previewDocument.previewUrl || previewDocument.downloadUrl}
+                  <object
+                    data={previewDocument.previewUrl || previewDocument.downloadUrl}
+                    type="application/pdf"
                     className="w-full h-full"
-                    title={previewDocument.originalFileName}
-                  />
+                  >
+                    <iframe
+                      src={previewDocument.previewUrl || previewDocument.downloadUrl}
+                      className="w-full h-full"
+                      title={previewDocument.originalFileName}
+                    />
+                  </object>
                 ) : (
                   <div className="text-center py-8">
                     <FileText className="h-16 w-16 text-gray-400 mx-auto mb-4" />

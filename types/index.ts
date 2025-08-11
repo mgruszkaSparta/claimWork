@@ -198,7 +198,10 @@ export interface UploadedFile {
   type: "image" | "pdf" | "doc" | "video" | "other"
   uploadedAt: string // ISO timestamp when the file was uploaded
   url: string
+  /** Human readable category name for UI display */
   category?: string
+  /** Machine readable category code for API communication */
+  categoryCode?: string
   description?: string
   date?: string
   file?: File

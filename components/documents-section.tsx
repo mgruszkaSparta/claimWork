@@ -26,7 +26,10 @@ interface Document {
   canPreview: boolean
   previewUrl?: string
   downloadUrl: string
+  /** Human readable category name */
   documentType: string
+  /** Machine readable category code */
+  categoryCode?: string
 }
 
 export const DocumentsSection = ({
@@ -83,6 +86,7 @@ export const DocumentsSection = ({
     previewUrl: file.url,
     downloadUrl: file.url,
     documentType: file.category || "Inne dokumenty",
+    categoryCode: file.categoryCode,
   })
 
   const allDocuments = React.useMemo(
@@ -124,6 +128,7 @@ export const DocumentsSection = ({
         const mappedDocs: Document[] = data.map((d: any) => ({
           ...d,
           documentType: mapCategoryCodeToName(d.documentType || d.category),
+          categoryCode: d.documentType || d.category,
         }))
         setDocuments(mappedDocs)
       } else {
@@ -209,6 +214,7 @@ export const DocumentsSection = ({
           uploadedAt: new Date().toISOString(),
           url: URL.createObjectURL(file),
           category: categoryName || "Inne dokumenty",
+          categoryCode: mapCategoryNameToCode(categoryName),
           file: file,
         })
       })
@@ -282,6 +288,7 @@ export const DocumentsSection = ({
             documentType: serverCategory
               ? mapCategoryCodeToName(serverCategory)
               : categoryName || "Inne dokumenty",
+            categoryCode: serverCategory || mapCategoryNameToCode(categoryName),
             canPreview:
               documentDto.canPreview ??
               documentDto.contentType?.startsWith("image/") ||
@@ -353,6 +360,7 @@ export const DocumentsSection = ({
             uploadedAt: doc.createdAt,
             url: doc.previewUrl || doc.downloadUrl,
             category: doc.documentType,
+            categoryCode: doc.categoryCode,
             description: doc.description,
           })),
         ])

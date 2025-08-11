@@ -2366,6 +2366,17 @@ const renderParticipantDetails = (participant: ParticipantInfo | undefined, titl
                           <div className="flex items-start justify-between">
                             <div className="flex-1">
                               <div className="flex items-center space-x-2 mb-2">
+                                <Checkbox
+                                  checked={task.status === "completed"}
+                                  onCheckedChange={(checked) =>
+                                    updateTaskStatus(
+                                      task.id,
+                                      checked ? "completed" : "active",
+                                    )
+                                  }
+                                  disabled={task.status === "cancelled"}
+                                  className="mr-1"
+                                />
                                 {getStatusIcon(task.status)}
                                 <h4 className="font-medium text-gray-900">{task.title}</h4>
                                 {task.priority && (

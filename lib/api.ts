@@ -121,6 +121,7 @@ export interface NoteDto {
 }
 
 export interface NoteUpsertDto {
+  id?: string
   eventId?: string
   category?: string
   title?: string

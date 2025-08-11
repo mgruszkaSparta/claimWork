@@ -4,6 +4,7 @@ namespace AutomotiveClaimsApi.DTOs
 {
     public class NoteUpsertDto
     {
+        public string? Id { get; set; }
         public string? EventId { get; set; }
 
         [StringLength(100)]

@@ -1,10 +1,10 @@
-const test = require('node:test')
-const assert = require('node:assert/strict')
+import test from 'node:test'
+import assert from 'node:assert/strict'
 
 // Test to ensure formData fields are mapped to backend naming
 
 test('maps appeal form data to backend casing', async () => {
-  const { POST } = await import('../route')
+  const { POST } = await import('../route.ts')
   const fd = new FormData()
   fd.append('claimId', '123')
   fd.append('filingDate', '2024-01-01')
@@ -36,3 +36,4 @@ test('maps appeal form data to backend casing', async () => {
   assert.ok(sentBody.get('Document') instanceof File)
   assert.equal(sentBody.get('filingDate'), null)
 })
+

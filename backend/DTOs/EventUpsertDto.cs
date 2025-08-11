@@ -7,7 +7,6 @@ namespace AutomotiveClaimsApi.DTOs
     public class EventUpsertDto
     {
         public Guid? Id { get; set; }
-        public byte[]? RowVersion { get; set; }
 
         [StringLength(100)]
         public string? ClaimNumber { get; set; }

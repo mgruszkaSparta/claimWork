@@ -260,112 +260,123 @@ namespace AutomotiveClaimsApi.Controllers
                     .AsNoTracking()
                     .FirstOrDefaultAsync(e => e.Id == id);
 
-                if (existing == null)
+                var isNew = existing == null;
+
+                if (isNew)
                 {
-                    return NotFound(new { error = "Event not found" });
+                    existing = new Event
+                    {
+                        Id = id,
+                        CreatedAt = DateTime.UtcNow,
+                        UpdatedAt = DateTime.UtcNow
+                    };
+                    _context.Events.Add(existing);
+                }
+                else
+                {
+                    existing.Participants = await _context.Participants
+                        .Where(p => p.EventId == id)
+                        .Include(p => p.Drivers)
+                        .AsNoTracking()
+                        .ToListAsync();
+                    foreach (var entity in existing.Participants)
+                    {
+                        _context.Entry(entity).State = EntityState.Detached;
+                        foreach (var driver in entity.Drivers)
+                        {
+                            _context.Entry(driver).State = EntityState.Detached;
+                        }
+                    }
+
+                    existing.Damages = await _context.Damages
+                        .Where(d => d.EventId == id)
+                        .AsNoTracking()
+                        .ToListAsync();
+                    foreach (var entity in existing.Damages)
+                    {
+                        _context.Entry(entity).State = EntityState.Detached;
+                    }
+
+                    existing.Appeals = await _context.Appeals
+                        .Where(a => a.EventId == id)
+                        .AsNoTracking()
+                        .ToListAsync();
+                    foreach (var entity in existing.Appeals)
+                    {
+                        _context.Entry(entity).State = EntityState.Detached;
+                    }
+
+                    existing.ClientClaims = await _context.ClientClaims
+                        .Where(c => c.EventId == id)
+                        .AsNoTracking()
+                        .ToListAsync();
+                    foreach (var entity in existing.ClientClaims)
+                    {
+                        _context.Entry(entity).State = EntityState.Detached;
+                    }
+
+                    existing.Decisions = await _context.Decisions
+                        .Where(d => d.EventId == id)
+                        .AsNoTracking()
+                        .ToListAsync();
+                    foreach (var entity in existing.Decisions)
+                    {
+                        _context.Entry(entity).State = EntityState.Detached;
+                    }
+
+                    existing.Recourses = await _context.Recourses
+                        .Where(r => r.EventId == id)
+                        .AsNoTracking()
+                        .ToListAsync();
+                    foreach (var entity in existing.Recourses)
+                    {
+                        _context.Entry(entity).State = EntityState.Detached;
+                    }
+
+                    existing.Settlements = await _context.Settlements
+                        .Where(s => s.EventId == id)
+                        .AsNoTracking()
+                        .ToListAsync();
+                    foreach (var entity in existing.Settlements)
+                    {
+                        _context.Entry(entity).State = EntityState.Detached;
+                    }
+
+                    existing.Notes = await _context.Notes
+                        .Where(n => n.EventId == id)
+                        .AsNoTracking()
+                        .ToListAsync();
+                    foreach (var entity in existing.Notes)
+                    {
+                        _context.Entry(entity).State = EntityState.Detached;
+                    }
+
+                    existing.Emails = await _context.Emails
+                        .Where(e => e.EventId == id)
+                        .AsNoTracking()
+                        .ToListAsync();
+                    foreach (var entity in existing.Emails)
+                    {
+                        _context.Entry(entity).State = EntityState.Detached;
+                    }
+
+                    var existingDto = JsonSerializer.Deserialize<ClaimUpsertDto>(
+                        JsonSerializer.Serialize(MapEventToDto(existing)));
+                    var options = new JsonSerializerOptions
+                    {
+                        DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
+                    };
+                    var existingJson = JsonSerializer.Serialize(existingDto, options);
+                    var incomingJson = JsonSerializer.Serialize(eventDto, options);
+                    if (existingJson == incomingJson)
+                    {
+                        return NoContent();
+                    }
+
+                    _context.Entry(existing).State = EntityState.Detached;
                 }
 
-                existing.Participants = await _context.Participants
-                    .AsNoTracking()
-                    .Include(p => p.Drivers)
-                    .Where(p => p.EventId == id)
-                    .ToListAsync();
-                existing.Damages = await _context.Damages
-                    .AsNoTracking()
-                    .Where(d => d.EventId == id)
-                    .ToListAsync();
-                existing.Appeals = await _context.Appeals
-                    .AsNoTracking()
-                    .Where(a => a.EventId == id)
-                    .ToListAsync();
-                existing.ClientClaims = await _context.ClientClaims
-                    .AsNoTracking()
-                    .Where(c => c.EventId == id)
-                    .ToListAsync();
-                existing.Decisions = await _context.Decisions
-                    .AsNoTracking()
-                    .Where(d => d.EventId == id)
-                    .ToListAsync();
-                existing.Recourses = await _context.Recourses
-                    .AsNoTracking()
-                    .Where(r => r.EventId == id)
-                    .ToListAsync();
-                existing.Settlements = await _context.Settlements
-                    .AsNoTracking()
-                    .Where(s => s.EventId == id)
-                    .ToListAsync();
-                existing.Notes = await _context.Notes
-                    .AsNoTracking()
-                    .Where(n => n.EventId == id)
-                    .ToListAsync();
-                existing.Emails = await _context.Emails
-                    .AsNoTracking()
-                    .Where(e => e.EventId == id)
-                    .ToListAsync();
-
-                var existingDto = JsonSerializer.Deserialize<ClaimUpsertDto>(
-                    JsonSerializer.Serialize(MapEventToDto(existing)));
-                var options = new JsonSerializerOptions
-                {
-                    DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
-                };
-                var existingJson = JsonSerializer.Serialize(existingDto, options);
-                var incomingJson = JsonSerializer.Serialize(eventDto, options);
-                if (existingJson == incomingJson)
-                {
-                    return NoContent();
-                }
-
-                _context.ChangeTracker.Clear();
-                var eventEntity = new Event { Id = id };
-                _context.Events.Attach(eventEntity);
-
-                foreach (var p in existing.Participants)
-                {
-                    _context.Participants.Attach(p);
-                    eventEntity.Participants.Add(p);
-                }
-                foreach (var d in existing.Damages)
-                {
-                    _context.Damages.Attach(d);
-                    eventEntity.Damages.Add(d);
-                }
-                foreach (var a in existing.Appeals)
-                {
-                    _context.Appeals.Attach(a);
-                    eventEntity.Appeals.Add(a);
-                }
-                foreach (var c in existing.ClientClaims)
-                {
-                    _context.ClientClaims.Attach(c);
-                    eventEntity.ClientClaims.Add(c);
-                }
-                foreach (var dec in existing.Decisions)
-                {
-                    _context.Decisions.Attach(dec);
-                    eventEntity.Decisions.Add(dec);
-                }
-                foreach (var r in existing.Recourses)
-                {
-                    _context.Recourses.Attach(r);
-                    eventEntity.Recourses.Add(r);
-                }
-                foreach (var s in existing.Settlements)
-                {
-                    _context.Settlements.Attach(s);
-                    eventEntity.Settlements.Add(s);
-                }
-                foreach (var n in existing.Notes)
-                {
-                    _context.Notes.Attach(n);
-                    eventEntity.Notes.Add(n);
-                }
-                foreach (var e in existing.Emails)
-                {
-                    _context.Emails.Attach(e);
-                    eventEntity.Emails.Add(e);
-                }
-                await UpsertClaimAsync(eventEntity, eventDto);
+                await UpsertClaimAsync(existing, eventDto);
 
                 await _context.SaveChangesAsync();
 

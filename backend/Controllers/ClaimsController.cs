@@ -209,110 +209,16 @@ namespace AutomotiveClaimsApi.Controllers
                 }
 
 
-                eventEntity.SpartaNumber = await GenerateNextSpartaNumber();
-
                 if (_context.Entry(eventEntity).State == EntityState.Detached)
                 {
                     _context.Events.Add(eventEntity);
                 }
 
+                await UpsertClaimAsync(eventEntity, eventDto);
 
-                if (eventDto.Documents != null && eventDto.Documents.Any())
+                if (string.IsNullOrEmpty(eventEntity.SpartaNumber))
                 {
-                    var documentIds = eventDto.Documents.Select(d => d.Id).ToList();
-                    var documents = await _context.Documents.Where(d => documentIds.Contains(d.Id)).ToListAsync();
-                    foreach (var doc in documents)
-                    {
-                        doc.EventId = eventEntity.Id;
-                        doc.UpdatedAt = DateTime.UtcNow;
-                    }
-                }
-
-                if (eventDto.Participants != null)
-                {
-                    foreach (var pDto in eventDto.Participants)
-                    {
-                        var participant = MapParticipantDtoToModel(pDto, eventEntity.Id);
-                        _context.Participants.Add(participant);
-                        if (pDto.Drivers != null)
-                        {
-                            foreach (var dDto in pDto.Drivers)
-                            {
-                                _context.Drivers.Add(MapDriverDtoToModel(dDto, eventEntity.Id, participant.Id));
-                            }
-                        }
-                    }
-                }
-
-
-                if (eventDto.Notes != null)
-                {
-                    foreach (var nDto in eventDto.Notes)
-                    {
-                        _context.Notes.Add(MapNoteDtoToModel(nDto, eventEntity.Id));
-                    }
-                }
-
-                if (eventDto.Emails != null)
-                {
-                    foreach (var eDto in eventDto.Emails)
-                    {
-                        _context.Emails.Add(MapEmailDtoToModel(eDto, eventEntity.Id));
-                    }
-                }
-
-                if (eventDto.Damages != null)
-                {
-                    foreach (var dDto in eventDto.Damages)
-                    {
-                        _context.Damages.Add(MapDamageDtoToModel(dDto, eventEntity.Id));
-                    }
-                }
-
-                if (eventDto.Decisions != null)
-                {
-                    foreach (var dDto in eventDto.Decisions)
-                    {
-                        _context.Decisions.Add(MapDecisionDtoToModel(dDto, eventEntity.Id));
-                    }
-                }
-
-                if (eventDto.ClientClaims != null)
-                {
-                    foreach (var cDto in eventDto.ClientClaims)
-                    {
-                        Guid? clientClaimId = null;
-                        if (!string.IsNullOrEmpty(cDto.Id))
-                        {
-                            if (Guid.TryParse(cDto.Id, out var parsedId))
-                            {
-                                clientClaimId = parsedId;
-                            }
-                            else
-                            {
-                                return BadRequest($"Invalid ClientClaim Id format: {cDto.Id}");
-                            }
-                        }
-
-                        _context.ClientClaims.Add(MapClientClaimDtoToModel(cDto, eventEntity.Id, clientClaimId));
-                    }
-                }
-
-                if (eventDto.Recourses != null)
-                {
-                    foreach (var rDto in eventDto.Recourses)
-                    {
-                        _context.Recourses.Add(MapRecourseDtoToModel(rDto, eventEntity.Id));
-                    }
-                }
-
-                if (eventDto.Settlements != null)
-                {
-                    foreach (var sDto in eventDto.Settlements)
-                    {
-                        _context.Settlements.Add(MapSettlementDtoToModel(sDto, eventEntity.Id));
-
-                    }
+                    eventEntity.SpartaNumber = await GenerateNextSpartaNumber();
                 }
 
                 await _context.SaveChangesAsync();
@@ -352,21 +258,50 @@ namespace AutomotiveClaimsApi.Controllers
             {
                 var existing = await _context.Events
                     .AsNoTracking()
-                    .Include(e => e.Participants).ThenInclude(p => p.Drivers)
-                    .Include(e => e.Damages)
-                    .Include(e => e.Appeals)
-                    .Include(e => e.ClientClaims)
-                    .Include(e => e.Decisions)
-                    .Include(e => e.Recourses)
-                    .Include(e => e.Settlements)
-                    .Include(e => e.Notes)
-                    .Include(e => e.Emails)
                     .FirstOrDefaultAsync(e => e.Id == id);
 
                 if (existing == null)
                 {
                     return NotFound(new { error = "Event not found" });
                 }
+
+                existing.Participants = await _context.Participants
+                    .AsNoTracking()
+                    .Include(p => p.Drivers)
+                    .Where(p => p.EventId == id)
+                    .ToListAsync();
+                existing.Damages = await _context.Damages
+                    .AsNoTracking()
+                    .Where(d => d.EventId == id)
+                    .ToListAsync();
+                existing.Appeals = await _context.Appeals
+                    .AsNoTracking()
+                    .Where(a => a.EventId == id)
+                    .ToListAsync();
+                existing.ClientClaims = await _context.ClientClaims
+                    .AsNoTracking()
+                    .Where(c => c.EventId == id)
+                    .ToListAsync();
+                existing.Decisions = await _context.Decisions
+                    .AsNoTracking()
+                    .Where(d => d.EventId == id)
+                    .ToListAsync();
+                existing.Recourses = await _context.Recourses
+                    .AsNoTracking()
+                    .Where(r => r.EventId == id)
+                    .ToListAsync();
+                existing.Settlements = await _context.Settlements
+                    .AsNoTracking()
+                    .Where(s => s.EventId == id)
+                    .ToListAsync();
+                existing.Notes = await _context.Notes
+                    .AsNoTracking()
+                    .Where(n => n.EventId == id)
+                    .ToListAsync();
+                existing.Emails = await _context.Emails
+                    .AsNoTracking()
+                    .Where(e => e.EventId == id)
+                    .ToListAsync();
 
                 var existingDto = JsonSerializer.Deserialize<ClaimUpsertDto>(
                     JsonSerializer.Serialize(MapEventToDto(existing)));
@@ -430,193 +365,11 @@ namespace AutomotiveClaimsApi.Controllers
                     _context.Emails.Attach(e);
                     eventEntity.Emails.Add(e);
                 }
-
-                UpdateEventFromDto(eventDto, eventEntity);
-
-                if (eventDto.Participants != null)
-                {
-                    var dtoIds = eventDto.Participants
-                        .Where(p => !string.IsNullOrEmpty(p.Id))
-                        .Select(p => Guid.Parse(p.Id!))
-                        .ToHashSet();
-                    var toRemove = eventEntity.Participants.Where(p => !dtoIds.Contains(p.Id)).ToList();
-                    foreach (var r in toRemove)
-                    {
-                        foreach (var d in r.Drivers.ToList())
-                        {
-                            _context.Drivers.Remove(d);
-                        }
-                        _context.Participants.Remove(r);
-                        eventEntity.Participants.Remove(r);
-                    }
-                    foreach (var pDto in eventDto.Participants)
-                    {
-                        UpdateParticipantFromDto(eventEntity, pDto, _context);
-                    }
-                }
-
-                if (eventDto.Notes != null)
-                {
-                    _context.Notes.RemoveRange(eventEntity.Notes);
-                    eventEntity.Notes.Clear();
-                    foreach (var nDto in eventDto.Notes)
-                    {
-                        eventEntity.Notes.Add(MapNoteDtoToModel(nDto, eventEntity.Id));
-                    }
-                }
-
-                if (eventDto.Emails != null)
-                {
-                    _context.Emails.RemoveRange(eventEntity.Emails);
-                    eventEntity.Emails.Clear();
-                    foreach (var eDto in eventDto.Emails)
-                    {
-                        eventEntity.Emails.Add(MapEmailDtoToModel(eDto, eventEntity.Id));
-                    }
-                }
-
-                if (eventDto.Damages != null)
-                {
-                    var dtoIds = eventDto.Damages
-                        .Where(dmg => dmg.Id.HasValue)
-                        .Select(dmg => dmg.Id!.Value)
-                        .ToHashSet();
-                    var toRemove = eventEntity.Damages.Where(dmg => !dtoIds.Contains(dmg.Id)).ToList();
-                    foreach (var r in toRemove)
-                    {
-                        _context.Damages.Remove(r);
-                        eventEntity.Damages.Remove(r);
-                    }
-                    foreach (var dDto in eventDto.Damages)
-                    {
-                        UpdateDamageFromDto(eventEntity, dDto);
-                    }
-                }
-
-                if (eventDto.Decisions != null)
-                {
-                    var dtoIds = eventDto.Decisions
-                        .Select(d => Guid.TryParse(d.Id, out var gid) ? gid : (Guid?)null)
-                        .Where(gid => gid.HasValue)
-                        .Select(gid => gid!.Value)
-                        .ToHashSet();
-                    var toRemove = eventEntity.Decisions.Where(d => !dtoIds.Contains(d.Id)).ToList();
-                    foreach (var r in toRemove)
-                    {
-                        _context.Decisions.Remove(r);
-                        eventEntity.Decisions.Remove(r);
-                    }
-                    foreach (var dDto in eventDto.Decisions)
-                    {
-                        UpdateDecisionFromDto(eventEntity, dDto);
-                    }
-                }
-
-                if (eventDto.DeletedAppealIds != null && eventDto.DeletedAppealIds.Any())
-                {
-                    var toRemove = eventEntity.Appeals
-                        .Where(a => eventDto.DeletedAppealIds.Contains(a.Id))
-                        .ToList();
-                    foreach (var r in toRemove)
-                    {
-                        _context.Appeals.Remove(r);
-                        eventEntity.Appeals.Remove(r);
-                    }
-                }
-
-                if (eventDto.Appeals != null && eventDto.Appeals.Any())
-                {
-                    foreach (var aDto in eventDto.Appeals)
-                    {
-                        UpdateAppealFromDto(eventEntity, aDto);
-                    }
-                }
-
-                if (eventDto.ClientClaims != null)
-                {
-                    var dtoIds = eventDto.ClientClaims
-                        .Select(c =>
-                        {
-                            if (!string.IsNullOrEmpty(c.Id) && Guid.TryParse(c.Id, out var parsed))
-                                return (Guid?)parsed;
-                            return null;
-                        })
-                        .Where(idv => idv.HasValue)
-                        .Select(idv => idv!.Value)
-                        .ToHashSet();
-                    var toRemove = eventEntity.ClientClaims.Where(c => !dtoIds.Contains(c.Id)).ToList();
-                    foreach (var r in toRemove)
-                    {
-                        _context.ClientClaims.Remove(r);
-                        eventEntity.ClientClaims.Remove(r);
-                    }
-                    foreach (var cDto in eventDto.ClientClaims)
-                    {
-                        UpdateClientClaimFromDto(eventEntity, cDto);
-                    }
-                }
-
-                if (eventDto.Recourses != null)
-                {
-                    var dtoIds = eventDto.Recourses
-                        .Where(rc => rc.Id.HasValue)
-                        .Select(rc => rc.Id!.Value)
-                        .ToHashSet();
-                    var toRemove = eventEntity.Recourses.Where(rc => !dtoIds.Contains(rc.Id)).ToList();
-                    foreach (var r in toRemove)
-                    {
-                        _context.Recourses.Remove(r);
-                        eventEntity.Recourses.Remove(r);
-                    }
-                    foreach (var rDto in eventDto.Recourses)
-                    {
-                        UpdateRecourseFromDto(eventEntity, rDto);
-                    }
-                }
-
-                if (eventDto.Settlements != null)
-                {
-                    var dtoIds = eventDto.Settlements
-                        .Where(s => s.Id.HasValue)
-                        .Select(s => s.Id!.Value)
-                        .ToHashSet();
-                    var toRemove = eventEntity.Settlements.Where(s => !dtoIds.Contains(s.Id)).ToList();
-                    foreach (var r in toRemove)
-                    {
-                        _context.Settlements.Remove(r);
-                        eventEntity.Settlements.Remove(r);
-                    }
-                    foreach (var sDto in eventDto.Settlements)
-                    {
-                        UpdateSettlementFromDto(eventEntity, sDto);
-                    }
-                }
-
-                eventEntity.UpdatedAt = DateTime.UtcNow;
-
-                if (eventDto.RowVersion != null)
-                {
-                    _context.Entry(eventEntity).Property(e => e.RowVersion).OriginalValue = eventDto.RowVersion;
-                }
-
-                if (eventDto.Documents != null && eventDto.Documents.Any())
-                {
-                    var documentIds = eventDto.Documents.Select(d => d.Id).ToList();
-                    var documents = await _context.Documents.Where(d => documentIds.Contains(d.Id)).ToListAsync();
-                    foreach (var doc in documents)
-                    {
-                        doc.EventId = eventEntity.Id;
-                        doc.UpdatedAt = DateTime.UtcNow;
-                    }
-                }
+                await UpsertClaimAsync(eventEntity, eventDto);
 
                 await _context.SaveChangesAsync();
 
                 return NoContent();
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                return Conflict(new { error = "The record was modified by another process." });
             }
             catch (ArgumentException ex)
             {
@@ -670,6 +423,196 @@ namespace AutomotiveClaimsApi.Controllers
             }
         }
 
+        private async Task UpsertClaimAsync(Event eventEntity, ClaimUpsertDto eventDto)
+        {
+            UpdateEventFromDto(eventDto, eventEntity);
+            _context.Events.Update(eventEntity);
+
+            if (eventDto.Participants != null)
+            {
+                var dtoIds = eventDto.Participants
+                    .Where(p => !string.IsNullOrEmpty(p.Id))
+                    .Select(p => Guid.Parse(p.Id!))
+                    .ToHashSet();
+                var toRemove = eventEntity.Participants.Where(p => !dtoIds.Contains(p.Id)).ToList();
+                foreach (var r in toRemove)
+                {
+                    foreach (var d in r.Drivers.ToList())
+                    {
+                        _context.Drivers.Remove(d);
+                    }
+                    _context.Participants.Remove(r);
+                    eventEntity.Participants.Remove(r);
+                }
+                foreach (var pDto in eventDto.Participants)
+                {
+                    UpdateParticipantFromDto(eventEntity, pDto, _context);
+                }
+            }
+
+            if (eventDto.Notes != null)
+            {
+                var dtoIds = eventDto.Notes
+                    .Where(n => !string.IsNullOrEmpty(n.Id) && Guid.TryParse(n.Id, out _))
+                    .Select(n => Guid.Parse(n.Id!))
+                    .ToHashSet();
+
+                var toRemove = eventEntity.Notes.Where(n => !dtoIds.Contains(n.Id)).ToList();
+                foreach (var r in toRemove)
+                {
+                    _context.Notes.Remove(r);
+                    eventEntity.Notes.Remove(r);
+                }
+
+                foreach (var nDto in eventDto.Notes)
+                {
+                    UpdateNoteFromDto(eventEntity, nDto, _context);
+                }
+            }
+
+            if (eventDto.Emails != null)
+            {
+                _context.Emails.RemoveRange(eventEntity.Emails);
+                eventEntity.Emails.Clear();
+                foreach (var eDto in eventDto.Emails)
+                {
+                    var email = MapEmailDtoToModel(eDto, eventEntity.Id);
+                    eventEntity.Emails.Add(email);
+                    _context.Emails.Add(email);
+                }
+            }
+
+            if (eventDto.Damages != null)
+            {
+                var dtoIds = eventDto.Damages
+                    .Where(dmg => dmg.Id.HasValue)
+                    .Select(dmg => dmg.Id!.Value)
+                    .ToHashSet();
+                var toRemove = eventEntity.Damages.Where(dmg => !dtoIds.Contains(dmg.Id)).ToList();
+                foreach (var r in toRemove)
+                {
+                    _context.Damages.Remove(r);
+                    eventEntity.Damages.Remove(r);
+                }
+                foreach (var dDto in eventDto.Damages)
+                {
+                    UpdateDamageFromDto(eventEntity, dDto, _context);
+                }
+            }
+
+            if (eventDto.Decisions != null)
+            {
+                var dtoIds = eventDto.Decisions
+                    .Select(d => Guid.TryParse(d.Id, out var gid) ? gid : (Guid?)null)
+                    .Where(gid => gid.HasValue)
+                    .Select(gid => gid!.Value)
+                    .ToHashSet();
+                var toRemove = eventEntity.Decisions.Where(d => !dtoIds.Contains(d.Id)).ToList();
+                foreach (var r in toRemove)
+                {
+                    _context.Decisions.Remove(r);
+                    eventEntity.Decisions.Remove(r);
+                }
+                foreach (var dDto in eventDto.Decisions)
+                {
+                    UpdateDecisionFromDto(eventEntity, dDto, _context);
+                }
+            }
+
+            if (eventDto.DeletedAppealIds != null && eventDto.DeletedAppealIds.Any())
+            {
+                var toRemove = eventEntity.Appeals
+                    .Where(a => eventDto.DeletedAppealIds.Contains(a.Id))
+                    .ToList();
+                foreach (var r in toRemove)
+                {
+                    _context.Appeals.Remove(r);
+                    eventEntity.Appeals.Remove(r);
+                }
+            }
+
+            if (eventDto.Appeals != null && eventDto.Appeals.Any())
+            {
+                foreach (var aDto in eventDto.Appeals)
+                {
+                    UpdateAppealFromDto(eventEntity, aDto, _context);
+                }
+            }
+
+            if (eventDto.ClientClaims != null)
+            {
+                var dtoIds = eventDto.ClientClaims
+                    .Select(c =>
+                    {
+                        if (!string.IsNullOrEmpty(c.Id) && Guid.TryParse(c.Id, out var parsed))
+                            return (Guid?)parsed;
+                        return null;
+                    })
+                    .Where(idv => idv.HasValue)
+                    .Select(idv => idv!.Value)
+                    .ToHashSet();
+                var toRemove = eventEntity.ClientClaims.Where(c => !dtoIds.Contains(c.Id)).ToList();
+                foreach (var r in toRemove)
+                {
+                    _context.ClientClaims.Remove(r);
+                    eventEntity.ClientClaims.Remove(r);
+                }
+                foreach (var cDto in eventDto.ClientClaims)
+                {
+                    UpdateClientClaimFromDto(eventEntity, cDto, _context);
+                }
+            }
+
+            if (eventDto.Recourses != null)
+            {
+                var dtoIds = eventDto.Recourses
+                    .Where(rc => rc.Id.HasValue)
+                    .Select(rc => rc.Id!.Value)
+                    .ToHashSet();
+                var toRemove = eventEntity.Recourses.Where(rc => !dtoIds.Contains(rc.Id)).ToList();
+                foreach (var r in toRemove)
+                {
+                    _context.Recourses.Remove(r);
+                    eventEntity.Recourses.Remove(r);
+                }
+                foreach (var rDto in eventDto.Recourses)
+                {
+                    UpdateRecourseFromDto(eventEntity, rDto, _context);
+                }
+            }
+
+            if (eventDto.Settlements != null)
+            {
+                var dtoIds = eventDto.Settlements
+                    .Where(s => s.Id.HasValue)
+                    .Select(s => s.Id!.Value)
+                    .ToHashSet();
+                var toRemove = eventEntity.Settlements.Where(s => !dtoIds.Contains(s.Id)).ToList();
+                foreach (var r in toRemove)
+                {
+                    _context.Settlements.Remove(r);
+                    eventEntity.Settlements.Remove(r);
+                }
+                foreach (var sDto in eventDto.Settlements)
+                {
+                    UpdateSettlementFromDto(eventEntity, sDto, _context);
+                }
+            }
+
+            eventEntity.UpdatedAt = DateTime.UtcNow;
+
+            if (eventDto.Documents != null && eventDto.Documents.Any())
+            {
+                var documentIds = eventDto.Documents.Select(d => d.Id).ToList();
+                var documents = await _context.Documents.Where(d => documentIds.Contains(d.Id)).ToListAsync();
+                foreach (var doc in documents)
+                {
+                    doc.EventId = eventEntity.Id;
+                    doc.UpdatedAt = DateTime.UtcNow;
+                }
+            }
+        }
+
         private async Task<string> GenerateNextSpartaNumber()
         {
             var year = DateTime.UtcNow.Year;
@@ -696,11 +639,6 @@ namespace AutomotiveClaimsApi.Controllers
 
         private static void UpdateEventFromDto(ClaimUpsertDto dto, Event entity)
         {
-            if (dto.RowVersion != null)
-            {
-                entity.RowVersion = dto.RowVersion;
-            }
-
             entity.ClaimNumber = dto.ClaimNumber;
             entity.SpartaNumber = dto.SpartaNumber;
             entity.InsurerClaimNumber = dto.InsurerClaimNumber;
@@ -754,7 +692,32 @@ namespace AutomotiveClaimsApi.Controllers
             entity.Description = dto.Description;
         }
 
-        private static void UpdateDamageFromDto(Event entity, DamageUpsertDto dDto)
+        private static void UpdateNoteFromDto(Event entity, NoteUpsertDto nDto, ApplicationDbContext context)
+        {
+            var hasId = Guid.TryParse(nDto.Id, out var noteId);
+            var existing = hasId ? entity.Notes.FirstOrDefault(n => n.Id == noteId) : null;
+            if (existing != null)
+            {
+                existing.Category = nDto.Category;
+                existing.Title = nDto.Title;
+                existing.Content = nDto.Content;
+                existing.CreatedBy = nDto.CreatedBy;
+                existing.UpdatedBy = nDto.CreatedBy;
+                existing.IsPrivate = nDto.IsPrivate;
+                existing.Priority = nDto.Priority;
+                existing.Tags = nDto.Tags != null ? string.Join(",", nDto.Tags) : null;
+                existing.UpdatedAt = DateTime.UtcNow;
+                context.Notes.Update(existing);
+            }
+            else
+            {
+                var note = MapNoteDtoToModel(nDto, entity.Id);
+                entity.Notes.Add(note);
+                context.Notes.Add(note);
+            }
+        }
+
+        private static void UpdateDamageFromDto(Event entity, DamageUpsertDto dDto, ApplicationDbContext context)
         {
             var hasId = dDto.Id.HasValue;
             var damageId = dDto.Id ?? Guid.Empty;
@@ -772,10 +735,11 @@ namespace AutomotiveClaimsApi.Controllers
                 existing.RepairShop = dDto.RepairShop;
                 existing.Notes = dDto.Notes;
                 existing.UpdatedAt = DateTime.UtcNow;
+                context.Damages.Update(existing);
             }
             else
             {
-                entity.Damages.Add(new Damage
+                var damage = new Damage
                 {
                     Id = hasId ? damageId : Guid.NewGuid(),
                     EventId = entity.Id,
@@ -791,11 +755,13 @@ namespace AutomotiveClaimsApi.Controllers
                     Notes = dDto.Notes,
                     CreatedAt = DateTime.UtcNow,
                     UpdatedAt = DateTime.UtcNow
-                });
+                };
+                entity.Damages.Add(damage);
+                context.Damages.Add(damage);
             }
         }
 
-        private static void UpdateDecisionFromDto(Event entity, DecisionDto dDto)
+        private static void UpdateDecisionFromDto(Event entity, DecisionDto dDto, ApplicationDbContext context)
         {
             var hasId = Guid.TryParse(dDto.Id, out var decisionId);
             var existing = hasId ? entity.Decisions.FirstOrDefault(d => d.Id == decisionId) : null;
@@ -810,10 +776,11 @@ namespace AutomotiveClaimsApi.Controllers
                 existing.DocumentName = dDto.DocumentName;
                 existing.DocumentPath = dDto.DocumentPath;
                 existing.UpdatedAt = DateTime.UtcNow;
+                context.Decisions.Update(existing);
             }
             else
             {
-                entity.Decisions.Add(new Decision
+                var decision = new Decision
                 {
                     Id = hasId ? decisionId : Guid.NewGuid(),
                     EventId = entity.Id,
@@ -827,11 +794,13 @@ namespace AutomotiveClaimsApi.Controllers
                     DocumentPath = dDto.DocumentPath,
                     CreatedAt = DateTime.UtcNow,
                     UpdatedAt = DateTime.UtcNow
-                });
+                };
+                entity.Decisions.Add(decision);
+                context.Decisions.Add(decision);
             }
         }
 
-        private static void UpdateAppealFromDto(Event entity, AppealUpsertDto aDto)
+        private static void UpdateAppealFromDto(Event entity, AppealUpsertDto aDto, ApplicationDbContext context)
         {
             var hasId = aDto.Id.HasValue;
             var appealId = aDto.Id ?? Guid.Empty;
@@ -851,10 +820,11 @@ namespace AutomotiveClaimsApi.Controllers
                 existing.DocumentName = aDto.DocumentName;
                 existing.DocumentDescription = aDto.DocumentDescription;
                 existing.UpdatedAt = DateTime.UtcNow;
+                context.Appeals.Update(existing);
             }
             else
             {
-                entity.Appeals.Add(new Appeal
+                var appeal = new Appeal
                 {
                     Id = hasId ? appealId : Guid.NewGuid(),
                     EventId = entity.Id,
@@ -872,11 +842,13 @@ namespace AutomotiveClaimsApi.Controllers
                     DocumentDescription = aDto.DocumentDescription,
                     CreatedAt = DateTime.UtcNow,
                     UpdatedAt = DateTime.UtcNow
-                });
+                };
+                entity.Appeals.Add(appeal);
+                context.Appeals.Add(appeal);
             }
         }
 
-        private static void UpdateClientClaimFromDto(Event entity, ClientClaimUpsertDto cDto)
+        private static void UpdateClientClaimFromDto(Event entity, ClientClaimUpsertDto cDto, ApplicationDbContext context)
         {
             Guid? claimId = null;
             if (!string.IsNullOrEmpty(cDto.Id))
@@ -906,10 +878,11 @@ namespace AutomotiveClaimsApi.Controllers
                 existing.DocumentDescription = cDto.DocumentDescription;
                 existing.ClaimNotes = cDto.ClaimNotes;
                 existing.UpdatedAt = DateTime.UtcNow;
+                context.ClientClaims.Update(existing);
             }
             else
             {
-                entity.ClientClaims.Add(new ClientClaim
+                var clientClaim = new ClientClaim
                 {
                     Id = claimId ?? Guid.NewGuid(),
                     EventId = entity.Id,
@@ -926,11 +899,13 @@ namespace AutomotiveClaimsApi.Controllers
                     ClaimNotes = cDto.ClaimNotes,
                     CreatedAt = DateTime.UtcNow,
                     UpdatedAt = DateTime.UtcNow
-                });
+                };
+                entity.ClientClaims.Add(clientClaim);
+                context.ClientClaims.Add(clientClaim);
             }
         }
 
-        private static void UpdateRecourseFromDto(Event entity, RecourseUpsertDto rDto)
+        private static void UpdateRecourseFromDto(Event entity, RecourseUpsertDto rDto, ApplicationDbContext context)
         {
             var hasId = rDto.Id.HasValue;
             var recourseId = rDto.Id ?? Guid.Empty;
@@ -944,10 +919,11 @@ namespace AutomotiveClaimsApi.Controllers
                 existing.RecourseNumber = rDto.RecourseNumber;
                 existing.RecourseAmount = rDto.RecourseAmount;
                 existing.UpdatedAt = DateTime.UtcNow;
+                context.Recourses.Update(existing);
             }
             else
             {
-                entity.Recourses.Add(new Recourse
+                var recourse = new Recourse
                 {
                     Id = hasId ? recourseId : Guid.NewGuid(),
                     EventId = entity.Id,
@@ -959,11 +935,13 @@ namespace AutomotiveClaimsApi.Controllers
                     RecourseAmount = rDto.RecourseAmount,
                     CreatedAt = DateTime.UtcNow,
                     UpdatedAt = DateTime.UtcNow
-                });
+                };
+                entity.Recourses.Add(recourse);
+                context.Recourses.Add(recourse);
             }
         }
 
-        private static void UpdateSettlementFromDto(Event entity, SettlementUpsertDto sDto)
+        private static void UpdateSettlementFromDto(Event entity, SettlementUpsertDto sDto, ApplicationDbContext context)
         {
             var hasId = sDto.Id.HasValue;
             var settlementId = sDto.Id ?? Guid.Empty;
@@ -984,10 +962,11 @@ namespace AutomotiveClaimsApi.Controllers
                 existing.SettlementType = sDto.SettlementType;
                 existing.SettlementAmount = sDto.SettlementAmount;
                 existing.UpdatedAt = DateTime.UtcNow;
+                context.Settlements.Update(existing);
             }
             else
             {
-                entity.Settlements.Add(new Settlement
+                var settlement = new Settlement
                 {
                     Id = hasId ? settlementId : Guid.NewGuid(),
                     EventId = entity.Id,
@@ -1006,11 +985,13 @@ namespace AutomotiveClaimsApi.Controllers
                     SettlementAmount = sDto.SettlementAmount,
                     CreatedAt = DateTime.UtcNow,
                     UpdatedAt = DateTime.UtcNow
-                });
+                };
+                entity.Settlements.Add(settlement);
+                context.Settlements.Add(settlement);
             }
         }
 
-        private static void UpdateParticipantFromDto(Event entity, ParticipantUpsertDto pDto, ApplicationDbContext? context = null)
+        private static void UpdateParticipantFromDto(Event entity, ParticipantUpsertDto pDto, ApplicationDbContext context)
         {
             var hasId = Guid.TryParse(pDto.Id, out var participantId);
             var existing = hasId ? entity.Participants.FirstOrDefault(p => p.Id == participantId) : null;
@@ -1054,7 +1035,7 @@ namespace AutomotiveClaimsApi.Controllers
                 var driversToRemove = existing.Drivers.Where(d => !driverIds.Contains(d.Id)).ToList();
                 foreach (var d in driversToRemove)
                 {
-                    context?.Drivers.Remove(d);
+                    context.Drivers.Remove(d);
                     existing.Drivers.Remove(d);
                 }
 
@@ -1065,6 +1046,7 @@ namespace AutomotiveClaimsApi.Controllers
                         UpdateDriverFromDto(existing, dDto, context);
                     }
                 }
+                context.Participants.Update(existing);
             }
             else
             {
@@ -1072,7 +1054,7 @@ namespace AutomotiveClaimsApi.Controllers
                 participant.Drivers.Clear();
                 foreach (var dDto in pDto.Drivers ?? Enumerable.Empty<DriverUpsertDto>())
                 {
-                    participant.Drivers.Add(new Driver
+                    var driver = new Driver
                     {
                         Id = string.IsNullOrEmpty(dDto.Id) ? Guid.NewGuid() : Guid.Parse(dDto.Id),
                         EventId = entity.Id,
@@ -1086,13 +1068,16 @@ namespace AutomotiveClaimsApi.Controllers
                         IsMainDriver = dDto.IsMainDriver,
                         CreatedAt = DateTime.UtcNow,
                         UpdatedAt = DateTime.UtcNow
-                    });
+                    };
+                    participant.Drivers.Add(driver);
+                    context.Drivers.Add(driver);
                 }
                 entity.Participants.Add(participant);
+                context.Participants.Add(participant);
             }
         }
 
-        private static void UpdateDriverFromDto(Participant participant, DriverUpsertDto dDto, ApplicationDbContext? context = null)
+        private static void UpdateDriverFromDto(Participant participant, DriverUpsertDto dDto, ApplicationDbContext context)
         {
             var hasDriverId = Guid.TryParse(dDto.Id, out var driverId);
             var driver = hasDriverId ? participant.Drivers.FirstOrDefault(dr => dr.Id == driverId) : null;
@@ -1106,10 +1091,11 @@ namespace AutomotiveClaimsApi.Controllers
                 driver.LicenseExpirationDate = dDto.LicenseExpirationDate;
                 driver.IsMainDriver = dDto.IsMainDriver;
                 driver.UpdatedAt = DateTime.UtcNow;
+                context.Drivers.Update(driver);
             }
             else
             {
-                participant.Drivers.Add(new Driver
+                var newDriver = new Driver
                 {
                     Id = hasDriverId ? driverId : Guid.NewGuid(),
                     EventId = participant.EventId,
@@ -1123,7 +1109,9 @@ namespace AutomotiveClaimsApi.Controllers
                     IsMainDriver = dDto.IsMainDriver,
                     CreatedAt = DateTime.UtcNow,
                     UpdatedAt = DateTime.UtcNow
-                });
+                };
+                participant.Drivers.Add(newDriver);
+                context.Drivers.Add(newDriver);
             }
         }
 
@@ -1190,7 +1178,7 @@ namespace AutomotiveClaimsApi.Controllers
         {
             return new Note
             {
-                Id = Guid.NewGuid(),
+                Id = Guid.TryParse(dto.Id, out var noteId) ? noteId : Guid.NewGuid(),
                 EventId = eventId,
                 Category = dto.Category,
                 Title = dto.Title,
@@ -1427,7 +1415,6 @@ namespace AutomotiveClaimsApi.Controllers
             VehicleType = e.VehicleType,
             DamageDescription = e.DamageDescription,
             Description = e.Description,
-            RowVersion = e.RowVersion,
             CreatedAt = e.CreatedAt,
             UpdatedAt = e.UpdatedAt,
             Participants = e.Participants.Select(p => new ParticipantDto

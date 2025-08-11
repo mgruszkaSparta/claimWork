@@ -71,12 +71,9 @@ export async function createAppeal(
   if (appeal.extensionDate) {
     formData.append("ExtensionDate", appeal.extensionDate);
   }
-  if (appeal.responseDate) {
-    formData.append("DecisionDate", appeal.responseDate);
   const decisionDate = appeal.decisionDate ?? appeal.responseDate;
   if (decisionDate) {
     formData.append("DecisionDate", decisionDate);
-
   }
   if (appeal.status) {
     formData.append("Status", appeal.status);
@@ -109,13 +106,9 @@ export async function updateAppeal(
   if (appeal.extensionDate) {
     formData.append("ExtensionDate", appeal.extensionDate);
   }
-  if (appeal.responseDate) {
-    formData.append("DecisionDate", appeal.responseDate);
-
   const decisionDateUpdate = appeal.decisionDate ?? appeal.responseDate;
   if (decisionDateUpdate) {
     formData.append("DecisionDate", decisionDateUpdate);
-
   }
   if (appeal.status) {
     formData.append("Status", appeal.status);

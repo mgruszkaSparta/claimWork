@@ -110,6 +110,15 @@ export const transformFrontendClaimToApiPayload = (
     country: p.country,
     insuranceCompany: p.insuranceCompany,
     policyNumber: p.policyNumber,
+    policyDealDate: p.policyDealDate
+      ? new Date(p.policyDealDate).toISOString()
+      : undefined,
+    policyStartDate: p.policyStartDate
+      ? new Date(p.policyStartDate).toISOString()
+      : undefined,
+    policyEndDate: p.policyEndDate
+      ? new Date(p.policyEndDate).toISOString()
+      : undefined,
     vehicleRegistration: p.vehicleRegistration,
     vehicleVin: p.vehicleVin,
     vehicleType: p.vehicleType,

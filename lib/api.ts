@@ -181,6 +181,9 @@ export interface ParticipantDto {
   country?: string
   insuranceCompany?: string
   policyNumber?: string
+  policyDealDate?: string
+  policyStartDate?: string
+  policyEndDate?: string
   vehicleRegistration?: string
   vehicleVin?: string
   vehicleType?: string
@@ -204,6 +207,9 @@ export interface ParticipantUpsertDto {
   country?: string
   insuranceCompany?: string
   policyNumber?: string
+  policyDealDate?: string
+  policyStartDate?: string
+  policyEndDate?: string
   vehicleRegistration?: string
   vehicleVin?: string
   vehicleType?: string

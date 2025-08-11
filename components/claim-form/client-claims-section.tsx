@@ -160,7 +160,7 @@ export function ClientClaimsSection({ clientClaims, onClientClaimsChange, claimI
 
     try {
       const claimData: ClientClaim = {
-        id: editingClaim?.id || Date.now().toString(),
+        id: editingClaim?.id || crypto.randomUUID(),
         eventId: claimId,
         claimDate: formData.claimDate,
         claimType: formData.claimType,
@@ -171,7 +171,7 @@ export function ClientClaimsSection({ clientClaims, onClientClaimsChange, claimI
         documentDescription: formData.documentDescription,
         document: selectedFile
           ? {
-              id: Date.now().toString(),
+              id: crypto.randomUUID(),
               name: selectedFile.name,
               size: selectedFile.size,
               type: selectedFile.type,

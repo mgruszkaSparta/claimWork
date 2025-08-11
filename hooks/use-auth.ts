@@ -1,10 +1,12 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import { apiService } from "@/lib/api"
 
 interface User {
   username: string
   email?: string
+  roles?: string[]
 }
 
 interface AuthState {
@@ -21,75 +23,35 @@ export function useAuth() {
   })
 
   useEffect(() => {
-    // Check for existing session on mount
-    const checkAuth = () => {
+    const initialize = async () => {
       try {
-        const storedUser = localStorage.getItem("sparta_user")
-        const sessionUser = sessionStorage.getItem("sparta_user")
-
-        if (storedUser || sessionUser) {
-          const userData = JSON.parse(storedUser || sessionUser || "{}")
-          setAuthState({
-            user: userData,
-            isAuthenticated: true,
-            isLoading: false,
-          })
-        } else {
-          setAuthState({
-            user: null,
-            isAuthenticated: false,
-            isLoading: false,
-          })
-        }
-      } catch (error) {
-        console.error("Auth check error:", error)
+        await apiService.fetchAntiforgery()
+        const user = await apiService.getCurrentUser()
         setAuthState({
-          user: null,
-          isAuthenticated: false,
+          user: user || null,
+          isAuthenticated: !!user,
           isLoading: false,
         })
+      } catch {
+        setAuthState({ user: null, isAuthenticated: false, isLoading: false })
       }
     }
-
-    checkAuth()
+    initialize()
   }, [])
 
-  const login = async (username: string, password: string, rememberMe: boolean) => {
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 1000))
-
-    // Demo credentials
-    if (username === "admin" && password === "admin123") {
-      const userData: User = {
-        username,
-        email: "admin@spartabrokers.pl",
-      }
-
-      // Store in appropriate storage based on remember me
-      if (rememberMe) {
-        localStorage.setItem("sparta_user", JSON.stringify(userData))
-      } else {
-        sessionStorage.setItem("sparta_user", JSON.stringify(userData))
-      }
-
-      setAuthState({
-        user: userData,
-        isAuthenticated: true,
-        isLoading: false,
-      })
-    } else {
-      throw new Error("Invalid credentials")
-    }
-  }
-
-  const logout = () => {
-    localStorage.removeItem("sparta_user")
-    sessionStorage.removeItem("sparta_user")
+  const login = async (username: string, password: string) => {
+    await apiService.login(username, password)
+    const user = await apiService.getCurrentUser()
     setAuthState({
-      user: null,
-      isAuthenticated: false,
+      user: user || null,
+      isAuthenticated: !!user,
       isLoading: false,
     })
+  }
+
+  const logout = async () => {
+    await apiService.logout()
+    setAuthState({ user: null, isAuthenticated: false, isLoading: false })
   }
 
   return {

@@ -57,7 +57,8 @@ export function RecourseSection({ eventId }: RecourseSectionProps) {
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   const [recourses, setRecourses] = useState<Recourse[]>([])
-  const [loading, setLoading] = useState(false)
+  const [formLoading, setFormLoading] = useState(false)
+  const [listLoading, setListLoading] = useState(false)
   const [isFormVisible, setIsFormVisible] = useState(false)
   const [isEditing, setIsEditing] = useState(false)
   const [editingRecourseId, setEditingRecourseId] = useState<string | null>(null)
@@ -106,7 +107,7 @@ export function RecourseSection({ eventId }: RecourseSectionProps) {
   }, [eventId])
 
   const loadRecourses = async () => {
-    setLoading(true)
+    setListLoading(true)
     try {
       const data = await fetchRecourses(eventId)
       setRecourses(data)
@@ -126,7 +127,7 @@ export function RecourseSection({ eventId }: RecourseSectionProps) {
         variant: "destructive",
       })
     } finally {
-      setLoading(false)
+      setListLoading(false)
     }
   }
 
@@ -134,7 +135,7 @@ export function RecourseSection({ eventId }: RecourseSectionProps) {
   const processOutlookAttachment = async (file: File) => {
     console.log("Processing potential Outlook attachment:", file.name)
 
-    setLoading(true)
+    setFormLoading(true)
     try {
       // Process the file (in a real implementation, you might need special handling for Outlook files)
       setSelectedFile(file)
@@ -161,7 +162,7 @@ export function RecourseSection({ eventId }: RecourseSectionProps) {
         variant: "destructive",
       })
     } finally {
-      setLoading(false)
+      setFormLoading(false)
     }
   }
 
@@ -211,7 +212,7 @@ export function RecourseSection({ eventId }: RecourseSectionProps) {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
 
-    setLoading(true)
+    setFormLoading(true)
     try {
       if (!formData.filingDate || !formData.insuranceCompany) {
         toast({
@@ -219,7 +220,7 @@ export function RecourseSection({ eventId }: RecourseSectionProps) {
           description: "Data wniesienia regresu i nazwa towarzystwa są wymagane",
           variant: "destructive",
         })
-        setLoading(false)
+        setFormLoading(false)
         return
       }
 
@@ -245,7 +246,7 @@ export function RecourseSection({ eventId }: RecourseSectionProps) {
       })
       resetForm()
       setIsFormVisible(false)
-      loadRecourses()
+      await loadRecourses()
     } catch (error) {
       console.error("Error saving recourse:", error)
       toast({
@@ -254,7 +255,7 @@ export function RecourseSection({ eventId }: RecourseSectionProps) {
         variant: "destructive",
       })
     } finally {
-      setLoading(false)
+      setFormLoading(false)
     }
   }
 
@@ -300,14 +301,14 @@ export function RecourseSection({ eventId }: RecourseSectionProps) {
   }
 
   const removeRecourse = async (recourseId: string) => {
-    setLoading(true)
+    setListLoading(true)
     try {
       await deleteRecourseApi(recourseId)
       toast({
         title: "Sukces",
         description: "Regres został usunięty",
       })
-      loadRecourses()
+      await loadRecourses()
     } catch (error) {
       console.error("Error deleting recourse:", error)
       toast({
@@ -316,7 +317,7 @@ export function RecourseSection({ eventId }: RecourseSectionProps) {
         variant: "destructive",
       })
     } finally {
-      setLoading(false)
+      setListLoading(false)
     }
   }
 
@@ -680,8 +681,8 @@ export function RecourseSection({ eventId }: RecourseSectionProps) {
                   <Button type="button" variant="outline" onClick={cancelForm} className="px-6 bg-transparent">
                     Anuluj
                   </Button>
-                  <Button type="submit" disabled={loading} className="flex items-center gap-2 px-6">
-                    {loading && <Loader2 className="h-4 w-4 animate-spin" />}
+                  <Button type="submit" disabled={formLoading} className="flex items-center gap-2 px-6">
+                    {formLoading && <Loader2 className="h-4 w-4 animate-spin" />}
                     {isEditing ? "Zapisz zmiany" : "Dodaj regres"}
                   </Button>
                 </div>
@@ -729,7 +730,7 @@ export function RecourseSection({ eventId }: RecourseSectionProps) {
                 </tr>
               </thead>
               <tbody>
-                {loading && recourses.length === 0 && (
+                {listLoading && recourses.length === 0 && (
                   <tr>
                     <td colSpan={8} className="py-8 text-center text-muted-foreground">
                       <div className="flex items-center justify-center gap-2">
@@ -739,7 +740,7 @@ export function RecourseSection({ eventId }: RecourseSectionProps) {
                     </td>
                   </tr>
                 )}
-                {!loading && recourses.length === 0 && (
+                {!listLoading && recourses.length === 0 && (
                   <tr>
                     <td colSpan={8} className="py-8 text-center text-muted-foreground">
                       <div className="space-y-2">

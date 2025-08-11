@@ -193,10 +193,14 @@ export const transformFrontendClaimToApiPayload = (
         }
       : {}),
 
-    clientClaims: clientClaims?.map((c) => ({
-      ...c,
-      claimDate: c.claimDate ? new Date(c.claimDate).toISOString() : undefined,
-    })),
+    clientClaims: clientClaims?.map((c) => {
+      const { id, claimDate, ...rest } = c
+      return {
+        ...rest,
+        ...(id && isGuid(id) ? { id } : {}),
+        claimDate: claimDate ? new Date(claimDate).toISOString() : undefined,
+      }
+    }),
     recourses: recourses?.map((r) => ({
       ...r,
       recourseDate: r.recourseDate ? new Date(r.recourseDate).toISOString() : undefined,

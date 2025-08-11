@@ -188,6 +188,9 @@ export interface ParticipantDto {
   policyDealDate?: string
   policyStartDate?: string
   policyEndDate?: string
+  firstRegistrationDate?: string
+  policySumAmount?: number
+  inspectionNotes?: string
   vehicleRegistration?: string
   vehicleVin?: string
   vehicleType?: string
@@ -214,6 +217,9 @@ export interface ParticipantUpsertDto {
   policyDealDate?: string
   policyStartDate?: string
   policyEndDate?: string
+  firstRegistrationDate?: string
+  policySumAmount?: number
+  inspectionNotes?: string
   vehicleRegistration?: string
   vehicleVin?: string
   vehicleType?: string

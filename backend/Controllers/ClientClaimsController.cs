@@ -85,6 +85,8 @@ namespace AutomotiveClaimsApi.Controllers
                     EventId = createDto.EventId,
                     ClaimAmount = createDto.ClaimAmount,
                     ClaimDate = createDto.ClaimDate,
+                    ClaimType = createDto.ClaimType,
+                    Currency = createDto.Currency,
                     Status = createDto.Status,
                     Description = createDto.Description,
                     ClaimNotes = createDto.ClaimNotes,
@@ -131,6 +133,8 @@ namespace AutomotiveClaimsApi.Controllers
 
                 clientClaim.ClaimAmount = updateDto.ClaimAmount;
                 clientClaim.ClaimDate = updateDto.ClaimDate;
+                clientClaim.ClaimType = updateDto.ClaimType;
+                clientClaim.Currency = updateDto.Currency;
                 clientClaim.Status = updateDto.Status;
                 clientClaim.Description = updateDto.Description;
                 clientClaim.ClaimNotes = updateDto.ClaimNotes;
@@ -250,15 +254,17 @@ namespace AutomotiveClaimsApi.Controllers
             {
                 Id = c.Id.ToString(),
                 EventId = c.EventId.ToString(),
-                ClaimAmount = c.ClaimAmount,
+                ClaimNumber = c.ClaimNumber,
                 ClaimDate = c.ClaimDate,
+                ClaimType = c.ClaimType,
+                ClaimAmount = c.ClaimAmount,
+                Currency = c.Currency,
                 Status = c.Status,
                 Description = c.Description,
-                ClaimNotes = c.ClaimNotes,
-                ClaimNumber = c.ClaimNumber,
                 DocumentPath = c.DocumentPath,
                 DocumentName = c.DocumentName,
                 DocumentDescription = c.DocumentDescription,
+                ClaimNotes = c.ClaimNotes,
                 CreatedAt = c.CreatedAt,
                 UpdatedAt = c.UpdatedAt
             };

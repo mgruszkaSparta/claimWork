@@ -326,9 +326,9 @@ export const DocumentsSection = ({
             categoryCode: serverCategory || mapCategoryNameToCode(categoryName),
             canPreview:
               documentDto.canPreview ??
-              documentDto.contentType?.startsWith("image/") ||
-              documentDto.contentType === "application/pdf" ||
-              documentDto.contentType?.startsWith("video/"),
+              (documentDto.contentType?.startsWith("image/") ||
+                documentDto.contentType === "application/pdf" ||
+                documentDto.contentType?.startsWith("video/")),
           }
           console.log(`File uploaded successfully:`, document)
           return document

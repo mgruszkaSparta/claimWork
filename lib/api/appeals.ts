@@ -27,13 +27,16 @@ export interface AppealPayload {
   document?: File;
 }
 
+function formatDate(date?: string | null): string | undefined {
+  return date ? date.split("T")[0] : undefined;
+}
+
 function mapDtoToAppeal(dto: AppealDto): Appeal {
-  const decisionDate = dto.decisionDate ?? undefined;
   return {
     id: dto.id,
-    filingDate: dto.submissionDate ?? "",
-    extensionDate: dto.extensionDate ?? undefined,
-    responseDate: dto.decisionDate ?? undefined,
+    filingDate: formatDate(dto.submissionDate) ?? "",
+    extensionDate: formatDate(dto.extensionDate),
+    responseDate: formatDate(dto.decisionDate),
     status: dto.status,
     documentPath: dto.documentPath,
     documentName: dto.documentName,

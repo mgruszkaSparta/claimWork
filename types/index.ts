@@ -1,6 +1,18 @@
 import type React from "react"
 import type { ClaimDto } from "@/lib/api"
 
+export interface Note {
+  id?: string
+  type?: "note" | "task" | "internal" | "status"
+  title?: string
+  description: string
+  user?: string
+  createdAt?: string
+  priority?: "low" | "medium" | "high"
+  status?: "active" | "completed" | "cancelled"
+  dueDate?: string
+}
+
 export interface Claim
   extends Omit<
     ClaimDto,
@@ -48,6 +60,7 @@ export interface Claim
   vehicleTypeCode?: string
   damageDescription?: string
   damages?: DamageItem[]
+  notes?: Note[]
   injuredParty?: ParticipantInfo
   perpetrator?: ParticipantInfo
   decisions?: Decision[]

@@ -50,6 +50,8 @@ namespace AutomotiveClaimsApi.Controllers
                     PhoneNumber = c.PhoneNumber,
                     Email = c.Email,
                     Address = c.Address,
+                    City = c.City,
+                    PostalCode = c.PostalCode,
                     IsActive = c.IsActive,
                     CreatedAt = c.CreatedAt,
                     UpdatedAt = c.UpdatedAt
@@ -75,6 +77,8 @@ namespace AutomotiveClaimsApi.Controllers
                     PhoneNumber = c.PhoneNumber,
                     Email = c.Email,
                     Address = c.Address,
+                    City = c.City,
+                    PostalCode = c.PostalCode,
                     IsActive = c.IsActive,
                     CreatedAt = c.CreatedAt,
                     UpdatedAt = c.UpdatedAt
@@ -102,6 +106,8 @@ namespace AutomotiveClaimsApi.Controllers
                 PhoneNumber = createClientDto.PhoneNumber,
                 Email = createClientDto.Email,
                 Address = createClientDto.Address,
+                City = createClientDto.City,
+                PostalCode = createClientDto.PostalCode,
                 IsActive = createClientDto.IsActive,
                 CreatedAt = DateTime.UtcNow
             };
@@ -120,6 +126,8 @@ namespace AutomotiveClaimsApi.Controllers
                 PhoneNumber = client.PhoneNumber,
                 Email = client.Email,
                 Address = client.Address,
+                City = client.City,
+                PostalCode = client.PostalCode,
                 IsActive = client.IsActive,
                 CreatedAt = client.CreatedAt,
                 UpdatedAt = client.UpdatedAt
@@ -145,6 +153,8 @@ namespace AutomotiveClaimsApi.Controllers
             client.PhoneNumber = updateClientDto.PhoneNumber ?? client.PhoneNumber;
             client.Email = updateClientDto.Email ?? client.Email;
             client.Address = updateClientDto.Address ?? client.Address;
+            client.City = updateClientDto.City ?? client.City;
+            client.PostalCode = updateClientDto.PostalCode ?? client.PostalCode;
             client.IsActive = updateClientDto.IsActive ?? client.IsActive;
             client.UpdatedAt = DateTime.UtcNow;
 

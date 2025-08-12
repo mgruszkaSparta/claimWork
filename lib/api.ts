@@ -109,6 +109,51 @@ export interface ClaimUpsertDto extends EventUpsertDto {
   notes?: NoteUpsertDto[]
 }
 
+export interface ClientDto {
+  id: number
+  name: string
+  fullName?: string
+  shortName?: string
+  taxId?: string
+  registrationNumber?: string
+  phoneNumber?: string
+  email?: string
+  address?: string
+  city?: string
+  postalCode?: string
+  isActive: boolean
+  createdAt: string
+  updatedAt?: string
+}
+
+export interface CreateClientDto {
+  name: string
+  fullName?: string
+  shortName?: string
+  taxId?: string
+  registrationNumber?: string
+  phoneNumber?: string
+  email?: string
+  address?: string
+  city?: string
+  postalCode?: string
+  isActive?: boolean
+}
+
+export interface UpdateClientDto {
+  name?: string
+  fullName?: string
+  shortName?: string
+  taxId?: string
+  registrationNumber?: string
+  phoneNumber?: string
+  email?: string
+  address?: string
+  city?: string
+  postalCode?: string
+  isActive?: boolean
+}
+
 export interface NoteDto {
   id: string
   eventId: string
@@ -671,6 +716,35 @@ class ApiService {
 
   async getEventByClaimNumber(claimNumber: string): Promise<EventDto> {
     return this.request<EventDto>(`/events/by-claim/${claimNumber}`)
+  }
+
+  // Clients API
+  async getClients(): Promise<ClientDto[]> {
+    return this.request<ClientDto[]>('/clients')
+  }
+
+  async getClient(id: number): Promise<ClientDto> {
+    return this.request<ClientDto>(`/clients/${id}`)
+  }
+
+  async createClient(client: CreateClientDto): Promise<ClientDto> {
+    return this.request<ClientDto>('/clients', {
+      method: 'POST',
+      body: JSON.stringify(client),
+    })
+  }
+
+  async updateClient(id: number, client: UpdateClientDto): Promise<void> {
+    await this.request<void>(`/clients/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(client),
+    })
+  }
+
+  async deleteClient(id: number): Promise<void> {
+    await this.request<void>(`/clients/${id}`, {
+      method: 'DELETE',
+    })
   }
 
   async forgotPassword(email: string): Promise<void> {

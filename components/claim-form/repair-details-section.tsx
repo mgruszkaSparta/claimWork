@@ -24,11 +24,16 @@ import { pksData, type Employee } from "@/lib/pks-data"
 
 interface RepairDetailsSectionProps {
   eventId: string
+  repairDetails: RepairDetail[]
+  setRepairDetails: React.Dispatch<React.SetStateAction<RepairDetail[]>>
 }
 
-export function RepairDetailsSection({ eventId }: RepairDetailsSectionProps) {
-  const [repairDetails, setRepairDetails] = useState<RepairDetail[]>([])
-  const [isLoading, setIsLoading] = useState(true)
+export function RepairDetailsSection({
+  eventId,
+  repairDetails,
+  setRepairDetails,
+}: RepairDetailsSectionProps) {
+  const [isLoading, setIsLoading] = useState(false)
   const [editingId, setEditingId] = useState<string | null>(null)
   const [employeesForSelectedBranch, setEmployeesForSelectedBranch] = useState<Employee[]>([])
   const [isFormVisible, setIsFormVisible] = useState(false)
@@ -60,10 +65,6 @@ export function RepairDetailsSection({ eventId }: RepairDetailsSectionProps) {
   const [formData, setFormData] = useState(getInitialFormData())
 
   useEffect(() => {
-    fetchRepairDetails()
-  }, [eventId])
-
-  useEffect(() => {
     if (formData.branchId) {
       const selectedBranch = pksData.find((branch) => branch.id === formData.branchId)
       setEmployeesForSelectedBranch(selectedBranch ? selectedBranch.employees : [])
@@ -76,7 +77,7 @@ export function RepairDetailsSection({ eventId }: RepairDetailsSectionProps) {
     setFormData({ ...formData, branchId, employeeEmail: "" })
   }
 
-  const fetchRepairDetails = async () => {
+  const refreshRepairDetails = async () => {
     try {
       setIsLoading(true)
       const data = await getRepairDetails(eventId)
@@ -131,7 +132,7 @@ export function RepairDetailsSection({ eventId }: RepairDetailsSectionProps) {
         })
       }
       resetForm()
-      fetchRepairDetails()
+      refreshRepairDetails()
       setIsFormVisible(false)
     } catch (error) {
       console.error("Error saving repair details:", error)
@@ -166,7 +167,7 @@ export function RepairDetailsSection({ eventId }: RepairDetailsSectionProps) {
         title: "Sukces",
         description: "Opis naprawy został usunięty",
       })
-      fetchRepairDetails()
+      refreshRepairDetails()
     } catch (error) {
       console.error("Error deleting repair details:", error)
       toast({

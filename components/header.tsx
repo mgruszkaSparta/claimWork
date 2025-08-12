@@ -13,10 +13,9 @@ import {
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 
 interface User {
-  id: string
   username: string
-  name: string
-  role: string
+  email?: string
+  roles?: string[]
 }
 
 interface HeaderProps {
@@ -35,16 +34,18 @@ export function Header({ onMenuClick, user, onLogout }: HeaderProps) {
       .slice(0, 2)
   }
 
-  const getRoleLabel = (role: string) => {
+  const getRoleLabel = (role?: string) => {
     switch (role) {
+      case 'Admin':
       case 'admin':
         return 'Administrator'
       case 'expert':
         return 'Ekspert'
+      case 'User':
       case 'user':
         return 'Użytkownik'
       default:
-        return role
+        return role || ''
     }
   }
 
@@ -88,15 +89,15 @@ export function Header({ onMenuClick, user, onLogout }: HeaderProps) {
                 <Button variant="ghost" className="flex items-center space-x-2 px-3">
                   <Avatar className="h-8 w-8">
                     <AvatarFallback className="bg-blue-100 text-blue-600 text-sm font-medium">
-                      {getInitials(user.name)}
+                      {getInitials(user.username)}
                     </AvatarFallback>
                   </Avatar>
                   <div className="hidden md:block text-left">
                     <div className="text-sm font-medium text-gray-900">
-                      {user.name}
+                      {user.username}
                     </div>
                     <div className="text-xs text-gray-500">
-                      {getRoleLabel(user.role)}
+                      {getRoleLabel(user.roles?.[0])}
                     </div>
                   </div>
                 </Button>
@@ -104,9 +105,9 @@ export function Header({ onMenuClick, user, onLogout }: HeaderProps) {
               <DropdownMenuContent align="end" className="w-56">
                 <DropdownMenuLabel>
                   <div className="flex flex-col space-y-1">
-                    <p className="text-sm font-medium leading-none">{user.name}</p>
+                    <p className="text-sm font-medium leading-none">{user.username}</p>
                     <p className="text-xs leading-none text-muted-foreground">
-                      {user.username} • {getRoleLabel(user.role)}
+                      {getRoleLabel(user.roles?.[0])}
                     </p>
                   </div>
                 </DropdownMenuLabel>

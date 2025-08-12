@@ -5,15 +5,15 @@ import { useRouter } from "next/navigation"
 import { Header } from "@/components/header"
 import { Sidebar } from "@/components/sidebar"
 import { AuthWrapper } from '@/components/auth-wrapper'
+import { ProtectedRoute } from '@/components/protected-route'
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { FileText, Clock, Calendar, DollarSign, TrendingUp, Users, Search, Filter, CheckSquare } from 'lucide-react'
 
 interface User {
-  id: string
   username: string
-  name: string
-  role: string
+  email?: string
+  roles?: string[]
 }
 
 interface PageProps {
@@ -26,10 +26,7 @@ function HomePage({ user, onLogout }: PageProps) {
   const [activeTab, setActiveTab] = useState("dashboard")
 
   useEffect(() => {
-    const isAuthenticated = localStorage.getItem('isAuthenticated')
-    if (!isAuthenticated || isAuthenticated !== 'true') {
-      window.location.href = '/login'
-    }
+    // additional effects can go here
   }, [])
 
   const stats = [
@@ -131,7 +128,7 @@ function HomePage({ user, onLogout }: PageProps) {
               {user && (
                 <div className="mt-4 p-4 bg-blue-50 rounded-lg border border-blue-200">
                   <p className="text-sm text-blue-800">
-                    Zalogowany jako: <span className="font-semibold">{user.name}</span> ({user.role})
+                    Zalogowany jako: <span className="font-semibold">{user.username}</span> ({user.roles?.join(', ')})
                   </p>
                 </div>
               )}
@@ -318,8 +315,10 @@ function HomePage({ user, onLogout }: PageProps) {
 
 export default function Page() {
   return (
-    <AuthWrapper>
-      <HomePage />
-    </AuthWrapper>
+    <ProtectedRoute roles={["Admin"]}>
+      <AuthWrapper>
+        <HomePage />
+      </AuthWrapper>
+    </ProtectedRoute>
   )
 }

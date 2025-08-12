@@ -571,12 +571,6 @@ class ApiService {
     return text as unknown as T
   }
 
-  async fetchAntiforgery(): Promise<void> {
-    await fetch(`${API_BASE_URL}/auth/antiforgery`, {
-      credentials: "include",
-    })
-  }
-
   async register(username: string, email: string, password: string): Promise<void> {
     await this.request<void>("/auth/register", {
       method: "POST",

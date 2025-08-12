@@ -1,14 +1,19 @@
 import { NextResponse } from "next/server"
 
-const API_BASE_URL = process.env.API_BASE_URL || "http://localhost:5200/api"
+const API_BASE_URL =
+  process.env.NEXT_PUBLIC_API_URL || "http://localhost:5200/api"
 
 export async function GET() {
   try {
-    const response = await fetch(`${API_BASE_URL}/dictionaries/event-statuses`, {
-      headers: {
-        "Content-Type": "application/json",
+    const response = await fetch(
+      `${API_BASE_URL}/dictionaries/event-statuses`,
+      {
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+        },
       },
-    })
+    )
 
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`)

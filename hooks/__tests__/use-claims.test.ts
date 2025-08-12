@@ -29,18 +29,27 @@ test('maps damageType object to its code value', () => {
   assert.equal(payload.damageType, 'DT')
 })
 
-test('participant and driver ids are numeric', () => {
+test('participant and driver ids include only GUID strings', () => {
+  const guid = '123e4567-e89b-12d3-a456-426614174000'
   const payload = transformFrontendClaimToApiPayload({
     injuredParty: {
+      id: guid,
+      drivers: [{ id: guid }, { id: '456' }],
+    },
+    perpetrator: {
       id: '123',
-      drivers: [{ id: '456' }],
+      drivers: [{ id: guid }],
     },
   } as any)
 
-  const participant = payload.participants?.[0]
-  const driver = participant?.drivers?.[0]
-  assert.equal(participant?.id, 123)
-  assert.equal(driver?.id, 456)
+  const [injured, perpetrator] = payload.participants || []
+  const [validDriver, invalidDriver] = injured.drivers || []
+
+  assert.equal(injured.id, guid)
+  assert.equal(validDriver?.id, guid)
+  assert.equal(invalidDriver?.id, undefined)
+  assert.equal(perpetrator?.id, undefined)
+  assert.equal(perpetrator?.drivers?.[0]?.id, guid)
 })
 
 test('settlement ids are validated and converted', () => {

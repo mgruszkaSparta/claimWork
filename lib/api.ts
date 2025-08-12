@@ -661,6 +661,46 @@ class ApiService {
   async getEventByClaimNumber(claimNumber: string): Promise<EventDto> {
     return this.request<EventDto>(`/events/by-claim/${claimNumber}`)
   }
+
+  async forgotPassword(email: string): Promise<void> {
+    const csrfToken =
+      typeof document !== "undefined"
+        ? document.cookie
+            .split("; ")
+            .find((row) => row.startsWith("XSRF-TOKEN="))?.split("=")[1]
+        : undefined
+
+    return this.request<void>("/auth/forgot-password", {
+      method: "POST",
+      headers: {
+        ...(csrfToken ? { "X-CSRF-Token": csrfToken } : {}),
+      },
+      credentials: "include",
+      body: JSON.stringify({ email }),
+    })
+  }
+
+  async resetPassword(
+    email: string,
+    token: string,
+    password: string,
+  ): Promise<void> {
+    const csrfToken =
+      typeof document !== "undefined"
+        ? document.cookie
+            .split("; ")
+            .find((row) => row.startsWith("XSRF-TOKEN="))?.split("=")[1]
+        : undefined
+
+    return this.request<void>("/auth/reset-password", {
+      method: "POST",
+      headers: {
+        ...(csrfToken ? { "X-CSRF-Token": csrfToken } : {}),
+      },
+      credentials: "include",
+      body: JSON.stringify({ email, token, password }),
+    })
+  }
 }
 
 export const apiService = new ApiService()

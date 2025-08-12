@@ -1,6 +1,7 @@
 'use client'
 
 import React, { useState } from 'react'
+import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -114,18 +115,12 @@ export const WorkspaceLoginPanel: React.FC<WorkspaceLoginPanelProps> = ({
                     <Label htmlFor="password" className="text-sm font-medium text-gray-700">
                       Hasło
                     </Label>
-                    <button
-                      type="button"
+                    <Link
+                      href="/forgot-password"
                       className="text-sm text-blue-600 hover:text-blue-800 hover:underline"
-                      onClick={() => {
-                        toast({
-                          title: "Funkcja w przygotowaniu",
-                          description: "Funkcja resetowania hasła będzie dostępna wkrótce.",
-                        })
-                      }}
                     >
                       Zapomniałeś hasła?
-                    </button>
+                    </Link>
                   </div>
                   <div className="relative">
                     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">

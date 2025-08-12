@@ -1,7 +1,7 @@
 "use client"
 
 import type React from "react"
-import { useState, useCallback, useMemo } from "react"
+import { useState, useCallback, useMemo, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -10,11 +10,10 @@ import { Textarea } from "@/components/ui/textarea"
 import { Badge } from "@/components/ui/badge"
 import { useToast } from "@/hooks/use-toast"
 import { HandHeart, Plus, Minus, Edit, Trash2, Download, Eye, X, Upload, FileText, Info, Loader2 } from "lucide-react"
+import { getSettlements, createSettlement, updateSettlement, deleteSettlement } from "@/lib/api/settlements"
 import type { Settlement } from "@/types"
 
 interface SettlementsSectionProps {
-  settlements: Settlement[]
-  onSettlementsChange: (settlements: Settlement[]) => void
   claimId: string
 }
 
@@ -40,12 +39,11 @@ const initialFormData: SettlementFormData = {
   documentDescription: "",
 }
 
-export const SettlementsSection: React.FC<SettlementsSectionProps> = ({
-  settlements,
-  onSettlementsChange,
-  claimId,
-}) => {
+export const SettlementsSection: React.FC<SettlementsSectionProps> = ({ claimId }) => {
   const { toast } = useToast()
+
+  const [settlements, setSettlements] = useState<Settlement[]>([])
+  const [isListLoading, setIsListLoading] = useState(false)
 
   // Form state
   const [isFormVisible, setIsFormVisible] = useState(false)
@@ -65,6 +63,28 @@ export const SettlementsSection: React.FC<SettlementsSectionProps> = ({
   const [previewFileName, setPreviewFileName] = useState<string>("")
   const [previewFileType, setPreviewFileType] = useState<"pdf" | "image" | "other">("other")
   const [currentPreviewSettlement, setCurrentPreviewSettlement] = useState<Settlement | null>(null)
+
+  const loadSettlements = useCallback(async () => {
+    if (!claimId) return
+    setIsListLoading(true)
+    try {
+      const data = await getSettlements(claimId)
+      setSettlements(data)
+    } catch (error) {
+      console.error("Error fetching settlements:", error)
+      toast({
+        title: "Błąd",
+        description: "Nie udało się pobrać ugód",
+        variant: "destructive",
+      })
+    } finally {
+      setIsListLoading(false)
+    }
+  }, [claimId, toast])
+
+  useEffect(() => {
+    loadSettlements()
+  }, [loadSettlements])
 
   // Calculate total settlement amounts by currency
   const totalPaymentsByCurrency = useMemo(() => {
@@ -168,38 +188,39 @@ export const SettlementsSection: React.FC<SettlementsSectionProps> = ({
       setIsLoading(true)
 
       try {
-        const settlementData: Settlement = {
-          id: isEditing ? editingSettlementId! : Date.now().toString(),
-          eventId: claimId,
-          settlementDate: formData.settlementDate,
-          settlementType: formData.status,
-          description: formData.documentDescription,
-          settlementAmount: formData.settlementAmount,
-          currency: formData.currency,
-          status: formData.status,
-          externalEntity:
-            formData.externalEntity === "custom" ? formData.customExternalEntity : formData.externalEntity,
-          transferDate: formData.transferDate,
-          documentPath: selectedFile ? URL.createObjectURL(selectedFile) : undefined,
-          documentName: selectedFile?.name,
+        const body = new FormData()
+        body.append("eventId", claimId)
+        body.append("externalEntity", formData.externalEntity)
+        if (formData.customExternalEntity) {
+          body.append("customExternalEntity", formData.customExternalEntity)
+        }
+        if (formData.transferDate) body.append("transferDate", formData.transferDate)
+        if (formData.settlementDate) body.append("settlementDate", formData.settlementDate)
+        if (formData.settlementAmount)
+          body.append("settlementAmount", formData.settlementAmount.toString())
+        if (formData.currency) body.append("currency", formData.currency)
+        if (formData.status) body.append("status", formData.status)
+        if (formData.documentDescription)
+          body.append("documentDescription", formData.documentDescription)
+        if (selectedFile) {
+          body.append("document", selectedFile)
         }
 
-        let updatedSettlements: Settlement[]
-        if (isEditing) {
-          updatedSettlements = settlements.map((s) => (s.id === editingSettlementId ? settlementData : s))
+        if (isEditing && editingSettlementId) {
+          await updateSettlement(editingSettlementId, body)
           toast({
             title: "Sukces",
             description: "Ugoda została zaktualizowana pomyślnie.",
           })
         } else {
-          updatedSettlements = [...settlements, settlementData]
+          await createSettlement(body)
           toast({
             title: "Sukces",
             description: "Ugoda została dodana pomyślnie.",
           })
         }
 
-        onSettlementsChange(updatedSettlements)
+        await loadSettlements()
 
         // Reset form
         setFormData(initialFormData)
@@ -220,14 +241,16 @@ export const SettlementsSection: React.FC<SettlementsSectionProps> = ({
         setIsLoading(false)
       }
     },
-    [formData, selectedFile, isEditing, editingSettlementId, claimId, settlements, onSettlementsChange, toast],
+    [formData, selectedFile, isEditing, editingSettlementId, claimId, loadSettlements, toast],
   )
 
   // Edit settlement
   const editSettlement = useCallback((settlement: Settlement) => {
+    const isCustom =
+      settlement.externalEntity && !["ClaimXpert360"].includes(settlement.externalEntity)
     setFormData({
-      externalEntity: settlement.externalEntity || "",
-      customExternalEntity: "",
+      externalEntity: isCustom ? "custom" : settlement.externalEntity || "",
+      customExternalEntity: isCustom ? settlement.externalEntity || "" : "",
       transferDate: settlement.transferDate || "",
       status: settlement.status || "",
       settlementDate: settlement.settlementDate || "",
@@ -235,25 +258,33 @@ export const SettlementsSection: React.FC<SettlementsSectionProps> = ({
       currency: settlement.currency || "PLN",
       documentDescription: settlement.description || "",
     })
-    setShowCustomEntityInput(!["ClaimXpert360"].includes(settlement.externalEntity || ""))
+    setShowCustomEntityInput(isCustom)
     setIsEditing(true)
     setEditingSettlementId(settlement.id!)
     setIsFormVisible(true)
   }, [])
 
   // Delete settlement
-  const deleteSettlement = useCallback(
-    (settlementId: string) => {
-      if (window.confirm("Czy na pewno chcesz usunąć tę ugodę?")) {
-        const updatedSettlements = settlements.filter((s) => s.id !== settlementId)
-        onSettlementsChange(updatedSettlements)
+  const removeSettlement = useCallback(
+    async (settlementId: string) => {
+      if (!window.confirm("Czy na pewno chcesz usunąć tę ugodę?")) return
+      try {
+        await deleteSettlement(settlementId)
         toast({
           title: "Sukces",
           description: "Ugoda została usunięta pomyślnie.",
         })
+        await loadSettlements()
+      } catch (error) {
+        console.error("Error deleting settlement:", error)
+        toast({
+          title: "Błąd",
+          description: "Nie udało się usunąć ugody.",
+          variant: "destructive",
+        })
       }
     },
-    [settlements, onSettlementsChange, toast],
+    [loadSettlements, toast],
   )
 
   // File operations
@@ -638,14 +669,14 @@ export const SettlementsSection: React.FC<SettlementsSectionProps> = ({
                   </tr>
                 </thead>
                 <tbody>
-                  {isLoading && settlements.length === 0 && (
+                  {isListLoading && settlements.length === 0 && (
                     <tr>
                       <td colSpan={8} className="py-4 text-center text-gray-500">
                         Ładowanie danych...
                       </td>
                     </tr>
                   )}
-                  {!isLoading && settlements.length === 0 && (
+                  {!isListLoading && settlements.length === 0 && (
                     <tr>
                       <td colSpan={8} className="py-4 text-center text-gray-500">
                         Brak ugód do wyświetlenia
@@ -715,7 +746,7 @@ export const SettlementsSection: React.FC<SettlementsSectionProps> = ({
                             <Edit className="h-4 w-4" />
                           </Button>
                           <Button
-                            onClick={() => deleteSettlement(settlement.id!)}
+                            onClick={() => removeSettlement(settlement.id!)}
                             variant="ghost"
                             size="sm"
                             className="p-1 text-red-600 hover:text-red-800"

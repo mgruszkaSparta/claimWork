@@ -463,9 +463,10 @@ class ApiService {
 
   private async request<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
     const url = `${API_BASE_URL}${endpoint}`
-
-    console.log(`Making API request to: ${url}`)
-    console.log("Request options:", options)
+    if (process.env.NODE_ENV === "development") {
+      console.log(`Making API request to: ${url}`)
+      console.log("Request options:", options)
+    }
 
     const method = options.method ? options.method.toUpperCase() : "GET"
     const headers: Record<string, string> = {
@@ -485,7 +486,9 @@ class ApiService {
       ...options,
     })
 
-    console.log(`Response status: ${response.status}`)
+    if (process.env.NODE_ENV === "development") {
+      console.log(`Response status: ${response.status}`)
+    }
 
     if (!response.ok) {
       const errorText = await response.text()
@@ -494,7 +497,9 @@ class ApiService {
     }
 
     if (response.status === 204) {
-      console.log("No content in response")
+      if (process.env.NODE_ENV === "development") {
+        console.log("No content in response")
+      }
       return undefined as T
     }
 
@@ -502,16 +507,22 @@ class ApiService {
     if (contentType.includes("application/json")) {
       try {
         const data = await response.json()
-        console.log("Response data:", data)
+        if (process.env.NODE_ENV === "development") {
+          console.log("Response data:", data)
+        }
         return data
       } catch {
-        console.log("No content in response")
+        if (process.env.NODE_ENV === "development") {
+          console.log("No content in response")
+        }
         return undefined as T
       }
     }
 
     const text = await response.text()
-    console.log("Response text:", text)
+    if (process.env.NODE_ENV === "development") {
+      console.log("Response text:", text)
+    }
     return text as unknown as T
   }
 

@@ -132,7 +132,7 @@ export const transformFrontendClaimToApiPayload = (
 
   const mapParticipant = (p: ParticipantInfo, role: string): ParticipantUpsertDto => ({
 
-    id: p.id ? Number(p.id) : undefined,
+    id: p.id && isGuid(p.id) ? p.id : undefined,
     role,
 
     name: p.name,
@@ -168,7 +168,7 @@ export const transformFrontendClaimToApiPayload = (
     inspectionContactEmail: p.inspectionContactEmail,
     drivers: p.drivers?.map((d: DriverInfo) => ({
 
-      id: d.id ? Number(d.id) : undefined,
+      id: d.id && isGuid(d.id) ? d.id : undefined,
 
       name: d.name,
       licenseNumber: d.licenseNumber,

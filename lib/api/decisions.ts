@@ -1,6 +1,5 @@
 import { z } from "zod";
-
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "/api";
+import { API_BASE } from "../api-base";
 
 export const decisionSchema = z.object({
   id: z.string(),
@@ -33,7 +32,7 @@ export type DecisionUpsert = z.infer<typeof decisionUpsertSchema> & {
 };
 
 async function request<T>(url: string, options: RequestInit = {}): Promise<T> {
-  const response = await fetch(`${API_BASE_URL}${url}`, {
+  const response = await fetch(`${API_BASE}${url}`, {
     credentials: "include",
     ...options,
   });

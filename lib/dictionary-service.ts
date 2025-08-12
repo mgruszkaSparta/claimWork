@@ -1,3 +1,5 @@
+import { API_BASE } from "./api-base"
+
 interface DictionaryItem {
   id: string
   code?: string
@@ -19,7 +21,7 @@ class DictionaryService {
   private readonly CACHE_DURATION = 5 * 60 * 1000 // 5 minutes
 
   private async fetchFromAPI(endpoint: string): Promise<DictionaryItem[]> {
-    const response = await fetch(`/api/dictionaries/${endpoint}`, {
+    const response = await fetch(`${API_BASE}/dictionaries/${endpoint}`, {
       method: "GET",
       credentials: "include",
     })

@@ -11,6 +11,7 @@ import { File, Search, Filter, Eye, Download, Upload, X, Trash2, Grid, List, Wan
 import type { DocumentsSectionProps, UploadedFile } from "@/types"
 import JSZip from "jszip"
 import { saveAs } from "file-saver"
+import { API_BASE } from "@/lib/api-base"
 
 interface Document {
   id: string
@@ -155,7 +156,7 @@ export const DocumentsSection = ({
     setLoading(true)
     try {
       console.log("Loading documents for eventId:", eventId)
-      const response = await fetch(`/api/documents?eventId=${eventId}`, {
+      const response = await fetch(`${API_BASE}/documents?eventId=${eventId}`, {
         method: "GET",
         credentials: "include",
       })
@@ -312,7 +313,7 @@ export const DocumentsSection = ({
 
       try {
         console.log(`Making upload request for ${file.name}...`)
-        const response = await fetch("/api/documents/upload", {
+        const response = await fetch(`${API_BASE}/documents/upload`, {
           method: "POST",
           credentials: "include",
           body: formData,
@@ -487,7 +488,7 @@ export const DocumentsSection = ({
     }
 
     try {
-      const response = await fetch(`/api/documents/${documentId}`, {
+      const response = await fetch(`${API_BASE}/documents/${documentId}`, {
         method: "DELETE",
         credentials: "include",
       })
@@ -524,7 +525,7 @@ export const DocumentsSection = ({
     }
 
     try {
-      const response = await fetch(`/api/documents/${documentId}`, {
+      const response = await fetch(`${API_BASE}/documents/${documentId}`, {
         method: "PUT",
         credentials: "include",
         headers: {
@@ -552,7 +553,7 @@ export const DocumentsSection = ({
         description: `Rozpoczęto generowanie opisu dla pliku: ${document.originalFileName}`,
       })
 
-      const response = await fetch(`/api/documents/${documentId}/generate-description`, {
+      const response = await fetch(`${API_BASE}/documents/${documentId}/generate-description`, {
         method: "POST",
         credentials: "include",
       })

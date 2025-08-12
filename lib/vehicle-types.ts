@@ -1,6 +1,7 @@
 import type { VehicleType, VehicleTypeResponse } from "@/types/vehicle-type"
+import { API_BASE } from "./api-base"
 
-const API_BASE_URL = "/api/dictionaries/vehicle-types"
+const API_BASE_URL = `${API_BASE}/dictionaries/vehicle-types`
 
 export const vehicleTypeService = {
   async getVehicleTypes(search?: string): Promise<VehicleType[]> {

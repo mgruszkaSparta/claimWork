@@ -5,6 +5,7 @@ import { useParams } from "next/navigation"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
+import { API_BASE } from "@/lib/api-base"
 
 export default function ResetPasswordPage() {
   const params = useParams<{ token: string }>()
@@ -20,7 +21,7 @@ export default function ResetPasswordPage() {
     setError("")
 
     try {
-      const res = await fetch("/api/auth/reset-password", {
+      const res = await fetch(`${API_BASE}/auth/reset-password`, {
         method: "POST",
         credentials: "include",
         headers: {

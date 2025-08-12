@@ -18,6 +18,7 @@ import { DecisionsSection } from "./decisions-section"
 import { AppealsSection } from "./appeals-section"
 import { ClientClaimsSection } from "./client-claims-section"
 import { RecourseSection } from "./recourse-section"
+import { API_BASE } from "@/lib/api-base"
 import { SettlementsSection } from "./settlements-section"
 import { CLAIM_STATUSES } from "@/lib/constants"
 import type {
@@ -262,7 +263,7 @@ export const ClaimMainContent = ({
     setLoadingRiskTypes(true)
     try {
       const response = await fetch(
-        `/api/dictionaries/risk-types?claimObjectTypeId=${claimObjectType}`,
+        `${API_BASE}/dictionaries/risk-types?claimObjectTypeId=${claimObjectType}`,
         {
           method: "GET",
           credentials: "include",
@@ -319,7 +320,7 @@ export const ClaimMainContent = ({
   const loadClaimStatuses = async () => {
     setLoadingStatuses(true)
     try {
-      const response = await fetch("/api/dictionaries/claim-statuses", {
+      const response = await fetch(`${API_BASE}/dictionaries/claim-statuses`, {
         method: "GET",
         credentials: "include",
       })
@@ -356,7 +357,7 @@ export const ClaimMainContent = ({
   const loadCaseHandlers = async () => {
     setLoadingHandlers(true)
     try {
-      const response = await fetch("/api/dictionaries/case-handlers", {
+      const response = await fetch(`${API_BASE}/dictionaries/case-handlers`, {
         method: "GET",
         credentials: "include",
       })
@@ -1410,7 +1411,7 @@ const renderParticipantDetails = (participant: ParticipantInfo | undefined, titl
                       value={claimFormData.damageType || ""}
                       onValueChange={(value) => handleFormChange("damageType", value)}
                       placeholder="Wybierz rodzaj szkody..."
-                      apiUrl="/api/damage-types"
+                      apiUrl={`${API_BASE}/damage-types`}
                       dependsOn={claimFormData.riskType}
                       disabled={!claimFormData.riskType}
                     />

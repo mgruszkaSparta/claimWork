@@ -12,6 +12,7 @@ import { ClaimMainContent } from "@/components/claim-form/claim-main-content"
 import { useClaimForm } from "@/hooks/use-claim-form"
 import { useClaims, transformApiClaimToFrontend } from "@/hooks/use-claims"
 import type { UploadedFile, RequiredDocument } from "@/types"
+import { API_BASE } from "@/lib/api-base"
 
 export default function EditClaimPage() {
   const params = useParams()
@@ -106,7 +107,7 @@ export default function EditClaimPage() {
       setLoadError(null)
 
       // Direct API call instead of using the hook to avoid loops
-      const response = await fetch(`/api/claims/${id}`, {
+      const response = await fetch(`${API_BASE}/claims/${id}`, {
         method: "GET",
         credentials: "include",
       })

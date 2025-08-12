@@ -18,6 +18,7 @@ import { Toaster } from "@/components/ui/toaster"
 import { ArrowLeft, Edit, FileText, User, AlertTriangle, Car, Calendar, Phone, Mail, MapPin, Euro, Users, Plus, Save, X, ExternalLink, Wrench, Clock } from 'lucide-react'
 import type { Claim } from "@/types"
 import { pksData, type Employee } from "@/lib/pks-data"
+import { API_BASE } from "@/lib/api-base"
 import type { RepairDetail } from "@/lib/repair-details-store"
 import { transformApiClaimToFrontend } from "@/hooks/use-claims"
 
@@ -115,7 +116,7 @@ export default function ViewClaimPage() {
       setIsLoading(true)
       setLoadError(null)
 
-      const response = await fetch(`/api/claims/${id}`, {
+      const response = await fetch(`${API_BASE}/claims/${id}`, {
         method: "GET",
         credentials: "include",
       })
@@ -148,7 +149,7 @@ export default function ViewClaimPage() {
 
   const loadRepairSchedules = useCallback(async () => {
     try {
-      const response = await fetch(`/api/repair-schedules?eventId=${id}`, {
+      const response = await fetch(`${API_BASE}/repair-schedules?eventId=${id}`, {
         method: "GET",
         credentials: "include",
       })
@@ -163,7 +164,7 @@ export default function ViewClaimPage() {
 
   const loadRepairDetails = useCallback(async () => {
     try {
-      const response = await fetch(`/api/repair-details?eventId=${id}`, {
+      const response = await fetch(`${API_BASE}/repair-details?eventId=${id}`, {
         method: "GET",
         credentials: "include",
       })
@@ -228,7 +229,7 @@ export default function ViewClaimPage() {
         return
       }
 
-      const response = await fetch("/api/repair-schedules", {
+      const response = await fetch(`${API_BASE}/repair-schedules`, {
         method: "POST",
         credentials: "include",
         headers: {
@@ -263,7 +264,7 @@ export default function ViewClaimPage() {
 
   const handleSaveRepairDetail = async () => {
     try {
-      const response = await fetch("/api/repair-details", {
+      const response = await fetch(`${API_BASE}/repair-details`, {
         method: "POST",
         credentials: "include",
         headers: {

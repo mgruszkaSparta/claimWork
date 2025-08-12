@@ -1,4 +1,5 @@
 import type { DriverInfo, ParticipantInfo, Claim } from "@/types"
+import { API_BASE } from "./api-base"
 
 // Handler details for claim handlers
 export const handlerDetails: Record<string, { email: string; phone: string }> = {
@@ -206,21 +207,21 @@ export const EVENT_STATUSES = [
 
 // API endpoints
 export const API_ENDPOINTS = {
-  EVENTS: "/api/claims",
-  DAMAGES: "/api/damages",
-  DAMAGES_INIT: "/api/damages/init",
-  DOCUMENTS: "/api/documents",
-  CLIENTS: "/api/clients",
-  RISK_TYPES: "/api/risk-types",
-  DAMAGE_TYPES: "/api/damage-types",
-  COUNTRIES: "/api/countries",
-  CURRENCIES: "/api/currencies",
-  INSURANCE_COMPANIES: "/api/insurance-companies",
-  LEASING_COMPANIES: "/api/leasing-companies",
-  CLAIM_STATUSES: "/api/claim-statuses",
-  VEHICLE_TYPES: "/api/vehicle-types",
-  PRIORITIES: "/api/priorities",
-  EVENT_STATUSES: "/api/event-statuses",
+  EVENTS: `${API_BASE}/claims`,
+  DAMAGES: `${API_BASE}/damages`,
+  DAMAGES_INIT: `${API_BASE}/damages/init`,
+  DOCUMENTS: `${API_BASE}/documents`,
+  CLIENTS: `${API_BASE}/clients`,
+  RISK_TYPES: `${API_BASE}/risk-types`,
+  DAMAGE_TYPES: `${API_BASE}/damage-types`,
+  COUNTRIES: `${API_BASE}/countries`,
+  CURRENCIES: `${API_BASE}/currencies`,
+  INSURANCE_COMPANIES: `${API_BASE}/insurance-companies`,
+  LEASING_COMPANIES: `${API_BASE}/leasing-companies`,
+  CLAIM_STATUSES: `${API_BASE}/claim-statuses`,
+  VEHICLE_TYPES: `${API_BASE}/vehicle-types`,
+  PRIORITIES: `${API_BASE}/priorities`,
+  EVENT_STATUSES: `${API_BASE}/event-statuses`,
 }
 
 // Utility functions

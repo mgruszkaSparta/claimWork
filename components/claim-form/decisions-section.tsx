@@ -18,6 +18,7 @@ import {
   updateDecision as apiUpdateDecision,
   deleteDecision as apiDeleteDecision,
 } from "@/lib/api/decisions"
+import { API_BASE } from "@/lib/api-base"
 import {
   AlertDialog,
   AlertDialogAction,
@@ -324,7 +325,7 @@ export function DecisionsSection({ claimId, onChange }: DecisionsSectionProps) {
     }
 
     try {
-      const response = await fetch(`/api/decisions/${decision.id}/download`, {
+      const response = await fetch(`${API_BASE}/decisions/${decision.id}/download`, {
         method: "GET",
         credentials: "include",
       })
@@ -362,7 +363,7 @@ export function DecisionsSection({ claimId, onChange }: DecisionsSectionProps) {
     }
 
     try {
-      const response = await fetch(`/api/decisions/${decision.id}/preview`, {
+      const response = await fetch(`${API_BASE}/decisions/${decision.id}/preview`, {
         method: "GET",
         credentials: "include",
       })

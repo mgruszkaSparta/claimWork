@@ -1,5 +1,7 @@
 import { EmailFolder } from "@/types/email"
 
+import { API_BASE } from "./api-base"
+
 export interface AttachmentDto {
   id: number
   fileName: string
@@ -35,7 +37,7 @@ export interface AssignEmailToClaimDto {
 }
 
 class EmailService {
-  private apiUrl = "/api/emails"
+  private apiUrl = `${API_BASE}/emails`
 
   async getAllEmails(): Promise<EmailDto[]> {
     try {

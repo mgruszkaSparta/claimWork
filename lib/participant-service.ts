@@ -1,4 +1,5 @@
 import { api } from './api'
+import { API_BASE } from './api-base'
 
 export interface ParticipantType {
   id: string
@@ -52,17 +53,17 @@ export enum SearchCriteriaEnum {
 
 export class ParticipantService {
   static async getParticipantTypes(): Promise<ParticipantType[]> {
-    const response = await api.get('/api/participant-types')
+    const response = await api.get(`${API_BASE}/participant-types`)
     return response.data
   }
 
   static async getCountries(): Promise<Country[]> {
-    const response = await api.get('/api/countries')
+    const response = await api.get(`${API_BASE}/countries`)
     return response.data
   }
 
   static async getLegalPersonalities(): Promise<LegalPersonality[]> {
-    const response = await api.get('/api/legal-personalities')
+    const response = await api.get(`${API_BASE}/legal-personalities`)
     return response.data
   }
 
@@ -74,7 +75,7 @@ export class ParticipantService {
   ): Promise<ClaimParticipant | null> {
     try {
       const response = await api.get(
-        `/api/participants/search?taxId=${taxId}&customerGroupId=${customerGroupId}&countryId=${countryId}&searchCriteria=${searchCriteria}`
+        `${API_BASE}/participants/search?taxId=${taxId}&customerGroupId=${customerGroupId}&countryId=${countryId}&searchCriteria=${searchCriteria}`
       )
       return response.data
     } catch (error) {
@@ -89,7 +90,7 @@ export class ParticipantService {
   ): Promise<ClaimParticipant | null> {
     try {
       const response = await api.get(
-        `/api/participants/search-by-number?numberId=${numberId}&countryId=${countryId}&searchCriteria=${searchCriteria}`
+        `${API_BASE}/participants/search-by-number?numberId=${numberId}&countryId=${countryId}&searchCriteria=${searchCriteria}`
       )
       return response.data
     } catch (error) {

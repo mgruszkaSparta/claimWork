@@ -1,3 +1,5 @@
+import { API_BASE } from "../api-base";
+
 export interface RepairSchedulePayload {
   eventId: string
   vehicleFleetNumber: string
@@ -6,7 +8,7 @@ export interface RepairSchedulePayload {
   [key: string]: any
 }
 
-const BASE_URL = '/api/repair-schedules'
+const BASE_URL = `${API_BASE}/repair-schedules`
 
 function ensureRequired(data: { vehicleFleetNumber?: string; vehicleRegistration?: string; damageDate?: string }) {
   if (!data.vehicleFleetNumber || !data.vehicleRegistration || !data.damageDate) {

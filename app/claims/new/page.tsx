@@ -18,6 +18,7 @@ import { Save, ArrowLeft, Plus, Calendar, Wrench, X } from 'lucide-react'
 import { ClaimFormSidebar } from "@/components/claim-form/claim-form-sidebar"
 import { ClaimTopHeader } from "@/components/claim-form/claim-top-header"
 import { ClaimMainContent } from "@/components/claim-form/claim-main-content"
+import { API_BASE } from "@/lib/api-base"
 import { useClaimForm } from "@/hooks/use-claim-form"
 import { useClaims } from "@/hooks/use-claims"
 import { generateId } from "@/lib/constants"
@@ -283,7 +284,7 @@ export default function NewClaimPage() {
 
       // Save repair schedules sequentially
       for (const schedule of repairSchedules) {
-        const response = await fetch("/api/repair-schedules", {
+        const response = await fetch(`${API_BASE}/repair-schedules`, {
           method: "POST",
           credentials: "include",
           headers: { "Content-Type": "application/json" },
@@ -298,7 +299,7 @@ export default function NewClaimPage() {
 
       // Save repair details sequentially
       for (const detail of repairDetails) {
-        const response = await fetch("/api/repair-details", {
+        const response = await fetch(`${API_BASE}/repair-details`, {
           method: "POST",
           credentials: "include",
           headers: { "Content-Type": "application/json" },
@@ -326,7 +327,7 @@ export default function NewClaimPage() {
     } catch (error) {
       // rollback
       for (const id of savedDetailIds) {
-        await fetch(`/api/repair-details/${id}`, {
+        await fetch(`${API_BASE}/repair-details/${id}`, {
           method: "DELETE",
           credentials: "include",
         }).catch(
@@ -334,7 +335,7 @@ export default function NewClaimPage() {
         )
       }
       for (const id of savedScheduleIds) {
-        await fetch(`/api/repair-schedules/${id}`, {
+        await fetch(`${API_BASE}/repair-schedules/${id}`, {
           method: "DELETE",
           credentials: "include",
         }).catch(

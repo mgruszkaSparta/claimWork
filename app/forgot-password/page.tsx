@@ -4,6 +4,7 @@ import { useState } from "react"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
+import { API_BASE } from "@/lib/api-base"
 
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState("")
@@ -16,7 +17,7 @@ export default function ForgotPasswordPage() {
     setError("")
 
     try {
-      const res = await fetch("/api/auth/forgot-password", {
+      const res = await fetch(`${API_BASE}/auth/forgot-password`, {
         method: "POST",
         credentials: "include",
         headers: {

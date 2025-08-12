@@ -29,6 +29,7 @@ import { useClaimForm } from "@/hooks/use-claim-form"
 import { useClaims, transformApiClaimToFrontend } from "@/hooks/use-claims"
 import { generateId } from "@/lib/constants"
 import type { Claim, UploadedFile, RequiredDocument } from "@/types"
+import { API_BASE } from "@/lib/api-base"
 
 type PageMode = "new" | "view" | "edit"
 
@@ -96,7 +97,7 @@ export default function ClaimPage() {
       setIsLoading(true)
       setLoadError(null)
 
-      const response = await fetch(`/api/claims/${claimId}`, {
+      const response = await fetch(`${API_BASE}/claims/${claimId}`, {
         method: "GET",
         credentials: "include",
       })

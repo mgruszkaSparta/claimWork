@@ -1,9 +1,5 @@
 import { z } from "zod"
-
-const API_BASE_URL =
-  process.env.NEXT_PUBLIC_API_URL ||
-  process.env.API_BASE_URL ||
-  "https://claim-work-backend.azurewebsites.net/api"
+import { API_BASE } from "../api-base"
 
 const recourseSchema = z.object({
   id: z.string(),
@@ -33,7 +29,7 @@ export type Recourse = z.infer<typeof recourseSchema>
 export type RecourseUpsert = z.infer<typeof recourseUpsertSchema>
 
 async function request<T>(url: string, options: RequestInit = {}): Promise<T> {
-  const response = await fetch(`${API_BASE_URL}${url}`, {
+  const response = await fetch(`${API_BASE}${url}`, {
     credentials: "include",
     ...options,
   })
@@ -82,7 +78,7 @@ export async function deleteRecourse(id: string): Promise<void> {
 }
 
 export async function downloadRecourseDocument(id: string): Promise<Blob> {
-  const response = await fetch(`${API_BASE_URL}/recourses/${id}/download`, {
+  const response = await fetch(`${API_BASE}/recourses/${id}/download`, {
     method: "GET",
     credentials: "include",
   })
@@ -93,7 +89,7 @@ export async function downloadRecourseDocument(id: string): Promise<Blob> {
 }
 
 export async function previewRecourseDocument(id: string): Promise<Blob> {
-  const response = await fetch(`${API_BASE_URL}/recourses/${id}/preview`, {
+  const response = await fetch(`${API_BASE}/recourses/${id}/preview`, {
     method: "GET",
     credentials: "include",
   })

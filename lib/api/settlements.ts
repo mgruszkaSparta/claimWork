@@ -1,9 +1,5 @@
 import { z } from "zod";
-
-const API_BASE_URL =
-  process.env.NEXT_PUBLIC_API_URL ||
-  process.env.API_BASE_URL ||
-  "https://claim-work-backend.azurewebsites.net/api";
+import { API_BASE } from "../api-base";
 
 const settlementSchema = z.object({
   id: z.string(),
@@ -30,7 +26,7 @@ export type Settlement = z.infer<typeof settlementSchema>;
 export type SettlementUpsert = z.infer<typeof settlementUpsertSchema>;
 
 async function request<T>(url: string, options: RequestInit = {}): Promise<T> {
-  const response = await fetch(`${API_BASE_URL}${url}`, {
+  const response = await fetch(`${API_BASE}${url}`, {
     credentials: "include",
     ...options,
   });

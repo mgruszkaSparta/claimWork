@@ -30,6 +30,7 @@ import {
   Loader2,
 } from "lucide-react"
 import type { ClientClaim } from "@/types"
+import { API_BASE } from "@/lib/api-base"
 import {
   AlertDialog,
   AlertDialogAction,
@@ -358,7 +359,7 @@ export function ClientClaimsSection({ clientClaims, onClientClaimsChange, claimI
     if (!claim.document) return
 
     try {
-      const response = await fetch(`/api/client-claims/${claim.id}/preview`, {
+      const response = await fetch(`${API_BASE}/client-claims/${claim.id}/preview`, {
         method: "GET",
         credentials: "include",
       })
@@ -388,7 +389,7 @@ export function ClientClaimsSection({ clientClaims, onClientClaimsChange, claimI
     if (!claim.document) return
 
     try {
-      const response = await fetch(`/api/client-claims/${claim.id}/download`, {
+      const response = await fetch(`${API_BASE}/client-claims/${claim.id}/download`, {
         method: "GET",
         credentials: "include",
       })

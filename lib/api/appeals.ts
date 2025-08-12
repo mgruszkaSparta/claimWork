@@ -1,9 +1,5 @@
 import { AppealDto } from "../api";
-
-const API_BASE_URL =
-  process.env.NEXT_PUBLIC_API_URL ||
-  process.env.API_BASE_URL ||
-  "https://claim-work-backend.azurewebsites.net/api";
+import { API_BASE } from "../api-base";
 
 export interface Appeal {
   id: string;
@@ -51,7 +47,7 @@ function ensureRequiredDates(data: { filingDate?: string }) {
 }
 
 export async function getAppeals(claimId: string): Promise<Appeal[]> {
-  const response = await fetch(`${API_BASE_URL}/appeals/event/${claimId}`, {
+  const response = await fetch(`${API_BASE}/appeals/event/${claimId}`, {
     method: "GET",
     credentials: "include",
   });
@@ -87,7 +83,7 @@ export async function createAppeal(
   if (appeal.document) {
     formData.append("Document", appeal.document);
   }
-  const response = await fetch(`${API_BASE_URL}/appeals`, {
+  const response = await fetch(`${API_BASE}/appeals`, {
     method: "POST",
     credentials: "include",
     body: formData,
@@ -123,7 +119,7 @@ export async function updateAppeal(
   if (appeal.document) {
     formData.append("Document", appeal.document);
   }
-  const response = await fetch(`${API_BASE_URL}/appeals/${id}`, {
+  const response = await fetch(`${API_BASE}/appeals/${id}`, {
     method: "PUT",
     credentials: "include",
     body: formData,
@@ -136,7 +132,7 @@ export async function updateAppeal(
 }
 
 export async function deleteAppeal(id: string): Promise<void> {
-  const response = await fetch(`${API_BASE_URL}/appeals/${id}`, {
+  const response = await fetch(`${API_BASE}/appeals/${id}`, {
     method: "DELETE",
     credentials: "include",
   });

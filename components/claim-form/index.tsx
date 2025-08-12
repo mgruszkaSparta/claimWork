@@ -15,6 +15,7 @@ import { useDamages } from '@/hooks/use-damages'
 import { useRouter } from 'next/navigation'
 import { useToast } from '@/hooks/use-toast'
 import type { Claim, ParticipantInfo, UploadedFile, RequiredDocument } from '@/types'
+import { API_BASE } from '@/lib/api-base'
 
 interface ClaimFormProps {
   initialData?: Claim
@@ -167,7 +168,7 @@ export function ClaimForm({ initialData, mode }: ClaimFormProps) {
               formDataFile.append('eventId', saved!.id.toString())
               formDataFile.append('category', file.categoryCode || mapCategoryNameToCode(file.category || 'Inne dokumenty'))
               formDataFile.append('uploadedBy', 'Current User')
-              await fetch('/api/documents/upload', {
+              await fetch(`${API_BASE}/documents/upload`, {
                 method: 'POST',
                 credentials: 'include',
                 body: formDataFile,

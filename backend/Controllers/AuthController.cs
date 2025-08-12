@@ -5,9 +5,6 @@ using Microsoft.AspNetCore.Authorization;
 using AutomotiveClaimsApi.Models;
 using AutomotiveClaimsApi.DTOs;
 using AutomotiveClaimsApi.Services;
-using Microsoft.AspNetCore.Http;
-
-
 namespace AutomotiveClaimsApi.Controllers
 {
     [ApiController]

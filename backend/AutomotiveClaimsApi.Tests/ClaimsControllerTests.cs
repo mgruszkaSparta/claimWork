@@ -78,7 +78,16 @@ namespace AutomotiveClaimsApi.Tests
 
             await using var context = new ApplicationDbContext(options);
             var ev = new Event { Id = Guid.NewGuid(), CreatedAt = DateTime.UtcNow, UpdatedAt = DateTime.UtcNow };
-            var participant = new Participant { Id = Guid.NewGuid(), EventId = ev.Id, Name = "old" };
+            var participant = new Participant
+            {
+                Id = Guid.NewGuid(),
+                EventId = ev.Id,
+                Name = "old",
+                PolicyDealDate = new DateTime(2023, 1, 1),
+                PolicyStartDate = new DateTime(2023, 1, 2),
+                PolicyEndDate = new DateTime(2023, 12, 31),
+                PolicySumAmount = 100m
+            };
             ev.Participants.Add(participant);
             context.Events.Add(ev);
             await context.SaveChangesAsync();
@@ -87,13 +96,68 @@ namespace AutomotiveClaimsApi.Tests
             var dto = new ClaimUpsertDto
             {
                 Id = ev.Id,
-                Participants = new[] { new ParticipantUpsertDto { Id = participant.Id.ToString(), Name = "new" } }
+                Participants = new[]
+                {
+                    new ParticipantUpsertDto
+                    {
+                        Id = participant.Id.ToString(),
+                        Name = "new",
+                        PolicyDealDate = new DateTime(2024, 1, 1),
+                        PolicyStartDate = new DateTime(2024, 1, 2),
+                        PolicyEndDate = new DateTime(2024, 12, 31),
+                        PolicySumAmount = 200m
+                    }
+                }
             };
 
             await controller.UpdateClaim(ev.Id, dto);
 
             var updated = await context.Participants.FirstAsync(p => p.Id == participant.Id);
             Assert.Equal("new", updated.Name);
+            Assert.Equal(new DateTime(2024, 1, 1), updated.PolicyDealDate);
+            Assert.Equal(new DateTime(2024, 1, 2), updated.PolicyStartDate);
+            Assert.Equal(new DateTime(2024, 12, 31), updated.PolicyEndDate);
+            Assert.Equal(200m, updated.PolicySumAmount);
+
+            var claimResult = await controller.GetClaim(ev.Id);
+            var claimDto = claimResult.Value!;
+            var participantDto = Assert.Single(claimDto.Participants);
+            Assert.Equal(updated.PolicyDealDate, participantDto.PolicyDealDate);
+            Assert.Equal(updated.PolicyStartDate, participantDto.PolicyStartDate);
+            Assert.Equal(updated.PolicyEndDate, participantDto.PolicyEndDate);
+            Assert.Equal(updated.PolicySumAmount, participantDto.PolicySumAmount);
+        }
+
+        [Fact]
+        public async Task UpdateClaim_AddsParticipant_WithPolicyFields()
+        {
+            var options = new DbContextOptionsBuilder<ApplicationDbContext>()
+                .UseInMemoryDatabase(Guid.NewGuid().ToString())
+                .Options;
+
+            await using var context = new ApplicationDbContext(options);
+            var ev = new Event { Id = Guid.NewGuid(), CreatedAt = DateTime.UtcNow, UpdatedAt = DateTime.UtcNow };
+            context.Events.Add(ev);
+            await context.SaveChangesAsync();
+
+            var controller = new ClaimsController(context, NullLogger<ClaimsController>.Instance);
+            var pDto = new ParticipantUpsertDto
+            {
+                Name = "added",
+                PolicyDealDate = new DateTime(2024, 2, 1),
+                PolicyStartDate = new DateTime(2024, 2, 2),
+                PolicyEndDate = new DateTime(2024, 2, 3),
+                PolicySumAmount = 300m
+            };
+            var dto = new ClaimUpsertDto { Id = ev.Id, Participants = new[] { pDto } };
+
+            await controller.UpdateClaim(ev.Id, dto);
+
+            var stored = await context.Participants.FirstAsync();
+            Assert.Equal(pDto.PolicyDealDate, stored.PolicyDealDate);
+            Assert.Equal(pDto.PolicyStartDate, stored.PolicyStartDate);
+            Assert.Equal(pDto.PolicyEndDate, stored.PolicyEndDate);
+            Assert.Equal(pDto.PolicySumAmount, stored.PolicySumAmount);
         }
 
         [Fact]

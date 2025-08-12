@@ -46,6 +46,13 @@ namespace AutomotiveClaimsApi.Models
         [MaxLength(100)]
         public string? PolicyNumber { get; set; }
 
+        public DateTime? PolicyDealDate { get; set; }
+        public DateTime? PolicyStartDate { get; set; }
+        public DateTime? PolicyEndDate { get; set; }
+
+        [Column(TypeName = "decimal(18,2)")]
+        public decimal? PolicySumAmount { get; set; }
+
         [MaxLength(50)]
         public string? VehicleRegistration { get; set; }
 

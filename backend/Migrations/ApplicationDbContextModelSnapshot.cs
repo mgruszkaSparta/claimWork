@@ -675,6 +675,18 @@ namespace AutomotiveClaimsApi.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("character varying(100)");
 
+                    b.Property<DateTime?>("PolicyDealDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime?>("PolicyStartDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime?>("PolicyEndDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<decimal?>("PolicySumAmount")
+                        .HasColumnType("decimal(18,2)");
+
                     b.Property<string>("PoliceUnitDetails")
                         .HasMaxLength(500)
                         .HasColumnType("character varying(500)");

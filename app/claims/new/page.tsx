@@ -18,7 +18,7 @@ import { Save, ArrowLeft, Plus, Calendar, Wrench, X } from 'lucide-react'
 import { ClaimFormSidebar } from "@/components/claim-form/claim-form-sidebar"
 import { ClaimTopHeader } from "@/components/claim-form/claim-top-header"
 import { ClaimMainContent } from "@/components/claim-form/claim-main-content"
-import { useClaimForm, getGlobalClaimId } from "@/hooks/use-claim-form"
+import { useClaimForm } from "@/hooks/use-claim-form"
 import { useClaims } from "@/hooks/use-claims"
 import { generateId } from "@/lib/constants"
 import { pksData, type Employee } from "@/lib/pks-data"
@@ -51,8 +51,8 @@ interface RepairSchedule {
 export default function NewClaimPage() {
   const router = useRouter()
   const { toast } = useToast()
-  const { createClaim, deleteClaim } = useClaims()
-  const claimId = getGlobalClaimId()
+  const { createClaim, deleteClaim, initializeClaim } = useClaims()
+  const [claimId, setClaimId] = useState<string>("")
   const [activeClaimSection, setActiveClaimSection] = useState("dane-zdarzenia")
   const [isSaving, setIsSaving] = useState(false)
   
@@ -103,8 +103,13 @@ export default function NewClaimPage() {
   } = useClaimForm()
 
   useEffect(() => {
-    setClaimFormData((prev) => ({ ...prev, id: claimId }))
-  }, [claimId, setClaimFormData])
+    initializeClaim().then((id) => {
+      if (id) {
+        setClaimId(id)
+        setClaimFormData((prev) => ({ ...prev, id }))
+      }
+    })
+  }, [initializeClaim, setClaimFormData])
 
   const getInitialScheduleData = (): Partial<RepairSchedule> => ({
     eventId: "new",
@@ -257,7 +262,10 @@ export default function NewClaimPage() {
     let createdClaimId: string | null = null
 
     try {
-      const currentClaimId = claimFormData.id || claimId
+      const currentClaimId = claimId || claimFormData.id
+      if (!currentClaimId) {
+        throw new Error("Brak zainicjalizowanego ID szkody")
+      }
       const newClaimData = {
         ...claimFormData,
         id: currentClaimId,

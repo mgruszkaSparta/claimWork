@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { ChevronDown, Phone, Mail, MapPin, Check, Plus } from "lucide-react"
 import type { Client, ClientSelectionEvent } from "@/types/client"
-import { ClientsService } from "@/lib/clients"
+import { apiService } from "@/lib/api"
 
 interface ClientDropdownProps {
   selectedClientId?: number
@@ -28,8 +28,8 @@ export default function ClientDropdown({
   onNewClientClick,
   className = "",
 }: ClientDropdownProps) {
-  const [clients] = useState<Client[]>(ClientsService.sortClientsAlphabetically(ClientsService.getClients()))
-  const [filteredClients, setFilteredClients] = useState<Client[]>(clients)
+  const [clients, setClients] = useState<Client[]>([])
+  const [filteredClients, setFilteredClients] = useState<Client[]>([])
   const [selectedClient, setSelectedClient] = useState<Client | null>(null)
   const [isDropdownOpen, setIsDropdownOpen] = useState(false)
   const [searchTerm, setSearchTerm] = useState("")
@@ -46,19 +46,35 @@ export default function ClientDropdown({
   }, [])
 
   useEffect(() => {
+    const load = async () => {
+      try {
+        const data = await apiService.getClients()
+        const sorted = [...data].sort((a, b) =>
+          a.name.localeCompare(b.name, "pl", { sensitivity: "base" }),
+        )
+        setClients(sorted)
+        setFilteredClients(sorted)
+      } catch (e) {
+        console.error(e)
+      }
+    }
+    load()
+  }, [])
+
+  useEffect(() => {
     if (selectedClientId) {
-      const client = ClientsService.getClientById(selectedClientId)
+      const client = clients.find((c) => c.id === selectedClientId)
       if (client) {
         setSelectedClient(client)
       }
     }
-  }, [selectedClientId])
+  }, [selectedClientId, clients])
 
   useEffect(() => {
     const filtered = clients.filter(
       (client) =>
         client.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        client.email.toLowerCase().includes(searchTerm.toLowerCase()),
+        (client.email ?? "").toLowerCase().includes(searchTerm.toLowerCase()),
     )
     setFilteredClients(filtered)
   }, [searchTerm, clients])
@@ -227,8 +243,8 @@ export default function ClientDropdown({
                   <Phone className="h-4 w-4 mr-2 text-blue-600" />
                   Numer telefonu
                 </h3>
-                {hasContactInfo(selectedClient.phone) ? (
-                  <p className="text-gray-900 text-sm">{selectedClient.phone}</p>
+                {hasContactInfo(selectedClient.phoneNumber ?? "") ? (
+                  <p className="text-gray-900 text-sm">{selectedClient.phoneNumber}</p>
                 ) : (
                   <p className="text-gray-500 italic text-sm">Brak numeru telefonu</p>
                 )}
@@ -259,11 +275,11 @@ export default function ClientDropdown({
                 <MapPin className="h-4 w-4 mr-2 text-blue-600" />
                 Adres
               </h3>
-              {hasContactInfo(selectedClient.address) ? (
+                {hasContactInfo(selectedClient.address ?? "") ? (
                 <p className="text-gray-900 text-sm">{selectedClient.address}</p>
-              ) : (
-                <p className="text-gray-500 italic text-sm">Brak adresu</p>
-              )}
+                ) : (
+                  <p className="text-gray-500 italic text-sm">Brak adresu</p>
+                )}
             </div>
           </CardContent>
         </Card>

@@ -34,6 +34,12 @@ namespace AutomotiveClaimsApi.Models
         [StringLength(300)]
         public string? Address { get; set; }
 
+        [StringLength(100)]
+        public string? City { get; set; }
+
+        [StringLength(20)]
+        public string? PostalCode { get; set; }
+
         public bool IsActive { get; set; } = true;
 
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;

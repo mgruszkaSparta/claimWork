@@ -1,6 +1,7 @@
 'use client'
 
 import React, { useState } from 'react'
+import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -173,18 +174,12 @@ export const LoginPanel: React.FC<LoginPanelProps> = ({
               </div>
               
               <div className="flex flex-col space-y-2 text-sm">
-                <button
-                  type="button"
+                <Link
+                  href="/forgot-password"
                   className="text-blue-600 hover:text-blue-800 hover:underline transition-colors"
-                  onClick={() => {
-                    toast({
-                      title: "Funkcja w przygotowaniu",
-                      description: "Funkcja resetowania hasła będzie dostępna wkrótce.",
-                    })
-                  }}
                 >
                   Zapomniałeś hasła?
-                </button>
+                </Link>
                 <button
                   type="button"
                   className="text-gray-600 hover:text-gray-800 hover:underline transition-colors"

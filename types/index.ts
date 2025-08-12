@@ -171,15 +171,26 @@ export interface Appeal {
 }
 
 export interface ClientClaim {
-  currency?: string;
   id?: string
   eventId?: string
+  claimNumber?: string
   claimDate: string
   claimType: string
-  description: string
-  amount?: number
+  claimAmount?: number
+  currency?: string
   status?: string
+  description?: string
+  documentPath?: string
+  documentName?: string
   documentDescription?: string
+  claimNotes?: string
+  createdAt?: string
+  updatedAt?: string
+  /**
+   * Local-only fields for client-side handling
+   */
+  document?: UploadedFile
+  claimId?: string
 }
 
 export interface Recourse {

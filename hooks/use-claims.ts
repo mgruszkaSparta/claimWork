@@ -62,7 +62,24 @@ export const transformApiClaimToFrontend = (apiClaim: ClaimDto): Claim => {
       })) || [],
     decisions: apiClaim.decisions || [],
     appeals: apiClaim.appeals,
-    clientClaims: apiClaim.clientClaims || [],
+    clientClaims:
+      apiClaim.clientClaims?.map((c: any) => ({
+        id: c.id,
+        eventId: c.eventId,
+        claimNumber: c.claimNumber,
+        claimDate: c.claimDate,
+        claimType: c.claimType,
+        claimAmount: c.claimAmount,
+        currency: c.currency,
+        status: c.status,
+        description: c.description,
+        documentPath: c.documentPath,
+        documentName: c.documentName,
+        documentDescription: c.documentDescription,
+        claimNotes: c.claimNotes,
+        createdAt: c.createdAt,
+        updatedAt: c.updatedAt,
+      })) || [],
     recourses: apiClaim.recourses || [],
     settlements: apiClaim.settlements || [],
     injuredParty: injuredParty ? mapParticipantDto(injuredParty) : undefined,
@@ -237,7 +254,7 @@ export const transformFrontendClaimToApiPayload = (
       : {}),
 
     clientClaims: clientClaims?.map((c) => {
-      const { id, claimDate, ...rest } = c
+      const { id, claimDate, document, claimId, createdAt, updatedAt, ...rest } = c
       return {
         ...rest,
         ...(id && isGuid(id) ? { id } : {}),

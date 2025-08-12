@@ -59,6 +59,11 @@ export const DocumentsSection = ({
   const [allPreviewDocuments, setAllPreviewDocuments] = useState<Document[]>([])
   const [dragActive, setDragActive] = useState(false)
   const [dragCategory, setDragCategory] = useState<string | null>(null)
+  const [searchQuery, setSearchQuery] = useState("")
+  const [activeFilter, setActiveFilter] = useState<string | null>(null)
+
+  const handleFilterClick = (filter: string) =>
+    setActiveFilter((current) => (current === filter ? null : filter))
 
   // Preview modal states
   const [previewZoom, setPreviewZoom] = useState(1)
@@ -133,6 +138,38 @@ export const DocumentsSection = ({
     [documents, pendingFiles]
   )
 
+  const missingRequiredDocs = React.useMemo(
+    () => requiredDocuments.filter((doc) => !doc.uploaded),
+    [requiredDocuments]
+  )
+
+  const filteredDocuments = React.useMemo(() => {
+    let docs = allDocuments
+
+    if (searchQuery) {
+      const q = searchQuery.toLowerCase()
+      docs = docs.filter(
+        (d) =>
+          d.fileName.toLowerCase().includes(q) ||
+          d.documentType.toLowerCase().includes(q) ||
+          d.description?.toLowerCase().includes(q)
+      )
+    }
+
+    if (activeFilter === "recent") {
+      const threshold = new Date()
+      threshold.setDate(threshold.getDate() - 7)
+      docs = docs
+        .filter((d) => new Date(d.createdAt) >= threshold)
+        .sort(
+          (a, b) =>
+            new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+        )
+    }
+
+    return docs
+  }, [allDocuments, searchQuery, activeFilter])
+
 
   // Load documents from API
   useEffect(() => {
@@ -198,11 +235,60 @@ export const DocumentsSection = ({
     }
   }
 
-  const documentCategories = React.useMemo(() => {
+const documentCategories = React.useMemo(() => {
     const categoriesFromRequired = requiredDocuments.filter((d) => d.uploaded).map((d) => d.name)
     const categoriesFromDocuments = [...new Set(allDocuments.map((d) => d.documentType))]
     return [...new Set(["Inne dokumenty", ...categoriesFromRequired, ...categoriesFromDocuments])]
   }, [requiredDocuments, allDocuments])
+
+  const filteredMissingRequiredDocs = React.useMemo(() => {
+    let docs = missingRequiredDocs
+    if (searchQuery) {
+      const q = searchQuery.toLowerCase()
+      docs = docs.filter((doc) => doc.name.toLowerCase().includes(q))
+    }
+    return docs
+  }, [missingRequiredDocs, searchQuery])
+
+  const filteredCategories = React.useMemo(() => {
+    let categories: string[] = []
+
+    switch (activeFilter) {
+      case "required":
+        categories = filteredMissingRequiredDocs.map((d) => d.name)
+        break
+      case "with-files":
+        categories = documentCategories.filter((cat) =>
+          filteredDocuments.some((d) => d.documentType === cat)
+        )
+        break
+      case "empty":
+        categories = requiredDocuments
+          .map((d) => d.name)
+          .filter((name) => !filteredDocuments.some((d) => d.documentType === name))
+        break
+      default:
+        categories = documentCategories
+    }
+
+    if (searchQuery) {
+      const q = searchQuery.toLowerCase()
+      categories = categories.filter(
+        (cat) =>
+          cat.toLowerCase().includes(q) ||
+          filteredDocuments.some((d) => d.documentType === cat)
+      )
+    }
+
+    return [...new Set(categories)]
+  }, [
+    documentCategories,
+    filteredDocuments,
+    filteredMissingRequiredDocs,
+    requiredDocuments,
+    activeFilter,
+    searchQuery,
+  ])
 
   const handleFileUpload = async (files: FileList | null, categoryName: string | null) => {
 
@@ -784,7 +870,6 @@ export const DocumentsSection = ({
     </Card>
   )
 
-  const missingRequiredDocs = requiredDocuments.filter((doc) => !doc.uploaded)
 
   if (loading && documents.length === 0) {
     return (
@@ -814,7 +899,12 @@ export const DocumentsSection = ({
             <div className="flex items-center justify-between">
               <div className="relative w-full max-w-md">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-                <Input placeholder="Wyszukaj dokumenty (nazwa typu, nazwa pliku, opis)..." className="pl-10" />
+                <Input
+                  placeholder="Wyszukaj dokumenty (nazwa typu, nazwa pliku, opis)..."
+                  className="pl-10"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                />
               </div>
               <Button variant="outline">
                 <Filter className="mr-2 h-4 w-4" />
@@ -823,24 +913,62 @@ export const DocumentsSection = ({
             </div>
             <div className="flex items-center gap-2">
               <span className="text-sm font-medium text-gray-600">Szybkie filtry:</span>
-              <Badge variant="secondary" className="cursor-pointer bg-blue-100 text-blue-800">
+              <Badge
+                variant="secondary"
+                className={`cursor-pointer ${
+                  activeFilter === "required" ? "bg-blue-100 text-blue-800" : ""
+                }`}
+                onClick={() => handleFilterClick("required")}
+              >
                 Wymagane
               </Badge>
-              <Badge variant="secondary" className="cursor-pointer">
+              <Badge
+                variant="secondary"
+                className={`cursor-pointer ${
+                  activeFilter === "with-files" ? "bg-blue-100 text-blue-800" : ""
+                }`}
+                onClick={() => handleFilterClick("with-files")}
+              >
                 Z plikami
               </Badge>
-              <Badge variant="secondary" className="cursor-pointer">
+              <Badge
+                variant="secondary"
+                className={`cursor-pointer ${
+                  activeFilter === "empty" ? "bg-blue-100 text-blue-800" : ""
+                }`}
+                onClick={() => handleFilterClick("empty")}
+              >
                 Puste
               </Badge>
-              <Badge variant="secondary" className="cursor-pointer">
+              <Badge
+                variant="secondary"
+                className={`cursor-pointer ${
+                  activeFilter === "recent" ? "bg-blue-100 text-blue-800" : ""
+                }`}
+                onClick={() => handleFilterClick("recent")}
+              >
                 Ostatnie
               </Badge>
+              {(searchQuery || activeFilter) && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => {
+                    setSearchQuery("")
+                    setActiveFilter(null)
+                  }}
+                >
+                  Wyczyść
+                </Button>
+              )}
             </div>
           </CardContent>
         </Card>
 
-        {documentCategories.map((category) => {
-          const documentsForCategory = allDocuments.filter((d) => d.documentType === category)
+        {filteredCategories.map((category) => {
+          const documentsForCategory = filteredDocuments.filter(
+            (d) => d.documentType === category
+          )
           const isCategoryOpen = openCategories[category] ?? false
 
           return (
@@ -1106,7 +1234,7 @@ export const DocumentsSection = ({
         })}
 
         {/* Lista wymaganych dokumentów */}
-        {!hideRequiredDocuments && missingRequiredDocs.length > 0 && (
+        {!hideRequiredDocuments && filteredMissingRequiredDocs.length > 0 && (
           <Card>
             <CardHeader>
               <CardTitle>Wymagane dokumenty</CardTitle>
@@ -1114,7 +1242,7 @@ export const DocumentsSection = ({
             </CardHeader>
             <CardContent>
               <div className="border rounded-md">
-                {missingRequiredDocs.map((doc, index, arr) => (
+                {filteredMissingRequiredDocs.map((doc, index, arr) => (
                   <div
                     key={`required-${doc.id ?? doc.name}`}
                     className={`flex items-center justify-between p-4 ${index < arr.length - 1 ? "border-b" : ""}`}

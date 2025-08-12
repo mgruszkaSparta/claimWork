@@ -80,6 +80,10 @@ class DictionaryService {
     return this.getDictionary('claim-statuses')
   }
 
+  async getDamageStatuses(): Promise<DictionaryItem[]> {
+    return this.getDictionary('damage-statuses')
+  }
+
   async getPriorities(): Promise<DictionaryItem[]> {
     return this.getDictionary('priorities')
   }

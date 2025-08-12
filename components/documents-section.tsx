@@ -55,6 +55,8 @@ export const DocumentsSection = ({
   const [previewDocument, setPreviewDocument] = useState<Document | null>(null)
   const [groupPreviewOpen, setGroupPreviewOpen] = useState(false)
   const [groupPreviewCategory, setGroupPreviewCategory] = useState<string>("")
+  const [allPreviewOpen, setAllPreviewOpen] = useState(false)
+  const [allPreviewDocuments, setAllPreviewDocuments] = useState<Document[]>([])
   const [dragActive, setDragActive] = useState(false)
   const [dragCategory, setDragCategory] = useState<string | null>(null)
 
@@ -878,6 +880,18 @@ export const DocumentsSection = ({
                     size="sm"
                     onClick={(e) => {
                       e.stopPropagation()
+                      setAllPreviewDocuments(allDocuments)
+                      setAllPreviewOpen(true)
+                    }}
+                  >
+                    <Eye className="mr-2 h-4 w-4" />
+                    Podgląd wszystkich
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={(e) => {
+                      e.stopPropagation()
                       setGroupPreviewCategory(category)
                       setGroupPreviewOpen(true)
                     }}
@@ -1118,6 +1132,130 @@ export const DocumentsSection = ({
               </div>
             </CardContent>
           </Card>
+        )}
+
+        {/* All Preview Modal */}
+        {allPreviewOpen && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-white rounded-lg p-6 max-w-6xl max-h-[90vh] overflow-auto w-full mx-4">
+              <div className="flex justify-between items-center mb-6">
+                <h3 className="text-xl font-semibold">Podgląd wszystkich dokumentów</h3>
+                <Button variant="ghost" onClick={() => setAllPreviewOpen(false)}>
+                  <X className="h-4 w-4" />
+                </Button>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {allPreviewDocuments.map((document) => (
+                  <Card key={document.id} className="overflow-hidden">
+                    <div className="aspect-w-16 aspect-h-12 bg-gray-100 flex items-center justify-center min-h-[200px]">
+                      {document.contentType.startsWith("image/") ? (
+                        <img
+                          src={document.previewUrl || "/placeholder.svg?height=200&width=300"}
+                          alt={document.originalFileName}
+                          className="w-full h-full object-cover cursor-pointer"
+                          onClick={() => {
+                            setAllPreviewOpen(false)
+                            handlePreview(document, allPreviewDocuments)
+                          }}
+                        />
+                      ) : document.contentType.startsWith("video/") ? (
+                        <video
+                          src={document.previewUrl || document.downloadUrl}
+                          className="w-full h-full object-cover cursor-pointer"
+                          onClick={() => {
+                            setAllPreviewOpen(false)
+                            handlePreview(document, allPreviewDocuments)
+                          }}
+                          muted
+                          preload="metadata"
+                        />
+                      ) : document.contentType === "application/pdf" ? (
+                        <div className="flex flex-col items-center justify-center text-center p-4">
+                          <FileText className="w-16 h-16 text-red-500 mb-2" />
+                          <p className="text-sm font-medium text-gray-700 mb-2">PDF Document</p>
+                          <Button
+                            size="sm"
+                            onClick={() => {
+                              setAllPreviewOpen(false)
+                              handlePreview(document, allPreviewDocuments)
+                            }}
+                          >
+                            <Eye className="mr-2 h-4 w-4" />
+                            Podgląd
+                          </Button>
+                        </div>
+                      ) : (
+                        <div className="flex flex-col items-center justify-center text-center p-4">
+                          <FileText className="w-16 h-16 text-gray-400 mb-2" />
+                          <p className="text-sm font-medium text-gray-700">
+                            {document.contentType.includes("document") || document.contentType.includes("word")
+                              ? "Dokument Word"
+                              : document.contentType.startsWith("video/")
+                                ? "Plik wideo"
+                                : "Plik"}
+                          </p>
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="p-4">
+                      <div className="flex items-center justify-between mb-2">
+                        <h4
+                          className="font-medium text-sm text-gray-800 truncate"
+                          title={document.originalFileName}
+                        >
+                          {document.originalFileName}
+                        </h4>
+                        <Badge variant="secondary" className="ml-2 capitalize">
+                          {document.documentType}
+                        </Badge>
+                      </div>
+                      <div className="flex items-center justify-between text-xs text-gray-500 mb-3">
+                        <span>{formatBytes(document.fileSize)}</span>
+                        <span>{new Date(document.createdAt).toLocaleDateString()}</span>
+                      </div>
+
+                      {document.description && (
+                        <p className="text-xs text-gray-600 mb-3 line-clamp-2">{document.description}</p>
+                      )}
+
+                      <div className="flex items-center gap-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="flex-1 bg-transparent"
+                          onClick={() => handleDownload(document)}
+                        >
+                          <Download className="mr-1 h-3 w-3" />
+                          Pobierz
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="flex-1 bg-transparent"
+                          onClick={() => {
+                            setAllPreviewOpen(false)
+                            handlePreview(document, allPreviewDocuments)
+                          }}
+                        >
+                          <Eye className="mr-1 h-3 w-3" />
+                          Podgląd
+                        </Button>
+                      </div>
+                    </div>
+                  </Card>
+                ))}
+              </div>
+
+              {allPreviewDocuments.length === 0 && (
+                <div className="text-center py-12">
+                  <FileText className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+                  <p className="text-gray-600">Brak plików</p>
+                </div>
+              )}
+            </div>
+          </div>
         )}
 
         {/* Group Preview Modal */}

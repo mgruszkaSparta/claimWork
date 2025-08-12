@@ -16,6 +16,10 @@ namespace AutomotiveClaimsApi.DTOs
         public string? Country { get; set; }
         public string? InsuranceCompany { get; set; }
         public string? PolicyNumber { get; set; }
+        public DateTime? PolicyDealDate { get; set; }
+        public DateTime? PolicyStartDate { get; set; }
+        public DateTime? PolicyEndDate { get; set; }
+        public decimal? PolicySumAmount { get; set; }
         public string? VehicleRegistration { get; set; }
         public string? VehicleVin { get; set; }
         public string? VehicleType { get; set; }

@@ -1047,6 +1047,10 @@ namespace AutomotiveClaimsApi.Controllers
                 existing.Country = pDto.Country;
                 existing.InsuranceCompany = pDto.InsuranceCompany;
                 existing.PolicyNumber = pDto.PolicyNumber;
+                existing.PolicyDealDate = pDto.PolicyDealDate;
+                existing.PolicyStartDate = pDto.PolicyStartDate;
+                existing.PolicyEndDate = pDto.PolicyEndDate;
+                existing.PolicySumAmount = pDto.PolicySumAmount;
                 existing.VehicleRegistration = pDto.VehicleRegistration;
                 existing.VehicleVin = pDto.VehicleVin;
                 existing.VehicleType = pDto.VehicleType;
@@ -1171,6 +1175,10 @@ namespace AutomotiveClaimsApi.Controllers
                 Country = dto.Country,
                 InsuranceCompany = dto.InsuranceCompany,
                 PolicyNumber = dto.PolicyNumber,
+                PolicyDealDate = dto.PolicyDealDate,
+                PolicyStartDate = dto.PolicyStartDate,
+                PolicyEndDate = dto.PolicyEndDate,
+                PolicySumAmount = dto.PolicySumAmount,
                 VehicleRegistration = dto.VehicleRegistration,
                 VehicleVin = dto.VehicleVin,
                 VehicleType = dto.VehicleType,
@@ -1471,6 +1479,10 @@ namespace AutomotiveClaimsApi.Controllers
                 Country = p.Country,
                 InsuranceCompany = p.InsuranceCompany,
                 PolicyNumber = p.PolicyNumber,
+                PolicyDealDate = p.PolicyDealDate,
+                PolicyStartDate = p.PolicyStartDate,
+                PolicyEndDate = p.PolicyEndDate,
+                PolicySumAmount = p.PolicySumAmount,
                 VehicleRegistration = p.VehicleRegistration,
                 VehicleVin = p.VehicleVin,
                 VehicleType = p.VehicleType,

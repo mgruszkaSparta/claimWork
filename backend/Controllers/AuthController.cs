@@ -129,7 +129,7 @@ namespace AutomotiveClaimsApi.Controllers
         {
             var tokens = _antiforgery.GetAndStoreTokens(HttpContext);
             Response.Cookies.Append("XSRF-TOKEN", tokens.RequestToken!, new CookieOptions { HttpOnly = false });
-            return NoContent();
+            return Ok(new { message = "Antiforgery token generated", token = tokens.RequestToken });
         }
 
         [Authorize]

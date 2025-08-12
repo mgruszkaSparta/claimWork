@@ -29,7 +29,9 @@ export function createDamageDraft(params: Partial<Damage> = {}): Damage {
 
 export function useDamages(eventId?: string) {
   const initDamage = useCallback(async (): Promise<DamageInit> => {
-    const response = await fetch(API_ENDPOINTS.DAMAGES_INIT)
+    const response = await fetch(API_ENDPOINTS.DAMAGES_INIT, {
+      method: "POST",
+    })
 
     if (!response.ok) {
       const errorText = await response.text()

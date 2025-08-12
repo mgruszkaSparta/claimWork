@@ -76,8 +76,9 @@ test('initDamage fetches initial id', async () => {
   const originalFetch = global.fetch
   const init = { id: 'abc' }
 
-  global.fetch = async (url: any) => {
+  global.fetch = async (url: any, options?: any) => {
     assert.equal(url, API_ENDPOINTS.DAMAGES_INIT)
+    assert.equal(options?.method, 'POST')
     return {
       ok: true,
       json: async () => init,

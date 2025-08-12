@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+import { Checkbox } from "@/components/ui/checkbox"
 import { useToast } from "@/hooks/use-toast"
 import { File, Search, Filter, Eye, Download, Upload, X, Trash2, Grid, List, Wand, Plus, FileText, Paperclip, ZoomIn, ZoomOut, ChevronLeft, ChevronRight, RotateCw, Maximize2, Minimize2 } from 'lucide-react'
 import type { DocumentsSectionProps, UploadedFile } from "@/types"
@@ -59,6 +60,7 @@ export const DocumentsSection = ({
   const [allPreviewDocuments, setAllPreviewDocuments] = useState<Document[]>([])
   const [dragActive, setDragActive] = useState(false)
   const [dragCategory, setDragCategory] = useState<string | null>(null)
+  const [selectedDocumentIds, setSelectedDocumentIds] = useState<string[]>([])
 
   // Preview modal states
   const [previewZoom, setPreviewZoom] = useState(1)
@@ -465,6 +467,9 @@ export const DocumentsSection = ({
     if (isPending) {
       if (!window.confirm("Czy na pewno chcesz usunąć ten dokument?")) return
       setPendingFiles?.((prev) => prev.filter((f) => f.id !== documentId))
+      setSelectedDocumentIds((prev) =>
+        prev.filter((id) => id !== documentId.toString()),
+      )
       toast({
         title: "Plik usunięty",
         description: "Dokument został pomyślnie usunięty.",
@@ -484,6 +489,9 @@ export const DocumentsSection = ({
 
       if (response.ok) {
         setDocuments((prev) => prev.filter((doc) => doc.id !== documentId))
+        setSelectedDocumentIds((prev) =>
+          prev.filter((id) => id !== documentId.toString()),
+        )
         toast({
           title: "Plik usunięty",
           description: "Dokument został pomyślnie usunięty.",
@@ -629,6 +637,51 @@ export const DocumentsSection = ({
     }
   }
 
+  const handleDownloadSelected = async (category: string) => {
+    const documentsForCategory = allDocuments.filter(
+      (d) => d.documentType === category && selectedDocumentIds.includes(d.id),
+    )
+
+    if (documentsForCategory.length === 0) {
+      toast({
+        title: "Brak plików",
+        description: "Nie wybrano plików do pobrania w tej kategorii.",
+        variant: "destructive",
+      })
+      return
+    }
+
+    toast({
+      title: "Pobieranie plików",
+      description: `Rozpoczęto pobieranie ${documentsForCategory.length} zaznaczonych plik(ów).`,
+    })
+
+    try {
+      const zip = new JSZip()
+
+      for (const document of documentsForCategory) {
+        const response = await fetch(document.downloadUrl)
+        const blob = await response.blob()
+        zip.file(document.originalFileName, blob)
+      }
+
+      const content = await zip.generateAsync({ type: "blob" })
+      saveAs(content, `${category}-wybrane.zip`)
+
+      toast({
+        title: "Pobieranie zakończone",
+        description: `Zaznaczone pliki z kategorii "${category}" zostały pobrane w archiwum zip.`,
+      })
+    } catch (error) {
+      console.error("Failed to download selected documents", error)
+      toast({
+        title: "Błąd",
+        description: "Nie udało się pobrać zaznaczonych plików.",
+        variant: "destructive",
+      })
+    }
+  }
+
   const handleDrag = (e: React.DragEvent) => {
     e.preventDefault()
     e.stopPropagation()
@@ -725,11 +778,26 @@ export const DocumentsSection = ({
     }
   }
 
-  const FileCard = ({ document, onDelete }: { document: Document; onDelete: (id: string | number) => void }) => (
-    <Card className="overflow-hidden group relative">
-      <Badge variant="secondary" className="absolute top-2 left-2 capitalize">
-        {document.status}
-      </Badge>
+  const FileCard = ({ document, onDelete }: { document: Document; onDelete: (id: string | number) => void }) => {
+    const isSelected = selectedDocumentIds.includes(document.id)
+    return (
+      <Card className="overflow-hidden group relative">
+        <div className="absolute top-2 left-2 flex items-center gap-2">
+          <Checkbox
+            checked={isSelected}
+            onCheckedChange={(checked) => {
+              const value = checked === true
+              setSelectedDocumentIds((prev) =>
+                value
+                  ? [...prev, document.id]
+                  : prev.filter((id) => id !== document.id),
+              )
+            }}
+          />
+          <Badge variant="secondary" className="capitalize">
+            {document.status}
+          </Badge>
+        </div>
       <div className="aspect-w-16 aspect-h-10 bg-gray-100 flex items-center justify-center min-h-[150px]">
         {document.contentType.startsWith("image/") ? (
           <img
@@ -783,6 +851,7 @@ export const DocumentsSection = ({
       </div>
     </Card>
   )
+  }
 
   const missingRequiredDocs = requiredDocuments.filter((doc) => !doc.uploaded)
 
@@ -842,6 +911,9 @@ export const DocumentsSection = ({
         {documentCategories.map((category) => {
           const documentsForCategory = allDocuments.filter((d) => d.documentType === category)
           const isCategoryOpen = openCategories[category] ?? false
+          const hasSelected = documentsForCategory.some((d) =>
+            selectedDocumentIds.includes(d.id),
+          )
 
           return (
             <Card key={category}>
@@ -898,6 +970,18 @@ export const DocumentsSection = ({
                   >
                     <Eye className="mr-2 h-4 w-4" />
                     Grupowy podgląd
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      handleDownloadSelected(category)
+                    }}
+                    disabled={!hasSelected}
+                  >
+                    <Download className="mr-2 h-4 w-4" />
+                    Pobierz zaznaczone
                   </Button>
                   <Button
                     variant="outline"

@@ -500,6 +500,24 @@ export interface SettlementUpsertDto {
 
 // API Service
 class ApiService {
+  private getToken(): string | null {
+    if (typeof document !== "undefined") {
+      const match = document.cookie.match(/(?:^|; )token=([^;]+)/)
+      return match ? decodeURIComponent(match[1]) : null
+    }
+    return null
+  }
+
+  private setToken(token: string | null) {
+    if (typeof document !== "undefined") {
+      if (token) {
+        document.cookie = `token=${token}; path=/`
+      } else {
+        document.cookie = "token=; Max-Age=0; path=/"
+      }
+    }
+  }
+
   private async request<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
     const url = `${API_BASE_URL}${endpoint}`
     if (process.env.NODE_ENV === "development") {
@@ -507,10 +525,11 @@ class ApiService {
       console.log("Request options:", options)
     }
 
-    const method = options.method ? options.method.toUpperCase() : "GET"
+    const token = this.getToken()
     const headers: Record<string, string> = {
       "Content-Type": "application/json",
       ...(options.headers as Record<string, string>),
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
     }
 
     const response = await fetch(url, {
@@ -567,14 +586,16 @@ class ApiService {
   }
 
   async login(username: string, password: string): Promise<void> {
-    await this.request<void>("/auth/login", {
+    const data = await this.request<{ token: string }>("/auth/login", {
       method: "POST",
       body: JSON.stringify({ userName: username, password }),
     })
+    this.setToken(data.token)
   }
 
   async logout(): Promise<void> {
     await this.request<void>("/auth/logout", { method: "POST" })
+    this.setToken(null)
   }
 
   async getCurrentUser(): Promise<{ username: string; email?: string; roles?: string[] } | undefined> {
@@ -608,9 +629,12 @@ class ApiService {
 
     const url = `/claims${searchParams.toString() ? `?${searchParams.toString()}` : ""}`
 
+    const token = this.getToken()
     const response = await fetch(`${API_BASE_URL}${url}`, {
+      credentials: "include",
       headers: {
         "Content-Type": "application/json",
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
       },
     })
 

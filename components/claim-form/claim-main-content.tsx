@@ -20,7 +20,16 @@ import { ClientClaimsSection } from "./client-claims-section"
 import { RecourseSection } from "./recourse-section"
 import { SettlementsSection } from "./settlements-section"
 import { CLAIM_STATUSES } from "@/lib/constants"
-import type { Claim, Service, ParticipantInfo, DriverInfo, UploadedFile, RequiredDocument, Decision } from "@/types"
+import type {
+  Claim,
+  Service,
+  ParticipantInfo,
+  DriverInfo,
+  UploadedFile,
+  RequiredDocument,
+  Decision,
+  Note,
+} from "@/types"
 import { EmailSection } from "../email/email-section-compact"
 import { DependentSelect } from "@/components/ui/dependent-select"
 import { useToast } from "@/hooks/use-toast"
@@ -37,18 +46,6 @@ import VehicleTypeDropdown from "@/components/vehicle-type-dropdown"
 import type { VehicleTypeSelectionEvent } from "@/types/vehicle-type"
 import { RepairScheduleSection } from "./repair-schedule-section"
 import { RepairDetailsSection } from "./repair-details-section"
-
-interface Note {
-  id: string
-  type: "note" | "task" | "internal" | "status"
-  title: string
-  description: string
-  user: string
-  createdAt: string
-  status?: "active" | "completed" | "cancelled"
-  priority?: "low" | "medium" | "high"
-  dueDate?: string
-}
 
 interface RiskType {
   value: string
@@ -209,9 +206,6 @@ export const ClaimMainContent = ({
   const [caseHandlers, setCaseHandlers] = useState<any[]>([])
   const [loadingHandlers, setLoadingHandlers] = useState(false)
 
-  // Notes state
-  const [notes, setNotes] = useState<Note[]>([])
-
   // Form states
   const [showNoteForm, setShowNoteForm] = useState<string | null>(null)
   const [noteForm, setNoteForm] = useState({
@@ -246,37 +240,7 @@ export const ClaimMainContent = ({
     loadDamages()
   }, [claimFormData.id])
 
-  useEffect(() => {
-    if (!eventId) return
-
-    const loadNotes = async () => {
-      try {
-        const response = await fetch(`/api/notes?eventId=${eventId}`)
-        if (!response.ok) throw new Error()
-        const data = await response.json()
-        const mappedNotes: Note[] = data.map((note: any) => ({
-          id: note.id,
-          type: (note.category as Note["type"]) || "note",
-          title: note.title,
-          description: note.content,
-          user: note.createdBy || "",
-          createdAt: note.createdAt,
-          priority: note.priority,
-          status: note.status,
-          dueDate: note.dueDate,
-        }))
-        setNotes(mappedNotes)
-      } catch (error) {
-        toast({
-          title: "Błąd",
-          description: "Nie udało się pobrać notatek.",
-          variant: "destructive",
-        })
-      }
-    }
-
-    loadNotes()
-  }, [eventId])
+  // Notes are managed via claimFormData
 
   // State for expanded sections in teczka-szkodowa
   const [expandedSections, setExpandedSections] = useState({
@@ -484,7 +448,7 @@ export const ClaimMainContent = ({
   }
 
   // Notes functions
-  const addNote = async (type: Note["type"]) => {
+  const addNote = (type: Note["type"]) => {
     if (!noteForm.title.trim() || !noteForm.description.trim()) {
       toast({
         title: "Błąd",
@@ -494,109 +458,53 @@ export const ClaimMainContent = ({
       return
     }
 
-    const eid = eventId
-    if (!eid) {
-      toast({
-        title: "Błąd",
-        description: "Brak identyfikatora zdarzenia.",
-        variant: "destructive",
-      })
-      return
+    const newNote: Note = {
+      id: `temp-${Date.now()}`,
+      type,
+      title: noteForm.title,
+      description: noteForm.description,
+      user: "",
+      createdAt: new Date().toISOString(),
+      priority: noteForm.priority,
+      status: type === "task" ? "active" : undefined,
+      dueDate: noteForm.dueDate || undefined,
     }
 
-    try {
-      const response = await fetch("/api/notes", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          eventId: eid,
-          category: type,
-          title: noteForm.title,
-          content: noteForm.description,
-          priority: noteForm.priority,
-          dueDate: noteForm.dueDate || undefined,
-        }),
-      })
-      if (!response.ok) throw new Error()
-      const data = await response.json()
+    const updatedNotes = [newNote, ...(claimFormData.notes ?? [])]
+    handleFormChange("notes", updatedNotes)
+    setNoteForm({ title: "", description: "", priority: "medium", dueDate: "" })
+    setShowNoteForm(null)
 
-      const newNote: Note = {
-        id: data.id,
-        type: (data.category as Note["type"]) || type,
-        title: data.title,
-        description: data.content,
-        user: data.createdBy || "",
-        createdAt: data.createdAt,
-        priority: data.priority,
-        status: data.status,
-        dueDate: data.dueDate,
-      }
-
-      setNotes((prev) => [newNote, ...prev])
-      setNoteForm({ title: "", description: "", priority: "medium", dueDate: "" })
-      setShowNoteForm(null)
-
-      toast({
-        title: "Sukces",
-        description: `${getTypeLabel(type)} została dodana pomyślnie.`,
-      })
-    } catch (error) {
-      toast({
-        title: "Błąd",
-        description: "Nie udało się dodać notatki.",
-        variant: "destructive",
-      })
-    }
+    toast({
+      title: "Sukces",
+      description: `${getTypeLabel(type)} została dodana pomyślnie.`,
+    })
   }
 
-  const updateTaskStatus = async (
+  const updateTaskStatus = (
     noteId: string,
     status: "active" | "completed" | "cancelled",
   ) => {
-    try {
-      const response = await fetch(`/api/notes/${noteId}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ status }),
-      })
-      if (!response.ok) throw new Error()
+    const updatedNotes = (claimFormData.notes ?? []).map((note) =>
+      note.id === noteId ? { ...note, status } : note,
+    )
+    handleFormChange("notes", updatedNotes)
 
-      setNotes((prev) =>
-        prev.map((note) => (note.id === noteId ? { ...note, status } : note)),
-      )
-
-      toast({
-        title: "Zaktualizowano",
-        description: "Status zadania został zmieniony.",
-      })
-    } catch (error) {
-      toast({
-        title: "Błąd",
-        description: "Nie udało się zaktualizować statusu.",
-        variant: "destructive",
-      })
-    }
+    toast({
+      title: "Zaktualizowano",
+      description: "Status zadania został zmieniony.",
+    })
   }
 
-  const deleteNote = async (noteId: string) => {
-    try {
-      const response = await fetch(`/api/notes/${noteId}`, {
-        method: "DELETE",
-      })
-      if (!response.ok) throw new Error()
-
-      setNotes((prev) => prev.filter((note) => note.id !== noteId))
-      toast({
-        title: "Usunięto",
-        description: "Notatka została usunięta.",
-      })
-    } catch (error) {
-      toast({
-        title: "Błąd",
-        description: "Nie udało się usunąć notatki.",
-        variant: "destructive",
-      })
-    }
+  const deleteNote = (noteId: string) => {
+    const updatedNotes = (claimFormData.notes ?? []).filter(
+      (note) => note.id !== noteId,
+    )
+    handleFormChange("notes", updatedNotes)
+    toast({
+      title: "Usunięto",
+      description: "Notatka została usunięta.",
+    })
   }
 
   const cancelNoteForm = () => {
@@ -646,6 +554,8 @@ export const ClaimMainContent = ({
         return "text-gray-600"
     }
   }
+
+  const notes = (claimFormData.notes ?? []) as Note[]
 
   const filteredNotes = notes.filter((note) => {
     const matchesSearch =
@@ -2117,11 +2027,7 @@ const renderParticipantDetails = (participant: ParticipantInfo | undefined, titl
               <CardTitle className="text-lg font-semibold">Ugoda</CardTitle>
             </CardHeader>
             <CardContent className="p-0 bg-white">
-              <SettlementsSection
-                settlements={claimFormData.settlements || []}
-                onSettlementsChange={(settlements) => handleFormChange("settlements", settlements)}
-                claimId={claimFormData.id || undefined}
-              />
+              <SettlementsSection claimId={claimFormData.id || ""} />
             </CardContent>
           </Card>
         </div>
@@ -2456,6 +2362,17 @@ const renderParticipantDetails = (participant: ParticipantInfo | undefined, titl
                           <div className="flex items-start justify-between">
                             <div className="flex-1">
                               <div className="flex items-center space-x-2 mb-2">
+                                <Checkbox
+                                  checked={task.status === "completed"}
+                                  onCheckedChange={(checked) =>
+                                    updateTaskStatus(
+                                      task.id,
+                                      checked ? "completed" : "active",
+                                    )
+                                  }
+                                  disabled={task.status === "cancelled"}
+                                  className="mr-1"
+                                />
                                 {getStatusIcon(task.status)}
                                 <h4 className="font-medium text-gray-900">{task.title}</h4>
                                 {task.priority && (
@@ -2550,6 +2467,7 @@ const renderParticipantDetails = (participant: ParticipantInfo | undefined, titl
       )
 
     case "teczka-szkodowa": {
+    const visibleNotes = notes.filter((note) => !note.type || note.type === "note")
     return (
       <div className="space-y-4">
         <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
@@ -2798,9 +2716,9 @@ const renderParticipantDetails = (participant: ParticipantInfo | undefined, titl
               </div>
             </div>
             <div className="p-4">
-              {notes && notes.length > 0 ? (
+              {visibleNotes.length > 0 ? (
                 <div className="space-y-3">
-                  {notes.map((note) => (
+                  {visibleNotes.map((note) => (
                     <div key={note.id} className="border-l-4 border-blue-500 pl-4 py-2 bg-gray-50 rounded-r-lg">
                       <div className="flex items-start justify-between">
                         <div className="flex-1">

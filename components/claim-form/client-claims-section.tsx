@@ -73,12 +73,14 @@ export function ClientClaimsSection({ clientClaims, onClientClaimsChange, claimI
   })
 
   const [formData, setFormData] = useState({
+    claimNumber: "",
     claimDate: new Date().toISOString().split("T")[0],
     claimType: "",
     claimAmount: "",
     currency: "PLN",
     status: "Złożone",
     description: "",
+    claimNotes: "",
     documentDescription: "",
   })
 
@@ -103,12 +105,14 @@ export function ClientClaimsSection({ clientClaims, onClientClaimsChange, claimI
 
   const resetForm = useCallback(() => {
     setFormData({
+      claimNumber: "",
       claimDate: new Date().toISOString().split("T")[0],
       claimType: "",
       claimAmount: "",
       currency: "PLN",
       status: "Złożone",
       description: "",
+      claimNotes: "",
       documentDescription: "",
     })
     setEditingClaim(null)
@@ -122,9 +126,9 @@ export function ClientClaimsSection({ clientClaims, onClientClaimsChange, claimI
   const calculateTotalsByCurrency = useCallback(() => {
     const totals: { [key: string]: number } = {}
     clientClaims.forEach((claim) => {
-      if (claim.amount && claim.currency) {
+      if (claim.claimAmount && claim.currency) {
         const currency = claim.currency
-        totals[currency] = (totals[currency] || 0) + claim.amount
+        totals[currency] = (totals[currency] || 0) + claim.claimAmount
       }
     })
     return totals
@@ -160,18 +164,20 @@ export function ClientClaimsSection({ clientClaims, onClientClaimsChange, claimI
 
     try {
       const claimData: ClientClaim = {
-        id: editingClaim?.id || Date.now().toString(),
+        id: editingClaim?.id || crypto.randomUUID(),
         eventId: claimId,
+        claimNumber: formData.claimNumber || undefined,
         claimDate: formData.claimDate,
         claimType: formData.claimType,
-        amount: Number.parseFloat(formData.claimAmount),
+        claimAmount: Number.parseFloat(formData.claimAmount),
         currency: formData.currency,
         status: formData.status as any,
         description: formData.description,
+        claimNotes: formData.claimNotes || undefined,
         documentDescription: formData.documentDescription,
         document: selectedFile
           ? {
-              id: Date.now().toString(),
+              id: crypto.randomUUID(),
               name: selectedFile.name,
               size: selectedFile.size,
               type: selectedFile.type,
@@ -214,12 +220,14 @@ export function ClientClaimsSection({ clientClaims, onClientClaimsChange, claimI
     setEditingClaim(claim)
     setIsEditing(true)
     setFormData({
+      claimNumber: claim.claimNumber || "",
       claimDate: claim.claimDate,
       claimType: claim.claimType,
-      claimAmount: claim.amount?.toString() || "",
+      claimAmount: claim.claimAmount?.toString() || "",
       currency: claim.currency || "PLN",
       status: claim.status,
       description: claim.description || "",
+      claimNotes: claim.claimNotes || "",
       documentDescription: claim.documentDescription || "",
     })
     setIsFormVisible(true)
@@ -444,6 +452,17 @@ export function ClientClaimsSection({ clientClaims, onClientClaimsChange, claimI
             <form onSubmit={handleSubmit} className="space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 <div className="space-y-2">
+                  <Label htmlFor="claimNumber" className="text-sm font-medium text-gray-700">
+                    Numer roszczenia
+                  </Label>
+                  <Input
+                    id="claimNumber"
+                    value={formData.claimNumber}
+                    onChange={(e) => setFormData((prev) => ({ ...prev, claimNumber: e.target.value }))}
+                  />
+                </div>
+
+                <div className="space-y-2">
                   <Label htmlFor="claimDate" className="text-sm font-medium text-gray-700">
                     Data złożenia roszczenia *
                   </Label>
@@ -545,6 +564,19 @@ export function ClientClaimsSection({ clientClaims, onClientClaimsChange, claimI
                   rows={4}
                   value={formData.description}
                   onChange={(e) => setFormData((prev) => ({ ...prev, description: e.target.value }))}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="claimNotes" className="text-sm font-medium text-gray-700">
+                  Notatki do roszczenia
+                </Label>
+                <Textarea
+                  id="claimNotes"
+                  placeholder="Dodatkowe notatki..."
+                  rows={3}
+                  value={formData.claimNotes}
+                  onChange={(e) => setFormData((prev) => ({ ...prev, claimNotes: e.target.value }))}
                 />
               </div>
 
@@ -690,6 +722,7 @@ export function ClientClaimsSection({ clientClaims, onClientClaimsChange, claimI
                 <thead>
                   <tr className="border-b bg-muted/50">
                     <th className="py-3 px-4 text-left font-medium">Data</th>
+                    <th className="py-3 px-4 text-left font-medium">Nr roszczenia</th>
                     <th className="py-3 px-4 text-left font-medium">Rodzaj</th>
                     <th className="py-3 px-4 text-left font-medium">Kwota</th>
                     <th className="py-3 px-4 text-left font-medium">Status</th>
@@ -707,6 +740,7 @@ export function ClientClaimsSection({ clientClaims, onClientClaimsChange, claimI
                           <span className="text-sm">{formatDate(claim.claimDate)}</span>
                         </div>
                       </td>
+                      <td className="py-3 px-4">{claim.claimNumber || "-"}</td>
                       <td className="py-3 px-4">
                         <Badge variant="outline" className="text-blue-600 border-blue-200">
                           {claim.claimType}
@@ -716,7 +750,7 @@ export function ClientClaimsSection({ clientClaims, onClientClaimsChange, claimI
                         <div className="flex items-center space-x-2">
                           <DollarSign className="h-4 w-4 text-gray-400" />
                           <span className="text-sm font-medium">
-                            {formatCurrency(claim.amount || 0, claim.currency || "PLN")}
+                            {formatCurrency(claim.claimAmount || 0, claim.currency || "PLN")}
                           </span>
                         </div>
                       </td>

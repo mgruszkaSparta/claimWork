@@ -1,6 +1,18 @@
 import type React from "react"
 import type { ClaimDto } from "@/lib/api"
 
+export interface Note {
+  id?: string
+  type?: "note" | "task" | "internal" | "status"
+  title?: string
+  description: string
+  user?: string
+  createdAt?: string
+  priority?: "low" | "medium" | "high"
+  status?: "active" | "completed" | "cancelled"
+  dueDate?: string
+}
+
 export interface Claim
   extends Omit<
     ClaimDto,
@@ -48,6 +60,7 @@ export interface Claim
   vehicleTypeCode?: string
   damageDescription?: string
   damages?: DamageItem[]
+  notes?: Note[]
   injuredParty?: ParticipantInfo
   perpetrator?: ParticipantInfo
   decisions?: Decision[]
@@ -158,15 +171,26 @@ export interface Appeal {
 }
 
 export interface ClientClaim {
-  currency?: string;
   id?: string
   eventId?: string
+  claimNumber?: string
   claimDate: string
   claimType: string
-  description: string
-  amount?: number
+  claimAmount?: number
+  currency?: string
   status?: string
+  description?: string
+  documentPath?: string
+  documentName?: string
   documentDescription?: string
+  claimNotes?: string
+  createdAt?: string
+  updatedAt?: string
+  /**
+   * Local-only fields for client-side handling
+   */
+  document?: UploadedFile
+  claimId?: string
 }
 
 export interface Recourse {
@@ -182,11 +206,18 @@ export interface Recourse {
 export interface Settlement {
   id?: string
   eventId?: string
+  externalEntity?: string
+  customExternalEntity?: string
+  transferDate?: string
   settlementDate: string
   settlementType: string
   description: string
+  settlementAmount?: number
+  currency?: string
   amount?: number
   status?: string
+  documentPath?: string
+  documentName?: string
 }
 
 export type Service = "policja" | "pogotowie" | "straz" | "holownik"
@@ -198,7 +229,10 @@ export interface UploadedFile {
   type: "image" | "pdf" | "doc" | "video" | "other"
   uploadedAt: string // ISO timestamp when the file was uploaded
   url: string
+  /** Human readable category name for UI display */
   category?: string
+  /** Machine readable category code for API communication */
+  categoryCode?: string
   description?: string
   date?: string
   file?: File

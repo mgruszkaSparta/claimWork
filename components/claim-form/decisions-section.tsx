@@ -330,7 +330,7 @@ export function DecisionsSection({ claimId, onChange }: DecisionsSectionProps) {
         const url = window.URL.createObjectURL(blob)
         const a = document.createElement("a")
         a.href = url
-        a.download = decision.documentName || "document"
+        a.download = getDisplayFileName(decision)
         document.body.appendChild(a)
         a.click()
         window.URL.revokeObjectURL(url)
@@ -364,8 +364,9 @@ export function DecisionsSection({ claimId, onChange }: DecisionsSectionProps) {
         const blob = await response.blob()
         const url = window.URL.createObjectURL(blob)
         setPreviewUrl(url)
-        setPreviewFileName(decision.documentName || "document")
-        setPreviewFileType(getFileType(decision.documentName || ""))
+        const fileName = getDisplayFileName(decision)
+        setPreviewFileName(fileName)
+        setPreviewFileType(getFileType(fileName))
         setCurrentPreviewDecision(decision)
         setIsPreviewVisible(true)
       } else {
@@ -390,8 +391,16 @@ export function DecisionsSection({ claimId, onChange }: DecisionsSectionProps) {
     setCurrentPreviewDecision(null)
   }
 
+  const getFileNameFromPath = (path: string): string => {
+    return path.split("/").pop()?.split("?")[0] || "document"
+  }
+
+  const getDisplayFileName = (decision: Decision): string => {
+    return decision.documentName || (decision.documentPath ? getFileNameFromPath(decision.documentPath) : "document")
+  }
+
   const getFileType = (fileName: string): string => {
-    const extension = fileName.split(".").pop()?.toLowerCase()
+    const extension = fileName.split("?")[0].split(".").pop()?.toLowerCase()
     if (["pdf"].includes(extension || "")) return "pdf"
     if (["jpg", "jpeg", "png", "gif", "bmp"].includes(extension || "")) return "image"
     return "other"
@@ -772,9 +781,9 @@ export function DecisionsSection({ claimId, onChange }: DecisionsSectionProps) {
                     <td className="py-3 px-4">
                       {decision.documentPath ? (
                         <div className="flex items-center gap-2">
-                          <span className="text-sm">{decision.documentName}</span>
+                          <span className="text-sm">{getDisplayFileName(decision)}</span>
                           <div className="flex gap-1">
-                            {isPreviewable(decision.documentName || "") && (
+                            {isPreviewable(getDisplayFileName(decision)) && (
                               <Button variant="ghost" size="sm" onClick={() => previewFile(decision)} title="Podgląd">
                                 <Eye className="h-4 w-4" />
                               </Button>

@@ -1,13 +1,16 @@
 "use client"
 
-import React, { useState, useEffect } from "react"
+import React, { useState, useEffect, useCallback } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+import { Checkbox } from "@/components/ui/checkbox"
 import { useToast } from "@/hooks/use-toast"
 import { File, Search, Filter, Eye, Download, Upload, X, Trash2, Grid, List, Wand, Plus, FileText, Paperclip, ZoomIn, ZoomOut, ChevronLeft, ChevronRight, RotateCw, Maximize2, Minimize2 } from 'lucide-react'
 import type { DocumentsSectionProps, UploadedFile } from "@/types"
+import JSZip from "jszip"
+import { saveAs } from "file-saver"
 
 interface Document {
   id: string
@@ -26,7 +29,10 @@ interface Document {
   canPreview: boolean
   previewUrl?: string
   downloadUrl: string
+  /** Human readable category name */
   documentType: string
+  /** Machine readable category code */
+  categoryCode?: string
 }
 
 export const DocumentsSection = ({
@@ -50,8 +56,11 @@ export const DocumentsSection = ({
   const [previewDocument, setPreviewDocument] = useState<Document | null>(null)
   const [groupPreviewOpen, setGroupPreviewOpen] = useState(false)
   const [groupPreviewCategory, setGroupPreviewCategory] = useState<string>("")
+  const [allPreviewOpen, setAllPreviewOpen] = useState(false)
+  const [allPreviewDocuments, setAllPreviewDocuments] = useState<Document[]>([])
   const [dragActive, setDragActive] = useState(false)
   const [dragCategory, setDragCategory] = useState<string | null>(null)
+  const [selectedDocumentIds, setSelectedDocumentIds] = useState<string[]>([])
 
   // Preview modal states
   const [previewZoom, setPreviewZoom] = useState(1)
@@ -59,6 +68,41 @@ export const DocumentsSection = ({
   const [previewFullscreen, setPreviewFullscreen] = useState(false)
   const [currentPreviewIndex, setCurrentPreviewIndex] = useState(0)
   const [previewDocuments, setPreviewDocuments] = useState<Document[]>([])
+
+  const previewContainerRef = React.useRef<HTMLDivElement>(null)
+
+  const closePreview = useCallback(() => {
+    if (document.fullscreenElement) {
+      document.exitFullscreen()
+    }
+    setPreviewDocument(null)
+  }, [setPreviewDocument])
+
+  useEffect(() => {
+    const handleFullscreenChange = () => {
+      setPreviewFullscreen(!!document.fullscreenElement)
+    }
+    document.addEventListener("fullscreenchange", handleFullscreenChange)
+    return () => document.removeEventListener("fullscreenchange", handleFullscreenChange)
+  }, [])
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        if (document.fullscreenElement) {
+          document.exitFullscreen()
+        } else {
+          closePreview()
+        }
+      }
+    }
+    if (previewDocument) {
+      document.addEventListener("keydown", handleKeyDown)
+    }
+    return () => {
+      document.removeEventListener("keydown", handleKeyDown)
+    }
+  }, [previewDocument, closePreview])
 
   const isGuid = (value: string) =>
     /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/.test(value)
@@ -83,6 +127,7 @@ export const DocumentsSection = ({
     previewUrl: file.url,
     downloadUrl: file.url,
     documentType: file.category || "Inne dokumenty",
+    categoryCode: file.categoryCode,
   })
 
   const allDocuments = React.useMemo(
@@ -124,6 +169,7 @@ export const DocumentsSection = ({
         const mappedDocs: Document[] = data.map((d: any) => ({
           ...d,
           documentType: mapCategoryCodeToName(d.documentType || d.category),
+          categoryCode: d.documentType || d.category,
         }))
         setDocuments(mappedDocs)
       } else {
@@ -209,6 +255,7 @@ export const DocumentsSection = ({
           uploadedAt: new Date().toISOString(),
           url: URL.createObjectURL(file),
           category: categoryName || "Inne dokumenty",
+          categoryCode: mapCategoryNameToCode(categoryName),
           file: file,
         })
       })
@@ -282,11 +329,12 @@ export const DocumentsSection = ({
             documentType: serverCategory
               ? mapCategoryCodeToName(serverCategory)
               : categoryName || "Inne dokumenty",
+            categoryCode: serverCategory || mapCategoryNameToCode(categoryName),
             canPreview:
               documentDto.canPreview ??
-              documentDto.contentType?.startsWith("image/") ||
-              documentDto.contentType === "application/pdf" ||
-              documentDto.contentType?.startsWith("video/"),
+              (documentDto.contentType?.startsWith("image/") ||
+                documentDto.contentType === "application/pdf" ||
+                documentDto.contentType?.startsWith("video/")),
           }
           console.log(`File uploaded successfully:`, document)
           return document
@@ -353,6 +401,7 @@ export const DocumentsSection = ({
             uploadedAt: doc.createdAt,
             url: doc.previewUrl || doc.downloadUrl,
             category: doc.documentType,
+            categoryCode: doc.categoryCode,
             description: doc.description,
           })),
         ])
@@ -418,6 +467,9 @@ export const DocumentsSection = ({
     if (isPending) {
       if (!window.confirm("Czy na pewno chcesz usunąć ten dokument?")) return
       setPendingFiles?.((prev) => prev.filter((f) => f.id !== documentId))
+      setSelectedDocumentIds((prev) =>
+        prev.filter((id) => id !== documentId.toString()),
+      )
       toast({
         title: "Plik usunięty",
         description: "Dokument został pomyślnie usunięty.",
@@ -437,6 +489,9 @@ export const DocumentsSection = ({
 
       if (response.ok) {
         setDocuments((prev) => prev.filter((doc) => doc.id !== documentId))
+        setSelectedDocumentIds((prev) =>
+          prev.filter((id) => id !== documentId.toString()),
+        )
         toast({
           title: "Plik usunięty",
           description: "Dokument został pomyślnie usunięty.",
@@ -556,11 +611,75 @@ export const DocumentsSection = ({
       description: `Rozpoczęto pobieranie ${documentsForCategory.length} plik(ów) z kategorii "${category}".`,
     })
 
-    documentsForCategory.forEach((document, index) => {
-      setTimeout(() => {
-        handleDownload(document)
-      }, index * 500)
+    try {
+      const zip = new JSZip()
+
+      for (const document of documentsForCategory) {
+        const response = await fetch(document.downloadUrl)
+        const blob = await response.blob()
+        zip.file(document.originalFileName, blob)
+      }
+
+      const content = await zip.generateAsync({ type: "blob" })
+      saveAs(content, `${category}.zip`)
+
+      toast({
+        title: "Pobieranie zakończone",
+        description: `Pliki z kategorii "${category}" zostały pobrane w archiwum zip.`,
+      })
+    } catch (error) {
+      console.error("Failed to download all documents", error)
+      toast({
+        title: "Błąd",
+        description: "Nie udało się pobrać wszystkich plików.",
+        variant: "destructive",
+      })
+    }
+  }
+
+  const handleDownloadSelected = async (category: string) => {
+    const documentsForCategory = allDocuments.filter(
+      (d) => d.documentType === category && selectedDocumentIds.includes(d.id),
+    )
+
+    if (documentsForCategory.length === 0) {
+      toast({
+        title: "Brak plików",
+        description: "Nie wybrano plików do pobrania w tej kategorii.",
+        variant: "destructive",
+      })
+      return
+    }
+
+    toast({
+      title: "Pobieranie plików",
+      description: `Rozpoczęto pobieranie ${documentsForCategory.length} zaznaczonych plik(ów).`,
     })
+
+    try {
+      const zip = new JSZip()
+
+      for (const document of documentsForCategory) {
+        const response = await fetch(document.downloadUrl)
+        const blob = await response.blob()
+        zip.file(document.originalFileName, blob)
+      }
+
+      const content = await zip.generateAsync({ type: "blob" })
+      saveAs(content, `${category}-wybrane.zip`)
+
+      toast({
+        title: "Pobieranie zakończone",
+        description: `Zaznaczone pliki z kategorii "${category}" zostały pobrane w archiwum zip.`,
+      })
+    } catch (error) {
+      console.error("Failed to download selected documents", error)
+      toast({
+        title: "Błąd",
+        description: "Nie udało się pobrać zaznaczonych plików.",
+        variant: "destructive",
+      })
+    }
   }
 
   const handleDrag = (e: React.DragEvent) => {
@@ -628,7 +747,12 @@ export const DocumentsSection = ({
   }
 
   const toggleFullscreen = () => {
-    setPreviewFullscreen((prev) => !prev)
+    const element = previewContainerRef.current
+    if (!document.fullscreenElement) {
+      element?.requestFullscreen()
+    } else {
+      document.exitFullscreen()
+    }
   }
 
   const formatBytes = (bytes: number, decimals = 2) => {
@@ -654,11 +778,26 @@ export const DocumentsSection = ({
     }
   }
 
-  const FileCard = ({ document, onDelete }: { document: Document; onDelete: (id: string | number) => void }) => (
-    <Card className="overflow-hidden group relative">
-      <Badge variant="secondary" className="absolute top-2 left-2 capitalize">
-        {document.status}
-      </Badge>
+  const FileCard = ({ document, onDelete }: { document: Document; onDelete: (id: string | number) => void }) => {
+    const isSelected = selectedDocumentIds.includes(document.id)
+    return (
+      <Card className="overflow-hidden group relative">
+        <div className="absolute top-2 left-2 flex items-center gap-2">
+          <Checkbox
+            checked={isSelected}
+            onCheckedChange={(checked) => {
+              const value = checked === true
+              setSelectedDocumentIds((prev) =>
+                value
+                  ? [...prev, document.id]
+                  : prev.filter((id) => id !== document.id),
+              )
+            }}
+          />
+          <Badge variant="secondary" className="capitalize">
+            {document.status}
+          </Badge>
+        </div>
       <div className="aspect-w-16 aspect-h-10 bg-gray-100 flex items-center justify-center min-h-[150px]">
         {document.contentType.startsWith("image/") ? (
           <img
@@ -712,6 +851,7 @@ export const DocumentsSection = ({
       </div>
     </Card>
   )
+  }
 
   const missingRequiredDocs = requiredDocuments.filter((doc) => !doc.uploaded)
 
@@ -771,6 +911,9 @@ export const DocumentsSection = ({
         {documentCategories.map((category) => {
           const documentsForCategory = allDocuments.filter((d) => d.documentType === category)
           const isCategoryOpen = openCategories[category] ?? false
+          const hasSelected = documentsForCategory.some((d) =>
+            selectedDocumentIds.includes(d.id),
+          )
 
           return (
             <Card key={category}>
@@ -809,12 +952,36 @@ export const DocumentsSection = ({
                     size="sm"
                     onClick={(e) => {
                       e.stopPropagation()
+                      setAllPreviewDocuments(allDocuments)
+                      setAllPreviewOpen(true)
+                    }}
+                  >
+                    <Eye className="mr-2 h-4 w-4" />
+                    Podgląd wszystkich
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={(e) => {
+                      e.stopPropagation()
                       setGroupPreviewCategory(category)
                       setGroupPreviewOpen(true)
                     }}
                   >
                     <Eye className="mr-2 h-4 w-4" />
                     Grupowy podgląd
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      handleDownloadSelected(category)
+                    }}
+                    disabled={!hasSelected}
+                  >
+                    <Download className="mr-2 h-4 w-4" />
+                    Pobierz zaznaczone
                   </Button>
                   <Button
                     variant="outline"
@@ -1051,6 +1218,130 @@ export const DocumentsSection = ({
           </Card>
         )}
 
+        {/* All Preview Modal */}
+        {allPreviewOpen && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-white rounded-lg p-6 max-w-6xl max-h-[90vh] overflow-auto w-full mx-4">
+              <div className="flex justify-between items-center mb-6">
+                <h3 className="text-xl font-semibold">Podgląd wszystkich dokumentów</h3>
+                <Button variant="ghost" onClick={() => setAllPreviewOpen(false)}>
+                  <X className="h-4 w-4" />
+                </Button>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {allPreviewDocuments.map((document) => (
+                  <Card key={document.id} className="overflow-hidden">
+                    <div className="aspect-w-16 aspect-h-12 bg-gray-100 flex items-center justify-center min-h-[200px]">
+                      {document.contentType.startsWith("image/") ? (
+                        <img
+                          src={document.previewUrl || "/placeholder.svg?height=200&width=300"}
+                          alt={document.originalFileName}
+                          className="w-full h-full object-cover cursor-pointer"
+                          onClick={() => {
+                            setAllPreviewOpen(false)
+                            handlePreview(document, allPreviewDocuments)
+                          }}
+                        />
+                      ) : document.contentType.startsWith("video/") ? (
+                        <video
+                          src={document.previewUrl || document.downloadUrl}
+                          className="w-full h-full object-cover cursor-pointer"
+                          onClick={() => {
+                            setAllPreviewOpen(false)
+                            handlePreview(document, allPreviewDocuments)
+                          }}
+                          muted
+                          preload="metadata"
+                        />
+                      ) : document.contentType === "application/pdf" ? (
+                        <div className="flex flex-col items-center justify-center text-center p-4">
+                          <FileText className="w-16 h-16 text-red-500 mb-2" />
+                          <p className="text-sm font-medium text-gray-700 mb-2">PDF Document</p>
+                          <Button
+                            size="sm"
+                            onClick={() => {
+                              setAllPreviewOpen(false)
+                              handlePreview(document, allPreviewDocuments)
+                            }}
+                          >
+                            <Eye className="mr-2 h-4 w-4" />
+                            Podgląd
+                          </Button>
+                        </div>
+                      ) : (
+                        <div className="flex flex-col items-center justify-center text-center p-4">
+                          <FileText className="w-16 h-16 text-gray-400 mb-2" />
+                          <p className="text-sm font-medium text-gray-700">
+                            {document.contentType.includes("document") || document.contentType.includes("word")
+                              ? "Dokument Word"
+                              : document.contentType.startsWith("video/")
+                                ? "Plik wideo"
+                                : "Plik"}
+                          </p>
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="p-4">
+                      <div className="flex items-center justify-between mb-2">
+                        <h4
+                          className="font-medium text-sm text-gray-800 truncate"
+                          title={document.originalFileName}
+                        >
+                          {document.originalFileName}
+                        </h4>
+                        <Badge variant="secondary" className="ml-2 capitalize">
+                          {document.documentType}
+                        </Badge>
+                      </div>
+                      <div className="flex items-center justify-between text-xs text-gray-500 mb-3">
+                        <span>{formatBytes(document.fileSize)}</span>
+                        <span>{new Date(document.createdAt).toLocaleDateString()}</span>
+                      </div>
+
+                      {document.description && (
+                        <p className="text-xs text-gray-600 mb-3 line-clamp-2">{document.description}</p>
+                      )}
+
+                      <div className="flex items-center gap-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="flex-1 bg-transparent"
+                          onClick={() => handleDownload(document)}
+                        >
+                          <Download className="mr-1 h-3 w-3" />
+                          Pobierz
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="flex-1 bg-transparent"
+                          onClick={() => {
+                            setAllPreviewOpen(false)
+                            handlePreview(document, allPreviewDocuments)
+                          }}
+                        >
+                          <Eye className="mr-1 h-3 w-3" />
+                          Podgląd
+                        </Button>
+                      </div>
+                    </div>
+                  </Card>
+                ))}
+              </div>
+
+              {allPreviewDocuments.length === 0 && (
+                <div className="text-center py-12">
+                  <FileText className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+                  <p className="text-gray-600">Brak plików</p>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
         {/* Group Preview Modal */}
         {groupPreviewOpen && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
@@ -1187,6 +1478,7 @@ export const DocumentsSection = ({
         {/* Enhanced Preview Modal */}
         {previewDocument && (
           <div
+            ref={previewContainerRef}
             className={`fixed inset-0 bg-black bg-opacity-90 flex items-center justify-center z-50 ${previewFullscreen ? "p-0" : "p-4"}`}
           >
             <div
@@ -1253,7 +1545,7 @@ export const DocumentsSection = ({
                   </Button>
 
                   {/* Close button */}
-                  <Button variant="ghost" size="sm" onClick={() => setPreviewDocument(null)}>
+                  <Button variant="ghost" size="sm" onClick={closePreview}>
                     <X className="h-4 w-4" />
                   </Button>
                 </div>

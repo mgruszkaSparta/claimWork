@@ -7,7 +7,7 @@ import {
   type ClaimDto,
   type ParticipantUpsertDto,
 } from "@/lib/api"
-import type { Claim, ParticipantInfo, DriverInfo } from "@/types"
+import type { Claim, ParticipantInfo, DriverInfo, Note } from "@/types"
 
 export const transformApiClaimToFrontend = (apiClaim: ClaimDto): Claim => {
   const injuredParty = apiClaim.participants?.find((p: any) => p.role === "Poszkodowany")
@@ -16,6 +16,12 @@ export const transformApiClaimToFrontend = (apiClaim: ClaimDto): Claim => {
   const mapParticipantDto = (p: any): ParticipantInfo => ({
     ...p,
     id: p.id?.toString() || "",
+    policyDealDate: p.policyDealDate ? p.policyDealDate.split("T")[0] : undefined,
+    policyStartDate: p.policyStartDate ? p.policyStartDate.split("T")[0] : undefined,
+    policyEndDate: p.policyEndDate ? p.policyEndDate.split("T")[0] : undefined,
+    firstRegistrationDate: p.firstRegistrationDate
+      ? p.firstRegistrationDate.split("T")[0]
+      : undefined,
     drivers: p.drivers?.map((d: any) => ({
       ...d,
       id: d.id?.toString() || "",
@@ -44,9 +50,36 @@ export const transformApiClaimToFrontend = (apiClaim: ClaimDto): Claim => {
       description: d.description,
       detail: d.detail,
     })) || [],
+    notes:
+      apiClaim.notes?.map((n: any) => ({
+        id: n.id,
+        type: (n.category as Note["type"]) || "note",
+        title: n.title,
+        description: n.content,
+        user: n.createdBy,
+        createdAt: n.createdAt,
+        priority: n.priority as Note["priority"],
+      })) || [],
     decisions: apiClaim.decisions || [],
     appeals: apiClaim.appeals,
-    clientClaims: apiClaim.clientClaims || [],
+    clientClaims:
+      apiClaim.clientClaims?.map((c: any) => ({
+        id: c.id,
+        eventId: c.eventId,
+        claimNumber: c.claimNumber,
+        claimDate: c.claimDate,
+        claimType: c.claimType,
+        claimAmount: c.claimAmount,
+        currency: c.currency,
+        status: c.status,
+        description: c.description,
+        documentPath: c.documentPath,
+        documentName: c.documentName,
+        documentDescription: c.documentDescription,
+        claimNotes: c.claimNotes,
+        createdAt: c.createdAt,
+        updatedAt: c.updatedAt,
+      })) || [],
     recourses: apiClaim.recourses || [],
     settlements: apiClaim.settlements || [],
     injuredParty: injuredParty ? mapParticipantDto(injuredParty) : undefined,
@@ -66,6 +99,7 @@ export const transformFrontendClaimToApiPayload = (
     recourses,
     settlements,
     damages,
+    notes,
     injuredParty,
     perpetrator,
     servicesCalled,
@@ -110,11 +144,25 @@ export const transformFrontendClaimToApiPayload = (
     country: p.country,
     insuranceCompany: p.insuranceCompany,
     policyNumber: p.policyNumber,
+    policyDealDate: p.policyDealDate
+      ? new Date(p.policyDealDate).toISOString()
+      : undefined,
+    policyStartDate: p.policyStartDate
+      ? new Date(p.policyStartDate).toISOString()
+      : undefined,
+    policyEndDate: p.policyEndDate
+      ? new Date(p.policyEndDate).toISOString()
+      : undefined,
+    firstRegistrationDate: p.firstRegistrationDate
+      ? new Date(p.firstRegistrationDate).toISOString()
+      : undefined,
+    policySumAmount: p.policySumAmount,
     vehicleRegistration: p.vehicleRegistration,
     vehicleVin: p.vehicleVin,
     vehicleType: p.vehicleType,
     vehicleBrand: p.vehicleBrand,
     vehicleModel: p.vehicleModel,
+    inspectionNotes: p.inspectionNotes,
     inspectionContactName: p.inspectionContactName,
     inspectionContactPhone: p.inspectionContactPhone,
     inspectionContactEmail: p.inspectionContactEmail,
@@ -171,6 +219,18 @@ export const transformFrontendClaimToApiPayload = (
       description: d.description,
       detail: d.detail,
     })),
+    ...(Array.isArray(notes) && notes.length > 0
+      ? {
+          notes: notes.map((n: Note) => ({
+            id: n.id && n.id.startsWith("temp-") ? undefined : n.id,
+            category: n.type,
+            title: n.title,
+            content: n.description,
+            createdBy: n.user,
+            priority: n.priority,
+          })),
+        }
+      : {}),
     ...(Array.isArray(decisions) && decisions.length > 0
       ? {
           decisions: decisions.map((d) => ({
@@ -193,10 +253,14 @@ export const transformFrontendClaimToApiPayload = (
         }
       : {}),
 
-    clientClaims: clientClaims?.map((c) => ({
-      ...c,
-      claimDate: c.claimDate ? new Date(c.claimDate).toISOString() : undefined,
-    })),
+    clientClaims: clientClaims?.map((c) => {
+      const { id, claimDate, document, claimId, createdAt, updatedAt, ...rest } = c
+      return {
+        ...rest,
+        ...(id && isGuid(id) ? { id } : {}),
+        claimDate: claimDate ? new Date(claimDate).toISOString() : undefined,
+      }
+    }),
     recourses: recourses?.map((r) => ({
       ...r,
       recourseDate: r.recourseDate ? new Date(r.recourseDate).toISOString() : undefined,

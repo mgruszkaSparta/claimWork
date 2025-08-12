@@ -102,8 +102,12 @@ export interface EventUpsertDto {
 }
 
 export interface ClaimListItemDto extends EventListItemDto {}
-export interface ClaimDto extends EventDto {}
-export interface ClaimUpsertDto extends EventUpsertDto {}
+export interface ClaimDto extends EventDto {
+  notes?: NoteDto[]
+}
+export interface ClaimUpsertDto extends EventUpsertDto {
+  notes?: NoteUpsertDto[]
+}
 
 export interface NoteDto {
   id: string
@@ -181,6 +185,12 @@ export interface ParticipantDto {
   country?: string
   insuranceCompany?: string
   policyNumber?: string
+  policyDealDate?: string
+  policyStartDate?: string
+  policyEndDate?: string
+  firstRegistrationDate?: string
+  policySumAmount?: number
+  inspectionNotes?: string
   vehicleRegistration?: string
   vehicleVin?: string
   vehicleType?: string
@@ -204,6 +214,12 @@ export interface ParticipantUpsertDto {
   country?: string
   insuranceCompany?: string
   policyNumber?: string
+  policyDealDate?: string
+  policyStartDate?: string
+  policyEndDate?: string
+  firstRegistrationDate?: string
+  policySumAmount?: number
+  inspectionNotes?: string
   vehicleRegistration?: string
   vehicleVin?: string
   vehicleType?: string
@@ -324,16 +340,25 @@ export interface AppealUpsertDto {
 }
 
 export interface ClientClaimDto {
-  id?: number
-  eventId?: number
+  id: string
+  eventId: string
+  claimNumber?: string
   claimDate?: string
   claimType?: string
-  description?: string
-  amount?: number
+  claimAmount?: number
+  currency?: string
   status?: string
+  description?: string
+  documentPath?: string
+  documentName?: string
+  documentDescription?: string
+  claimNotes?: string
+  createdAt: string
+  updatedAt: string
 }
 
 export interface ClientClaimUpsertDto {
+  id?: string
   eventId?: string
   claimNumber?: string
   claimDate?: string
@@ -393,11 +418,19 @@ export interface RecourseUpsertDto {
 export interface SettlementDto {
   id?: number
   eventId?: number
+  externalEntity?: string
+  customExternalEntity?: string
+  transferDate?: string
   settlementDate?: string
   settlementType?: string
   description?: string
   amount?: number
+  settlementAmount?: number
+  currency?: string
   status?: string
+  documentPath?: string
+  documentName?: string
+  documentDescription?: string
 }
 
 export interface SettlementUpsertDto {
@@ -422,17 +455,33 @@ export interface SettlementUpsertDto {
 
 // API Service
 class ApiService {
+  private getCsrfToken(): string | null {
+    if (typeof document === "undefined") return null
+    const match = document.cookie.match(/XSRF-TOKEN=([^;]+)/)
+    return match ? decodeURIComponent(match[1]) : null
+  }
+
   private async request<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
     const url = `${API_BASE_URL}${endpoint}`
 
     console.log(`Making API request to: ${url}`)
     console.log("Request options:", options)
 
+    const method = options.method ? options.method.toUpperCase() : "GET"
+    const headers: Record<string, string> = {
+      "Content-Type": "application/json",
+      ...(options.headers as Record<string, string>),
+    }
+    if (method !== "GET" && method !== "HEAD") {
+      const token = this.getCsrfToken()
+      if (token) {
+        headers["X-XSRF-TOKEN"] = token
+      }
+    }
+
     const response = await fetch(url, {
-      headers: {
-        "Content-Type": "application/json",
-        ...options.headers,
-      },
+      credentials: "include",
+      headers,
       ...options,
     })
 
@@ -464,6 +513,47 @@ class ApiService {
     const text = await response.text()
     console.log("Response text:", text)
     return text as unknown as T
+  }
+
+  async fetchAntiforgery(): Promise<void> {
+    await fetch(`${API_BASE_URL}/auth/antiforgery`, {
+      credentials: "include",
+    })
+  }
+
+  async register(username: string, email: string, password: string): Promise<void> {
+    await this.request<void>("/auth/register", {
+      method: "POST",
+      body: JSON.stringify({ userName: username, email, password }),
+    })
+  }
+
+  async login(username: string, password: string): Promise<void> {
+    await this.request<void>("/auth/login", {
+      method: "POST",
+      body: JSON.stringify({ userName: username, password }),
+    })
+  }
+
+  async logout(): Promise<void> {
+    await this.request<void>("/auth/logout", { method: "POST" })
+  }
+
+  async getCurrentUser(): Promise<{ username: string; email?: string; roles?: string[] } | undefined> {
+    const data = await this.request<{ id: string; userName: string; email: string; roles: string[] }>("/auth/me")
+    if (!data) return undefined
+    return { username: data.userName, email: data.email, roles: data.roles }
+  }
+
+  async getUser(id: string): Promise<{ id: string; userName: string; email?: string }> {
+    return await this.request<{ id: string; userName: string; email?: string }>(`/auth/users/${id}`)
+  }
+
+  async updateUser(id: string, data: { userName?: string; email?: string }): Promise<void> {
+    await this.request<void>(`/auth/users/${id}`, {
+      method: "PUT",
+      body: JSON.stringify(data),
+    })
   }
 
 
@@ -570,6 +660,46 @@ class ApiService {
 
   async getEventByClaimNumber(claimNumber: string): Promise<EventDto> {
     return this.request<EventDto>(`/events/by-claim/${claimNumber}`)
+  }
+
+  async forgotPassword(email: string): Promise<void> {
+    const csrfToken =
+      typeof document !== "undefined"
+        ? document.cookie
+            .split("; ")
+            .find((row) => row.startsWith("XSRF-TOKEN="))?.split("=")[1]
+        : undefined
+
+    return this.request<void>("/auth/forgot-password", {
+      method: "POST",
+      headers: {
+        ...(csrfToken ? { "X-CSRF-Token": csrfToken } : {}),
+      },
+      credentials: "include",
+      body: JSON.stringify({ email }),
+    })
+  }
+
+  async resetPassword(
+    email: string,
+    token: string,
+    password: string,
+  ): Promise<void> {
+    const csrfToken =
+      typeof document !== "undefined"
+        ? document.cookie
+            .split("; ")
+            .find((row) => row.startsWith("XSRF-TOKEN="))?.split("=")[1]
+        : undefined
+
+    return this.request<void>("/auth/reset-password", {
+      method: "POST",
+      headers: {
+        ...(csrfToken ? { "X-CSRF-Token": csrfToken } : {}),
+      },
+      credentials: "include",
+      body: JSON.stringify({ email, token, password }),
+    })
   }
 }
 

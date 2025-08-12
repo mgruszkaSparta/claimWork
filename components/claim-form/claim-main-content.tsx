@@ -1249,7 +1249,7 @@ const renderParticipantDetails = (participant: ParticipantInfo | undefined, titl
                                 )}
                               </div>
                             </div>
-                            ))
+                            ))}
                           </div>
                         )}
 

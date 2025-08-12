@@ -40,6 +40,7 @@ export function useAuth() {
   }, [])
 
   const login = async (username: string, password: string) => {
+    await apiService.fetchAntiforgery()
     await apiService.login(username, password)
     const user = await apiService.getCurrentUser()
     setAuthState({

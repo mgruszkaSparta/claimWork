@@ -334,16 +334,25 @@ export interface AppealUpsertDto {
 }
 
 export interface ClientClaimDto {
-  id?: number
-  eventId?: number
+  id: string
+  eventId: string
+  claimNumber?: string
   claimDate?: string
   claimType?: string
-  description?: string
-  amount?: number
+  claimAmount?: number
+  currency?: string
   status?: string
+  description?: string
+  documentPath?: string
+  documentName?: string
+  documentDescription?: string
+  claimNotes?: string
+  createdAt: string
+  updatedAt: string
 }
 
 export interface ClientClaimUpsertDto {
+  id?: string
   eventId?: string
   claimNumber?: string
   claimDate?: string

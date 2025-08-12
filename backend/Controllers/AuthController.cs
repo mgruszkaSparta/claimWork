@@ -19,16 +19,19 @@ namespace AutomotiveClaimsApi.Controllers
         private readonly SignInManager<ApplicationUser> _signInManager;
         private readonly IAntiforgery _antiforgery;
         private readonly IEmailSender? _emailSender;
+        private readonly ILogger<AuthController> _logger;
 
         public AuthController(
             UserManager<ApplicationUser> userManager,
             SignInManager<ApplicationUser> signInManager,
             IAntiforgery antiforgery,
+            ILogger<AuthController> logger,
             IEmailSender? emailSender = null)
         {
             _userManager = userManager;
             _signInManager = signInManager;
             _antiforgery = antiforgery;
+            _logger = logger;
             _emailSender = emailSender;
         }
 
@@ -95,7 +98,10 @@ namespace AutomotiveClaimsApi.Controllers
         public async Task<IActionResult> Login([FromBody] LoginDto dto)
         {
             if (dto.UserName == null || dto.Password == null)
-                return BadRequest();
+            {
+                _logger.LogWarning("Login attempt with missing username or password");
+                return BadRequest(new { message = "Username and password are required." });
+            }
 
             var result = await _signInManager.PasswordSignInAsync(dto.UserName, dto.Password, true, true);
             if (!result.Succeeded)

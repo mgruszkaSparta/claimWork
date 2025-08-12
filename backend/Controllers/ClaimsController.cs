@@ -982,6 +982,9 @@ namespace AutomotiveClaimsApi.Controllers
             var existing = hasId ? entity.Settlements.FirstOrDefault(s => s.Id == settlementId) : null;
             if (existing != null)
             {
+                existing.ExternalEntity = sDto.ExternalEntity;
+                existing.CustomExternalEntity = sDto.CustomExternalEntity;
+                existing.TransferDate = sDto.TransferDate;
                 existing.Status = sDto.Status;
                 existing.SettlementDate = sDto.SettlementDate;
                 existing.Amount = sDto.Amount;
@@ -1004,6 +1007,9 @@ namespace AutomotiveClaimsApi.Controllers
                 {
                     Id = hasId ? settlementId : Guid.NewGuid(),
                     EventId = entity.Id,
+                    ExternalEntity = sDto.ExternalEntity,
+                    CustomExternalEntity = sDto.CustomExternalEntity,
+                    TransferDate = sDto.TransferDate,
                     Status = sDto.Status,
                     SettlementDate = sDto.SettlementDate,
                     Amount = sDto.Amount,

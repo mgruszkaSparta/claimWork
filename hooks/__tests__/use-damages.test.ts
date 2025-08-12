@@ -46,41 +46,41 @@ test('createDamage returns data on success', async () => {
   }
 })
 
-test('initDamages throws on failed response', async () => {
+test('initDamage throws on failed response', async () => {
   const originalFetch = globalThis.fetch
   globalThis.fetch = async () => ({ ok: false, text: async () => 'bad' }) as any
 
   try {
-    const { initDamages } = useDamages('123')
-    await assert.rejects(() => initDamages(), /Nie udało się pobrać szkód|bad/)
+    const { initDamage } = useDamages('123')
+    await assert.rejects(() => initDamage(), /Nie udało się pobrać szkód|bad/)
   } finally {
     globalThis.fetch = originalFetch
   }
 })
 
-test('initDamages returns data on success', async () => {
+test('initDamage returns data on success', async () => {
   const originalFetch = globalThis.fetch
-  const damages = [{ id: '1', eventId: '123', description: 'desc' }]
-  globalThis.fetch = async () => ({ ok: true, json: async () => damages }) as any
+  const init = { id: '1' }
+  globalThis.fetch = async () => ({ ok: true, json: async () => init }) as any
 
   try {
-    const { initDamages } = useDamages('123')
-    const result = await initDamages()
-    assert.deepEqual(result, damages)
+    const { initDamage } = useDamages('123')
+    const result = await initDamage()
+    assert.deepEqual(result, init)
   } finally {
     globalThis.fetch = originalFetch
   }
 })
 
-test('initDamages fetches initial damages', async () => {
+test('initDamage fetches initial id', async () => {
   const originalFetch = global.fetch
-  const mockDamages = [{ description: 'Damage 1' }]
+  const init = { id: 'abc' }
 
   global.fetch = async (url: any) => {
     assert.equal(url, API_ENDPOINTS.DAMAGES_INIT)
     return {
       ok: true,
-      json: async () => mockDamages,
+      json: async () => init,
     } as any
   }
 
@@ -91,8 +91,8 @@ test('initDamages fetches initial damages', async () => {
   }
   renderToString(React.createElement(Wrapper))
 
-  const result = await hook!.initDamages()
-  assert.deepEqual(result, mockDamages)
+  const result = await hook!.initDamage()
+  assert.deepEqual(result, init)
   global.fetch = originalFetch
 })
 

@@ -15,7 +15,11 @@ export interface Damage {
   isSaved?: boolean
 }
 
-export function initDamage(params: Partial<Damage> = {}): Damage {
+export interface DamageInit {
+  id: string
+}
+
+export function createDamageDraft(params: Partial<Damage> = {}): Damage {
   return {
     description: "",
     isSaved: false,
@@ -24,7 +28,7 @@ export function initDamage(params: Partial<Damage> = {}): Damage {
 }
 
 export function useDamages(eventId?: string) {
-  const initDamages = useCallback(async (): Promise<Damage[]> => {
+  const initDamage = useCallback(async (): Promise<DamageInit> => {
     const response = await fetch(API_ENDPOINTS.DAMAGES_INIT)
 
     if (!response.ok) {
@@ -107,7 +111,7 @@ export function useDamages(eventId?: string) {
     }
   }, [])
 
-  return { createDamage, updateDamage, deleteDamage, initDamages, fetchDamages }
+  return { createDamage, updateDamage, deleteDamage, initDamage, fetchDamages }
 
 }
 

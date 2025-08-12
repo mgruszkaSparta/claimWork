@@ -25,7 +25,6 @@ export function useAuth() {
   useEffect(() => {
     const initialize = async () => {
       try {
-        await apiService.fetchAntiforgery()
         const user = await apiService.getCurrentUser()
         setAuthState({
           user: user || null,
@@ -40,7 +39,6 @@ export function useAuth() {
   }, [])
 
   const login = async (username: string, password: string) => {
-    await apiService.fetchAntiforgery()
     await apiService.login(username, password)
     const user = await apiService.getCurrentUser()
     setAuthState({

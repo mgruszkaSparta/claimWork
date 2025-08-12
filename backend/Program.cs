@@ -3,7 +3,6 @@ using AutomotiveClaimsApi.Data;
 using AutomotiveClaimsApi.Services;
 using AutomotiveClaimsApi.Models;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Antiforgery;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc.Authorization;
@@ -17,7 +16,6 @@ builder.Services.AddControllersWithViews(options =>
         .RequireAuthenticatedUser()
         .Build();
     options.Filters.Add(new AuthorizeFilter(policy));
-    options.Filters.Add(new AutoValidateAntiforgeryTokenAttribute());
 });
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
@@ -49,13 +47,6 @@ builder.Services.ConfigureApplicationCookie(options =>
         context.Response.StatusCode = 403;
         return Task.CompletedTask;
     };
-});
-
-builder.Services.AddAntiforgery(options =>
-{
-    options.HeaderName = "X-XSRF-TOKEN";
-    options.Cookie.Name = "XSRF-TOKEN";
-    options.Cookie.HttpOnly = true;
 });
 
 // Configure SMTP settings
@@ -97,16 +88,6 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 app.UseCors("Frontend");
-app.Use(async (context, next) =>
-{
-    if (string.Equals(context.Request.Method, "GET", StringComparison.OrdinalIgnoreCase))
-    {
-        var antiforgery = context.RequestServices.GetRequiredService<IAntiforgery>();
-        var tokens = antiforgery.GetAndStoreTokens(context);
-        context.Response.Headers["X-XSRF-TOKEN"] = tokens.RequestToken!;
-    }
-    await next();
-});
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();

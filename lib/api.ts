@@ -500,12 +500,6 @@ export interface SettlementUpsertDto {
 
 // API Service
 class ApiService {
-  private getCsrfToken(): string | null {
-    if (typeof document === "undefined") return null
-    const match = document.cookie.match(/XSRF-TOKEN=([^;]+)/)
-    return match ? decodeURIComponent(match[1]) : null
-  }
-
   private async request<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
     const url = `${API_BASE_URL}${endpoint}`
     if (process.env.NODE_ENV === "development") {
@@ -517,12 +511,6 @@ class ApiService {
     const headers: Record<string, string> = {
       "Content-Type": "application/json",
       ...(options.headers as Record<string, string>),
-    }
-    if (method !== "GET" && method !== "HEAD") {
-      const token = this.getCsrfToken()
-      if (token) {
-        headers["X-XSRF-TOKEN"] = token
-      }
     }
 
     const response = await fetch(url, {
@@ -569,12 +557,6 @@ class ApiService {
       console.log("Response text:", text)
     }
     return text as unknown as T
-  }
-
-  async fetchAntiforgery(): Promise<void> {
-    await fetch(`${API_BASE_URL}/auth/antiforgery`, {
-      credentials: "include",
-    })
   }
 
   async register(username: string, email: string, password: string): Promise<void> {
@@ -748,18 +730,8 @@ class ApiService {
   }
 
   async forgotPassword(email: string): Promise<void> {
-    const csrfToken =
-      typeof document !== "undefined"
-        ? document.cookie
-            .split("; ")
-            .find((row) => row.startsWith("XSRF-TOKEN="))?.split("=")[1]
-        : undefined
-
     return this.request<void>("/auth/forgot-password", {
       method: "POST",
-      headers: {
-        ...(csrfToken ? { "X-CSRF-Token": csrfToken } : {}),
-      },
       credentials: "include",
       body: JSON.stringify({ email }),
     })
@@ -770,18 +742,8 @@ class ApiService {
     token: string,
     password: string,
   ): Promise<void> {
-    const csrfToken =
-      typeof document !== "undefined"
-        ? document.cookie
-            .split("; ")
-            .find((row) => row.startsWith("XSRF-TOKEN="))?.split("=")[1]
-        : undefined
-
     return this.request<void>("/auth/reset-password", {
       method: "POST",
-      headers: {
-        ...(csrfToken ? { "X-CSRF-Token": csrfToken } : {}),
-      },
       credentials: "include",
       body: JSON.stringify({ email, token, password }),
     })

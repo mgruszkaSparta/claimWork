@@ -46,6 +46,7 @@ import VehicleTypeDropdown from "@/components/vehicle-type-dropdown"
 import type { VehicleTypeSelectionEvent } from "@/types/vehicle-type"
 import { RepairScheduleSection } from "./repair-schedule-section"
 import { RepairDetailsSection } from "./repair-details-section"
+import type { RepairDetail } from "@/lib/repair-details-store"
 
 interface RiskType {
   value: string
@@ -194,6 +195,37 @@ export const ClaimMainContent = ({
     /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/.test(value)
 
   const eventId = claimFormData.id && isGuid(claimFormData.id) ? claimFormData.id : undefined
+
+  const [repairDetails, setRepairDetails] = useState<RepairDetail[]>([])
+
+  useEffect(() => {
+    const loadRepairDetails = async () => {
+      if (!eventId) return
+      try {
+        const response = await fetch(`/api/repair-details?eventId=${eventId}`, {
+          method: "GET",
+          credentials: "include",
+        })
+        if (response.ok) {
+          const data = await response.json()
+          setRepairDetails(data)
+        }
+      } catch (error) {
+        console.error("Error loading repair details:", error)
+      }
+    }
+
+    loadRepairDetails()
+  }, [eventId])
+
+  const summaryStatus =
+    repairDetails.length === 0
+      ? ""
+      : repairDetails.some((d) => d.status === "in-progress")
+      ? "W trakcie"
+      : repairDetails.every((d) => d.status === "completed")
+      ? "Zakończone"
+      : "Szkic"
 
 
 
@@ -1179,91 +1211,47 @@ const renderParticipantDetails = (participant: ParticipantInfo | undefined, titl
                         <InfoCard
                           icon={<Wrench className="h-4 w-4" />}
                           label="Liczba pozycji"
-                          value="5"
+                          value={repairDetails.length.toString()}
                         />
                         <InfoCard
                           icon={<DollarSign className="h-4 w-4" />}
                           label="Całkowity koszt"
-                          value="7,300 PLN"
+                          value=""
                         />
                         <InfoCard
                           icon={<Clock className="h-4 w-4" />}
                           label="Status"
-                          value="W realizacji"
+                          value={summaryStatus}
                         />
                       </div>
 
-                      {/* Sample repair detail items */}
-                      <div className="space-y-2">
-                        <div className="bg-gray-50 rounded-lg p-3 border border-gray-200">
-                          <div className="flex items-center justify-between mb-2">
-                            <h4 className="font-medium text-gray-900 text-sm">Naprawa zderzaka przedniego</h4>
-                            <span className="px-2 py-1 bg-yellow-100 text-yellow-800 rounded-full text-xs font-medium">
-                              W trakcie
-                            </span>
+                      {repairDetails.length > 0 && (
+                        <div className="space-y-2">
+                          {repairDetails.slice(0, 2).map((detail, index) => (
+                            <div key={detail.id || index} className="bg-gray-50 rounded-lg p-3 border border-gray-200">
+                              <div className="flex items-center justify-between mb-2">
+                                <h4 className="font-medium text-gray-900 text-sm">
+                                  {detail.vehicleTabNumber} ({detail.vehicleRegistration})
+                                </h4>
+                                <span className="px-2 py-1 bg-gray-100 text-gray-800 rounded-full text-xs font-medium">
+                                  {detail.status}
+                                </span>
+                              </div>
+                              <div className="grid grid-cols-2 gap-4 text-xs text-gray-600">
+                                <div>
+                                  <span className="font-medium">Łączne godziny:</span>{" "}
+                                  {(detail.bodyworkHours + detail.paintingHours + detail.assemblyHours + detail.otherWorkHours).toFixed(1)}
+                                </div>
+                                {detail.repairStartDate && (
+                                  <div>
+                                    <span className="font-medium">Rozpoczęcie:</span> {detail.repairStartDate}
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                            ))
                           </div>
-                          <div className="grid grid-cols-2 gap-4 text-xs text-gray-600">
-                            <div>
-                              <span className="font-medium">Pracownik:</span> Jan Kowalski
-                            </div>
-                            <div>
-                              <span className="font-medium">Oddział:</span> Warszawa Centrum
-                            </div>
-                            <div>
-                              <span className="font-medium">Data rozpoczęcia:</span> 15.01.2025
-                            </div>
-                            <div>
-                              <span className="font-medium">Koszt:</span> 1,200 PLN
-                            </div>
-                          </div>
-                        </div>
-
-                        <div className="bg-gray-50 rounded-lg p-3 border border-gray-200">
-                          <div className="flex items-center justify-between mb-2">
-                            <h4 className="font-medium text-gray-900 text-sm">Wymiana reflektora</h4>
-                            <span className="px-2 py-1 bg-green-100 text-green-800 rounded-full text-xs font-medium">
-                              Zakończone
-                            </span>
-                          </div>
-                          <div className="grid grid-cols-2 gap-4 text-xs text-gray-600">
-                            <div>
-                              <span className="font-medium">Pracownik:</span> Anna Nowak
-                            </div>
-                            <div>
-                              <span className="font-medium">Oddział:</span> Warszawa Centrum
-                            </div>
-                            <div>
-                              <span className="font-medium">Data zakończenia:</span> 12.01.2025
-                            </div>
-                            <div>
-                              <span className="font-medium">Koszt:</span> 850 PLN
-                            </div>
-                          </div>
-                        </div>
-
-                        <div className="bg-gray-50 rounded-lg p-3 border border-gray-200">
-                          <div className="flex items-center justify-between mb-2">
-                            <h4 className="font-medium text-gray-900 text-sm">Lakierowanie maski</h4>
-                            <span className="px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-xs font-medium">
-                              Zaplanowane
-                            </span>
-                          </div>
-                          <div className="grid grid-cols-2 gap-4 text-xs text-gray-600">
-                            <div>
-                              <span className="font-medium">Pracownik:</span> Piotr Wiśniewski
-                            </div>
-                            <div>
-                              <span className="font-medium">Oddział:</span> Warszawa Południe
-                            </div>
-                            <div>
-                              <span className="font-medium">Planowany start:</span> 20.01.2025
-                            </div>
-                            <div>
-                              <span className="font-medium">Koszt:</span> 2,100 PLN
-                            </div>
-                          </div>
-                        </div>
-                      </div>
+                        )}
 
                       <div className="text-center pt-2">
                         <p className="text-xs text-gray-400">Kliknij "Rozwiń" aby zobaczyć pełne szczegóły i dodać nowe pozycje naprawy</p>

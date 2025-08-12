@@ -362,7 +362,7 @@ export function useClaims() {
     }
   }
 
-  const initializeClaim = async (): Promise<string | null> => {
+  const initializeClaim = useCallback(async (): Promise<string | null> => {
     try {
       setError(null)
       const { id } = await apiService.initializeClaim()
@@ -372,7 +372,7 @@ export function useClaims() {
       setError(`Failed to initialize claim: ${message}`)
       return null
     }
-  }
+  }, [])
 
   const createClaim = async (claimData: Claim): Promise<Claim | null> => {
     try {

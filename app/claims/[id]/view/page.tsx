@@ -115,7 +115,10 @@ export default function ViewClaimPage() {
       setIsLoading(true)
       setLoadError(null)
 
-      const response = await fetch(`/api/claims/${id}`)
+      const response = await fetch(`/api/claims/${id}`, {
+        method: "GET",
+        credentials: "include",
+      })
       if (!response.ok) {
         throw new Error(`HTTP ${response.status}: ${response.statusText}`)
       }
@@ -145,7 +148,10 @@ export default function ViewClaimPage() {
 
   const loadRepairSchedules = useCallback(async () => {
     try {
-      const response = await fetch(`/api/repair-schedules?eventId=${id}`)
+      const response = await fetch(`/api/repair-schedules?eventId=${id}`, {
+        method: "GET",
+        credentials: "include",
+      })
       if (response.ok) {
         const data = await response.json()
         setRepairSchedules(data)
@@ -157,7 +163,10 @@ export default function ViewClaimPage() {
 
   const loadRepairDetails = useCallback(async () => {
     try {
-      const response = await fetch(`/api/repair-details?eventId=${id}`)
+      const response = await fetch(`/api/repair-details?eventId=${id}`, {
+        method: "GET",
+        credentials: "include",
+      })
       if (response.ok) {
         const data = await response.json()
         setRepairDetails(data)
@@ -221,6 +230,7 @@ export default function ViewClaimPage() {
 
       const response = await fetch("/api/repair-schedules", {
         method: "POST",
+        credentials: "include",
         headers: {
           "Content-Type": "application/json",
         },
@@ -255,6 +265,7 @@ export default function ViewClaimPage() {
     try {
       const response = await fetch("/api/repair-details", {
         method: "POST",
+        credentials: "include",
         headers: {
           "Content-Type": "application/json",
         },

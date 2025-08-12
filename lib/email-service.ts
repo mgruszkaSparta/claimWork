@@ -39,7 +39,10 @@ class EmailService {
 
   async getAllEmails(): Promise<EmailDto[]> {
     try {
-      const response = await fetch(this.apiUrl)
+      const response = await fetch(this.apiUrl, {
+        method: "GET",
+        credentials: "include",
+      })
       if (!response.ok) throw new Error("Failed to fetch emails")
       return await response.json()
     } catch (error) {
@@ -50,7 +53,10 @@ class EmailService {
 
   async getEmailById(id: number): Promise<EmailDto | undefined> {
     try {
-      const response = await fetch(`${this.apiUrl}/${id}`)
+      const response = await fetch(`${this.apiUrl}/${id}`, {
+        method: "GET",
+        credentials: "include",
+      })
       if (!response.ok) throw new Error("Failed to fetch email")
       return await response.json()
     } catch (error) {
@@ -63,6 +69,7 @@ class EmailService {
     try {
       const response = await fetch(`${this.apiUrl}/${emailId}`, {
         method: "DELETE",
+        credentials: "include",
       })
       return response.ok
     } catch (error) {
@@ -78,7 +85,10 @@ class EmailService {
     }
 
     try {
-      const response = await fetch(`${this.apiUrl}/folder/${folder}`)
+      const response = await fetch(`${this.apiUrl}/folder/${folder}`, {
+        method: "GET",
+        credentials: "include",
+      })
       if (!response.ok) throw new Error("Failed to fetch emails by folder")
       return await response.json()
     } catch (error) {
@@ -94,7 +104,13 @@ class EmailService {
     }
 
     try {
-      const response = await fetch(`${this.apiUrl}/folder/${folder}/assigned/${claimId}`)
+      const response = await fetch(
+        `${this.apiUrl}/folder/${folder}/assigned/${claimId}`,
+        {
+          method: "GET",
+          credentials: "include",
+        },
+      )
       if (!response.ok) throw new Error("Failed to fetch assigned emails")
       return await response.json()
     } catch (error) {
@@ -105,7 +121,10 @@ class EmailService {
 
   async getUnassignedEmails(): Promise<EmailDto[]> {
     try {
-      const response = await fetch(`${this.apiUrl}/unassigned`)
+      const response = await fetch(`${this.apiUrl}/unassigned`, {
+        method: "GET",
+        credentials: "include",
+      })
       if (!response.ok) throw new Error("Failed to fetch unassigned emails")
       return await response.json()
     } catch (error) {
@@ -116,7 +135,10 @@ class EmailService {
 
   async getEmailsByClaimId(claimId: string): Promise<EmailDto[]> {
     try {
-      const response = await fetch(`${this.apiUrl}/by-claim/${claimId}`)
+      const response = await fetch(`${this.apiUrl}/by-claim/${claimId}`, {
+        method: "GET",
+        credentials: "include",
+      })
       if (!response.ok) throw new Error("Failed to fetch emails by claim")
       return await response.json()
     } catch (error) {
@@ -129,6 +151,7 @@ class EmailService {
     try {
       const response = await fetch(`${this.apiUrl}/${emailId}/read`, {
         method: "POST",
+        credentials: "include",
         headers: { "Content-Type": "application/json" },
       })
       return response.ok
@@ -160,6 +183,7 @@ class EmailService {
 
       const response = await fetch(url, {
         method: "POST",
+        credentials: "include",
         body: formData,
       })
 
@@ -172,7 +196,10 @@ class EmailService {
 
   async downloadAttachment(attachmentId: number): Promise<Blob | undefined> {
     try {
-      const response = await fetch(`${this.apiUrl}/attachment/${attachmentId}`)
+      const response = await fetch(`${this.apiUrl}/attachment/${attachmentId}`, {
+        method: "GET",
+        credentials: "include",
+      })
       if (!response.ok) throw new Error("Failed to download attachment")
       return await response.blob()
     } catch (error) {
@@ -185,6 +212,7 @@ class EmailService {
     try {
       const response = await fetch(`${this.apiUrl}/assign-to-claim`, {
         method: "POST",
+        credentials: "include",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ emailId, claimId }),
       })

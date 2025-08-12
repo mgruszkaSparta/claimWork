@@ -285,6 +285,7 @@ export default function NewClaimPage() {
       for (const schedule of repairSchedules) {
         const response = await fetch("/api/repair-schedules", {
           method: "POST",
+          credentials: "include",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ ...schedule, claimId: currentClaimId }),
         })
@@ -299,6 +300,7 @@ export default function NewClaimPage() {
       for (const detail of repairDetails) {
         const response = await fetch("/api/repair-details", {
           method: "POST",
+          credentials: "include",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ ...detail, claimId: currentClaimId }),
         })
@@ -324,12 +326,18 @@ export default function NewClaimPage() {
     } catch (error) {
       // rollback
       for (const id of savedDetailIds) {
-        await fetch(`/api/repair-details/${id}`, { method: "DELETE" }).catch(
+        await fetch(`/api/repair-details/${id}`, {
+          method: "DELETE",
+          credentials: "include",
+        }).catch(
           () => {},
         )
       }
       for (const id of savedScheduleIds) {
-        await fetch(`/api/repair-schedules/${id}`, { method: "DELETE" }).catch(
+        await fetch(`/api/repair-schedules/${id}`, {
+          method: "DELETE",
+          credentials: "include",
+        }).catch(
           () => {},
         )
       }

@@ -155,7 +155,10 @@ export const DocumentsSection = ({
     setLoading(true)
     try {
       console.log("Loading documents for eventId:", eventId)
-      const response = await fetch(`/api/documents?eventId=${eventId}`)
+      const response = await fetch(`/api/documents?eventId=${eventId}`, {
+        method: "GET",
+        credentials: "include",
+      })
 
       if (response.status === 404) {
         setDocuments([])
@@ -311,6 +314,7 @@ export const DocumentsSection = ({
         console.log(`Making upload request for ${file.name}...`)
         const response = await fetch("/api/documents/upload", {
           method: "POST",
+          credentials: "include",
           body: formData,
         })
 
@@ -485,6 +489,7 @@ export const DocumentsSection = ({
     try {
       const response = await fetch(`/api/documents/${documentId}`, {
         method: "DELETE",
+        credentials: "include",
       })
 
       if (response.ok) {
@@ -521,6 +526,7 @@ export const DocumentsSection = ({
     try {
       const response = await fetch(`/api/documents/${documentId}`, {
         method: "PUT",
+        credentials: "include",
         headers: {
           "Content-Type": "application/json",
         },
@@ -548,6 +554,7 @@ export const DocumentsSection = ({
 
       const response = await fetch(`/api/documents/${documentId}/generate-description`, {
         method: "POST",
+        credentials: "include",
       })
 
       if (response.ok) {
@@ -615,7 +622,10 @@ export const DocumentsSection = ({
       const zip = new JSZip()
 
       for (const document of documentsForCategory) {
-        const response = await fetch(document.downloadUrl)
+        const response = await fetch(document.downloadUrl, {
+          method: "GET",
+          credentials: "include",
+        })
         const blob = await response.blob()
         zip.file(document.originalFileName, blob)
       }
@@ -660,7 +670,10 @@ export const DocumentsSection = ({
       const zip = new JSZip()
 
       for (const document of documentsForCategory) {
-        const response = await fetch(document.downloadUrl)
+        const response = await fetch(document.downloadUrl, {
+          method: "GET",
+          credentials: "include",
+        })
         const blob = await response.blob()
         zip.file(document.originalFileName, blob)
       }

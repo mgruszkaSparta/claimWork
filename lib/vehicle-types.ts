@@ -13,7 +13,10 @@ export const vehicleTypeService = {
       const url = `${API_BASE_URL}${params.toString() ? `?${params.toString()}` : ""}`
       console.log("Fetching vehicle types from:", url)
 
-      const response = await fetch(url)
+      const response = await fetch(url, {
+        method: "GET",
+        credentials: "include",
+      })
 
 
       if (!response.ok) {
@@ -36,7 +39,10 @@ export const vehicleTypeService = {
   async getVehicleTypeById(id: string): Promise<VehicleType | null> {
     try {
 
-      const response = await fetch(`${API_BASE_URL}/${id}`)
+      const response = await fetch(`${API_BASE_URL}/${id}`, {
+        method: "GET",
+        credentials: "include",
+      })
 
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`)

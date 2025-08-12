@@ -43,6 +43,7 @@ export type RepairDetailUpsert = z.infer<typeof repairDetailUpsertSchema>;
 
 async function request<T>(url: string, options: RequestInit = {}): Promise<T> {
   const response = await fetch(`${API_BASE_URL}${url}`, {
+    credentials: "include",
     headers: { "Content-Type": "application/json" },
     ...options,
   });

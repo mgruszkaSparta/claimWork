@@ -43,7 +43,10 @@ export function DependentSelect({
 
       try {
         const url = dependsOn ? `${apiUrl}?dependsOn=${dependsOn}` : apiUrl
-        const response = await fetch(url)
+        const response = await fetch(url, {
+          method: "GET",
+          credentials: "include",
+        })
 
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`)

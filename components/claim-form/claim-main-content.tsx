@@ -2027,11 +2027,7 @@ const renderParticipantDetails = (participant: ParticipantInfo | undefined, titl
               <CardTitle className="text-lg font-semibold">Ugoda</CardTitle>
             </CardHeader>
             <CardContent className="p-0 bg-white">
-              <SettlementsSection
-                settlements={claimFormData.settlements || []}
-                onSettlementsChange={(settlements) => handleFormChange("settlements", settlements)}
-                claimId={claimFormData.id || undefined}
-              />
+              <SettlementsSection claimId={claimFormData.id || ""} />
             </CardContent>
           </Card>
         </div>

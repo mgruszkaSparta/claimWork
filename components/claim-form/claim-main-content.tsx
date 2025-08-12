@@ -248,6 +248,8 @@ export const ClaimMainContent = ({
     naprawa: false,
   })
 
+  const [autoShowRepairForm, setAutoShowRepairForm] = useState(false)
+
   const [claimStatuses, setClaimStatuses] = useState<ClaimStatus[]>([])
   const [loadingStatuses, setLoadingStatuses] = useState(false)
 
@@ -1141,6 +1143,16 @@ const renderParticipantDetails = (participant: ParticipantInfo | undefined, titl
                     </div>
                     <div className="flex items-center space-x-2">
                       <Button
+                        size="sm"
+                        onClick={() => {
+                          if (!expandedSections.naprawa) toggleSection('naprawa')
+                          setAutoShowRepairForm(true)
+                        }}
+                        className="text-xs bg-[#1a3a6c] hover:bg-[#15305a] text-white"
+                      >
+                        Dodaj opis naprawy
+                      </Button>
+                      <Button
                         variant="outline"
                         size="sm"
                         onClick={() => toggleSection('naprawa')}
@@ -1154,7 +1166,11 @@ const renderParticipantDetails = (participant: ParticipantInfo | undefined, titl
                 <div className="p-4">
                   {expandedSections.naprawa && eventId ? (
                     <div className="border rounded-lg overflow-hidden">
-                      <RepairDetailsSection eventId={eventId} />
+                      <RepairDetailsSection
+                        eventId={eventId}
+                        autoShowForm={autoShowRepairForm}
+                        onAutoShowFormHandled={() => setAutoShowRepairForm(false)}
+                      />
                     </div>
                   ) : (
                     <div className="space-y-4">
@@ -2873,29 +2889,43 @@ const renderParticipantDetails = (participant: ParticipantInfo | undefined, titl
           {/* Szczegóły naprawy - expandable section */}
           <div className="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden">
             <div className="px-4 py-3 bg-gradient-to-r from-blue-50 to-blue-100 border-b border-gray-200">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-2">
-                  <Wrench className="h-4 w-4 text-blue-600" />
-                  <h3 className="text-sm font-semibold text-gray-900">Szczegóły naprawy</h3>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => toggleSection('naprawa')}
-                    className="text-xs"
-                  >
-                    {expandedSections.naprawa ? 'Zwiń' : 'Rozwiń'}
-                  </Button>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-2">
+                    <Wrench className="h-4 w-4 text-blue-600" />
+                    <h3 className="text-sm font-semibold text-gray-900">Szczegóły naprawy</h3>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <Button
+                      size="sm"
+                      onClick={() => {
+                        if (!expandedSections.naprawa) toggleSection('naprawa')
+                        setAutoShowRepairForm(true)
+                      }}
+                      className="text-xs bg-[#1a3a6c] hover:bg-[#15305a] text-white"
+                    >
+                      Dodaj opis naprawy
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => toggleSection('naprawa')}
+                      className="text-xs"
+                    >
+                      {expandedSections.naprawa ? 'Zwiń' : 'Rozwiń'}
+                    </Button>
+                  </div>
                 </div>
               </div>
-            </div>
-            <div className="p-4">
-              {expandedSections.naprawa && eventId ? (
-                <div className="border rounded-lg overflow-hidden">
-                <RepairDetailsSection eventId={eventId} />
-                </div>
-              ) : (
+              <div className="p-4">
+                {expandedSections.naprawa && eventId ? (
+                  <div className="border rounded-lg overflow-hidden">
+                <RepairDetailsSection
+                  eventId={eventId}
+                  autoShowForm={autoShowRepairForm}
+                  onAutoShowFormHandled={() => setAutoShowRepairForm(false)}
+                />
+                  </div>
+                ) : (
                 <div className="space-y-4">
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <InfoCard

@@ -24,9 +24,15 @@ import { pksData, type Employee } from "@/lib/pks-data"
 
 interface RepairDetailsSectionProps {
   eventId: string
+  autoShowForm?: boolean
+  onAutoShowFormHandled?: () => void
 }
 
-export function RepairDetailsSection({ eventId }: RepairDetailsSectionProps) {
+export function RepairDetailsSection({
+  eventId,
+  autoShowForm,
+  onAutoShowFormHandled,
+}: RepairDetailsSectionProps) {
   const [repairDetails, setRepairDetails] = useState<RepairDetail[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [editingId, setEditingId] = useState<string | null>(null)
@@ -102,6 +108,13 @@ export function RepairDetailsSection({ eventId }: RepairDetailsSectionProps) {
     resetForm()
     setIsFormVisible(false)
   }
+
+  useEffect(() => {
+    if (autoShowForm) {
+      handleAddNewClick()
+      onAutoShowFormHandled?.()
+    }
+  }, [autoShowForm])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()

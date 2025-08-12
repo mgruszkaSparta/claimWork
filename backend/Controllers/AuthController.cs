@@ -2,7 +2,6 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Identity;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Antiforgery;
 using AutomotiveClaimsApi.Models;
 using AutomotiveClaimsApi.DTOs;
 using AutomotiveClaimsApi.Services;
@@ -17,20 +16,17 @@ namespace AutomotiveClaimsApi.Controllers
     {
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly SignInManager<ApplicationUser> _signInManager;
-        private readonly IAntiforgery _antiforgery;
         private readonly IEmailSender? _emailSender;
         private readonly ILogger<AuthController> _logger;
 
         public AuthController(
             UserManager<ApplicationUser> userManager,
             SignInManager<ApplicationUser> signInManager,
-            IAntiforgery antiforgery,
             ILogger<AuthController> logger,
             IEmailSender? emailSender = null)
         {
             _userManager = userManager;
             _signInManager = signInManager;
-            _antiforgery = antiforgery;
             _logger = logger;
             _emailSender = emailSender;
         }
@@ -127,15 +123,6 @@ namespace AutomotiveClaimsApi.Controllers
             if (user == null) return Unauthorized();
             var roles = await _userManager.GetRolesAsync(user);
             return new UserDto { Id = user.Id, UserName = user.UserName, Email = user.Email, Roles = roles };
-        }
-
-        [AllowAnonymous]
-        [HttpGet("antiforgery")]
-        public IActionResult Antiforgery()
-        {
-            var tokens = _antiforgery.GetAndStoreTokens(HttpContext);
-            Response.Cookies.Append("XSRF-TOKEN", tokens.RequestToken!, new CookieOptions { HttpOnly = false });
-            return Ok(new { message = "Antiforgery token generated", token = tokens.RequestToken });
         }
 
         [Authorize]

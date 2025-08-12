@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Antiforgery;
 using AutomotiveClaimsApi.Models;
 using AutomotiveClaimsApi.DTOs;
+using AutomotiveClaimsApi.Services;
 using Microsoft.AspNetCore.Http;
 
 
@@ -15,12 +16,19 @@ namespace AutomotiveClaimsApi.Controllers
     public class AuthController : ControllerBase
     {
         private readonly UserManager<ApplicationUser> _userManager;
-
+        private readonly SignInManager<ApplicationUser> _signInManager;
+        private readonly IAntiforgery _antiforgery;
         private readonly IEmailSender? _emailSender;
 
-        public AuthController(UserManager<ApplicationUser> userManager, IEmailSender? emailSender = null)
+        public AuthController(
+            UserManager<ApplicationUser> userManager,
+            SignInManager<ApplicationUser> signInManager,
+            IAntiforgery antiforgery,
+            IEmailSender? emailSender = null)
         {
             _userManager = userManager;
+            _signInManager = signInManager;
+            _antiforgery = antiforgery;
             _emailSender = emailSender;
         }
 
@@ -65,18 +73,6 @@ namespace AutomotiveClaimsApi.Controllers
 
         public record ForgotPasswordDto(string Email);
         public record ResetPasswordDto(string Email, string Token, string NewPassword);
-
-        private readonly SignInManager<ApplicationUser> _signInManager;
-        private readonly IAntiforgery _antiforgery;
-
-        public AuthController(UserManager<ApplicationUser> userManager,
-            SignInManager<ApplicationUser> signInManager,
-            IAntiforgery antiforgery)
-        {
-            _userManager = userManager;
-            _signInManager = signInManager;
-            _antiforgery = antiforgery;
-        }
 
         [AllowAnonymous]
         [HttpPost("register")]
@@ -133,22 +129,6 @@ namespace AutomotiveClaimsApi.Controllers
         {
             var tokens = _antiforgery.GetAndStoreTokens(HttpContext);
             Response.Cookies.Append("XSRF-TOKEN", tokens.RequestToken!, new CookieOptions { HttpOnly = false });
-            return NoContent();
-        }
-
-        [AllowAnonymous]
-        [HttpPost("forgot-password")]
-        public IActionResult ForgotPassword([FromBody] ForgotPasswordDto dto)
-        {
-            // In real implementation email with token would be sent
-            return NoContent();
-        }
-
-        [AllowAnonymous]
-        [HttpPost("reset-password")]
-        public IActionResult ResetPassword([FromBody] ResetPasswordDto dto)
-        {
-            // In real implementation password would be reset using provided token
             return NoContent();
         }
 

@@ -418,11 +418,19 @@ export interface RecourseUpsertDto {
 export interface SettlementDto {
   id?: number
   eventId?: number
+  externalEntity?: string
+  customExternalEntity?: string
+  transferDate?: string
   settlementDate?: string
   settlementType?: string
   description?: string
   amount?: number
+  settlementAmount?: number
+  currency?: string
   status?: string
+  documentPath?: string
+  documentName?: string
+  documentDescription?: string
 }
 
 export interface SettlementUpsertDto {

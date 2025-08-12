@@ -206,11 +206,18 @@ export interface Recourse {
 export interface Settlement {
   id?: string
   eventId?: string
+  externalEntity?: string
+  customExternalEntity?: string
+  transferDate?: string
   settlementDate: string
   settlementType: string
   description: string
+  settlementAmount?: number
+  currency?: string
   amount?: number
   status?: string
+  documentPath?: string
+  documentName?: string
 }
 
 export type Service = "policja" | "pogotowie" | "straz" | "holownik"

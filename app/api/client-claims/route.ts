@@ -45,6 +45,7 @@ export async function POST(request: NextRequest) {
     const currency = (formData.get("currency") as string) || "PLN"
     const status = formData.get("status") as string
     const description = formData.get("description") as string
+    const claimNotes = formData.get("claimNotes") as string
     const documentDescription = formData.get("documentDescription") as string
     const document = formData.get("document") as File
 
@@ -60,6 +61,7 @@ export async function POST(request: NextRequest) {
     backendFormData.append("Currency", currency)
     backendFormData.append("Status", status)
     if (description) backendFormData.append("Description", description)
+    if (claimNotes) backendFormData.append("ClaimNotes", claimNotes)
     if (documentDescription) backendFormData.append("DocumentDescription", documentDescription)
     if (document) backendFormData.append("Document", document)
 

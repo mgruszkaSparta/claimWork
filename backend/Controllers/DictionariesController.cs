@@ -154,6 +154,39 @@ namespace AutomotiveClaimsApi.Controllers
             }
         }
 
+        [HttpGet("damage-statuses")]
+        public async Task<ActionResult<DictionaryResponseDto>> GetDamageStatuses()
+        {
+            try
+            {
+                var statuses = await _context.DamageStatuses
+                    .Where(s => s.IsActive)
+                    .OrderBy(s => s.Name)
+                    .Select(s => new DictionaryItemDto
+                    {
+                        Id = s.Id.ToString(),
+                        Name = s.Name,
+                        Code = s.Code,
+                        IsActive = s.IsActive
+                    })
+                    .ToListAsync();
+
+                var response = new DictionaryResponseDto
+                {
+                    Items = statuses,
+                    TotalCount = statuses.Count,
+                    Category = "DamageStatuses"
+                };
+
+                return Ok(response);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error retrieving damage statuses");
+                return StatusCode(500, new { error = "Failed to retrieve damage statuses" });
+            }
+        }
+
         [HttpGet("vehicle-types")]
         public async Task<ActionResult<DictionaryResponseDto>> GetVehicleTypes()
         {

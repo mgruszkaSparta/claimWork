@@ -19,7 +19,6 @@ import { AppealsSection } from "./appeals-section"
 import { ClientClaimsSection } from "./client-claims-section"
 import { RecourseSection } from "./recourse-section"
 import { SettlementsSection } from "./settlements-section"
-import { CLAIM_STATUSES } from "@/lib/constants"
 import type {
   Claim,
   Service,
@@ -52,7 +51,7 @@ interface RiskType {
   label: string
 }
 
-interface ClaimStatus {
+interface DamageStatus {
   id: number
   name: string
   description: string
@@ -248,13 +247,13 @@ export const ClaimMainContent = ({
     naprawa: false,
   })
 
-  const [claimStatuses, setClaimStatuses] = useState<ClaimStatus[]>([])
-  const [loadingStatuses, setLoadingStatuses] = useState(false)
+  const [damageStatuses, setDamageStatuses] = useState<DamageStatus[]>([])
+  const [loadingDamageStatuses, setLoadingDamageStatuses] = useState(false)
 
   // Load data on component mount
   useEffect(() => {
     loadRiskTypes()
-    loadClaimStatuses()
+    loadDamageStatuses()
     loadCaseHandlers()
   }, [claimObjectType])
 
@@ -310,20 +309,20 @@ export const ClaimMainContent = ({
     }
   }
 
-  const loadClaimStatuses = async () => {
-    setLoadingStatuses(true)
+  const loadDamageStatuses = async () => {
+    setLoadingDamageStatuses(true)
     try {
-      const response = await fetch("/api/dictionaries/claim-statuses")
+      const response = await fetch("/api/dictionaries/damage-statuses")
       if (response.ok) {
         const data = await response.json()
-        setClaimStatuses(data.items ?? [])
+        setDamageStatuses(data.items ?? [])
       } else {
         throw new Error(`HTTP error! status: ${response.status}`)
       }
     } catch (error) {
       console.error("Error loading claim statuses:", error)
       // Fallback data
-      setClaimStatuses([
+      setDamageStatuses([
         { id: 1, name: "Do przydzielenia", description: "Do przydzielenia" },
         { id: 2, name: "Nowa szkoda", description: "Nowa szkoda" },
         { id: 3, name: "Zarejestrowana", description: "Zarejestrowana" },
@@ -333,14 +332,14 @@ export const ClaimMainContent = ({
         { id: 9, name: "W odwołaniu", description: "W odwołaniu" },
         { id: 10, name: "Zamknięta", description: "Zamknięta" },
       ])
-      
+
       toast({
         title: "Uwaga",
         description: "Nie udało się załadować statusów szkód. Używane są dane lokalne.",
         variant: "destructive",
       })
     } finally {
-      setLoadingStatuses(false)
+      setLoadingDamageStatuses(false)
     }
   }
 
@@ -574,7 +573,7 @@ export const ClaimMainContent = ({
 
   // Get status label from code
   const getStatusLabel = (statusId?: string) => {
-    const status = claimStatuses.find((s) => s.id.toString() === statusId)
+    const status = damageStatuses.find((s) => s.id.toString() === statusId)
     return status ? status.name : statusId || "Nie wybrano"
   }
 
@@ -1318,13 +1317,13 @@ const renderParticipantDetails = (participant: ParticipantInfo | undefined, titl
                     <Select
                       value={claimFormData.status?.toString() || ""}
                       onValueChange={(value) => handleFormChange("status", value)}
-                      disabled={loadingStatuses}
+                      disabled={loadingDamageStatuses}
                     >
                       <SelectTrigger className="mt-1">
-                        <SelectValue placeholder={loadingStatuses ? "Ładowanie..." : "Wybierz status szkody..."} />
+                        <SelectValue placeholder={loadingDamageStatuses ? "Ładowanie..." : "Wybierz status szkody..."} />
                       </SelectTrigger>
                       <SelectContent>
-                        {claimStatuses.map((status) => (
+                        {damageStatuses.map((status) => (
                           <SelectItem key={status.id} value={status.id.toString()}>
                             {status.name}
                           </SelectItem>

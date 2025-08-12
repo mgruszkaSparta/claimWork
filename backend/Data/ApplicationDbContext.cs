@@ -35,6 +35,7 @@ namespace AutomotiveClaimsApi.Data
         public DbSet<InsuranceCompany> InsuranceCompanies { get; set; }
         public DbSet<LeasingCompany> LeasingCompanies { get; set; }
         public DbSet<ClaimStatus> ClaimStatuses { get; set; }
+        public DbSet<DamageStatus> DamageStatuses { get; set; }
         public DbSet<VehicleType> VehicleTypes { get; set; }
         public DbSet<Priority> Priorities { get; set; }
         public DbSet<EventStatus> EventStatuses { get; set; }

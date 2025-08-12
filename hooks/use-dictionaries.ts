@@ -55,6 +55,10 @@ export function useClaimStatuses() {
   return useDictionary('claim-statuses')
 }
 
+export function useDamageStatuses() {
+  return useDictionary('damage-statuses')
+}
+
 export function usePriorities() {
   return useDictionary('priorities')
 }

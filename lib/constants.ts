@@ -218,6 +218,7 @@ export const API_ENDPOINTS = {
   INSURANCE_COMPANIES: "/api/insurance-companies",
   LEASING_COMPANIES: "/api/leasing-companies",
   CLAIM_STATUSES: "/api/claim-statuses",
+  DAMAGE_STATUSES: "/api/damage-statuses",
   VEHICLE_TYPES: "/api/vehicle-types",
   PRIORITIES: "/api/priorities",
   EVENT_STATUSES: "/api/event-statuses",

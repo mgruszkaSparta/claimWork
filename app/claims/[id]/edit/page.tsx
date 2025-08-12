@@ -155,10 +155,9 @@ export default function EditClaimPage() {
           title: "Szkoda zaktualizowana",
           description: `Szkoda ${updatedClaim.spartaNumber || updatedClaim.claimNumber} została pomyślnie zaktualizowana.`,
         })
-
-
-      if (exitAfterSave) {
-        router.push("/claims")
+        if (exitAfterSave) {
+          router.push("/claims")
+        }
       }
     } catch (error) {
       console.error("Error updating claim:", error)

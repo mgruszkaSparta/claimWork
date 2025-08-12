@@ -1,6 +1,7 @@
 import { type NextRequest, NextResponse } from "next/server"
 
-const API_BASE_URL = process.env.API_BASE_URL
+const API_BASE_URL =
+  process.env.NEXT_PUBLIC_API_URL || "http://localhost:5200/api"
 const RETRY_COUNT = Number(process.env.FETCH_RETRY_COUNT || "1")
 
 async function fetchWithRetry(
@@ -45,6 +46,7 @@ export async function GET(request: NextRequest) {
 
     const response = await fetchWithRetry(url, {
       method: "GET",
+      credentials: "include",
       headers: {
         "Content-Type": "application/json",
       },
@@ -90,6 +92,7 @@ export async function POST(request: NextRequest) {
 
     const response = await fetchWithRetry(`${API_BASE_URL}/settlements`, {
       method: "POST",
+      credentials: "include",
       body: formData,
     })
 

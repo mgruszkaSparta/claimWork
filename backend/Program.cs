@@ -55,7 +55,7 @@ builder.Services.AddAntiforgery(options =>
 {
     options.HeaderName = "X-XSRF-TOKEN";
     options.Cookie.Name = "XSRF-TOKEN";
-    options.Cookie.HttpOnly = false;
+    options.Cookie.HttpOnly = true;
 });
 
 // Configure SMTP settings
@@ -97,6 +97,16 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 app.UseCors("Frontend");
+app.Use(async (context, next) =>
+{
+    if (string.Equals(context.Request.Method, "GET", StringComparison.OrdinalIgnoreCase))
+    {
+        var antiforgery = context.RequestServices.GetRequiredService<IAntiforgery>();
+        var tokens = antiforgery.GetAndStoreTokens(context);
+        context.Response.Headers["X-XSRF-TOKEN"] = tokens.RequestToken!;
+    }
+    await next();
+});
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();

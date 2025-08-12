@@ -19,7 +19,10 @@ class DictionaryService {
   private readonly CACHE_DURATION = 5 * 60 * 1000 // 5 minutes
 
   private async fetchFromAPI(endpoint: string): Promise<DictionaryItem[]> {
-    const response = await fetch(`/api/dictionaries/${endpoint}`)
+    const response = await fetch(`/api/dictionaries/${endpoint}`, {
+      method: "GET",
+      credentials: "include",
+    })
     if (!response.ok) {
       throw new Error(`Failed to fetch ${endpoint}`)
     }

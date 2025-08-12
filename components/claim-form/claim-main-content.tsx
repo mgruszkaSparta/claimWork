@@ -261,7 +261,13 @@ export const ClaimMainContent = ({
   const loadRiskTypes = async () => {
     setLoadingRiskTypes(true)
     try {
-      const response = await fetch(`/api/dictionaries/risk-types?claimObjectTypeId=${claimObjectType}`)
+      const response = await fetch(
+        `/api/dictionaries/risk-types?claimObjectTypeId=${claimObjectType}`,
+        {
+          method: "GET",
+          credentials: "include",
+        },
+      )
       if (response.ok) {
         const data = await response.json()
         // Map data according to your database structure
@@ -313,7 +319,10 @@ export const ClaimMainContent = ({
   const loadClaimStatuses = async () => {
     setLoadingStatuses(true)
     try {
-      const response = await fetch("/api/dictionaries/claim-statuses")
+      const response = await fetch("/api/dictionaries/claim-statuses", {
+        method: "GET",
+        credentials: "include",
+      })
       if (response.ok) {
         const data = await response.json()
         setClaimStatuses(data.items ?? [])
@@ -347,7 +356,10 @@ export const ClaimMainContent = ({
   const loadCaseHandlers = async () => {
     setLoadingHandlers(true)
     try {
-      const response = await fetch("/api/dictionaries/case-handlers")
+      const response = await fetch("/api/dictionaries/case-handlers", {
+        method: "GET",
+        credentials: "include",
+      })
       if (response.ok) {
         const data = await response.json()
         setCaseHandlers(data.items ?? [])

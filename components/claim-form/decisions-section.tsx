@@ -324,7 +324,10 @@ export function DecisionsSection({ claimId, onChange }: DecisionsSectionProps) {
     }
 
     try {
-      const response = await fetch(`/api/decisions/${decision.id}/download`)
+      const response = await fetch(`/api/decisions/${decision.id}/download`, {
+        method: "GET",
+        credentials: "include",
+      })
       if (response.ok) {
         const blob = await response.blob()
         const url = window.URL.createObjectURL(blob)
@@ -359,7 +362,10 @@ export function DecisionsSection({ claimId, onChange }: DecisionsSectionProps) {
     }
 
     try {
-      const response = await fetch(`/api/decisions/${decision.id}/preview`)
+      const response = await fetch(`/api/decisions/${decision.id}/preview`, {
+        method: "GET",
+        credentials: "include",
+      })
       if (response.ok) {
         const blob = await response.blob()
         const url = window.URL.createObjectURL(blob)

@@ -35,7 +35,10 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
             url.searchParams.set("sortable", "true")
           }
 
-          const response = await fetch(url.toString())
+          const response = await fetch(url.toString(), {
+            method: "GET",
+            credentials: "include",
+          })
           if (response.ok) {
             const data = await response.json()
             let fetchedOptions = Array.isArray(data) ? data : data.options || []

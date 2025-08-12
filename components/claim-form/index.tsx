@@ -169,6 +169,7 @@ export function ClaimForm({ initialData, mode }: ClaimFormProps) {
               formDataFile.append('uploadedBy', 'Current User')
               await fetch('/api/documents/upload', {
                 method: 'POST',
+                credentials: 'include',
                 body: formDataFile,
               })
             })

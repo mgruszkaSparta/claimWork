@@ -165,7 +165,10 @@ const DependentSelect = React.forwardRef<React.ElementRef<typeof SelectPrimitive
             url += `?${dependsOnParam}=${encodeURIComponent(dependsOn)}`
           }
 
-          const response = await fetch(url)
+          const response = await fetch(url, {
+            method: "GET",
+            credentials: "include",
+          })
 
           if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`)

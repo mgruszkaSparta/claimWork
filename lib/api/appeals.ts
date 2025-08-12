@@ -51,7 +51,10 @@ function ensureRequiredDates(data: { filingDate?: string }) {
 }
 
 export async function getAppeals(claimId: string): Promise<Appeal[]> {
-  const response = await fetch(`${API_BASE_URL}/appeals/event/${claimId}`);
+  const response = await fetch(`${API_BASE_URL}/appeals/event/${claimId}`, {
+    method: "GET",
+    credentials: "include",
+  });
   if (!response.ok) {
     throw new Error("Failed to fetch appeals");
   }
@@ -86,6 +89,7 @@ export async function createAppeal(
   }
   const response = await fetch(`${API_BASE_URL}/appeals`, {
     method: "POST",
+    credentials: "include",
     body: formData,
   });
   if (!response.ok) {
@@ -121,6 +125,7 @@ export async function updateAppeal(
   }
   const response = await fetch(`${API_BASE_URL}/appeals/${id}`, {
     method: "PUT",
+    credentials: "include",
     body: formData,
   });
   if (!response.ok) {
@@ -133,6 +138,7 @@ export async function updateAppeal(
 export async function deleteAppeal(id: string): Promise<void> {
   const response = await fetch(`${API_BASE_URL}/appeals/${id}`, {
     method: "DELETE",
+    credentials: "include",
   });
   if (!response.ok) {
     throw new Error("Failed to delete appeal");

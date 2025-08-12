@@ -96,7 +96,10 @@ export default function ClaimPage() {
       setIsLoading(true)
       setLoadError(null)
 
-      const response = await fetch(`/api/claims/${claimId}`)
+      const response = await fetch(`/api/claims/${claimId}`, {
+        method: "GET",
+        credentials: "include",
+      })
       if (!response.ok) {
         throw new Error(`HTTP ${response.status}: ${response.statusText}`)
       }

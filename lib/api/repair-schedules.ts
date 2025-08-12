@@ -16,7 +16,11 @@ function ensureRequired(data: { vehicleFleetNumber?: string; vehicleRegistration
 
 export async function getRepairSchedules(eventId: string) {
   const url = eventId ? `${BASE_URL}?eventId=${eventId}` : BASE_URL
-  const response = await fetch(url, { cache: 'no-store' })
+  const response = await fetch(url, {
+    method: 'GET',
+    credentials: 'include',
+    cache: 'no-store',
+  })
   if (!response.ok) {
     throw new Error('Failed to fetch repair schedules')
   }
@@ -27,6 +31,7 @@ export async function createRepairSchedule(data: RepairSchedulePayload) {
   ensureRequired(data)
   const response = await fetch(BASE_URL, {
     method: 'POST',
+    credentials: 'include',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(data),
   })
@@ -48,6 +53,7 @@ export async function updateRepairSchedule(id: string, data: Partial<RepairSched
   }
   const response = await fetch(`${BASE_URL}/${id}`, {
     method: 'PUT',
+    credentials: 'include',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(data),
   })
@@ -58,7 +64,10 @@ export async function updateRepairSchedule(id: string, data: Partial<RepairSched
 }
 
 export async function deleteRepairSchedule(id: string) {
-  const response = await fetch(`${BASE_URL}/${id}`, { method: 'DELETE' })
+  const response = await fetch(`${BASE_URL}/${id}`, {
+    method: 'DELETE',
+    credentials: 'include',
+  })
   if (!response.ok) {
     throw new Error('Failed to delete repair schedule')
   }

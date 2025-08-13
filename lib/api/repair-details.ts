@@ -1,7 +1,5 @@
 import { z } from "zod";
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5200/api";
-
 const repairDetailSchema = z.object({
   id: z.string(),
   eventId: z.string(),
@@ -39,7 +37,7 @@ export type RepairDetail = z.infer<typeof repairDetailSchema>;
 export type RepairDetailUpsert = z.infer<typeof repairDetailUpsertSchema>;
 
 async function request<T>(url: string, options: RequestInit = {}): Promise<T> {
-  const response = await fetch(`${API_BASE_URL}${url}`, {
+  const response = await fetch(`/api${url}`, {
     credentials: "include",
     headers: { "Content-Type": "application/json" },
     ...options,

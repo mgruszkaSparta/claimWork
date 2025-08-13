@@ -6,8 +6,6 @@ export interface RepairSchedulePayload {
   [key: string]: any
 }
 
-const BASE_URL = '/api/repair-schedules'
-
 function ensureRequired(data: { vehicleFleetNumber?: string; vehicleRegistration?: string; damageDate?: string }) {
   if (!data.vehicleFleetNumber || !data.vehicleRegistration || !data.damageDate) {
     throw new Error('vehicleFleetNumber, vehicleRegistration and damageDate are required')
@@ -15,7 +13,9 @@ function ensureRequired(data: { vehicleFleetNumber?: string; vehicleRegistration
 }
 
 export async function getRepairSchedules(eventId: string) {
-  const url = eventId ? `${BASE_URL}?eventId=${eventId}` : BASE_URL
+  const url = eventId
+    ? `/api/repair-schedules?eventId=${eventId}`
+    : '/api/repair-schedules'
   const response = await fetch(url, {
     method: 'GET',
     credentials: 'include',
@@ -29,7 +29,7 @@ export async function getRepairSchedules(eventId: string) {
 
 export async function createRepairSchedule(data: RepairSchedulePayload) {
   ensureRequired(data)
-  const response = await fetch(BASE_URL, {
+  const response = await fetch('/api/repair-schedules', {
     method: 'POST',
     credentials: 'include',
     headers: { 'Content-Type': 'application/json' },
@@ -51,7 +51,7 @@ export async function updateRepairSchedule(id: string, data: Partial<RepairSched
   if ('damageDate' in data && !data.damageDate) {
     throw new Error('damageDate is required')
   }
-  const response = await fetch(`${BASE_URL}/${id}`, {
+  const response = await fetch(`/api/repair-schedules/${id}`, {
     method: 'PUT',
     credentials: 'include',
     headers: { 'Content-Type': 'application/json' },
@@ -64,7 +64,7 @@ export async function updateRepairSchedule(id: string, data: Partial<RepairSched
 }
 
 export async function deleteRepairSchedule(id: string) {
-  const response = await fetch(`${BASE_URL}/${id}`, {
+  const response = await fetch(`/api/repair-schedules/${id}`, {
     method: 'DELETE',
     credentials: 'include',
   })

@@ -202,10 +202,13 @@ export const ClaimMainContent = ({
     const loadRepairDetails = async () => {
       if (!eventId) return
       try {
-        const response = await fetch(`/api/repair-details?eventId=${eventId}`, {
-          method: "GET",
-          credentials: "include",
-        })
+        const response = await fetch(
+          `${process.env.NEXT_PUBLIC_API_URL}/api/repair-details?eventId=${eventId}`,
+          {
+            method: "GET",
+            credentials: "include",
+          },
+        )
         if (response.ok) {
           const data = await response.json()
           setRepairDetails(data)
@@ -353,10 +356,13 @@ export const ClaimMainContent = ({
   const loadClaimStatuses = async () => {
     setLoadingStatuses(true)
     try {
-      const response = await fetch("/api/dictionaries/claim-statuses", {
-        method: "GET",
-        credentials: "include",
-      })
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/api/dictionaries/claim-statuses`,
+        {
+          method: "GET",
+          credentials: "include",
+        },
+      )
       if (response.ok) {
         const data = await response.json()
         setClaimStatuses(data.items ?? [])
@@ -390,10 +396,13 @@ export const ClaimMainContent = ({
   const loadCaseHandlers = async () => {
     setLoadingHandlers(true)
     try {
-      const response = await fetch("/api/dictionaries/case-handlers", {
-        method: "GET",
-        credentials: "include",
-      })
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/api/dictionaries/case-handlers`,
+        {
+          method: "GET",
+          credentials: "include",
+        },
+      )
       if (response.ok) {
         const data = await response.json()
         setCaseHandlers(data.items ?? [])

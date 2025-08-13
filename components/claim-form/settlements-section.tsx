@@ -250,17 +250,16 @@ export const SettlementsSection: React.FC<SettlementsSectionProps> = ({ eventId 
 
   // Edit settlement
   const editSettlement = useCallback((settlement: Settlement) => {
-    const isCustom =
-      settlement.externalEntity && !["ClaimXpert360"].includes(settlement.externalEntity)
+    const isCustom = !!settlement.customExternalEntity
     setFormData({
-      externalEntity: isCustom ? "custom" : settlement.externalEntity || "",
-      customExternalEntity: isCustom ? settlement.externalEntity || "" : "",
-      transferDate: settlement.transferDate || "",
-      status: settlement.status || "",
-      settlementDate: settlement.settlementDate || "",
-      settlementAmount: settlement.settlementAmount || 0,
-      currency: settlement.currency || "PLN",
-      documentDescription: settlement.documentDescription || "",
+      externalEntity: isCustom ? "custom" : settlement.externalEntity ?? "",
+      customExternalEntity: settlement.customExternalEntity ?? "",
+      transferDate: settlement.transferDate ?? "",
+      status: settlement.status ?? "",
+      settlementDate: settlement.settlementDate ?? "",
+      settlementAmount: settlement.settlementAmount ?? 0,
+      currency: settlement.currency ?? "PLN",
+      documentDescription: settlement.documentDescription ?? "",
     })
     setShowCustomEntityInput(isCustom)
     setIsEditing(true)

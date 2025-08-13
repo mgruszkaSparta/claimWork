@@ -40,6 +40,8 @@ export const transformApiClaimToFrontend = (apiClaim: ClaimDto): Claim => {
     payout: apiClaim.payout ?? 0,
     currency: apiClaim.currency ?? "PLN",
 
+    eventTime: apiClaim.eventTime?.split("T")[1]?.slice(0, 5),
+
     servicesCalled: Array.isArray(apiClaim.servicesCalled)
       ? apiClaim.servicesCalled
       : (apiClaim.servicesCalled?.split(",").filter(Boolean) ?? []),
@@ -207,7 +209,10 @@ export const transformFrontendClaimToApiPayload = (
     damageDate: rest.damageDate ? new Date(rest.damageDate).toISOString() : undefined,
     reportDate: rest.reportDate ? new Date(rest.reportDate).toISOString() : undefined,
     reportDateToInsurer: rest.reportDateToInsurer ? new Date(rest.reportDateToInsurer).toISOString() : undefined,
-    eventTime: rest.eventTime,
+    eventTime:
+      rest.damageDate && rest.eventTime
+        ? new Date(`${rest.damageDate}T${rest.eventTime}`).toISOString()
+        : undefined,
     servicesCalled: servicesCalled?.join(","),
     participants: participants,
 

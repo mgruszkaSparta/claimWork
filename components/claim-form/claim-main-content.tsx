@@ -42,6 +42,8 @@ import ClientDropdown from "@/components/client-dropdown"
 import type { ClientSelectionEvent } from "@/types/client"
 import HandlerDropdown from "@/components/handler-dropdown"
 import type { HandlerSelectionEvent } from "@/types/handler"
+import LiquidatorDropdown from "@/components/liquidator-dropdown"
+import type { LiquidatorSelectionEvent } from "@/types/liquidator"
 import VehicleTypeDropdown from "@/components/vehicle-type-dropdown"
 import type { VehicleTypeSelectionEvent } from "@/types/vehicle-type"
 import { RepairScheduleSection } from "./repair-schedule-section"
@@ -1452,19 +1454,31 @@ const renderParticipantDetails = (participant: ParticipantInfo | undefined, titl
                     <Label htmlFor="handler" className="text-sm font-medium text-gray-700">
                       Szkodę zarejestrował
                     </Label>
-                    <HandlerDropdown
-                      selectedHandlerId={claimFormData.handlerId ? parseInt(claimFormData.handlerId) : undefined}
-                      onHandlerSelected={(event: HandlerSelectionEvent) => {
-                        handleFormChange("handlerId", event.handlerId.toString())
-                        handleFormChange("handler", event.handlerName)
-                        handleFormChange("handlerEmail", event.handlerEmail || "")
-                        handleFormChange("handlerPhone", event.handlerPhone || "")
-                      }}
-                      className="mt-1"
-                    />
-                  </div>
+                  <HandlerDropdown
+                    selectedHandlerId={claimFormData.handlerId ? parseInt(claimFormData.handlerId) : undefined}
+                    onHandlerSelected={(event: HandlerSelectionEvent) => {
+                      handleFormChange("handlerId", event.handlerId.toString())
+                      handleFormChange("handler", event.handlerName)
+                      handleFormChange("handlerEmail", event.handlerEmail || "")
+                      handleFormChange("handlerPhone", event.handlerPhone || "")
+                    }}
+                    className="mt-1"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="liquidator" className="text-sm font-medium text-gray-700">
+                    Likwidator
+                  </Label>
+                  <LiquidatorDropdown
+                    selectedLiquidatorName={claimFormData.liquidator}
+                    onLiquidatorSelected={(event: LiquidatorSelectionEvent) => {
+                      handleFormChange("liquidator", event.liquidatorName)
+                    }}
+                    className="mt-1"
+                  />
                 </div>
               </div>
+            </div>
 
               <div className="border-t border-gray-200 my-8" />
 

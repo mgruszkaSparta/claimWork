@@ -209,15 +209,17 @@ export interface Settlement {
   externalEntity?: string
   customExternalEntity?: string
   transferDate?: string
-  settlementDate: string
-  settlementType: string
-  description: string
-  settlementAmount?: number
-  currency?: string
-  amount?: number
   status?: string
+  settlementDate?: string
+  settlementAmount?: number
+  amount?: number
+  currency?: string
+  description?: string
+  settlementNumber?: string
+  settlementType?: string
   documentPath?: string
   documentName?: string
+  documentDescription?: string
 }
 
 export type Service = "policja" | "pogotowie" | "straz" | "holownik"

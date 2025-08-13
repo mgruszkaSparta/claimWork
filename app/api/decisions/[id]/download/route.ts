@@ -5,7 +5,7 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
     const id = params.id
 
     // TODO: Replace with actual file download from backend
-    // const response = await fetch(`${process.env.API_BASE_URL}/api/decisions/${id}/download`)
+    // const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/decisions/${id}/download`)
     //
     // if (!response.ok) {
     //   throw new Error('Failed to download file')

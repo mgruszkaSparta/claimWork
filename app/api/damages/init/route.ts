@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server"
 
-const API_BASE_URL = process.env.API_BASE_URL || "https://localhost:5200/api"
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5200/api"
 
 if (API_BASE_URL.startsWith("/api")) {
   console.error("API_BASE_URL is misconfigured. It should be an absolute URL to the backend and not begin with '/api'.")

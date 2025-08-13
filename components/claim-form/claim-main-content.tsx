@@ -297,24 +297,54 @@ export const ClaimMainContent = ({
   const loadRiskTypes = async () => {
     setLoadingRiskTypes(true)
     try {
-      const response = await fetch(`/api/risk-types?claimObjectTypeId=${claimObjectType}`, {
-        method: "GET",
-        credentials: "include",
-      })
-      if (!response.ok) {
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/dictionaries/risk-types?claimObjectTypeId=${claimObjectType}`,
+        {
+          method: "GET",
+          credentials: "include",
+        },
+      )
+      if (response.ok) {
+        const data = await response.json()
+        // Map data according to your database structure
+        const riskTypeOptions = data.map((item: any) => ({
+          value: item.riskId.toString(), // Use RiskId as value
+          label: item.name,
+        }))
+        setRiskTypes(riskTypeOptions)
+      } else {
         throw new Error(`HTTP error! status: ${response.status}`)
       }
-      const data = await response.json()
-      const riskTypeOptions = data.map((item: any) => ({
-        value: item.id,
-        label: item.name,
-      }))
-      setRiskTypes(riskTypeOptions)
     } catch (error) {
       console.error("Error loading risk types:", error)
+      // Fallback data for communication claims (claimObjectTypeId = 1)
+      const communicationRiskTypes = [
+        { value: "4", label: "OC DZIAŁALNOŚCI" },
+        { value: "2", label: "OC SPRAWCY" },
+        { value: "6", label: "OC PPM" },
+        { value: "7", label: "AC" },
+        { value: "19", label: "NAPRAWA WŁASNA" },
+        { value: "20", label: "OC W ŻYCIU PRYWATNYM" },
+        { value: "22", label: "OC ROLNIKA" },
+        { value: "1", label: "INNE" },
+      ]
+      
+      const propertyRiskTypes = [
+        { value: "4", label: "MAJĄTKOWE" },
+        { value: "4", label: "OCPD" },
+        { value: "4", label: "CARGO" },
+        { value: "57", label: "NNW" },
+        { value: "57", label: "CPM" },
+        { value: "57", label: "CAR/EAR" },
+        { value: "57", label: "BI" },
+        { value: "57", label: "GWARANCJIE" },
+      ]
+      
+      setRiskTypes(claimObjectType === "1" ? communicationRiskTypes : propertyRiskTypes)
+      
       toast({
         title: "Uwaga",
-        description: "Nie udało się załadować ryzyk.",
+        description: "Nie udało się załadować danych z serwera. Używane są dane lokalne.",
         variant: "destructive",
       })
     } finally {

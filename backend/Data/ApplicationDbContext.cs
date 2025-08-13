@@ -41,6 +41,7 @@ namespace AutomotiveClaimsApi.Data
         public DbSet<PaymentMethod> PaymentMethods { get; set; }
         public DbSet<ContractType> ContractTypes { get; set; }
         public DbSet<DocumentStatus> DocumentStatuses { get; set; }
+        public DbSet<Liquidator> Liquidators { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

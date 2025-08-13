@@ -1,6 +1,13 @@
 import type React from "react"
 import type { ClaimDto } from "@/lib/api"
 
+export type ClaimStatus =
+  | "Złożone"
+  | "W trakcie analizy"
+  | "Zaakceptowane"
+  | "Odrzucone"
+  | "Częściowo zaakceptowane"
+
 export interface Note {
   id?: string
   type?: "note" | "task" | "internal" | "status"
@@ -178,7 +185,7 @@ export interface ClientClaim {
   claimType: string
   claimAmount?: number
   currency?: string
-  status?: string
+  status?: ClaimStatus
   description?: string
   documentPath?: string
   documentName?: string

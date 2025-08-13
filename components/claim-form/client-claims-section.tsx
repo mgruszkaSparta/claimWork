@@ -358,10 +358,13 @@ export function ClientClaimsSection({ clientClaims, onClientClaimsChange, claimI
     if (!claim.document) return
 
     try {
-      const response = await fetch(`/api/client-claims/${claim.id}/preview`, {
-        method: "GET",
-        credentials: "include",
-      })
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/client-claims/${claim.id}/preview`,
+        {
+          method: "GET",
+          credentials: "include",
+        }
+      )
       const blob = await response.blob()
       const url = URL.createObjectURL(blob)
 
@@ -388,10 +391,13 @@ export function ClientClaimsSection({ clientClaims, onClientClaimsChange, claimI
     if (!claim.document) return
 
     try {
-      const response = await fetch(`/api/client-claims/${claim.id}/download`, {
-        method: "GET",
-        credentials: "include",
-      })
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/client-claims/${claim.id}/download`,
+        {
+          method: "GET",
+          credentials: "include",
+        }
+      )
       const blob = await response.blob()
       const url = URL.createObjectURL(blob)
 

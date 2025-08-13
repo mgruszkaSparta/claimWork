@@ -167,7 +167,7 @@ export function ClaimForm({ initialData, mode }: ClaimFormProps) {
               formDataFile.append('eventId', saved!.id.toString())
               formDataFile.append('category', file.categoryCode || mapCategoryNameToCode(file.category || 'Inne dokumenty'))
               formDataFile.append('uploadedBy', 'Current User')
-              await fetch('/api/documents/upload', {
+              await fetch(`${process.env.NEXT_PUBLIC_API_URL}/documents/upload`, {
                 method: 'POST',
                 credentials: 'include',
                 body: formDataFile,

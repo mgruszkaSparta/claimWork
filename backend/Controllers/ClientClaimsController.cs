@@ -145,7 +145,7 @@ namespace AutomotiveClaimsApi.Controllers
                 {
                     if (!string.IsNullOrEmpty(clientClaim.DocumentPath))
                     {
-                        await _documentService.DeleteDocumentAsync(clientClaim.Id);
+                        await _documentService.DeleteDocumentAsync(clientClaim.DocumentPath);
                     }
 
                     var documentResult = await _documentService.SaveDocumentAsync(
@@ -187,7 +187,7 @@ namespace AutomotiveClaimsApi.Controllers
 
                 if (!string.IsNullOrEmpty(clientClaim.DocumentPath))
                 {
-                    await _documentService.DeleteDocumentAsync(clientClaim.Id);
+                    await _documentService.DeleteDocumentAsync(clientClaim.DocumentPath);
                 }
 
                 _context.ClientClaims.Remove(clientClaim);

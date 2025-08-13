@@ -108,7 +108,7 @@ namespace AutomotiveClaimsApi.Controllers
             {
                 if (!string.IsNullOrEmpty(settlement.DocumentPath))
                 {
-                    await _documentService.DeleteDocumentAsync(settlement.Id);
+                    await _documentService.DeleteDocumentAsync(settlement.DocumentPath);
                 }
                 var docResult = await _documentService.SaveDocumentAsync(updateDto.Document, "settlements", updateDto.DocumentDescription);
                 settlement.DocumentPath = docResult.FilePath;
@@ -136,7 +136,7 @@ namespace AutomotiveClaimsApi.Controllers
 
             if (!string.IsNullOrEmpty(settlement.DocumentPath))
             {
-                await _documentService.DeleteDocumentAsync(settlement.Id);
+                await _documentService.DeleteDocumentAsync(settlement.DocumentPath);
             }
 
             _context.Settlements.Remove(settlement);

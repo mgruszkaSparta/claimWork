@@ -3,7 +3,7 @@ import { type NextRequest, NextResponse } from "next/server"
 export const dynamic = "force-dynamic"
 
 const API_BASE_URL =
-  process.env.NEXT_PUBLIC_API_URL || "http://localhost:5200/api"
+  process.env.NEXT_PUBLIC_API_URL!
 
 export async function GET(
   request: NextRequest,

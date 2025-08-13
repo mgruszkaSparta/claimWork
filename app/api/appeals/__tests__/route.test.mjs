@@ -22,7 +22,7 @@ test('maps appeal form data to backend casing', async () => {
     return new Response('{}', { status: 200 })
   }
 
-  await POST(new Request('http://localhost/api/appeals', { method: 'POST', body: fd }))
+  await POST(new Request('http://example.com/api/appeals', { method: 'POST', body: fd }))
 
   globalThis.fetch = originalFetch
 

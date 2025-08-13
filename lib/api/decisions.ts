@@ -1,9 +1,6 @@
 import { z } from "zod";
 
-const API_BASE_URL =
-  process.env.NEXT_PUBLIC_API_URL ||
-  process.env.API_BASE_URL ||
-  "https://claim-work-backend.azurewebsites.net/api";
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL!;
 
 export const decisionSchema = z.object({
   id: z.string(),

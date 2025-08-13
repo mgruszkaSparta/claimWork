@@ -1,7 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-
-const API_BASE_URL =
-  process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5200/api'
+import { apiFetch } from '@/lib/server-fetch'
 
 export async function GET(request: NextRequest) {
   const searchParams = request.nextUrl.searchParams
@@ -16,26 +14,10 @@ export async function GET(request: NextRequest) {
   if (countryId) params.set('countryId', countryId)
   if (searchCriteria) params.set('searchCriteria', searchCriteria)
 
-  try {
-    const res = await fetch(
-      `${API_BASE_URL}/participants/search?${params.toString()}`,
-    )
-
-    if (res.status === 404) {
-      return NextResponse.json(null)
-    }
-
-    if (!res.ok) {
-      throw new Error('Failed to fetch participant')
-    }
-
-    const participant = await res.json()
-    return NextResponse.json(participant)
-  } catch (error) {
-    console.error('Error searching participant:', error)
-    return NextResponse.json(
-      { error: 'Failed to search participant' },
-      { status: 500 },
-    )
+  const response = await apiFetch(request, `/participants/search?${params.toString()}`)
+  const data = await response.json().catch(() => null)
+  if (response.status === 404) {
+    return NextResponse.json(null, { status: 404 })
   }
+  return NextResponse.json(data, { status: response.status })
 }

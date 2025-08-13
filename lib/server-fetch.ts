@@ -1,14 +1,19 @@
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL;
 
-if (!API_BASE_URL) {
-  throw new Error(
-    'NEXT_PUBLIC_API_URL is not defined. Please set NEXT_PUBLIC_API_URL in your environment variables.'
-  );
+import 'server-only'
+
+export async function serverFetch(
+  input: RequestInfo | URL,
+  init: RequestInit = {}
+): Promise<Response> {
+  const headers = new Headers(init.headers)
+
+  const body = init.body
+
+  if (!headers.has('Content-Type') && !(body instanceof FormData)) {
+    headers.set('Content-Type', 'application/json')
+  }
+
+  return fetch(input, { ...init, headers })
 }
 
-export async function serverFetch(path: string, options: RequestInit = {}) {
-  return fetch(`${API_BASE_URL}${path}`, {
-    credentials: 'include',
-    ...options,
-  });
-}
+

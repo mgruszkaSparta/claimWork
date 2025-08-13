@@ -477,6 +477,7 @@ export interface RecourseUpsertDto {
 export interface SettlementDto {
   id?: number
   eventId?: number
+  claimId?: string
   externalEntity?: string
   customExternalEntity?: string
   transferDate?: string

@@ -316,6 +316,36 @@ namespace AutomotiveClaimsApi.Tests
             Assert.Equal(recourseDto.DocumentName, updated.DocumentName);
             Assert.Equal(recourseDto.DocumentDescription, updated.DocumentDescription);
         }
+
+        [Fact]
+        public async Task GetClaim_ReturnsSettlementWithClaimId()
+        {
+            var options = new DbContextOptionsBuilder<ApplicationDbContext>()
+                .UseInMemoryDatabase(Guid.NewGuid().ToString())
+                .Options;
+
+            await using var context = new ApplicationDbContext(options);
+            var eventId = Guid.NewGuid();
+            var claimId = Guid.NewGuid();
+            var settlement = new Settlement
+            {
+                Id = Guid.NewGuid(),
+                EventId = eventId,
+                ClaimId = claimId,
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow
+            };
+            context.Events.Add(new Event { Id = eventId, CreatedAt = DateTime.UtcNow, UpdatedAt = DateTime.UtcNow });
+            context.Settlements.Add(settlement);
+            await context.SaveChangesAsync();
+
+            var controller = new ClaimsController(context, NullLogger<ClaimsController>.Instance);
+
+            var result = await controller.GetClaim(eventId);
+            var claimDto = result.Value!;
+            var settlementDto = Assert.Single(claimDto.Settlements);
+            Assert.Equal(claimId.ToString(), settlementDto.ClaimId);
+        }
     }
 }
 

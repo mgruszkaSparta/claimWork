@@ -154,6 +154,7 @@ namespace AutomotiveClaimsApi.Services
             }
 
             var memoryStream = new MemoryStream(await File.ReadAllBytesAsync(fullPath));
+            memoryStream.Position = 0;
 
             return new DocumentDownloadResult
             {

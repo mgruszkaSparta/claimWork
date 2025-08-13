@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { useRouter } from "next/navigation"
+import { useRouter, useSearchParams } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
@@ -21,6 +21,7 @@ import { ClaimMainContent } from "@/components/claim-form/claim-main-content"
 import { useClaimForm } from "@/hooks/use-claim-form"
 import { useClaims } from "@/hooks/use-claims"
 import { generateId } from "@/lib/constants"
+import { apiService } from "@/lib/api"
 import { pksData, type Employee } from "@/lib/pks-data"
 import type { Claim, UploadedFile, RequiredDocument } from "@/types"
 import type { RepairDetail } from "@/lib/repair-details-store"
@@ -50,6 +51,7 @@ interface RepairSchedule {
 
 export default function NewClaimPage() {
   const router = useRouter()
+  const searchParams = useSearchParams()
   const { toast } = useToast()
   const { createClaim, deleteClaim, initializeClaim } = useClaims()
   const [claimId, setClaimId] = useState<string>("")
@@ -110,6 +112,27 @@ export default function NewClaimPage() {
       }
     })
   }, [initializeClaim, setClaimFormData])
+
+  useEffect(() => {
+    const clientId = searchParams.get("clientId")
+    const riskType = searchParams.get("riskType")
+    const damageType = searchParams.get("damageType")
+
+    if (riskType) {
+      setClaimFormData((prev) => ({ ...prev, riskType }))
+    }
+    if (damageType) {
+      setClaimFormData((prev) => ({ ...prev, damageType }))
+    }
+    if (clientId) {
+      apiService
+        .getClient(Number(clientId))
+        .then((client) => {
+          setClaimFormData((prev) => ({ ...prev, client: client.name, clientId: client.id.toString() }))
+        })
+        .catch((e) => console.error(e))
+    }
+  }, [searchParams, setClaimFormData])
 
   const getInitialScheduleData = (): Partial<RepairSchedule> => ({
     eventId: "new",

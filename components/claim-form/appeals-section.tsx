@@ -28,14 +28,10 @@ import {
   createAppeal,
   updateAppeal,
   deleteAppeal as apiDeleteAppeal,
-  Appeal as ApiAppeal,
+  Appeal,
   AppealPayload,
 } from "@/lib/api/appeals"
 import { API_BASE_URL } from "@/lib/api"
-
-interface Appeal extends ApiAppeal {
-  alertDays?: number
-}
 
 interface AppealsSectionProps {
   claimId: string
@@ -338,27 +334,25 @@ export const AppealsSection = ({ claimId }: AppealsSectionProps) => {
   }
 
   const getAlertBadge = (alertDays?: number) => {
-    if (!alertDays || alertDays === 0) {
+    if (!alertDays || alertDays < 30) {
       return (
         <Badge variant="secondary" className="bg-gray-100 text-gray-800">
           Brak
         </Badge>
       )
-    } else if (alertDays > 30) {
-      return <Badge variant="destructive">MONIT ({alertDays} dni)</Badge>
-    } else if (alertDays > 20) {
+    }
+
+    if (alertDays >= 60) {
       return (
-        <Badge variant="secondary" className="bg-orange-100 text-orange-800">
-          {alertDays} dni
-        </Badge>
-      )
-    } else {
-      return (
-        <Badge variant="secondary" className="bg-yellow-100 text-yellow-800">
-          {alertDays} dni
-        </Badge>
+        <Badge variant="destructive">MONIT ({alertDays} dni)</Badge>
       )
     }
+
+    return (
+      <Badge variant="secondary" className="bg-orange-100 text-orange-800">
+        MONIT ({alertDays} dni)
+      </Badge>
+    )
   }
 
   const getTotalFileSize = () => {

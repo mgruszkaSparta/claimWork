@@ -10,6 +10,7 @@ export interface Appeal {
   documentPath?: string;
   documentName?: string;
   documentDescription?: string;
+  alertDays?: number;
 }
 
 export interface AppealPayload {
@@ -36,6 +37,7 @@ function mapDtoToAppeal(dto: AppealDto): Appeal {
     documentPath: dto.documentPath,
     documentName: dto.documentName,
     documentDescription: dto.documentDescription,
+    alertDays: dto.daysSinceSubmission,
   };
 }
 

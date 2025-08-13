@@ -1,10 +1,9 @@
-import { NextResponse } from "next/server"
+import { NextRequest, NextResponse } from "next/server"
+import { apiFetch } from "@/lib/api-fetch"
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5200/api"
-
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
-    const response = await fetch(`${API_BASE_URL}/dictionaries/countries`, {
+    const response = await apiFetch(request, `/dictionaries/countries`, {
       headers: {
         "Content-Type": "application/json",
       },

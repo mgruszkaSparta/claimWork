@@ -47,6 +47,7 @@ import type { VehicleTypeSelectionEvent } from "@/types/vehicle-type"
 import { RepairScheduleSection } from "./repair-schedule-section"
 import { RepairDetailsSection } from "./repair-details-section"
 import type { RepairDetail } from "@/lib/repair-details-store"
+import { API_BASE_URL } from "@/lib/api"
 
 interface RiskType {
   value: string
@@ -202,7 +203,7 @@ export const ClaimMainContent = ({
     const loadRepairDetails = async () => {
       if (!eventId) return
       try {
-        const response = await fetch(`/api/repair-details?eventId=${eventId}`, {
+        const response = await fetch(`${API_BASE_URL}/repair-details?eventId=${eventId}`, {
           method: "GET",
           credentials: "include",
         })
@@ -296,7 +297,7 @@ export const ClaimMainContent = ({
     setLoadingRiskTypes(true)
     try {
       const response = await fetch(
-        `/api/dictionaries/risk-types?claimObjectTypeId=${claimObjectType}`,
+        `${API_BASE_URL}/dictionaries/risk-types?claimObjectTypeId=${claimObjectType}`,
         {
           method: "GET",
           credentials: "include",
@@ -353,7 +354,7 @@ export const ClaimMainContent = ({
   const loadClaimStatuses = async () => {
     setLoadingStatuses(true)
     try {
-      const response = await fetch("/api/dictionaries/claim-statuses", {
+      const response = await fetch(`${API_BASE_URL}/dictionaries/claim-statuses`, {
         method: "GET",
         credentials: "include",
       })
@@ -390,7 +391,7 @@ export const ClaimMainContent = ({
   const loadCaseHandlers = async () => {
     setLoadingHandlers(true)
     try {
-      const response = await fetch("/api/dictionaries/case-handlers", {
+      const response = await fetch(`${API_BASE_URL}/dictionaries/case-handlers`, {
         method: "GET",
         credentials: "include",
       })
@@ -1414,7 +1415,7 @@ const renderParticipantDetails = (participant: ParticipantInfo | undefined, titl
                       value={claimFormData.damageType || ""}
                       onValueChange={(value) => handleFormChange("damageType", value)}
                       placeholder="Wybierz rodzaj szkody..."
-                      apiUrl="/api/damage-types"
+                      apiUrl={`${API_BASE_URL}/damage-types`}
                       dependsOn={claimFormData.riskType}
                       disabled={!claimFormData.riskType}
                     />

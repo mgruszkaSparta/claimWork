@@ -40,6 +40,7 @@ interface RepairSchedule {
   contactDispatcher: string
   contactManager: string
   status: "draft" | "submitted" | "approved" | "completed"
+  cost?: number
   createdAt?: string
   updatedAt?: string
 }
@@ -1094,20 +1095,11 @@ export default function ViewClaimPage() {
           {/* Repair Schedules and Details Grid */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* Repair Schedules */}
-            <Card>
-              <CardHeader>
-                <div className="flex items-center justify-between">
-                  <CardTitle className="flex items-center">
-                    <Calendar className="h-5 w-5 mr-2 text-indigo-600" />
-                    Harmonogram naprawy
-                  </CardTitle>
-                  <Button onClick={handleAddSchedule} size="sm" className="bg-indigo-600 hover:bg-indigo-700">
-                    <Plus className="h-4 w-4 mr-2" />
-                    Dodaj
-                  </Button>
-                </div>
-              </CardHeader>
-              <CardContent>
+            <div>
+              <div className="flex items-center mb-4">
+                <Calendar className="h-5 w-5 mr-2 text-indigo-600" />
+                <h3 className="text-lg font-semibold">Harmonogram naprawy</h3>
+              </div>
                 {repairSchedules.length === 0 ? (
                   <div className="text-center py-8 border-2 border-dashed border-gray-300 rounded-lg bg-gray-50">
                     <Calendar className="h-8 w-8 text-gray-400 mx-auto mb-3" />
@@ -1127,42 +1119,37 @@ export default function ViewClaimPage() {
                 ) : (
                   <div className="space-y-3">
                     {repairSchedules.slice(0, 2).map((schedule, index) => (
-                      <div key={schedule.id || index} className="border rounded-lg p-3 bg-gray-50">
-                        <div className="flex justify-between items-start mb-2">
-                          <div>
-                            <h4 className="font-medium text-sm">
-                              {schedule.vehicleRegistration} (Nr tab. {schedule.vehicleFleetNumber})
-                            </h4>
-                            <p className="text-xs text-gray-600">
-                              Szkoda nr {schedule.damageNumber} • {formatDate(schedule.damageDate)}
-                            </p>
-                          </div>
-                          <div className="flex items-center">
-                            {(() => {
-                              const statusConfig = {
-                                draft: { label: "Szkic", color: "bg-gray-100 text-gray-800" },
-                                submitted: { label: "Przesłany", color: "bg-blue-100 text-blue-800" },
-                                approved: { label: "Zatwierdzony", color: "bg-green-100 text-green-800" },
-                                completed: { label: "Zakończony", color: "bg-purple-100 text-purple-800" },
-                              }
-                              const config = statusConfig[schedule.status as keyof typeof statusConfig] || statusConfig.draft
-                              return <Badge className={`${config.color} text-xs`}>{config.label}</Badge>
-                            })()}
-                          </div>
+                      <div key={schedule.id || index} className="bg-gray-50 rounded-lg p-3 border border-gray-200">
+                        <div className="flex items-start justify-between mb-2">
+                          <h4 className="font-medium text-sm">Harmonogram #{index + 1}</h4>
+                          {(() => {
+                            const statusConfig = {
+                              draft: { label: "Szkic", color: "bg-gray-100 text-gray-800" },
+                              submitted: { label: "Przesłany", color: "bg-blue-100 text-blue-800" },
+                              approved: { label: "Zatwierdzony", color: "bg-green-100 text-green-800" },
+                              completed: { label: "Zakończony", color: "bg-purple-100 text-purple-800" },
+                            }
+                            const config = statusConfig[schedule.status as keyof typeof statusConfig] || statusConfig.draft
+                            return <Badge className={`${config.color} text-xs`}>{config.label}</Badge>
+                          })()}
                         </div>
                         <div className="grid grid-cols-2 gap-2 text-xs">
-                          {schedule.repairStartDate && (
-                            <div>
-                              <span className="text-gray-500">Rozpoczęcie:</span>
-                              <p className="font-medium">{formatDate(schedule.repairStartDate)}</p>
-                            </div>
-                          )}
-                          {schedule.repairEndDate && (
-                            <div>
-                              <span className="text-gray-500">Zakończenie:</span>
-                              <p className="font-medium">{formatDate(schedule.repairEndDate)}</p>
-                            </div>
-                          )}
+                          <div>
+                            <span className="text-gray-500">Data rozpoczęcia</span>
+                            <p className="font-medium">{schedule.repairStartDate ? formatDate(schedule.repairStartDate) : "-"}</p>
+                          </div>
+                          <div>
+                            <span className="text-gray-500">Planowane zakończenie</span>
+                            <p className="font-medium">{schedule.repairEndDate ? formatDate(schedule.repairEndDate) : "-"}</p>
+                          </div>
+                          <div>
+                            <span className="text-gray-500">Warsztat</span>
+                            <p className="font-medium">{schedule.companyName || "-"}</p>
+                          </div>
+                          <div>
+                            <span className="text-gray-500">Koszt</span>
+                            <p className="font-medium">{schedule.cost ? formatCurrency(schedule.cost) : "-"}</p>
+                          </div>
                         </div>
                       </div>
                     ))}
@@ -1176,85 +1163,6 @@ export default function ViewClaimPage() {
                     )}
                   </div>
                 )}
-              </CardContent>
-            </Card>
-
-            {/* Repair Details */}
-            <Card>
-              <CardHeader>
-                <div className="flex items-center justify-between">
-                  <CardTitle className="flex items-center">
-                    <Wrench className="h-5 w-5 mr-2 text-orange-600" />
-                    Szczegóły naprawy
-                  </CardTitle>
-                  <Button onClick={handleAddRepairDetail} size="sm" className="bg-orange-600 hover:bg-orange-700">
-                    <Plus className="h-4 w-4 mr-2" />
-                    Dodaj
-                  </Button>
-                </div>
-              </CardHeader>
-              <CardContent>
-                {repairDetails.length === 0 ? (
-                  <div className="text-center py-8 border-2 border-dashed border-gray-300 rounded-lg bg-gray-50">
-                    <Wrench className="h-8 w-8 text-gray-400 mx-auto mb-3" />
-                    <p className="text-gray-500 font-medium mb-1">Brak szczegółów naprawy</p>
-                    <p className="text-gray-400 text-sm mb-4">Przejdź do sekcji "Naprawa" aby dodać szczegóły naprawy</p>
-                    <div className="flex flex-col sm:flex-row gap-2 justify-center">
-                      <Button onClick={handleAddRepairDetail} size="sm" variant="outline">
-                        <Plus className="h-4 w-4 mr-2" />
-                        Dodaj tutaj
-                      </Button>
-                      <Button onClick={handleGoToRepairSection} size="sm" variant="ghost">
-                        <ExternalLink className="h-4 w-4 mr-2" />
-                        Zobacz szczegóły
-                      </Button>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="space-y-3">
-                    {repairDetails.slice(0, 2).map((detail, index) => (
-                      <div key={detail.id || index} className="border rounded-lg p-3 bg-gray-50">
-                        <div className="flex justify-between items-start mb-2">
-                          <div>
-                            <h4 className="font-medium text-sm">
-                              {detail.vehicleTabNumber} ({detail.vehicleRegistration})
-                            </h4>
-                            <p className="text-xs text-gray-600">
-                              {pksData.find((b) => b.id === detail.branchId)?.name || "Nieznany oddział"}
-                            </p>
-                          </div>
-                          <div className="flex items-center">
-                            {getRepairDetailStatusBadge(detail.status)}
-                          </div>
-                        </div>
-                        <div className="grid grid-cols-2 gap-2 text-xs">
-                          <div>
-                            <span className="text-gray-500">Łączne godziny:</span>
-                            <p className="font-medium text-orange-600">
-                              {(detail.bodyworkHours + detail.paintingHours + detail.assemblyHours + detail.otherWorkHours).toFixed(1)} rbh
-                            </p>
-                          </div>
-                          {detail.repairStartDate && (
-                            <div>
-                              <span className="text-gray-500">Rozpoczęcie:</span>
-                              <p className="font-medium">{formatDate(detail.repairStartDate)}</p>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    ))}
-                    {repairDetails.length > 2 && (
-                      <div className="text-center pt-2">
-                        <Button onClick={handleGoToRepairSection} size="sm" variant="ghost">
-                          <ExternalLink className="h-4 w-4 mr-2" />
-                          Zobacz wszystkie ({repairDetails.length})
-                        </Button>
-                      </div>
-                    )}
-                  </div>
-                )}
-              </CardContent>
-            </Card>
           </div>
         </div>
       </div>

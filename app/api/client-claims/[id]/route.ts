@@ -1,27 +1,24 @@
 import { type NextRequest, NextResponse } from "next/server"
 
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5200/api"
+
 export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
   try {
     const { id } = params
 
-    // TODO: Replace with actual database query
-    const mockClientClaim = {
-      id,
-      eventId: "event-123",
-      claimDate: "2024-01-15",
-      claimType: "Pojazd - szkoda częściowa",
-      claimAmount: 15000.0,
-      currency: "PLN",
-      status: "W trakcie analizy",
-      description: "Szkoda w zderzaku przednim i masce",
-      documentPath: "/documents/client-claims/claim-1.pdf",
-      documentName: "wycena-szkody.pdf",
-      documentDescription: "Wycena kosztów naprawy",
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
+    const response = await fetch(`${API_BASE_URL}/client-claims/${id}`)
+
+    if (!response.ok) {
+      const errorText = await response.text()
+      console.error("Backend error fetching client claim:", errorText)
+      return NextResponse.json(
+        { error: "Failed to fetch client claim", details: errorText },
+        { status: response.status },
+      )
     }
 
-    return NextResponse.json(mockClientClaim)
+    const data = await response.json()
+    return NextResponse.json(data)
   } catch (error) {
     console.error("Error fetching client claim:", error)
     return NextResponse.json({ error: "Failed to fetch client claim" }, { status: 500 })
@@ -46,24 +43,32 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 })
     }
 
-    // TODO: Update in database and handle file upload
-    const updatedClientClaim = {
-      id,
-      eventId: "event-123",
-      claimDate,
-      claimType,
-      claimAmount,
-      currency,
-      status,
-      description,
-      documentPath: document ? `/documents/client-claims/${document.name}` : null,
-      documentName: document?.name || null,
-      documentDescription: documentDescription || null,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
+    const backendFormData = new FormData()
+    backendFormData.append("ClaimDate", claimDate)
+    backendFormData.append("ClaimType", claimType)
+    backendFormData.append("ClaimAmount", claimAmount.toString())
+    backendFormData.append("Currency", currency)
+    backendFormData.append("Status", status)
+    if (description) backendFormData.append("Description", description)
+    if (documentDescription) backendFormData.append("DocumentDescription", documentDescription)
+    if (document) backendFormData.append("Document", document)
+
+    const response = await fetch(`${API_BASE_URL}/client-claims/${id}`, {
+      method: "PUT",
+      body: backendFormData,
+    })
+
+    if (!response.ok) {
+      const errorText = await response.text()
+      console.error("Backend error updating client claim:", errorText)
+      return NextResponse.json(
+        { error: "Failed to update client claim", details: errorText },
+        { status: response.status },
+      )
     }
 
-    return NextResponse.json(updatedClientClaim)
+    const data = await response.json()
+    return NextResponse.json(data)
   } catch (error) {
     console.error("Error updating client claim:", error)
     return NextResponse.json({ error: "Failed to update client claim" }, { status: 500 })
@@ -74,10 +79,20 @@ export async function DELETE(request: NextRequest, { params }: { params: { id: s
   try {
     const { id } = params
 
-    // TODO: Delete from database and remove associated files
-    console.log(`Deleting client claim ${id}`)
+    const response = await fetch(`${API_BASE_URL}/client-claims/${id}`, {
+      method: "DELETE",
+    })
 
-    return NextResponse.json({ message: "Client claim deleted successfully" })
+    if (!response.ok) {
+      const errorText = await response.text()
+      console.error("Backend error deleting client claim:", errorText)
+      return NextResponse.json(
+        { error: "Failed to delete client claim", details: errorText },
+        { status: response.status },
+      )
+    }
+
+    return NextResponse.json({ message: "Client claim deleted successfully" }, { status: response.status })
   } catch (error) {
     console.error("Error deleting client claim:", error)
     return NextResponse.json({ error: "Failed to delete client claim" }, { status: 500 })

@@ -8,6 +8,7 @@ using Xunit;
 using AutomotiveClaimsApi.Controllers;
 using AutomotiveClaimsApi.Data;
 using AutomotiveClaimsApi.Models;
+using AutomotiveClaimsApi.DTOs;
 
 namespace AutomotiveClaimsApi.Tests
 {
@@ -41,6 +42,34 @@ namespace AutomotiveClaimsApi.Tests
             Assert.Equal(150m, totalsByCurrency["USD"]);
             Assert.Equal(200m, totalsByCurrency["PLN"]);
             Assert.Equal(3, summary.Count);
+        }
+
+        [Fact]
+        public async Task GetSettlement_ReturnsClaimId()
+        {
+            var options = new DbContextOptionsBuilder<ApplicationDbContext>()
+                .UseInMemoryDatabase(Guid.NewGuid().ToString())
+                .Options;
+
+            await using var context = new ApplicationDbContext(options);
+            var claimId = Guid.NewGuid();
+            var settlement = new Settlement
+            {
+                Id = Guid.NewGuid(),
+                EventId = Guid.NewGuid(),
+                ClaimId = claimId,
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow
+            };
+            context.Settlements.Add(settlement);
+            await context.SaveChangesAsync();
+
+            var controller = new SettlementsController(context, null!, NullLogger<SettlementsController>.Instance);
+
+            var result = await controller.GetSettlement(settlement.Id);
+            var okResult = Assert.IsType<OkObjectResult>(result.Result);
+            var dto = Assert.IsType<SettlementDto>(okResult.Value);
+            Assert.Equal(claimId.ToString(), dto.ClaimId);
         }
     }
 }

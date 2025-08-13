@@ -1615,6 +1615,7 @@ namespace AutomotiveClaimsApi.Controllers
             {
                 Id = s.Id.ToString(),
                 EventId = s.EventId.ToString(),
+                ClaimId = s.ClaimId?.ToString(),
                 Status = s.Status,
                 SettlementDate = s.SettlementDate,
                 Amount = s.Amount,

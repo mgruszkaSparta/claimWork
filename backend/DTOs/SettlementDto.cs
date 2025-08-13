@@ -4,6 +4,7 @@ namespace AutomotiveClaimsApi.DTOs
     {
         public string Id { get; set; } = string.Empty;
         public string EventId { get; set; } = string.Empty;
+        public string? ClaimId { get; set; }
         public string? ExternalEntity { get; set; }
         public string? CustomExternalEntity { get; set; }
         public DateTime? TransferDate { get; set; }

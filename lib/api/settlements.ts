@@ -5,11 +5,19 @@ const settlementSchema = z.object({
   id: z.string(),
   eventId: z.string(),
   externalEntity: z.string().nullish(),
+  customExternalEntity: z.string().nullish(),
   transferDate: z.string().nullish(),
+  status: z.string().nullish(),
   settlementDate: z.string().nullish(),
   settlementAmount: z.number().nullish(),
+  amount: z.number().nullish(),
   currency: z.string().nullish(),
-  status: z.string().optional(),
+  description: z.string().nullish(),
+  documentPath: z.string().nullish(),
+  documentName: z.string().nullish(),
+  documentDescription: z.string().nullish(),
+  settlementNumber: z.string().nullish(),
+  settlementType: z.string().nullish(),
 });
 
 const settlementUpsertSchema = z.object({

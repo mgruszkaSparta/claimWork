@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { API_BASE_URL } from "../api";
 
 const repairDetailSchema = z.object({
   id: z.string(),
@@ -37,7 +38,7 @@ export type RepairDetail = z.infer<typeof repairDetailSchema>;
 export type RepairDetailUpsert = z.infer<typeof repairDetailUpsertSchema>;
 
 async function request<T>(url: string, options: RequestInit = {}): Promise<T> {
-  const response = await fetch(`/api${url}`, {
+  const response = await fetch(`${API_BASE_URL}${url}`, {
     credentials: "include",
     headers: { "Content-Type": "application/json" },
     ...options,

@@ -12,10 +12,14 @@ function ensureRequired(data: { vehicleFleetNumber?: string; vehicleRegistration
   }
 }
 
+import { API_BASE_URL } from "../api";
+
+const REPAIR_SCHEDULES_URL = `${API_BASE_URL}/repair-schedules`;
+
 export async function getRepairSchedules(eventId: string) {
   const url = eventId
-    ? `/api/repair-schedules?eventId=${eventId}`
-    : '/api/repair-schedules'
+    ? `${REPAIR_SCHEDULES_URL}?eventId=${eventId}`
+    : REPAIR_SCHEDULES_URL
   const response = await fetch(url, {
     method: 'GET',
     credentials: 'include',
@@ -29,7 +33,7 @@ export async function getRepairSchedules(eventId: string) {
 
 export async function createRepairSchedule(data: RepairSchedulePayload) {
   ensureRequired(data)
-  const response = await fetch('/api/repair-schedules', {
+  const response = await fetch(REPAIR_SCHEDULES_URL, {
     method: 'POST',
     credentials: 'include',
     headers: { 'Content-Type': 'application/json' },
@@ -51,7 +55,7 @@ export async function updateRepairSchedule(id: string, data: Partial<RepairSched
   if ('damageDate' in data && !data.damageDate) {
     throw new Error('damageDate is required')
   }
-  const response = await fetch(`/api/repair-schedules/${id}`, {
+  const response = await fetch(`${REPAIR_SCHEDULES_URL}/${id}`, {
     method: 'PUT',
     credentials: 'include',
     headers: { 'Content-Type': 'application/json' },
@@ -64,7 +68,7 @@ export async function updateRepairSchedule(id: string, data: Partial<RepairSched
 }
 
 export async function deleteRepairSchedule(id: string) {
-  const response = await fetch(`/api/repair-schedules/${id}`, {
+  const response = await fetch(`${REPAIR_SCHEDULES_URL}/${id}`, {
     method: 'DELETE',
     credentials: 'include',
   })

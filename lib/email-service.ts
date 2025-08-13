@@ -1,4 +1,5 @@
 import { EmailFolder } from "@/types/email"
+import { API_BASE_URL } from "./api"
 
 export interface AttachmentDto {
   id: number
@@ -35,7 +36,7 @@ export interface AssignEmailToClaimDto {
 }
 
 class EmailService {
-  private apiUrl = "/api/emails"
+  private apiUrl = `${API_BASE_URL}/emails`
 
   async getAllEmails(): Promise<EmailDto[]> {
     try {

@@ -1,6 +1,7 @@
 import type { VehicleType, VehicleTypeResponse } from "@/types/vehicle-type"
+import { API_BASE_URL } from "./api"
 
-const API_BASE_URL = "/api/dictionaries/vehicle-types"
+const VEHICLE_TYPES_URL = `${API_BASE_URL}/dictionaries/vehicle-types`
 
 export const vehicleTypeService = {
   async getVehicleTypes(search?: string): Promise<VehicleType[]> {
@@ -10,7 +11,9 @@ export const vehicleTypeService = {
         params.append("search", search)
       }
 
-      const url = `${API_BASE_URL}${params.toString() ? `?${params.toString()}` : ""}`
+      const url = `${VEHICLE_TYPES_URL}${
+        params.toString() ? `?${params.toString()}` : ""
+      }`
       console.log("Fetching vehicle types from:", url)
 
       const response = await fetch(url, {
@@ -39,7 +42,7 @@ export const vehicleTypeService = {
   async getVehicleTypeById(id: string): Promise<VehicleType | null> {
     try {
 
-      const response = await fetch(`${API_BASE_URL}/${id}`, {
+      const response = await fetch(`${VEHICLE_TYPES_URL}/${id}`, {
         method: "GET",
         credentials: "include",
       })

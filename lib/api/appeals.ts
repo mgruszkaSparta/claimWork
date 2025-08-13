@@ -1,4 +1,4 @@
-import { AppealDto } from "../api";
+import { AppealDto, API_BASE_URL } from "../api";
 
 export interface Appeal {
   id: string;
@@ -45,8 +45,10 @@ function ensureRequiredDates(data: { filingDate?: string }) {
   }
 }
 
+const APPEALS_URL = `${API_BASE_URL}/appeals`;
+
 export async function getAppeals(claimId: string): Promise<Appeal[]> {
-  const response = await fetch(`/api/appeals/event/${claimId}`, {
+  const response = await fetch(`${APPEALS_URL}/event/${claimId}`, {
     method: "GET",
     credentials: "include",
   });
@@ -82,7 +84,7 @@ export async function createAppeal(
   if (appeal.document) {
     formData.append("Document", appeal.document);
   }
-  const response = await fetch(`/api/appeals`, {
+  const response = await fetch(APPEALS_URL, {
     method: "POST",
     credentials: "include",
     body: formData,
@@ -118,7 +120,7 @@ export async function updateAppeal(
   if (appeal.document) {
     formData.append("Document", appeal.document);
   }
-  const response = await fetch(`/api/appeals/${id}`, {
+  const response = await fetch(`${APPEALS_URL}/${id}`, {
     method: "PUT",
     credentials: "include",
     body: formData,
@@ -131,7 +133,7 @@ export async function updateAppeal(
 }
 
 export async function deleteAppeal(id: string): Promise<void> {
-  const response = await fetch(`/api/appeals/${id}`, {
+  const response = await fetch(`${APPEALS_URL}/${id}`, {
     method: "DELETE",
     credentials: "include",
   });

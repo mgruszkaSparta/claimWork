@@ -1,4 +1,5 @@
 import { z } from "zod"
+import { API_BASE_URL } from "../api"
 
 const recourseSchema = z.object({
   id: z.string(),
@@ -28,7 +29,7 @@ export type Recourse = z.infer<typeof recourseSchema>
 export type RecourseUpsert = z.infer<typeof recourseUpsertSchema>
 
 async function request<T>(url: string, options: RequestInit = {}): Promise<T> {
-  const response = await fetch(`/api${url}`, {
+  const response = await fetch(`${API_BASE_URL}${url}`, {
     credentials: "include",
     ...options,
   })
@@ -77,7 +78,7 @@ export async function deleteRecourse(id: string): Promise<void> {
 }
 
 export async function downloadRecourseDocument(id: string): Promise<Blob> {
-  const response = await fetch(`/api/recourses/${id}/download`, {
+  const response = await fetch(`${API_BASE_URL}/recourses/${id}/download`, {
     method: "GET",
     credentials: "include",
   })
@@ -88,7 +89,7 @@ export async function downloadRecourseDocument(id: string): Promise<Blob> {
 }
 
 export async function previewRecourseDocument(id: string): Promise<Blob> {
-  const response = await fetch(`/api/recourses/${id}/preview`, {
+  const response = await fetch(`${API_BASE_URL}/recourses/${id}/preview`, {
     method: "GET",
     credentials: "include",
   })

@@ -124,6 +124,8 @@ export const transformFrontendClaimToApiPayload = (
     clientId,
     riskType,
     damageType,
+    registeredByUserId,
+    registeredByUserName,
 
     ...rest
   } = claimData

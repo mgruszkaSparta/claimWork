@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.Authorization;
+using System.Security.Claims;
 
 namespace AutomotiveClaimsApi.Controllers
 {
@@ -103,7 +104,9 @@ namespace AutomotiveClaimsApi.Controllers
                         LeasingCompanyId = e.LeasingCompanyId,
                         LeasingCompany = e.LeasingCompany,
                         HandlerId = e.HandlerId,
-                        Handler = e.Handler
+                        Handler = e.Handler,
+                        RegisteredByUserId = e.RegisteredByUserId,
+                        RegisteredByUserName = e.RegisteredByUser != null ? e.RegisteredByUser.UserName : null
                     })
                     .ToListAsync();
 
@@ -133,6 +136,7 @@ namespace AutomotiveClaimsApi.Controllers
                     .Include(e => e.Settlements)
                     .Include(e => e.Emails)
                     .Include(e => e.Notes)
+                    .Include(e => e.RegisteredByUser)
                     .FirstOrDefaultAsync(e => e.Id == id);
 
                 if (eventEntity == null)
@@ -216,6 +220,12 @@ namespace AutomotiveClaimsApi.Controllers
                     _context.Events.Add(eventEntity);
                 }
 
+                var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                if (string.IsNullOrEmpty(eventEntity.RegisteredByUserId))
+                {
+                    eventEntity.RegisteredByUserId = userId;
+                }
+
                 await UpsertClaimAsync(eventEntity, eventDto);
 
                 if (string.IsNullOrEmpty(eventEntity.SpartaNumber))
@@ -237,6 +247,7 @@ namespace AutomotiveClaimsApi.Controllers
                     .Include(e => e.Settlements)
                     .Include(e => e.Emails)
                     .Include(e => e.Notes)
+                    .Include(e => e.RegisteredByUser)
                     .FirstOrDefaultAsync(e => e.Id == eventEntity.Id);
 
                 var createdClaimDto = MapEventToDto(createdEvent!);
@@ -260,6 +271,7 @@ namespace AutomotiveClaimsApi.Controllers
             {
                 var existing = await _context.Events
                     .AsNoTracking()
+                    .Include(e => e.RegisteredByUser)
                     .FirstOrDefaultAsync(e => e.Id == id);
 
                 var isNew = existing == null;
@@ -1438,6 +1450,8 @@ namespace AutomotiveClaimsApi.Controllers
             TotalClaim = e.TotalClaim,
             Payout = e.Payout,
             Currency = e.Currency,
+            RegisteredByUserId = e.RegisteredByUserId,
+            RegisteredByUserName = e.RegisteredByUser?.UserName,
             RiskType = e.RiskType,
             DamageType = e.DamageType,
             Liquidator = e.Liquidator,

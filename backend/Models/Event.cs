@@ -103,6 +103,9 @@ namespace AutomotiveClaimsApi.Models
         [MaxLength(50)]
         public string? HandlerPhone { get; set; }
 
+        public string? RegisteredByUserId { get; set; }
+        public ApplicationUser? RegisteredByUser { get; set; }
+
         public DateTime? EventTime { get; set; }
 
         [MaxLength(500)]

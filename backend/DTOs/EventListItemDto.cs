@@ -30,5 +30,7 @@ namespace AutomotiveClaimsApi.DTOs
         public int? LeasingCompanyId { get; set; }
         public string? LeasingCompany { get; set; }
         public string? Area { get; set; }
+        public string? RegisteredByUserId { get; set; }
+        public string? RegisteredByUserName { get; set; }
     }
 }

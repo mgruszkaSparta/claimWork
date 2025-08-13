@@ -85,6 +85,8 @@ export const initialClaimFormData: Partial<Claim> = {
   handlerId: "",
   handlerEmail: "",
   handlerPhone: "",
+  registeredByUserId: "",
+  registeredByUserName: "",
   leasingCompany: "",
   leasingCompanyId: "",
   description: "",

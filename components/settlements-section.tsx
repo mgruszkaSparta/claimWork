@@ -29,9 +29,15 @@ export function SettlementsSection({ eventId }: SettlementsSectionProps) {
     externalEntity: "",
     transferDate: "",
     settlementDate: "",
+    settlementNumber: "",
+    settlementType: "",
+    amount: 0,
     settlementAmount: 0,
     currency: "PLN",
     status: "",
+    paymentMethod: "",
+    notes: "",
+    description: "",
   })
 
   const [formData, setFormData] = useState(getInitialForm())
@@ -112,12 +118,18 @@ export function SettlementsSection({ eventId }: SettlementsSectionProps) {
 
   function handleEdit(settlement: Settlement) {
     setFormData({
+      settlementNumber: settlement.settlementNumber ?? "",
+      settlementType: settlement.settlementType ?? "",
       externalEntity: settlement.externalEntity ?? "",
       transferDate: settlement.transferDate?.slice(0, 10) ?? "",
       settlementDate: settlement.settlementDate?.slice(0, 10) ?? "",
+      amount: settlement.amount ?? 0,
       settlementAmount: settlement.settlementAmount ?? 0,
       currency: settlement.currency ?? "PLN",
       status: settlement.status ?? "",
+      paymentMethod: settlement.paymentMethod ?? "",
+      notes: settlement.notes ?? "",
+      description: settlement.description ?? "",
     })
     setEditingId(settlement.id)
     setIsFormVisible(true)
@@ -170,6 +182,16 @@ export function SettlementsSection({ eventId }: SettlementsSectionProps) {
         {isFormVisible ? (
           <form onSubmit={handleSubmit} className="space-y-2">
             <Input
+              placeholder="Numer ugody"
+              value={formData.settlementNumber}
+              onChange={(e) => setFormData({ ...formData, settlementNumber: e.target.value })}
+            />
+            <Input
+              placeholder="Typ ugody"
+              value={formData.settlementType}
+              onChange={(e) => setFormData({ ...formData, settlementType: e.target.value })}
+            />
+            <Input
               placeholder="Podmiot zewnętrzny"
               value={formData.externalEntity}
               onChange={(e) => setFormData({ ...formData, externalEntity: e.target.value })}
@@ -183,6 +205,15 @@ export function SettlementsSection({ eventId }: SettlementsSectionProps) {
               type="date"
               value={formData.settlementDate}
               onChange={(e) => setFormData({ ...formData, settlementDate: e.target.value })}
+            />
+            <Input
+              type="number"
+              step="0.01"
+              placeholder="Kwota"
+              value={formData.amount}
+              onChange={(e) =>
+                setFormData({ ...formData, amount: parseFloat(e.target.value) || 0 })
+              }
             />
             <Input
               type="number"
@@ -202,6 +233,21 @@ export function SettlementsSection({ eventId }: SettlementsSectionProps) {
               placeholder="Status"
               value={formData.status}
               onChange={(e) => setFormData({ ...formData, status: e.target.value })}
+            />
+            <Input
+              placeholder="Metoda płatności"
+              value={formData.paymentMethod}
+              onChange={(e) => setFormData({ ...formData, paymentMethod: e.target.value })}
+            />
+            <Input
+              placeholder="Notatki"
+              value={formData.notes}
+              onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
+            />
+            <Input
+              placeholder="Opis"
+              value={formData.description}
+              onChange={(e) => setFormData({ ...formData, description: e.target.value })}
             />
             <div className="space-x-2">
               <Button type="submit">Zapisz</Button>

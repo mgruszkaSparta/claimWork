@@ -214,6 +214,8 @@ export interface Settlement {
   settlementAmount?: number
   amount?: number
   currency?: string
+  paymentMethod?: string
+  notes?: string
   description?: string
   settlementNumber?: string
   settlementType?: string

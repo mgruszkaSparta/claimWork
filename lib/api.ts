@@ -482,11 +482,14 @@ export interface SettlementDto {
   customExternalEntity?: string
   transferDate?: string
   settlementDate?: string
+  settlementNumber?: string
   settlementType?: string
-  description?: string
   amount?: number
   settlementAmount?: number
   currency?: string
+  paymentMethod?: string
+  notes?: string
+  description?: string
   status?: string
   documentPath?: string
   documentName?: string

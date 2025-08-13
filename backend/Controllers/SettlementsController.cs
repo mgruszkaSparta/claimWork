@@ -61,13 +61,19 @@ namespace AutomotiveClaimsApi.Controllers
                 Id = Guid.NewGuid(),
                 EventId = createDto.EventId,
                 ClaimId = createDto.ClaimId,
+                SettlementNumber = createDto.SettlementNumber,
+                SettlementType = createDto.SettlementType,
                 ExternalEntity = createDto.ExternalEntity,
                 CustomExternalEntity = createDto.CustomExternalEntity,
                 TransferDate = createDto.TransferDate,
                 Status = createDto.Status,
                 SettlementDate = createDto.SettlementDate,
+                Amount = createDto.Amount,
                 SettlementAmount = createDto.SettlementAmount,
                 Currency = createDto.Currency,
+                PaymentMethod = createDto.PaymentMethod,
+                Notes = createDto.Notes,
+                Description = createDto.Description,
                 CreatedAt = DateTime.UtcNow,
                 UpdatedAt = DateTime.UtcNow
             };
@@ -106,10 +112,16 @@ namespace AutomotiveClaimsApi.Controllers
             settlement.ExternalEntity = updateDto.ExternalEntity;
             settlement.CustomExternalEntity = updateDto.CustomExternalEntity;
             settlement.TransferDate = updateDto.TransferDate;
+            settlement.SettlementNumber = updateDto.SettlementNumber;
+            settlement.SettlementType = updateDto.SettlementType;
             settlement.Status = updateDto.Status;
             settlement.SettlementDate = updateDto.SettlementDate;
+            settlement.Amount = updateDto.Amount;
             settlement.SettlementAmount = updateDto.SettlementAmount;
             settlement.Currency = updateDto.Currency;
+            settlement.PaymentMethod = updateDto.PaymentMethod;
+            settlement.Notes = updateDto.Notes;
+            settlement.Description = updateDto.Description;
             settlement.UpdatedAt = DateTime.UtcNow;
 
             if (updateDto.Document != null)

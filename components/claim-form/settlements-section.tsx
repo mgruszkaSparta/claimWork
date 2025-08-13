@@ -14,7 +14,7 @@ import { getSettlements, createSettlement, updateSettlement, deleteSettlement } 
 import type { Settlement } from "@/types"
 
 interface SettlementsSectionProps {
-  claimId: string
+  eventId: string
 }
 
 interface SettlementFormData {
@@ -39,7 +39,7 @@ const initialFormData: SettlementFormData = {
   documentDescription: "",
 }
 
-export const SettlementsSection: React.FC<SettlementsSectionProps> = ({ claimId }) => {
+export const SettlementsSection: React.FC<SettlementsSectionProps> = ({ eventId }) => {
   const { toast } = useToast()
 
   const [settlements, setSettlements] = useState<Settlement[]>([])
@@ -65,10 +65,10 @@ export const SettlementsSection: React.FC<SettlementsSectionProps> = ({ claimId 
   const [currentPreviewSettlement, setCurrentPreviewSettlement] = useState<Settlement | null>(null)
 
   const loadSettlements = useCallback(async () => {
-    if (!claimId) return
+    if (!eventId) return
     setIsListLoading(true)
     try {
-      const data = await getSettlements(claimId)
+      const data = await getSettlements(eventId)
       setSettlements(data)
     } catch (error) {
       console.error("Error fetching settlements:", error)
@@ -80,7 +80,7 @@ export const SettlementsSection: React.FC<SettlementsSectionProps> = ({ claimId 
     } finally {
       setIsListLoading(false)
     }
-  }, [claimId, toast])
+  }, [eventId, toast])
 
   useEffect(() => {
     loadSettlements()
@@ -189,7 +189,7 @@ export const SettlementsSection: React.FC<SettlementsSectionProps> = ({ claimId 
 
       try {
         const body = new FormData()
-        body.append("eventId", claimId)
+        body.append("eventId", eventId)
         body.append("externalEntity", formData.externalEntity)
         if (formData.customExternalEntity) {
           body.append("customExternalEntity", formData.customExternalEntity)
@@ -241,7 +241,7 @@ export const SettlementsSection: React.FC<SettlementsSectionProps> = ({ claimId 
         setIsLoading(false)
       }
     },
-    [formData, selectedFile, isEditing, editingSettlementId, claimId, loadSettlements, toast],
+    [formData, selectedFile, isEditing, editingSettlementId, eventId, loadSettlements, toast],
   )
 
   // Edit settlement

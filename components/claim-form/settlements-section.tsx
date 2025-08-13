@@ -18,36 +18,24 @@ interface SettlementsSectionProps {
 }
 
 interface SettlementFormData {
-  settlementNumber: string
-  settlementType: string
   externalEntity: string
   customExternalEntity: string
   transferDate: string
   status: string
   settlementDate: string
-  amount: number
   settlementAmount: number
   currency: string
-  paymentMethod: string
-  notes: string
-  description: string
   documentDescription: string
 }
 
 const initialFormData: SettlementFormData = {
-  settlementNumber: "",
-  settlementType: "",
   externalEntity: "",
   customExternalEntity: "",
   transferDate: "",
   status: "",
   settlementDate: "",
-  amount: 0,
   settlementAmount: 0,
   currency: "PLN",
-  paymentMethod: "",
-  notes: "",
-  description: "",
   documentDescription: "",
 }
 
@@ -109,6 +97,10 @@ export const SettlementsSection: React.FC<SettlementsSectionProps> = ({ eventId 
       },
       {} as Record<string, number>,
     )
+  }, [settlements])
+
+  const totalSettlementAmount = useMemo(() => {
+    return settlements.reduce((sum, s) => sum + (s.settlementAmount || 0), 0)
   }, [settlements])
 
   // Handle form field changes
@@ -202,24 +194,15 @@ export const SettlementsSection: React.FC<SettlementsSectionProps> = ({ eventId 
       try {
         const body = new FormData()
         body.append("eventId", eventId)
-        if (formData.settlementNumber)
-          body.append("settlementNumber", formData.settlementNumber)
-        if (formData.settlementType)
-          body.append("settlementType", formData.settlementType)
         body.append("externalEntity", formData.externalEntity)
         if (formData.customExternalEntity) {
           body.append("customExternalEntity", formData.customExternalEntity)
         }
         if (formData.transferDate) body.append("transferDate", formData.transferDate)
         if (formData.settlementDate) body.append("settlementDate", formData.settlementDate)
-        if (formData.amount) body.append("amount", formData.amount.toString())
         if (formData.settlementAmount)
           body.append("settlementAmount", formData.settlementAmount.toString())
         if (formData.currency) body.append("currency", formData.currency)
-        if (formData.paymentMethod)
-          body.append("paymentMethod", formData.paymentMethod)
-        if (formData.notes) body.append("notes", formData.notes)
-        if (formData.description) body.append("description", formData.description)
         if (formData.status) body.append("status", formData.status)
         if (formData.documentDescription)
           body.append("documentDescription", formData.documentDescription)
@@ -270,19 +253,13 @@ export const SettlementsSection: React.FC<SettlementsSectionProps> = ({ eventId 
     const isCustom =
       settlement.externalEntity && !["ClaimXpert360"].includes(settlement.externalEntity)
     setFormData({
-      settlementNumber: settlement.settlementNumber || "",
-      settlementType: settlement.settlementType || "",
       externalEntity: isCustom ? "custom" : settlement.externalEntity || "",
       customExternalEntity: isCustom ? settlement.externalEntity || "" : "",
       transferDate: settlement.transferDate || "",
       status: settlement.status || "",
       settlementDate: settlement.settlementDate || "",
-      amount: settlement.amount || 0,
       settlementAmount: settlement.settlementAmount || 0,
       currency: settlement.currency || "PLN",
-      paymentMethod: settlement.paymentMethod || "",
-      notes: settlement.notes || "",
-      description: settlement.description || "",
       documentDescription: settlement.documentDescription || "",
     })
     setShowCustomEntityInput(isCustom)
@@ -425,28 +402,6 @@ export const SettlementsSection: React.FC<SettlementsSectionProps> = ({ eventId 
             <div className="p-5">
               <form onSubmit={onSubmit}>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-                  {/* Settlement Number */}
-                  <div className="grid gap-2">
-                    <Label className="text-[#1a3a6c] text-sm font-medium">Numer ugody:</Label>
-                    <Input
-                      type="text"
-                      className="w-full border border-[#d1d9e6] focus:ring-2 focus:ring-[#1a3a6c]/20 focus:border-[#1a3a6c]"
-                      value={formData.settlementNumber}
-                      onChange={(e) => handleFormChange("settlementNumber", e.target.value)}
-                    />
-                  </div>
-
-                  {/* Settlement Type */}
-                  <div className="grid gap-2">
-                    <Label className="text-[#1a3a6c] text-sm font-medium">Typ ugody:</Label>
-                    <Input
-                      type="text"
-                      className="w-full border border-[#d1d9e6] focus:ring-2 focus:ring-[#1a3a6c]/20 focus:border-[#1a3a6c]"
-                      value={formData.settlementType}
-                      onChange={(e) => handleFormChange("settlementType", e.target.value)}
-                    />
-                  </div>
-
                   {/* External Entity */}
                   <div className="grid gap-2">
                     <Label className="text-[#1a3a6c] text-sm font-medium">Podmiot zewnętrzny:</Label>
@@ -514,19 +469,6 @@ export const SettlementsSection: React.FC<SettlementsSectionProps> = ({ eventId 
                     />
                   </div>
 
-                  {/* Amount */}
-                  <div className="grid gap-2">
-                    <Label className="text-[#1a3a6c] text-sm font-medium">Kwota roszczenia:</Label>
-                    <Input
-                      type="number"
-                      step="0.01"
-                      className="w-full border border-[#d1d9e6] focus:ring-2 focus:ring-[#1a3a6c]/20 focus:border-[#1a3a6c]"
-                      value={formData.amount}
-                      onChange={(e) => handleFormChange("amount", Number.parseFloat(e.target.value) || 0)}
-                      placeholder="0.00"
-                    />
-                  </div>
-
                   {/* Settlement Amount with Currency */}
                   <div className="grid gap-2 md:col-span-2">
                     <Label className="text-[#1a3a6c] text-sm font-medium">Kwota ugody:</Label>
@@ -554,38 +496,7 @@ export const SettlementsSection: React.FC<SettlementsSectionProps> = ({ eventId 
                     </div>
                   </div>
 
-                  {/* Payment Method */}
-                  <div className="grid gap-2">
-                    <Label className="text-[#1a3a6c] text-sm font-medium">Metoda płatności:</Label>
-                    <Input
-                      type="text"
-                      className="w-full border border-[#d1d9e6] focus:ring-2 focus:ring-[#1a3a6c]/20 focus:border-[#1a3a6c]"
-                      value={formData.paymentMethod}
-                      onChange={(e) => handleFormChange("paymentMethod", e.target.value)}
-                    />
-                  </div>
-
-                  {/* Notes */}
-                  <div className="grid gap-2 md:col-span-2">
-                    <Label className="text-[#1a3a6c] text-sm font-medium">Notatki:</Label>
-                    <Textarea
-                      value={formData.notes}
-                      onChange={(e) => handleFormChange("notes", e.target.value)}
-                      className="w-full border border-[#d1d9e6] focus:ring-2 focus:ring-[#1a3a6c]/20 focus:border-[#1a3a6c] text-sm"
-                      rows={2}
-                    />
-                  </div>
-
-                  {/* Description */}
-                  <div className="grid gap-2 md:col-span-2">
-                    <Label className="text-[#1a3a6c] text-sm font-medium">Opis:</Label>
-                    <Textarea
-                      value={formData.description}
-                      onChange={(e) => handleFormChange("description", e.target.value)}
-                      className="w-full border border-[#d1d9e6] focus:ring-2 focus:ring-[#1a3a6c]/20 focus:border-[#1a3a6c] text-sm"
-                      rows={2}
-                    />
-                  </div>
+                  {/** Payment method, notes, and description fields removed to match updated design */}
                 </div>
 
                 {/* Document Upload Section */}
@@ -687,16 +598,7 @@ export const SettlementsSection: React.FC<SettlementsSectionProps> = ({ eventId 
                     <Info className="text-[#0284c7] h-5 w-5" />
                     <div>
                       <p className="text-sm font-medium text-[#0284c7]">
-                        Suma ugód:{" "}
-                        <span className="font-bold">
-                          {Object.entries(totalPaymentsByCurrency).map(([currency, amount], index) => (
-                            <span key={currency}>
-                              {amount.toFixed(2)} {currency}
-                              {index < Object.entries(totalPaymentsByCurrency).length - 1 ? ", " : ""}
-                            </span>
-                          ))}
-                          {Object.keys(totalPaymentsByCurrency).length === 0 && "0.00 PLN"}
-                        </span>
+                        Suma ugód: <span className="font-bold">{totalSettlementAmount.toFixed(2)} PLN</span>
                       </p>
                     </div>
                   </div>

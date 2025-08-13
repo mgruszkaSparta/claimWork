@@ -22,38 +22,28 @@ export default function WorkspaceLoginPage() {
     setError('')
 
     try {
-      // Simulate API call delay
-      await new Promise(resolve => setTimeout(resolve, 1000))
+      const response = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userName: credentials.username, password: credentials.password })
+      })
 
-      // Mock authentication - in real app, this would be an API call
-      const mockUsers = [
-        { id: '1', username: 'admin', password: 'admin123', name: 'Administrator', role: 'admin' },
-        { id: '2', username: 'user', password: 'user123', name: 'Jan Kowalski', role: 'user' },
-        { id: '3', username: 'expert', password: 'expert123', name: 'Anna Nowak', role: 'expert' },
-        { id: '4', username: 'sparta', password: 'sparta2025', name: 'Sparta Brokers', role: 'admin' },
-      ]
-
-      const user = mockUsers.find(
-        u => u.username === credentials.username && u.password === credentials.password
-      )
-
-      if (user) {
-        const userData = {
-          id: user.id,
-          username: user.username,
-          name: user.name,
-          role: user.role
-        }
-
-        // Save to localStorage
-        localStorage.setItem('user', JSON.stringify(userData))
-        localStorage.setItem('isAuthenticated', 'true')
-
-        // Redirect to main page
-        router.push('/')
-      } else {
-        setError('Nieprawidłowy login lub hasło.')
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => null)
+        setError(errorData?.message || 'Nieprawidłowy login lub hasło.')
+        return
       }
+
+      const data = await response.json().catch(() => null)
+      if (data?.token) {
+        localStorage.setItem('token', data.token)
+      }
+      if (data?.user) {
+        localStorage.setItem('user', JSON.stringify(data.user))
+      }
+      localStorage.setItem('isAuthenticated', 'true')
+
+      router.push('/')
     } catch (error) {
       setError('Wystąpił błąd podczas logowania. Spróbuj ponownie.')
     } finally {

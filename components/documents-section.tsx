@@ -734,6 +734,30 @@ export const DocumentsSection = ({
     })
   }
 
+  const handleRemoveCategory = (category: string) => {
+    setRequiredDocuments((prev) =>
+      prev.map((doc) => (doc.name === category ? { ...doc, uploaded: false } : doc)),
+    )
+
+    setOpenCategories((prev) => {
+      const { [category]: _, ...rest } = prev
+      return rest
+    })
+
+    setSelectedDocumentIds((prev) =>
+      prev.filter((id) => {
+        const doc = allDocuments.find((d) => d.id === id)
+        return doc?.documentType !== category
+      }),
+    )
+
+    toast({
+      title: "Kategoria usunięta",
+      description: `Kategoria "${category}" została usunięta.`,
+      variant: "destructive",
+    })
+  }
+
   // Preview navigation functions
   const goToPreviousDocument = () => {
     if (currentPreviewIndex > 0) {
@@ -969,7 +993,7 @@ export const DocumentsSection = ({
                   <Badge variant="secondary" className="bg-green-100 text-green-800">
                     {documentsForCategory.length}
                   </Badge>
-                  {category !== "Inne dokumenty" && (
+                  {category !== "Inne dokumenty" && documentsForCategory.length === 0 && (
                     <Button
                       variant="ghost"
                       size="icon"
@@ -977,11 +1001,7 @@ export const DocumentsSection = ({
                       onClick={(e) => {
                         e.stopPropagation()
                         if (window.confirm(`Czy na pewno chcesz usunąć kategorię "${category}"?`)) {
-                          toast({
-                            title: "Kategoria usunięta",
-                            description: `Kategoria "${category}" została usunięta.`,
-                            variant: "destructive",
-                          })
+                          handleRemoveCategory(category)
                         }
                       }}
                     >

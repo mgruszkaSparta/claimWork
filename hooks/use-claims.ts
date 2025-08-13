@@ -9,6 +9,18 @@ import {
 } from "@/lib/api"
 import type { Claim, ParticipantInfo, DriverInfo, Note } from "@/types"
 
+const toIso = (value?: string, field?: string): string | undefined => {
+  if (!value) return undefined
+  const parsed = Date.parse(value)
+  if (Number.isNaN(parsed)) {
+    if (field) {
+      console.warn(`Invalid date for ${field}: "${value}"`)
+    }
+    return undefined
+  }
+  return new Date(parsed).toISOString()
+}
+
 export const transformApiClaimToFrontend = (apiClaim: ClaimDto): Claim => {
   const injuredParty = apiClaim.participants?.find((p: any) => p.role === "Poszkodowany")
   const perpetrator = apiClaim.participants?.find((p: any) => p.role === "Sprawca")
@@ -146,18 +158,13 @@ export const transformFrontendClaimToApiPayload = (
     country: p.country,
     insuranceCompany: p.insuranceCompany,
     policyNumber: p.policyNumber,
-    policyDealDate: p.policyDealDate
-      ? new Date(p.policyDealDate).toISOString()
-      : undefined,
-    policyStartDate: p.policyStartDate
-      ? new Date(p.policyStartDate).toISOString()
-      : undefined,
-    policyEndDate: p.policyEndDate
-      ? new Date(p.policyEndDate).toISOString()
-      : undefined,
-    firstRegistrationDate: p.firstRegistrationDate
-      ? new Date(p.firstRegistrationDate).toISOString()
-      : undefined,
+    policyDealDate: toIso(p.policyDealDate, `${role}.policyDealDate`),
+    policyStartDate: toIso(p.policyStartDate, `${role}.policyStartDate`),
+    policyEndDate: toIso(p.policyEndDate, `${role}.policyEndDate`),
+    firstRegistrationDate: toIso(
+      p.firstRegistrationDate,
+      `${role}.firstRegistrationDate`,
+    ),
     policySumAmount: p.policySumAmount,
     vehicleRegistration: p.vehicleRegistration,
     vehicleVin: p.vehicleVin,
@@ -206,13 +213,15 @@ export const transformFrontendClaimToApiPayload = (
     handlerId: handlerId ? parseInt(handlerId, 10) : undefined,
     riskType,
     ...(damageTypeValue ? { damageType: damageTypeValue } : {}),
-    damageDate: rest.damageDate ? new Date(rest.damageDate).toISOString() : undefined,
-    reportDate: rest.reportDate ? new Date(rest.reportDate).toISOString() : undefined,
-    reportDateToInsurer: rest.reportDateToInsurer ? new Date(rest.reportDateToInsurer).toISOString() : undefined,
-    eventTime:
+    damageDate: toIso(rest.damageDate, "damageDate"),
+    reportDate: toIso(rest.reportDate, "reportDate"),
+    reportDateToInsurer: toIso(rest.reportDateToInsurer, "reportDateToInsurer"),
+    eventTime: toIso(
       rest.damageDate && rest.eventTime
-        ? new Date(`${rest.damageDate}T${rest.eventTime}`).toISOString()
+        ? `${rest.damageDate}T${rest.eventTime}`
         : undefined,
+      "eventTime",
+    ),
     servicesCalled: servicesCalled?.join(","),
     participants: participants,
 
@@ -240,9 +249,7 @@ export const transformFrontendClaimToApiPayload = (
       ? {
           decisions: decisions.map((d) => ({
             ...d,
-            decisionDate: d.decisionDate
-              ? new Date(d.decisionDate).toISOString()
-              : undefined,
+            decisionDate: toIso(d.decisionDate, "decisions.decisionDate"),
           })),
         }
       : {}),
@@ -251,9 +258,7 @@ export const transformFrontendClaimToApiPayload = (
       ? {
           appeals: appeals.map((a) => ({
             ...a,
-            appealDate: a.appealDate
-              ? new Date(a.appealDate).toISOString()
-              : undefined,
+            appealDate: toIso(a.appealDate, "appeals.appealDate"),
           })),
         }
       : {}),
@@ -263,12 +268,12 @@ export const transformFrontendClaimToApiPayload = (
       return {
         ...rest,
         ...(id && isGuid(id) ? { id } : {}),
-        claimDate: claimDate ? new Date(claimDate).toISOString() : undefined,
+        claimDate: toIso(claimDate, "clientClaims.claimDate"),
       }
     }),
     recourses: recourses?.map((r) => ({
       ...r,
-      recourseDate: r.recourseDate ? new Date(r.recourseDate).toISOString() : undefined,
+      recourseDate: toIso(r.recourseDate, "recourses.recourseDate"),
     })),
 
     // Settlements may be managed through dedicated endpoints. When included
@@ -286,9 +291,10 @@ export const transformFrontendClaimToApiPayload = (
             return {
               ...rest,
               ...(isGuid ? { id } : {}),
-              settlementDate: settlementDate
-                ? new Date(settlementDate).toISOString()
-                : undefined,
+              settlementDate: toIso(
+                settlementDate,
+                "settlements.settlementDate",
+              ),
             }
           }),
         }

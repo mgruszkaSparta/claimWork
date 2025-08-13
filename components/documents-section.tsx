@@ -155,7 +155,7 @@ export const DocumentsSection = ({
     setLoading(true)
     try {
       console.log("Loading documents for eventId:", eventId)
-      const response = await fetch(`/api/documents?eventId=${eventId}`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/documents?eventId=${eventId}`, {
         method: "GET",
         credentials: "include",
       })
@@ -312,7 +312,7 @@ export const DocumentsSection = ({
 
       try {
         console.log(`Making upload request for ${file.name}...`)
-        const response = await fetch("/api/documents/upload", {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/documents/upload`, {
           method: "POST",
           credentials: "include",
           body: formData,
@@ -487,7 +487,7 @@ export const DocumentsSection = ({
     }
 
     try {
-      const response = await fetch(`/api/documents/${documentId}`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/documents/${documentId}`, {
         method: "DELETE",
         credentials: "include",
       })
@@ -524,7 +524,7 @@ export const DocumentsSection = ({
     }
 
     try {
-      const response = await fetch(`/api/documents/${documentId}`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/documents/${documentId}`, {
         method: "PUT",
         credentials: "include",
         headers: {
@@ -552,7 +552,7 @@ export const DocumentsSection = ({
         description: `Rozpoczęto generowanie opisu dla pliku: ${document.originalFileName}`,
       })
 
-      const response = await fetch(`/api/documents/${documentId}/generate-description`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/documents/${documentId}/generate-description`, {
         method: "POST",
         credentials: "include",
       })

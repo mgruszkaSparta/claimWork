@@ -15,6 +15,8 @@ import { useDamages } from '@/hooks/use-damages'
 import { useRouter } from 'next/navigation'
 import { useToast } from '@/hooks/use-toast'
 import type { Claim, ParticipantInfo, UploadedFile, RequiredDocument } from '@/types'
+import LiquidatorDropdown from '@/components/liquidator-dropdown'
+import type { LiquidatorSelectionEvent } from '@/types/liquidator'
 
 interface ClaimFormProps {
   initialData?: Claim
@@ -266,6 +268,16 @@ export function ClaimForm({ initialData, mode }: ClaimFormProps) {
                 value={formData.eventLocation || ''}
                 onChange={(e) => handleInputChange('eventLocation', e.target.value)}
                 disabled={isDisabled}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="liquidator">Likwidator</Label>
+              <LiquidatorDropdown
+                selectedLiquidatorName={formData.liquidator}
+                onLiquidatorSelected={(event: LiquidatorSelectionEvent) =>
+                  handleInputChange('liquidator', event.liquidatorName)
+                }
+                className="mt-1"
               />
             </div>
           </CardContent>

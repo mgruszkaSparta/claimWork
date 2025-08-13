@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import ClientDropdown from "@/components/client-dropdown"
 import { Button } from "@/components/ui/button"
 import type { ClientSelectionEvent } from "@/types/client"
+import { useToast } from "@/hooks/use-toast"
 
 interface RiskType {
   value: string
@@ -26,6 +27,7 @@ interface NewClaimDialogProps {
 
 export function NewClaimDialog({ open, onOpenChange }: NewClaimDialogProps) {
   const router = useRouter()
+  const { toast } = useToast()
   const [riskTypes, setRiskTypes] = useState<RiskType[]>([])
   const [damageTypes, setDamageTypes] = useState<DamageType[]>([])
   const [selectedRisk, setSelectedRisk] = useState("")
@@ -37,12 +39,19 @@ export function NewClaimDialog({ open, onOpenChange }: NewClaimDialogProps) {
     const loadRiskTypes = async () => {
       try {
         const res = await fetch("/api/risk-types", { credentials: "include" })
-        if (res.ok) {
-          const data = await res.json()
-          setRiskTypes(data.options || [])
+        if (!res.ok) {
+          throw new Error(`HTTP error! status: ${res.status}`)
         }
+        const data = await res.json()
+        const options = data.map((item: any) => ({ value: item.id, label: item.name }))
+        setRiskTypes(options)
       } catch (e) {
         console.error(e)
+        toast({
+          title: "Uwaga",
+          description: "Nie udało się załadować ryzyk.",
+          variant: "destructive",
+        })
       }
     }
     loadRiskTypes()

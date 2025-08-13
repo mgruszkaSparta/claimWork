@@ -12,6 +12,12 @@ import type { DocumentsSectionProps, UploadedFile } from "@/types"
 import JSZip from "jszip"
 import { saveAs } from "file-saver"
 
+const debug = (...args: unknown[]) => {
+  if (process.env.NODE_ENV !== "production") {
+    console.log(...args)
+  }
+}
+
 interface Document {
   id: string
   eventId?: string
@@ -154,7 +160,7 @@ export const DocumentsSection = ({
 
     setLoading(true)
     try {
-      console.log("Loading documents for eventId:", eventId)
+      debug("Loading documents for eventId:", eventId)
       const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/documents?eventId=${eventId}`, {
         method: "GET",
         credentials: "include",
@@ -168,7 +174,7 @@ export const DocumentsSection = ({
         })
       } else if (response.ok) {
         const data: Document[] = await response.json()
-        console.log("Loaded documents:", data)
+        debug("Loaded documents:", data)
         const mappedDocs: Document[] = data.map((d: any) => ({
           ...d,
           documentType: mapCategoryCodeToName(d.documentType || d.category),
@@ -273,11 +279,11 @@ export const DocumentsSection = ({
       return
     }
 
-    console.log("Starting file upload:", { fileCount: files.length, category: categoryName, eventId })
+    debug("Starting file upload:", { fileCount: files.length, category: categoryName, eventId })
     setUploading(true)
 
     const uploadPromises = Array.from(files).map(async (file, index) => {
-      console.log(`Uploading file ${index + 1}/${files.length}:`, {
+      debug(`Uploading file ${index + 1}/${files.length}:`, {
         name: file.name,
         type: file.type,
         size: file.size,
@@ -311,14 +317,14 @@ export const DocumentsSection = ({
       formData.append("uploadedBy", "Current User")
 
       try {
-        console.log(`Making upload request for ${file.name}...`)
+        debug(`Making upload request for ${file.name}...`)
         const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/documents/upload`, {
           method: "POST",
           credentials: "include",
           body: formData,
         })
 
-        console.log(`Upload response for ${file.name}:`, {
+        debug(`Upload response for ${file.name}:`, {
           status: response.status,
           statusText: response.statusText,
           ok: response.ok,
@@ -340,7 +346,7 @@ export const DocumentsSection = ({
                 documentDto.contentType === "application/pdf" ||
                 documentDto.contentType?.startsWith("video/")),
           }
-          console.log(`File uploaded successfully:`, document)
+          debug(`File uploaded successfully:`, document)
           return document
         } else {
           let errorMessage = `HTTP ${response.status}: ${response.statusText}`
@@ -413,7 +419,7 @@ export const DocumentsSection = ({
           title: "Przesłano pliki",
           description: `Pomyślnie dodano ${successfulUploadsWithIds.length} plik(ów) do kategorii "${categoryName}".`,
         })
-        console.log("All successful uploads:", successfulUploadsWithIds)
+        debug("All successful uploads:", successfulUploadsWithIds)
       }
 
       const failedUploads = files.length - successfulUploadsWithIds.length
@@ -437,13 +443,13 @@ export const DocumentsSection = ({
   }
 
   const triggerUpload = (category: string) => {
-    console.log("Triggering upload for category:", category)
+    debug("Triggering upload for category:", category)
     setUploadingForCategory(category)
     fileInputRef.current?.click()
   }
 
   const handleFileInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    console.log("File input changed:", e.target.files?.length, "files selected")
+    debug("File input changed:", e.target.files?.length, "files selected")
     const files = e.target.files
     if (!files || files.length === 0) {
       setUploadingForCategory(null)
@@ -539,6 +545,11 @@ export const DocumentsSection = ({
       }
     } catch (error) {
       console.error("Error updating document description:", error)
+      toast({
+        title: "Błąd",
+        description: "Nie udało się zaktualizować opisu dokumentu",
+        variant: "destructive",
+      })
     }
   }
 
@@ -719,7 +730,7 @@ export const DocumentsSection = ({
     setDragActive(false)
     setDragCategory(null)
 
-    console.log("Files dropped:", e.dataTransfer.files.length, "files for category:", category)
+    debug("Files dropped:", e.dataTransfer.files.length, "files for category:", category)
     if (e.dataTransfer.files && e.dataTransfer.files[0]) {
       handleFileUpload(e.dataTransfer.files, category)
     }

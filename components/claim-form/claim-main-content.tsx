@@ -1980,7 +1980,7 @@ const renderParticipantDetails = (participant: ParticipantInfo | undefined, titl
               <CardTitle className="text-lg font-semibold">Decyzje</CardTitle>
             </CardHeader>
             <CardContent className="p-0 bg-white">
-              <DecisionsSection claimId={claimFormData.id} onChange={handleDecisionsChange} />
+              <DecisionsSection eventId={eventId} onChange={handleDecisionsChange} />
             </CardContent>
           </Card>
         </div>

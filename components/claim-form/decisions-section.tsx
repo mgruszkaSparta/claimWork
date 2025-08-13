@@ -32,11 +32,11 @@ import {
 } from "@/components/ui/alert-dialog"
 
 interface DecisionsSectionProps {
-  claimId?: string
+  eventId?: string
   onChange?: (decisions: Decision[]) => void
 }
 
-export function DecisionsSection({ claimId, onChange }: DecisionsSectionProps) {
+export function DecisionsSection({ eventId, onChange }: DecisionsSectionProps) {
   const [decisions, setDecisions] = useState<Decision[]>([])
   const [isFormVisible, setIsFormVisible] = useState(false)
   const [isEditing, setIsEditing] = useState(false)
@@ -71,18 +71,18 @@ export function DecisionsSection({ claimId, onChange }: DecisionsSectionProps) {
 
   useEffect(() => {
     loadDecisions()
-  }, [claimId])
+  }, [eventId])
 
   useEffect(() => {
     calculateTotalsByCurrency()
   }, [decisions])
 
   const loadDecisions = async () => {
-    if (!claimId) {
-      console.warn("Missing claim ID, skipping decisions fetch")
+    if (!eventId) {
+      console.warn("Missing event ID, skipping decisions fetch")
       toast({
-        title: "Brak ID roszczenia",
-        description: "Nie można załadować decyzji bez ID roszczenia",
+        title: "Brak ID zdarzenia",
+        description: "Nie można załadować decyzji bez ID zdarzenia",
         variant: "destructive",
       })
       return
@@ -90,7 +90,7 @@ export function DecisionsSection({ claimId, onChange }: DecisionsSectionProps) {
 
     setIsLoading(true)
     try {
-      const data = await apiGetDecisions(claimId)
+      const data = await apiGetDecisions(eventId)
       setDecisions(data)
       onChange?.(data)
     } catch (error) {
@@ -225,6 +225,15 @@ export function DecisionsSection({ claimId, onChange }: DecisionsSectionProps) {
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault()
 
+    if (!eventId) {
+      toast({
+        title: "Brak ID zdarzenia",
+        description: "Nie można zapisać decyzji bez ID zdarzenia",
+        variant: "destructive",
+      })
+      return
+    }
+
     if (!formData.status || !formData.decisionDate) {
       toast({
         title: "Błąd",
@@ -248,10 +257,10 @@ export function DecisionsSection({ claimId, onChange }: DecisionsSectionProps) {
       }
 
       if (isEditing && editingDecisionId) {
-        await apiUpdateDecision(claimId, editingDecisionId, payload)
+        await apiUpdateDecision(eventId, editingDecisionId, payload)
         toast({ title: "Sukces", description: "Decyzja została zaktualizowana" })
       } else {
-        await apiCreateDecision(claimId, payload)
+        await apiCreateDecision(eventId, payload)
         toast({ title: "Sukces", description: "Decyzja została dodana" })
       }
 
@@ -296,7 +305,7 @@ export function DecisionsSection({ claimId, onChange }: DecisionsSectionProps) {
   const deleteDecision = async (id: string) => {
     setIsLoading(true)
     try {
-      await apiDeleteDecision(claimId, id)
+      await apiDeleteDecision(eventId, id)
       toast({
         title: "Sukces",
         description: "Decyzja została usunięta",

@@ -45,13 +45,13 @@ async function request<T>(url: string, options: RequestInit = {}): Promise<T> {
   return data as T;
 }
 
-export async function getDecisions(claimId: string): Promise<Decision[]> {
-  const data = await request<unknown>(`/claims/${claimId}/decisions`);
+export async function getDecisions(eventId: string): Promise<Decision[]> {
+  const data = await request<unknown>(`/events/${eventId}/decisions`);
   return z.array(decisionSchema).parse(data);
 }
 
 export async function createDecision(
-  claimId: string,
+  eventId: string,
   payload: DecisionUpsert
 ): Promise<Decision> {
   const body = new FormData();
@@ -67,7 +67,7 @@ export async function createDecision(
     body.append("documentDescription", parsed.documentDescription);
   if (payload.document) body.append("document", payload.document);
 
-  const data = await request<unknown>(`/claims/${claimId}/decisions`, {
+  const data = await request<unknown>(`/events/${eventId}/decisions`, {
     method: "POST",
     body,
   });
@@ -75,7 +75,7 @@ export async function createDecision(
 }
 
 export async function updateDecision(
-  claimId: string,
+  eventId: string,
   id: string,
   payload: DecisionUpsert
 ): Promise<Decision> {
@@ -92,7 +92,7 @@ export async function updateDecision(
     body.append("documentDescription", parsed.documentDescription);
   if (payload.document) body.append("document", payload.document);
 
-  const data = await request<unknown>(`/claims/${claimId}/decisions/${id}`, {
+  const data = await request<unknown>(`/events/${eventId}/decisions/${id}`, {
     method: "PUT",
     body,
   });
@@ -100,10 +100,10 @@ export async function updateDecision(
 }
 
 export async function deleteDecision(
-  claimId: string,
+  eventId: string,
   id: string
 ): Promise<void> {
-  await request<void>(`/claims/${claimId}/decisions/${id}`, {
+  await request<void>(`/events/${eventId}/decisions/${id}`, {
     method: "DELETE",
   });
 }

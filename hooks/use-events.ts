@@ -31,7 +31,7 @@ const transformApiEvent = (apiEvent: EventDto): Event => ({
   id: apiEvent.id?.toString() || "",
   claimNumber: apiEvent.claimNumber || "",
   eventDate: apiEvent.damageDate ? new Date(apiEvent.damageDate).toLocaleDateString("pl-PL") : "",
-  eventTime: apiEvent.eventTime || "",
+  eventTime: apiEvent.eventTime?.split("T")[1]?.slice(0, 5) || "",
   location: apiEvent.location || "",
   city: apiEvent.location || "",
   postalCode: "",
@@ -54,7 +54,10 @@ const transformApiEvent = (apiEvent: EventDto): Event => ({
 const transformToApiEvent = (event: Partial<Event>): Partial<EventDto> => ({
   claimNumber: event.claimNumber || "",
   damageDate: event.eventDate || new Date().toISOString().split("T")[0],
-  eventTime: event.eventTime || "",
+  eventTime:
+    event.eventDate && event.eventTime
+      ? new Date(`${event.eventDate}T${event.eventTime}`).toISOString()
+      : undefined,
   location: event.location || "",
   description: event.eventDescription,
   servicesCalled: event.policeInvolved ? ["policja"] : [],

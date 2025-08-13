@@ -686,9 +686,9 @@ namespace AutomotiveClaimsApi.Controllers
             entity.HandlerEmail = dto.HandlerEmail;
             entity.HandlerPhone = dto.HandlerPhone;
 
-            if (DateTime.TryParse(dto.EventTime, out var eventTime))
+            if (!string.IsNullOrEmpty(dto.EventTime))
             {
-                entity.EventTime = eventTime;
+                entity.EventTime = DateTime.Parse(dto.EventTime);
             }
 
             entity.EventLocation = dto.EventLocation;

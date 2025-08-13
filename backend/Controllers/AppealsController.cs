@@ -260,7 +260,7 @@ namespace AutomotiveClaimsApi.Controllers
                 AppealAmount = a.AppealAmount,
                 DecisionDate = a.DecisionDate,
                 DecisionReason = a.DecisionReason,
-                DaysSinceSubmission = (int?)(DateTime.UtcNow - a.SubmissionDate).TotalDays,
+                DaysSinceSubmission = (DateTime.UtcNow - a.SubmissionDate).Days,
                 DocumentPath = a.DocumentPath,
                 DocumentName = a.DocumentName,
                 DocumentDescription = a.DocumentDescription,

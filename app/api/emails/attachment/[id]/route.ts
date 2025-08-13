@@ -1,22 +1,38 @@
 import { type NextRequest, NextResponse } from "next/server"
 
-export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5200/api"
+
+export async function GET(_request: NextRequest, { params }: { params: { id: string } }) {
   try {
-    const attachmentId = Number.parseInt(params.id)
+    const attachmentId = params.id
 
-    // Mock implementation - replace with actual backend API call
-    // For now, return a simple text file as a blob
-    const mockFileContent = "This is a mock attachment file content"
-    const blob = new Blob([mockFileContent], { type: "text/plain" })
+    const response = await fetch(`${API_BASE_URL}/emails/attachment/${attachmentId}`)
 
-    return new NextResponse(blob, {
+    if (!response.ok) {
+      const errorBody = await response.text()
+      return new NextResponse(errorBody, {
+        status: response.status,
+        headers: {
+          "Content-Type": response.headers.get("content-type") || "text/plain",
+        },
+      })
+    }
+
+    const contentType = response.headers.get("content-type") || "application/octet-stream"
+    const contentDisposition = response.headers.get("content-disposition") || "attachment"
+
+    return new NextResponse(response.body, {
+      status: response.status,
       headers: {
-        "Content-Type": "text/plain",
-        "Content-Disposition": 'attachment; filename="mock-attachment.txt"',
+        "Content-Type": contentType,
+        "Content-Disposition": contentDisposition,
       },
     })
   } catch (error) {
     console.error("Error downloading attachment:", error)
-    return NextResponse.json({ error: "Failed to download attachment" }, { status: 500 })
+    return NextResponse.json(
+      { error: error instanceof Error ? error.message : "Unknown error" },
+      { status: 500 },
+    )
   }
 }

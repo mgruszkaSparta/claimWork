@@ -8,15 +8,6 @@ import { Input } from "@/components/ui/input"
 import { Checkbox } from "@/components/ui/checkbox"
 import { useToast } from "@/hooks/use-toast"
 import { File, Search, Filter, Eye, Download, Upload, X, Trash2, Grid, List, Wand, Plus, FileText, Paperclip, ZoomIn, ZoomOut, ChevronLeft, ChevronRight, RotateCw, Maximize2, Minimize2 } from 'lucide-react'
-import { Document as PdfDocument, Page, pdfjs } from 'react-pdf'
-import 'react-pdf/dist/Page/AnnotationLayer.css'
-import 'react-pdf/dist/Page/TextLayer.css'
-import pdfjsWorker from 'pdfjs-dist/build/pdf.worker.min.mjs'
-
-if (typeof window !== 'undefined') {
-  // Configure pdf.js worker
-  pdfjs.GlobalWorkerOptions.workerSrc = pdfjsWorker
-}
 import type { DocumentsSectionProps, UploadedFile } from "@/types"
 import JSZip from "jszip"
 import { saveAs } from "file-saver"
@@ -77,7 +68,6 @@ export const DocumentsSection = ({
   const [previewFullscreen, setPreviewFullscreen] = useState(false)
   const [currentPreviewIndex, setCurrentPreviewIndex] = useState(0)
   const [previewDocuments, setPreviewDocuments] = useState<Document[]>([])
-  const [numPdfPages, setNumPdfPages] = useState(0)
 
   const previewContainerRef = React.useRef<HTMLDivElement>(null)
 
@@ -599,7 +589,6 @@ export const DocumentsSection = ({
     setPreviewZoom(1)
     setPreviewRotation(0)
     setPreviewFullscreen(false)
-    setNumPdfPages(0)
   }
 
   const handleDownload = (document: Document) => {
@@ -753,7 +742,6 @@ export const DocumentsSection = ({
       setPreviewDocument(previewDocuments[newIndex])
       setPreviewZoom(1)
       setPreviewRotation(0)
-      setNumPdfPages(0)
     }
   }
 
@@ -764,7 +752,6 @@ export const DocumentsSection = ({
       setPreviewDocument(previewDocuments[newIndex])
       setPreviewZoom(1)
       setPreviewRotation(0)
-      setNumPdfPages(0)
     }
   }
 
@@ -1548,9 +1535,8 @@ export const DocumentsSection = ({
                     <ChevronRight className="h-4 w-4" />
                   </Button>
 
-                  {/* Zoom controls for images and PDFs */}
-                  {(previewDocument.contentType.startsWith("image/") ||
-                    previewDocument.contentType === "application/pdf") && (
+                  {/* Zoom controls for images */}
+                  {previewDocument.contentType.startsWith("image/") && (
                     <>
                       <Button variant="outline" size="sm" onClick={handleZoomOut}>
                         <ZoomOut className="h-4 w-4" />
@@ -1561,11 +1547,9 @@ export const DocumentsSection = ({
                       <Button variant="outline" size="sm" onClick={handleZoomIn}>
                         <ZoomIn className="h-4 w-4" />
                       </Button>
-                      {previewDocument.contentType.startsWith("image/") && (
-                        <Button variant="outline" size="sm" onClick={handleRotate}>
-                          <RotateCw className="h-4 w-4" />
-                        </Button>
-                      )}
+                      <Button variant="outline" size="sm" onClick={handleRotate}>
+                        <RotateCw className="h-4 w-4" />
+                      </Button>
                     </>
                   )}
 
@@ -1614,21 +1598,17 @@ export const DocumentsSection = ({
                     </video>
                   </div>
                 ) : previewDocument.contentType === "application/pdf" ? (
-                  <div className="w-full h-full overflow-auto p-4">
-                    <PdfDocument
-                      file={previewDocument.previewUrl || previewDocument.downloadUrl}
-                      onLoadSuccess={({ numPages }) => setNumPdfPages(numPages)}
-                      className="flex flex-col items-center"
-                    >
-                      {Array.from(new Array(numPdfPages), (_el, index) => (
-                        <Page
-                          key={`page_${index + 1}`}
-                          pageNumber={index + 1}
-                          scale={previewZoom}
-                        />
-                      ))}
-                    </PdfDocument>
-                  </div>
+                  <object
+                    data={previewDocument.previewUrl || previewDocument.downloadUrl}
+                    type="application/pdf"
+                    className="w-full h-full"
+                  >
+                    <iframe
+                      src={previewDocument.previewUrl || previewDocument.downloadUrl}
+                      className="w-full h-full"
+                      title={previewDocument.originalFileName}
+                    />
+                  </object>
                 ) : (
                   <div className="text-center py-8">
                     <FileText className="h-16 w-16 text-gray-400 mx-auto mb-4" />

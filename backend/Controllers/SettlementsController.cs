@@ -183,7 +183,7 @@ namespace AutomotiveClaimsApi.Controllers
                 .ToListAsync();
 
             var totalsByCurrency = settlements
-                .GroupBy(s => s.Currency ?? "PLN")
+                .GroupBy(s => (s.Currency ?? "PLN").ToUpperInvariant())
                 .ToDictionary(g => g.Key, g => g.Sum(s => s.SettlementAmount ?? 0));
 
             var totalsByStatus = settlements

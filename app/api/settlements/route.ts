@@ -38,10 +38,14 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url)
     const eventId = searchParams.get("eventId") || searchParams.get("claimId")
 
-    let url = `${API_BASE_URL}/settlements`
-    if (eventId) {
-      url += `?eventId=${eventId}`
+    if (!eventId) {
+      return NextResponse.json(
+        { error: "Event ID is required" },
+        { status: 400 },
+      )
     }
+
+    const url = `${API_BASE_URL}/settlements/event/${eventId}`
 
     const response = await fetchWithRetry(url, {
       method: "GET",

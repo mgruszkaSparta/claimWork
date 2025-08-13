@@ -17,12 +17,19 @@ namespace AutomotiveClaimsApi.Controllers
         }
 
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<RiskTypeDto>>> GetRiskTypes()
+        public async Task<ActionResult<IEnumerable<RiskTypeDto>>> GetRiskTypes([FromQuery] int? claimObjectTypeId)
         {
             try
             {
-                var riskTypes = await _context.RiskTypes
-                    .Where(rt => rt.IsActive)
+                var query = _context.RiskTypes
+                    .Where(rt => rt.IsActive);
+
+                if (claimObjectTypeId.HasValue)
+                {
+                    query = query.Where(rt => rt.ClaimObjectTypeId == claimObjectTypeId);
+                }
+
+                var riskTypes = await query
                     .OrderBy(rt => rt.Name)
                     .Select(rt => new RiskTypeDto
                     {

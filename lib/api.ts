@@ -362,6 +362,7 @@ export interface AppealDto {
   documentDescription?: string
   createdAt?: string
   updatedAt?: string
+  daysSinceSubmission?: number
 }
 
 export interface AppealUpsertDto {

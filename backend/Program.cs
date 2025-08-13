@@ -64,6 +64,7 @@ builder.Services.AddScoped<IGoogleCloudStorageService, GoogleCloudStorageService
 
 // Add background services
 builder.Services.AddHostedService<EmailBackgroundService>();
+builder.Services.AddHostedService<AppealReminderService>();
 
 // Add CORS
 builder.Services.AddCors(options =>

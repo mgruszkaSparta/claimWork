@@ -601,13 +601,17 @@ export const DocumentsSection = ({
     window.document.body.removeChild(link)
   }
 
-  const handleDownloadAll = async (category: string) => {
-    const documentsForCategory = allDocuments.filter((d) => d.documentType === category)
+  const handleDownloadAll = async (category?: string) => {
+    const documentsForCategory = category
+      ? allDocuments.filter((d) => d.documentType === category)
+      : allDocuments
 
     if (documentsForCategory.length === 0) {
       toast({
         title: "Brak plików",
-        description: "Nie ma plików do pobrania w tej kategorii.",
+        description: category
+          ? "Nie ma plików do pobrania w tej kategorii."
+          : "Brak plików do pobrania.",
         variant: "destructive",
       })
       return
@@ -615,7 +619,9 @@ export const DocumentsSection = ({
 
     toast({
       title: "Pobieranie plików",
-      description: `Rozpoczęto pobieranie ${documentsForCategory.length} plik(ów) z kategorii "${category}".`,
+      description: category
+        ? `Rozpoczęto pobieranie ${documentsForCategory.length} plik(ów) z kategorii "${category}".`
+        : `Rozpoczęto pobieranie ${documentsForCategory.length} plik(ów).`,
     })
 
     try {
@@ -631,11 +637,13 @@ export const DocumentsSection = ({
       }
 
       const content = await zip.generateAsync({ type: "blob" })
-      saveAs(content, `${category}.zip`)
+      saveAs(content, category ? `${category}.zip` : `dokumenty.zip`)
 
       toast({
         title: "Pobieranie zakończone",
-        description: `Pliki z kategorii "${category}" zostały pobrane w archiwum zip.`,
+        description: category
+          ? `Pliki z kategorii "${category}" zostały pobrane w archiwum zip.`
+          : "Wszystkie pliki zostały pobrane w archiwum zip.",
       })
     } catch (error) {
       console.error("Failed to download all documents", error)
@@ -921,6 +929,28 @@ export const DocumentsSection = ({
           </CardContent>
         </Card>
 
+        <div className="flex gap-2 justify-end">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => {
+              setAllPreviewDocuments(allDocuments)
+              setAllPreviewOpen(true)
+            }}
+          >
+            <Eye className="mr-2 h-4 w-4" />
+            Podgląd wszystkich
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => handleDownloadAll()}
+          >
+            <Download className="mr-2 h-4 w-4" />
+            Pobierz wszystko
+          </Button>
+        </div>
+
         {documentCategories.map((category) => {
           const documentsForCategory = allDocuments.filter((d) => d.documentType === category)
           const isCategoryOpen = openCategories[category] ?? false
@@ -965,18 +995,6 @@ export const DocumentsSection = ({
                     size="sm"
                     onClick={(e) => {
                       e.stopPropagation()
-                      setAllPreviewDocuments(allDocuments)
-                      setAllPreviewOpen(true)
-                    }}
-                  >
-                    <Eye className="mr-2 h-4 w-4" />
-                    Podgląd wszystkich
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={(e) => {
-                      e.stopPropagation()
                       setGroupPreviewCategory(category)
                       setGroupPreviewOpen(true)
                     }}
@@ -995,17 +1013,6 @@ export const DocumentsSection = ({
                   >
                     <Download className="mr-2 h-4 w-4" />
                     Pobierz zaznaczone
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={(e) => {
-                      e.stopPropagation()
-                      handleDownloadAll(category)
-                    }}
-                  >
-                    <Download className="mr-2 h-4 w-4" />
-                    Pobierz wszystko
                   </Button>
                   <Button
                     size="sm"

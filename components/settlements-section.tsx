@@ -4,6 +4,13 @@ import { useEffect, useState, type FormEvent } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 import { useToast } from "@/hooks/use-toast"
 import {
   getSettlements,
@@ -27,6 +34,7 @@ export function SettlementsSection({ eventId }: SettlementsSectionProps) {
 
   const getInitialForm = () => ({
     externalEntity: "",
+    customExternalEntity: "",
     transferDate: "",
     settlementDate: "",
     settlementNumber: "",
@@ -84,6 +92,9 @@ export function SettlementsSection({ eventId }: SettlementsSectionProps) {
         body.append(key, value.toString())
       }
     })
+    if (formData.customExternalEntity) {
+      body.append("customExternalEntity", formData.customExternalEntity)
+    }
     try {
       const data = validation.data
       const payload = new FormData()
@@ -117,10 +128,12 @@ export function SettlementsSection({ eventId }: SettlementsSectionProps) {
   }
 
   function handleEdit(settlement: Settlement) {
+    const isCustom = !!settlement.customExternalEntity
     setFormData({
       settlementNumber: settlement.settlementNumber ?? "",
       settlementType: settlement.settlementType ?? "",
-      externalEntity: settlement.externalEntity ?? "",
+      externalEntity: isCustom ? "custom" : settlement.externalEntity ?? "",
+      customExternalEntity: settlement.customExternalEntity ?? "",
       transferDate: settlement.transferDate?.slice(0, 10) ?? "",
       settlementDate: settlement.settlementDate?.slice(0, 10) ?? "",
       amount: settlement.amount ?? 0,
@@ -163,7 +176,9 @@ export function SettlementsSection({ eventId }: SettlementsSectionProps) {
         {settlements.map((s) => (
           <div key={s.id} className="mb-4 flex items-center justify-between">
             <div>
-              <p className="font-medium">{s.externalEntity || "Brak kontrahenta"}</p>
+              <p className="font-medium">
+                {s.customExternalEntity ?? s.externalEntity ?? "Brak kontrahenta"}
+              </p>
               <p className="text-sm text-muted-foreground">
                 {s.settlementAmount ?? 0} {s.currency || "PLN"}
               </p>
@@ -191,11 +206,33 @@ export function SettlementsSection({ eventId }: SettlementsSectionProps) {
               value={formData.settlementType}
               onChange={(e) => setFormData({ ...formData, settlementType: e.target.value })}
             />
-            <Input
-              placeholder="Podmiot zewnętrzny"
+            <Select
               value={formData.externalEntity}
-              onChange={(e) => setFormData({ ...formData, externalEntity: e.target.value })}
-            />
+              onValueChange={(value) =>
+                setFormData({
+                  ...formData,
+                  externalEntity: value === "none" ? "" : value,
+                })
+              }
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Podmiot zewnętrzny" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="none">-- Wybierz podmiot --</SelectItem>
+                <SelectItem value="ClaimXpert360">ClaimXpert360</SelectItem>
+                <SelectItem value="custom">Inny podmiot...</SelectItem>
+              </SelectContent>
+            </Select>
+            {formData.externalEntity === "custom" && (
+              <Input
+                placeholder="Nazwa podmiotu"
+                value={formData.customExternalEntity}
+                onChange={(e) =>
+                  setFormData({ ...formData, customExternalEntity: e.target.value })
+                }
+              />
+            )}
             <Input
               type="date"
               value={formData.transferDate}

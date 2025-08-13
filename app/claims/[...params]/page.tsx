@@ -96,7 +96,7 @@ export default function ClaimPage() {
       setIsLoading(true)
       setLoadError(null)
 
-      const response = await fetch(`/api/claims/${claimId}`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/claims/${claimId}`, {
         method: "GET",
         credentials: "include",
       })

@@ -128,7 +128,7 @@ namespace AutomotiveClaimsApi.Controllers
             {
                 var statuses = await _context.ClaimStatuses
                     .Where(s => s.IsActive)
-                    .OrderBy(s => s.Name)
+                    .OrderBy(s => s.Id)
                     .Select(s => new DictionaryItemDto
                     {
                         Id = s.Id.ToString(),

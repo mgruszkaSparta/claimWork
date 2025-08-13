@@ -19,7 +19,6 @@ import { AppealsSection } from "./appeals-section"
 import { ClientClaimsSection } from "./client-claims-section"
 import { RecourseSection } from "./recourse-section"
 import { SettlementsSection } from "./settlements-section"
-import { CLAIM_STATUSES } from "@/lib/constants"
 import type {
   Claim,
   Service,
@@ -371,21 +370,9 @@ export const ClaimMainContent = ({
       }
     } catch (error) {
       console.error("Error loading claim statuses:", error)
-      // Fallback data
-      setClaimStatuses([
-        { id: 1, name: "Do przydzielenia", description: "Do przydzielenia" },
-        { id: 2, name: "Nowa szkoda", description: "Nowa szkoda" },
-        { id: 3, name: "Zarejestrowana", description: "Zarejestrowana" },
-        { id: 5, name: "W likwidacji", description: "W likwidacji" },
-        { id: 6, name: "Częściowo zlikwidowana", description: "Częściowo zlikwidowana" },
-        { id: 8, name: "Regres", description: "Regres" },
-        { id: 9, name: "W odwołaniu", description: "W odwołaniu" },
-        { id: 10, name: "Zamknięta", description: "Zamknięta" },
-      ])
-      
       toast({
         title: "Uwaga",
-        description: "Nie udało się załadować statusów szkód. Używane są dane lokalne.",
+        description: "Nie udało się załadować statusów szkód.",
         variant: "destructive",
       })
     } finally {

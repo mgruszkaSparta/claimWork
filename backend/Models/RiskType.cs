@@ -16,7 +16,9 @@ namespace AutomotiveClaimsApi.Models
         
         [MaxLength(500)]
         public string? Description { get; set; }
-        
+
+        public int? ClaimObjectTypeId { get; set; }
+
         public bool IsActive { get; set; } = true;
         
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;

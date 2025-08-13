@@ -16,7 +16,7 @@ export default function ForgotPasswordPage() {
     setError("")
 
     try {
-      const res = await fetch("/api/auth/forgot-password", {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/forgot-password`, {
         method: "POST",
         credentials: "include",
         headers: {

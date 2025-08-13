@@ -15,7 +15,7 @@ namespace AutomotiveClaimsApi.Tests
     public class SettlementsControllerTests
     {
         [Fact]
-        public async Task GetSettlementsSummary_SumsSettlementAmountByCurrency()
+        public async Task GetSettlementsSummary_NormalizesCurrencyBeforeGrouping()
         {
             var options = new DbContextOptionsBuilder<ApplicationDbContext>()
                 .UseInMemoryDatabase(Guid.NewGuid().ToString())
@@ -27,7 +27,7 @@ namespace AutomotiveClaimsApi.Tests
             var now = DateTime.UtcNow;
             context.Settlements.AddRange(
                 new Settlement { Id = Guid.NewGuid(), EventId = eventId, Currency = "USD", Amount = 1m, SettlementAmount = 100m, Status = "paid", CreatedAt = now, UpdatedAt = now },
-                new Settlement { Id = Guid.NewGuid(), EventId = eventId, Currency = "USD", Amount = 1m, SettlementAmount = 50m, Status = "paid", CreatedAt = now, UpdatedAt = now },
+                new Settlement { Id = Guid.NewGuid(), EventId = eventId, Currency = "usd", Amount = 1m, SettlementAmount = 50m, Status = "paid", CreatedAt = now, UpdatedAt = now },
                 new Settlement { Id = Guid.NewGuid(), EventId = eventId, Currency = null, Amount = 1m, SettlementAmount = 200m, Status = "pending", CreatedAt = now, UpdatedAt = now }
             );
             await context.SaveChangesAsync();

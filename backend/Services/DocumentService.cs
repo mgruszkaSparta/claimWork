@@ -1,7 +1,6 @@
 using AutomotiveClaimsApi.Data;
 using AutomotiveClaimsApi.DTOs;
 using AutomotiveClaimsApi.Models;
-using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -17,18 +16,16 @@ namespace AutomotiveClaimsApi.Services
     {
         private readonly ApplicationDbContext _context;
         private readonly ILogger<DocumentService> _logger;
-        private readonly string _uploadsPath;
+        private readonly IGoogleCloudStorageService _cloudStorageService;
 
-        public DocumentService(ApplicationDbContext context, ILogger<DocumentService> logger, IWebHostEnvironment environment)
+        public DocumentService(
+            ApplicationDbContext context,
+            IGoogleCloudStorageService cloudStorageService,
+            ILogger<DocumentService> logger)
         {
             _context = context;
+            _cloudStorageService = cloudStorageService;
             _logger = logger;
-            _uploadsPath = Path.Combine(environment.ContentRootPath, "uploads");
-
-            if (!Directory.Exists(_uploadsPath))
-            {
-                Directory.CreateDirectory(_uploadsPath);
-            }
         }
 
         public async Task<IEnumerable<DocumentDto>> GetDocumentsByEventIdAsync(Guid eventId)
@@ -61,19 +58,11 @@ namespace AutomotiveClaimsApi.Services
             if (file == null || file.Length == 0)
                 throw new ArgumentException("File is required.", nameof(file));
 
-            var categoryPath = Path.Combine(_uploadsPath, createDto.Category ?? "other");
-            if (!Directory.Exists(categoryPath))
-            {
-                Directory.CreateDirectory(categoryPath);
-            }
-
             var uniqueFileName = $"{Guid.NewGuid()}{Path.GetExtension(file.FileName)}";
-            var filePath = Path.Combine(categoryPath, uniqueFileName);
+            var objectName = Path.Combine(createDto.Category ?? "other", uniqueFileName).Replace("\\", "/");
 
-            await using (var stream = new FileStream(filePath, FileMode.Create))
-            {
-                await file.CopyToAsync(stream);
-            }
+            await using var stream = file.OpenReadStream();
+            var cloudUrl = await _cloudStorageService.UploadFileAsync(stream, objectName, file.ContentType);
 
             var document = new Document
             {
@@ -84,8 +73,7 @@ namespace AutomotiveClaimsApi.Services
                 RelatedEntityType = createDto.RelatedEntityType,
                 FileName = uniqueFileName,
                 OriginalFileName = file.FileName,
-                FilePath = Path.Combine("uploads", createDto.Category ?? "other", uniqueFileName)
-                    .Replace("\\", "/"),
+                FilePath = cloudUrl,
                 FileSize = file.Length,
                 ContentType = file.ContentType,
                 DocumentType = createDto.Category ?? "other",
@@ -99,7 +87,7 @@ namespace AutomotiveClaimsApi.Services
             _context.Documents.Add(document);
             await _context.SaveChangesAsync();
 
-            _logger.LogInformation("Document uploaded and created with ID {DocumentId}", document.Id);
+            _logger.LogInformation("Document uploaded to cloud and created with ID {DocumentId}", document.Id);
             return MapToDto(document);
         }
 
@@ -122,14 +110,14 @@ namespace AutomotiveClaimsApi.Services
                 if (!deleted)
                 {
                     _logger.LogWarning(
-                        "File deletion failed for Document ID {DocumentId} at {FilePath}",
+                        "Cloud file deletion failed for Document ID {DocumentId} at {FilePath}",
                         id, document.FilePath);
                 }
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex,
-                    "Unexpected error deleting file for Document ID {DocumentId} at {FilePath}",
+                    "Unexpected error deleting cloud file for Document ID {DocumentId} at {FilePath}",
                     id, document.FilePath);
             }
 
@@ -147,69 +135,44 @@ namespace AutomotiveClaimsApi.Services
                 return null;
             }
 
-            var fullPath = Path.Combine(_uploadsPath, document.FilePath.Replace("uploads/", ""));
-            if (!File.Exists(fullPath))
-            {
-                return null;
-            }
-
-            var memoryStream = new MemoryStream(await File.ReadAllBytesAsync(fullPath));
-            memoryStream.Position = 0;
+            var stream = await _cloudStorageService.GetFileStreamAsync(document.FilePath);
 
             return new DocumentDownloadResult
             {
-                FileStream = memoryStream,
-                ContentType = GetContentType(fullPath),
+                FileStream = stream,
+                ContentType = GetContentType(document.FilePath),
                 FileName = document.OriginalFileName ?? document.FileName
             };
         }
 
-        private static string NormalizePath(string filePath)
-        {
-            var normalized = filePath
-                .Replace("/", Path.DirectorySeparatorChar.ToString())
-                .Replace("\\", Path.DirectorySeparatorChar.ToString());
-            normalized = normalized.Replace("uploads" + Path.DirectorySeparatorChar, "");
-            return normalized.TrimStart(Path.DirectorySeparatorChar);
-        }
-
         public async Task<bool> DeleteDocumentAsync(string filePath)
         {
-            var fullPath = Path.Combine(_uploadsPath, NormalizePath(filePath));
             try
             {
-                if (File.Exists(fullPath))
-                {
-                    await Task.Run(() => File.Delete(fullPath));
-                }
+                await _cloudStorageService.DeleteFileAsync(filePath);
                 return true;
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error deleting file at {FilePath}", filePath);
+                _logger.LogError(ex, "Error deleting cloud file at {FilePath}", filePath);
                 return false;
             }
         }
 
         public async Task<DocumentDownloadResult?> GetDocumentAsync(string filePath)
         {
-            var fullPath = Path.Combine(_uploadsPath, NormalizePath(filePath));
-            if (!File.Exists(fullPath)) return null;
-
-            var memoryStream = new MemoryStream(await File.ReadAllBytesAsync(fullPath));
+            var stream = await _cloudStorageService.GetFileStreamAsync(filePath);
             return new DocumentDownloadResult
             {
-                FileStream = memoryStream,
-                ContentType = GetContentType(fullPath),
+                FileStream = stream,
+                ContentType = GetContentType(filePath),
                 FileName = Path.GetFileName(filePath)
             };
         }
 
         public async Task<Stream> GetDocumentStreamAsync(string filePath)
         {
-            var fullPath = Path.Combine(_uploadsPath, NormalizePath(filePath));
-            if (!File.Exists(fullPath)) throw new FileNotFoundException("Document not found", filePath);
-            return new MemoryStream(await File.ReadAllBytesAsync(fullPath));
+            return await _cloudStorageService.GetFileStreamAsync(filePath);
         }
 
         public async Task<(string FilePath, string OriginalFileName)> SaveDocumentAsync(IFormFile file, string category, string? description)

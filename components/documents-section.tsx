@@ -1640,6 +1640,11 @@ export const DocumentsSection = ({
                   </div>
                 )}
               </div>
+              {previewDocument.description && (
+                <div className="p-4">
+                  <p className="text-sm text-gray-600">{previewDocument.description}</p>
+                </div>
+              )}
             </div>
           </div>
         )}

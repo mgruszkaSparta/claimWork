@@ -54,8 +54,23 @@ export interface EventDto extends EventListItemDto {
 }
 
 export interface DocumentDto {
-  id?: string
-  filePath?: string
+  id: string
+  eventId?: string
+  fileName: string
+  originalFileName?: string
+  filePath: string
+  fileSize: number
+  contentType: string
+  category?: string
+  description?: string
+  uploadedBy?: string
+  status?: string
+  isActive?: boolean
+  createdAt?: string
+  updatedAt?: string
+  downloadUrl?: string
+  previewUrl?: string
+  canPreview?: boolean
 }
 
 export interface EventUpsertDto {

@@ -1,5 +1,6 @@
 // API Configuration
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5200/api"
+export const API_BASE_URL =
+  process.env.NEXT_PUBLIC_API_URL || "http://localhost:5200/api"
 
 // Types for API responses
 export interface EventListItemDto {

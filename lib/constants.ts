@@ -1,5 +1,7 @@
 import type { DriverInfo, ParticipantInfo, Claim } from "@/types"
 
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "/api"
+
 // Handler details for claim handlers
 export const handlerDetails: Record<string, { email: string; phone: string }> = {
   "Marcin Małuj": { email: "marcin.maluj@spartabrokers.pl", phone: "600 111 222" },
@@ -206,21 +208,21 @@ export const EVENT_STATUSES = [
 
 // API endpoints
 export const API_ENDPOINTS = {
-  EVENTS: "/api/claims",
-  DAMAGES: "/api/damages",
-  DAMAGES_INIT: "/api/damages/init",
-  DOCUMENTS: "/api/documents",
-  CLIENTS: "/api/clients",
-  RISK_TYPES: "/api/risk-types",
-  DAMAGE_TYPES: "/api/damage-types",
-  COUNTRIES: "/api/countries",
-  CURRENCIES: "/api/currencies",
-  INSURANCE_COMPANIES: "/api/insurance-companies",
-  LEASING_COMPANIES: "/api/leasing-companies",
-  CLAIM_STATUSES: "/api/claim-statuses",
-  VEHICLE_TYPES: "/api/vehicle-types",
-  PRIORITIES: "/api/priorities",
-  EVENT_STATUSES: "/api/event-statuses",
+  EVENTS: `${API_BASE_URL}/claims`,
+  DAMAGES: `${API_BASE_URL}/damages`,
+  DAMAGES_INIT: `${API_BASE_URL}/damages/init`,
+  DOCUMENTS: `${API_BASE_URL}/documents`,
+  CLIENTS: `${API_BASE_URL}/clients`,
+  RISK_TYPES: `${API_BASE_URL}/risk-types`,
+  DAMAGE_TYPES: `${API_BASE_URL}/damage-types`,
+  COUNTRIES: `${API_BASE_URL}/countries`,
+  CURRENCIES: `${API_BASE_URL}/currencies`,
+  INSURANCE_COMPANIES: `${API_BASE_URL}/insurance-companies`,
+  LEASING_COMPANIES: `${API_BASE_URL}/leasing-companies`,
+  CLAIM_STATUSES: `${API_BASE_URL}/claim-statuses`,
+  VEHICLE_TYPES: `${API_BASE_URL}/vehicle-types`,
+  PRIORITIES: `${API_BASE_URL}/priorities`,
+  EVENT_STATUSES: `${API_BASE_URL}/event-statuses`,
 }
 
 // Utility functions

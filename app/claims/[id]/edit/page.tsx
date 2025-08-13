@@ -106,7 +106,7 @@ export default function EditClaimPage() {
       setLoadError(null)
 
       // Direct API call instead of using the hook to avoid loops
-      const response = await fetch(`/api/claims/${id}`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/claims/${id}`, {
         method: "GET",
         credentials: "include",
       })

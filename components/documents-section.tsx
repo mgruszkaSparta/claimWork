@@ -577,15 +577,16 @@ export const DocumentsSection = ({
     }
   }
 
-  const handlePreview = (document: Document, documentsArray?: Document[]) => {
-
+  const handlePreview = (
+    _document: Document,
+    passedIndex: number,
+    documentsArray?: Document[],
+  ) => {
     const docsToPreview = documentsArray || allDocuments
 
-    const index = docsToPreview.findIndex((d) => d.id === document.id)
-
     setPreviewDocuments(docsToPreview)
-    setCurrentPreviewIndex(index)
-    setPreviewDocument(document)
+    setCurrentPreviewIndex(passedIndex)
+    setPreviewDocument(docsToPreview[passedIndex])
     setPreviewZoom(1)
     setPreviewRotation(0)
     setPreviewFullscreen(false)
@@ -799,7 +800,15 @@ export const DocumentsSection = ({
     }
   }
 
-  const FileCard = ({ document, onDelete }: { document: Document; onDelete: (id: string | number) => void }) => {
+  const FileCard = ({
+    document,
+    onDelete,
+    index,
+  }: {
+    document: Document
+    onDelete: (id: string | number) => void
+    index: number
+  }) => {
     const isSelected = selectedDocumentIds.includes(document.id)
     return (
       <Card className="overflow-hidden group relative">
@@ -825,13 +834,13 @@ export const DocumentsSection = ({
             src={document.previewUrl || "/placeholder.svg?height=150&width=200"}
             alt={document.originalFileName}
             className="w-full h-full object-cover cursor-pointer"
-            onClick={() => handlePreview(document)}
+            onClick={() => handlePreview(document, index)}
           />
         ) : document.contentType.startsWith("video/") ? (
           <video
             src={document.previewUrl || document.downloadUrl}
             className="w-full h-full object-cover cursor-pointer"
-            onClick={() => handlePreview(document)}
+            onClick={() => handlePreview(document, index)}
             muted
             preload="metadata"
           />
@@ -1132,7 +1141,7 @@ export const DocumentsSection = ({
                                     variant="ghost"
                                     size="icon"
                                     className="h-7 w-7"
-                                    onClick={() => handlePreview(document, documentsForCategory)}
+                                    onClick={() => handlePreview(document, index, documentsForCategory)}
                                   >
                                     <Eye className="h-4 w-4" />
                                   </Button>
@@ -1174,11 +1183,12 @@ export const DocumentsSection = ({
                     </div>
                   ) : documentsForCategory.length > 0 ? (
                     <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
-                      {documentsForCategory.map((document) => (
+                      {documentsForCategory.map((document, idx) => (
                         <FileCard
                           key={document.id}
                           document={document}
                           onDelete={handleFileDelete}
+                          index={idx}
                         />
                       ))}
                     </div>
@@ -1250,7 +1260,7 @@ export const DocumentsSection = ({
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {allPreviewDocuments.map((document) => (
+                {allPreviewDocuments.map((document, idx) => (
                   <Card key={document.id} className="overflow-hidden">
                     <div className="aspect-w-16 aspect-h-12 bg-gray-100 flex items-center justify-center min-h-[200px]">
                       {document.contentType.startsWith("image/") ? (
@@ -1260,7 +1270,7 @@ export const DocumentsSection = ({
                           className="w-full h-full object-cover cursor-pointer"
                           onClick={() => {
                             setAllPreviewOpen(false)
-                            handlePreview(document, allPreviewDocuments)
+                            handlePreview(document, idx, allPreviewDocuments)
                           }}
                         />
                       ) : document.contentType.startsWith("video/") ? (
@@ -1269,7 +1279,7 @@ export const DocumentsSection = ({
                           className="w-full h-full object-cover cursor-pointer"
                           onClick={() => {
                             setAllPreviewOpen(false)
-                            handlePreview(document, allPreviewDocuments)
+                            handlePreview(document, idx, allPreviewDocuments)
                           }}
                           muted
                           preload="metadata"
@@ -1282,7 +1292,7 @@ export const DocumentsSection = ({
                             size="sm"
                             onClick={() => {
                               setAllPreviewOpen(false)
-                              handlePreview(document, allPreviewDocuments)
+                              handlePreview(document, idx, allPreviewDocuments)
                             }}
                           >
                             <Eye className="mr-2 h-4 w-4" />
@@ -1340,7 +1350,7 @@ export const DocumentsSection = ({
                           className="flex-1 bg-transparent"
                           onClick={() => {
                             setAllPreviewOpen(false)
-                            handlePreview(document, allPreviewDocuments)
+                            handlePreview(document, idx, allPreviewDocuments)
                           }}
                         >
                           <Eye className="mr-1 h-3 w-3" />
@@ -1376,7 +1386,7 @@ export const DocumentsSection = ({
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {allDocuments
                   .filter((d) => d.documentType === groupPreviewCategory)
-                  .map((document) => (
+                  .map((document, idx) => (
                     <Card key={document.id} className="overflow-hidden">
                       <div className="aspect-w-16 aspect-h-12 bg-gray-100 flex items-center justify-center min-h-[200px]">
                         {document.contentType.startsWith("image/") ? (
@@ -1388,6 +1398,7 @@ export const DocumentsSection = ({
                               setGroupPreviewOpen(false)
                               handlePreview(
                                 document,
+                                idx,
                                 allDocuments.filter((d) => d.documentType === groupPreviewCategory),
                               )
                             }}
@@ -1400,6 +1411,7 @@ export const DocumentsSection = ({
                               setGroupPreviewOpen(false)
                               handlePreview(
                                 document,
+                                idx,
                                 allDocuments.filter((d) => d.documentType === groupPreviewCategory),
                               )
                             }}
@@ -1416,6 +1428,7 @@ export const DocumentsSection = ({
                                 setGroupPreviewOpen(false)
                                 handlePreview(
                                   document,
+                                  idx,
                                   allDocuments.filter((d) => d.documentType === groupPreviewCategory),
                                 )
                               }}
@@ -1472,6 +1485,7 @@ export const DocumentsSection = ({
                               setGroupPreviewOpen(false)
                               handlePreview(
                                 document,
+                                idx,
                                 allDocuments.filter((d) => d.documentType === groupPreviewCategory),
                               )
                             }}

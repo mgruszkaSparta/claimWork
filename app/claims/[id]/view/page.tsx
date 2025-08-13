@@ -115,10 +115,13 @@ export default function ViewClaimPage() {
       setIsLoading(true)
       setLoadError(null)
 
-      const response = await fetch(`/api/claims/${id}`, {
-        method: "GET",
-        credentials: "include",
-      })
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/claims/${id}`,
+        {
+          method: "GET",
+          credentials: "include",
+        }
+      )
       if (!response.ok) {
         throw new Error(`HTTP ${response.status}: ${response.statusText}`)
       }
@@ -148,10 +151,13 @@ export default function ViewClaimPage() {
 
   const loadRepairSchedules = useCallback(async () => {
     try {
-      const response = await fetch(`/api/repair-schedules?eventId=${id}`, {
-        method: "GET",
-        credentials: "include",
-      })
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/repair-schedules?eventId=${id}`,
+        {
+          method: "GET",
+          credentials: "include",
+        }
+      )
       if (response.ok) {
         const data = await response.json()
         setRepairSchedules(data)
@@ -163,10 +169,13 @@ export default function ViewClaimPage() {
 
   const loadRepairDetails = useCallback(async () => {
     try {
-      const response = await fetch(`/api/repair-details?eventId=${id}`, {
-        method: "GET",
-        credentials: "include",
-      })
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/repair-details?eventId=${id}`,
+        {
+          method: "GET",
+          credentials: "include",
+        }
+      )
       if (response.ok) {
         const data = await response.json()
         setRepairDetails(data)
@@ -228,14 +237,17 @@ export default function ViewClaimPage() {
         return
       }
 
-      const response = await fetch("/api/repair-schedules", {
-        method: "POST",
-        credentials: "include",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(scheduleFormData),
-      })
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/repair-schedules`,
+        {
+          method: "POST",
+          credentials: "include",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(scheduleFormData),
+        }
+      )
 
       if (!response.ok) {
         const errorData = await response.text()
@@ -263,17 +275,20 @@ export default function ViewClaimPage() {
 
   const handleSaveRepairDetail = async () => {
     try {
-      const response = await fetch("/api/repair-details", {
-        method: "POST",
-        credentials: "include",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          ...repairDetailFormData,
-          eventId: id,
-        }),
-      })
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/repair-details`,
+        {
+          method: "POST",
+          credentials: "include",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            ...repairDetailFormData,
+            eventId: id,
+          }),
+        }
+      )
 
       if (!response.ok) {
         throw new Error("Failed to save repair details")

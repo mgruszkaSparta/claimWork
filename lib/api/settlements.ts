@@ -12,6 +12,8 @@ const settlementSchema = z.object({
   settlementAmount: z.number().nullish(),
   amount: z.number().nullish(),
   currency: z.string().nullish(),
+  paymentMethod: z.string().nullish(),
+  notes: z.string().nullish(),
   description: z.string().nullish(),
   documentPath: z.string().nullish(),
   documentName: z.string().nullish(),
@@ -22,11 +24,17 @@ const settlementSchema = z.object({
 
 const settlementUpsertSchema = z.object({
   eventId: z.string(),
+  settlementNumber: z.string().optional(),
+  settlementType: z.string().optional(),
   externalEntity: z.string().optional(),
   transferDate: z.string().optional(),
   settlementDate: z.string().optional(),
+  amount: z.number().optional(),
   settlementAmount: z.number().optional(),
   currency: z.string().optional(),
+  paymentMethod: z.string().optional(),
+  notes: z.string().optional(),
+  description: z.string().optional(),
   status: z.string().min(1),
 });
 

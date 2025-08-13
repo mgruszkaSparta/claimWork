@@ -29,7 +29,7 @@ import {
   Minus,
   Loader2,
 } from "lucide-react"
-import type { ClientClaim } from "@/types"
+import type { ClientClaim, ClaimStatus } from "@/types"
 import {
   AlertDialog,
   AlertDialogAction,
@@ -46,6 +46,18 @@ interface ClientClaimsSectionProps {
   clientClaims: ClientClaim[]
   onClientClaimsChange: (claims: ClientClaim[]) => void
   claimId: string
+}
+
+interface ClientClaimFormData {
+  claimNumber: string
+  claimDate: string
+  claimType: string
+  claimAmount: string
+  currency: string
+  status: ClaimStatus
+  description: string
+  claimNotes: string
+  documentDescription: string
 }
 
 export function ClientClaimsSection({ clientClaims, onClientClaimsChange, claimId }: ClientClaimsSectionProps) {
@@ -72,7 +84,7 @@ export function ClientClaimsSection({ clientClaims, onClientClaimsChange, claimI
     claim: null,
   })
 
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<ClientClaimFormData>({
     claimNumber: "",
     claimDate: new Date().toISOString().split("T")[0],
     claimType: "",
@@ -99,7 +111,13 @@ export function ClientClaimsSection({ clientClaims, onClientClaimsChange, claimI
     "Inne",
   ]
 
-  const statuses = ["Złożone", "W trakcie analizy", "Zaakceptowane", "Odrzucone", "Częściowo zaakceptowane"]
+  const statuses: ClaimStatus[] = [
+    "Złożone",
+    "W trakcie analizy",
+    "Zaakceptowane",
+    "Odrzucone",
+    "Częściowo zaakceptowane",
+  ]
 
   const currencies = ["PLN", "EUR", "USD", "CHF", "GBP"]
 
@@ -151,7 +169,12 @@ export function ClientClaimsSection({ clientClaims, onClientClaimsChange, claimI
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
 
-    if (!formData.claimDate || !formData.claimType || !formData.claimAmount || !formData.status) {
+    if (
+      !formData.claimDate ||
+      !formData.claimType ||
+      !formData.claimAmount ||
+      !statuses.includes(formData.status)
+    ) {
       toast({
         title: "Błąd",
         description: "Wypełnij wszystkie wymagane pola",
@@ -171,7 +194,7 @@ export function ClientClaimsSection({ clientClaims, onClientClaimsChange, claimI
         claimType: formData.claimType,
         claimAmount: Number.parseFloat(formData.claimAmount),
         currency: formData.currency,
-        status: formData.status as any,
+        status: formData.status,
         description: formData.description,
         claimNotes: formData.claimNotes || undefined,
         documentDescription: formData.documentDescription,
@@ -225,7 +248,7 @@ export function ClientClaimsSection({ clientClaims, onClientClaimsChange, claimI
       claimType: claim.claimType,
       claimAmount: claim.claimAmount?.toString() || "",
       currency: claim.currency || "PLN",
-      status: claim.status,
+      status: claim.status || "Złożone",
       description: claim.description || "",
       claimNotes: claim.claimNotes || "",
       documentDescription: claim.documentDescription || "",
@@ -302,7 +325,7 @@ export function ClientClaimsSection({ clientClaims, onClientClaimsChange, claimI
     }
   }
 
-  const getStatusBadge = (status: string) => {
+  const getStatusBadge = (status: ClaimStatus) => {
     switch (status) {
       case "Zaakceptowane":
         return (
@@ -514,7 +537,9 @@ export function ClientClaimsSection({ clientClaims, onClientClaimsChange, claimI
                   </Label>
                   <Select
                     value={formData.status}
-                    onValueChange={(value) => setFormData((prev) => ({ ...prev, status: value }))}
+                    onValueChange={(value: ClaimStatus) =>
+                      setFormData((prev) => ({ ...prev, status: value }))
+                    }
                   >
                     <SelectTrigger>
                       <SelectValue />
@@ -766,7 +791,7 @@ export function ClientClaimsSection({ clientClaims, onClientClaimsChange, claimI
                           </span>
                         </div>
                       </td>
-                      <td className="py-3 px-4">{getStatusBadge(claim.status)}</td>
+                      <td className="py-3 px-4">{getStatusBadge(claim.status ?? "Złożone")}</td>
                       <td className="py-3 px-4">
                         <div className="max-w-xs">
                           <p className="text-sm truncate" title={claim.description}>

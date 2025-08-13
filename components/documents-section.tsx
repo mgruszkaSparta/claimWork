@@ -542,6 +542,35 @@ export const DocumentsSection = ({
     }
   }
 
+  const handleFileNameChange = async (documentId: string | number, name: string) => {
+    const pendingIndex = pendingFiles.findIndex((f) => f.id === documentId)
+    if (pendingIndex !== -1) {
+      setPendingFiles?.((prev) =>
+        prev.map((f) => (f.id === documentId ? { ...f, name } : f)),
+      )
+      return
+    }
+
+    try {
+      const response = await fetch(`/api/documents/${documentId}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ fileName: name, originalFileName: name }),
+      })
+
+      if (response.ok) {
+        const updatedDocument = await response.json()
+        setDocuments((prev) =>
+          prev.map((doc) => (doc.id === documentId ? updatedDocument : doc)),
+        )
+      }
+    } catch (error) {
+      console.error("Error updating document name:", error)
+    }
+  }
+
   const handleGenerateAIDescription = async (documentId: string | number) => {
     const document = allDocuments.find((d) => d.id === documentId)
     if (!document || document.status === "pending") return
@@ -1099,6 +1128,12 @@ export const DocumentsSection = ({
                               </td>
                               <td className="p-3">
                                 <div className="flex items-center gap-1">
+                                  <Input
+                                    value={document.originalFileName || ""}
+                                    onChange={(e) => handleFileNameChange(document.id, e.target.value)}
+                                    className="text-sm h-8"
+                                    placeholder="Nazwa pliku..."
+                                  />
                                   <Button
                                     variant="ghost"
                                     size="icon"

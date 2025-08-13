@@ -1,7 +1,7 @@
 "use client"
 
 import type React from "react"
-import { useState, useEffect, useRef } from "react"
+import { useState, useEffect, useRef, useCallback } from "react"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -100,13 +100,8 @@ export function RecourseSection({ eventId }: RecourseSectionProps) {
     acceptedTypes: [".pdf", ".doc", ".docx", ".jpg", ".jpeg", ".png"],
   })
 
-  useEffect(() => {
-    if (eventId) {
-      loadRecourses()
-    }
-  }, [eventId])
-
-  const loadRecourses = async () => {
+  const loadRecourses = useCallback(async () => {
+    if (!eventId) return
     setListLoading(true)
     try {
       const data = await fetchRecourses(eventId)
@@ -129,7 +124,11 @@ export function RecourseSection({ eventId }: RecourseSectionProps) {
     } finally {
       setListLoading(false)
     }
-  }
+  }, [eventId, toast])
+
+  useEffect(() => {
+    loadRecourses()
+  }, [loadRecourses])
 
 
   const processOutlookAttachment = async (file: File) => {

@@ -353,7 +353,7 @@ export interface DecisionDto {
   status?: string
   amount?: number
   currency?: string
-  compensationTitle?: string
+  compensationTitle?: string | null
   documentDescription?: string | null
   documentName?: string | null
   documentPath?: string | null

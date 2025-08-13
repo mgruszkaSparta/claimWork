@@ -242,7 +242,7 @@ export function DecisionsSection({ claimId, onChange }: DecisionsSectionProps) {
         status: formData.status,
         amount: formData.amount ? Number(formData.amount) : undefined,
         currency: formData.currency,
-        compensationTitle: formData.compensationTitle || undefined,
+        compensationTitle: formData.compensationTitle ?? undefined,
         documentDescription: formData.documentDescription || undefined,
         document: selectedFiles[0],
       }
@@ -286,7 +286,7 @@ export function DecisionsSection({ claimId, onChange }: DecisionsSectionProps) {
       status: decision.status,
       amount: decision.amount?.toString() || "",
       currency: decision.currency || "PLN",
-      compensationTitle: decision.compensationTitle || "",
+      compensationTitle: decision.compensationTitle ?? "",
       documentDescription: decision.documentDescription || "",
     })
 
@@ -790,7 +790,7 @@ export function DecisionsSection({ claimId, onChange }: DecisionsSectionProps) {
                       {decision.amount ? formatCurrency(decision.amount, decision.currency) : "-"}
                     </td>
                     <td className="py-3 px-4 text-sm">{decision.currency || "PLN"}</td>
-                    <td className="py-3 px-4 text-sm">{decision.compensationTitle || "-"}</td>
+                    <td className="py-3 px-4 text-sm">{decision.compensationTitle ?? "-"}</td>
                     <td className="py-3 px-4">
                       {decision.documentPath ? (
                         <div className="flex items-center gap-2">

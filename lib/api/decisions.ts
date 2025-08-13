@@ -8,7 +8,7 @@ export const decisionSchema = z.object({
   status: z.string().optional(),
   amount: z.number().nullable().optional(),
   currency: z.string().optional(),
-  compensationTitle: z.string().optional(),
+  compensationTitle: z.string().nullish(),
   documentDescription: z.string().nullish(),
   documentName: z.string().nullish(),
   documentPath: z.string().nullish(),

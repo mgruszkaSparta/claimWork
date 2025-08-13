@@ -2039,7 +2039,7 @@ const renderParticipantDetails = (participant: ParticipantInfo | undefined, titl
               <CardTitle className="text-lg font-semibold">Ugoda</CardTitle>
             </CardHeader>
             <CardContent className="p-0 bg-white">
-              <SettlementsSection claimId={claimFormData.id || ""} />
+              <SettlementsSection eventId={eventId || ""} />
             </CardContent>
           </Card>
         </div>

@@ -74,10 +74,18 @@ namespace AutomotiveClaimsApi.Controllers
 
             if (createDto.Document != null)
             {
-                var docResult = await _documentService.SaveDocumentAsync(createDto.Document, "settlements", createDto.DocumentDescription);
-                settlement.DocumentPath = docResult.FilePath;
-                settlement.DocumentName = docResult.OriginalFileName;
-                settlement.DocumentDescription = createDto.DocumentDescription;
+                try
+                {
+                    var docResult = await _documentService.SaveDocumentAsync(createDto.Document, "settlements", createDto.DocumentDescription);
+                    settlement.DocumentPath = docResult.FilePath;
+                    settlement.DocumentName = docResult.OriginalFileName;
+                    settlement.DocumentDescription = createDto.DocumentDescription;
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Error saving document for settlement {SettlementId}", settlement.Id);
+                    return StatusCode(500, new { error = "Failed to save document" });
+                }
             }
 
             _context.Settlements.Add(settlement);
@@ -108,12 +116,28 @@ namespace AutomotiveClaimsApi.Controllers
             {
                 if (!string.IsNullOrEmpty(settlement.DocumentPath))
                 {
-                    await _documentService.DeleteDocumentAsync(settlement.DocumentPath);
+                    try
+                    {
+                        await _documentService.DeleteDocumentAsync(settlement.DocumentPath);
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError(ex, "Error deleting document for settlement {SettlementId}", id);
+                        return StatusCode(500, new { error = "Failed to delete existing document" });
+                    }
                 }
-                var docResult = await _documentService.SaveDocumentAsync(updateDto.Document, "settlements", updateDto.DocumentDescription);
-                settlement.DocumentPath = docResult.FilePath;
-                settlement.DocumentName = docResult.OriginalFileName;
-                settlement.DocumentDescription = updateDto.DocumentDescription;
+                try
+                {
+                    var docResult = await _documentService.SaveDocumentAsync(updateDto.Document, "settlements", updateDto.DocumentDescription);
+                    settlement.DocumentPath = docResult.FilePath;
+                    settlement.DocumentName = docResult.OriginalFileName;
+                    settlement.DocumentDescription = updateDto.DocumentDescription;
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Error saving document for settlement {SettlementId}", id);
+                    return StatusCode(500, new { error = "Failed to save document" });
+                }
             }
             else if (updateDto.DocumentDescription != null)
             {
@@ -136,7 +160,15 @@ namespace AutomotiveClaimsApi.Controllers
 
             if (!string.IsNullOrEmpty(settlement.DocumentPath))
             {
-                await _documentService.DeleteDocumentAsync(settlement.DocumentPath);
+                try
+                {
+                    await _documentService.DeleteDocumentAsync(settlement.DocumentPath);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Error deleting document for settlement {SettlementId}", id);
+                    return StatusCode(500, new { error = "Failed to delete document" });
+                }
             }
 
             _context.Settlements.Remove(settlement);

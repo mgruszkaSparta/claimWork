@@ -31,6 +31,7 @@ import {
   Appeal as ApiAppeal,
   AppealPayload,
 } from "@/lib/api/appeals"
+import { API_BASE_URL } from "@/lib/api"
 
 interface Appeal extends ApiAppeal {
   alertDays?: number
@@ -297,7 +298,7 @@ export const AppealsSection = ({ claimId }: AppealsSectionProps) => {
 
     // Create download link
     const link = document.createElement("a")
-    link.href = `/api/appeals/${appeal.id}/download`
+    link.href = `${API_BASE_URL}/appeals/${appeal.id}/download`
     link.download = appeal.documentName || "document"
     document.body.appendChild(link)
     link.click()
@@ -742,13 +743,13 @@ export const AppealsSection = ({ claimId }: AppealsSectionProps) => {
           <div className="flex-1 overflow-auto flex items-center justify-center bg-gray-100 rounded p-4 min-h-[400px]">
             {previewAppeal?.documentName?.toLowerCase().endsWith(".pdf") ? (
               <iframe
-                src={`/api/documents/${previewAppeal.id}/preview`}
+                src={`${API_BASE_URL}/documents/${previewAppeal.id}/preview`}
                 className="w-full h-full border-0"
                 title="PDF Preview"
               />
             ) : previewAppeal?.documentName && isPreviewable(previewAppeal.documentName) ? (
               <img
-                src={`/api/documents/${previewAppeal.id}/preview`}
+                src={`${API_BASE_URL}/documents/${previewAppeal.id}/preview`}
                 alt="Preview"
                 className="max-w-full max-h-[70vh] object-contain"
               />

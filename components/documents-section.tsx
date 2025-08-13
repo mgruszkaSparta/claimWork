@@ -328,7 +328,7 @@ export const DocumentsSection = ({
         if (response.ok) {
           const documentDto = await response.json()
           const serverCategory = documentDto.documentType || documentDto.category
-          const document: Document = {
+          const doc: Document = {
             ...documentDto,
             documentType: serverCategory
               ? mapCategoryCodeToName(serverCategory)
@@ -340,8 +340,8 @@ export const DocumentsSection = ({
                 documentDto.contentType === "application/pdf" ||
                 documentDto.contentType?.startsWith("video/")),
           }
-          console.log(`File uploaded successfully:`, document)
-          return document
+          console.log(`File uploaded successfully:`, doc)
+          return doc
         } else {
           let errorMessage = `HTTP ${response.status}: ${response.statusText}`
           try {
@@ -543,13 +543,13 @@ export const DocumentsSection = ({
   }
 
   const handleGenerateAIDescription = async (documentId: string | number) => {
-    const document = allDocuments.find((d) => d.id === documentId)
-    if (!document || document.status === "pending") return
+    const doc = allDocuments.find((d) => d.id === documentId)
+    if (!doc || doc.status === "pending") return
 
     try {
       toast({
         title: "Generowanie opisu AI",
-        description: `Rozpoczęto generowanie opisu dla pliku: ${document.originalFileName}`,
+        description: `Rozpoczęto generowanie opisu dla pliku: ${doc.originalFileName}`,
       })
 
       const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/documents/${documentId}/generate-description`, {
@@ -559,10 +559,10 @@ export const DocumentsSection = ({
 
       if (response.ok) {
         const updatedDocument = await response.json()
-        setDocuments((prev) => prev.map((doc) => (doc.id === documentId ? updatedDocument : doc)))
+        setDocuments((prev) => prev.map((d) => (d.id === documentId ? updatedDocument : d)))
         toast({
           title: "Sukces",
-          description: `Wygenerowano opis dla pliku: ${document.originalFileName}`,
+          description: `Wygenerowano opis dla pliku: ${doc.originalFileName}`,
         })
       } else {
         throw new Error("Failed to generate AI description")
@@ -577,24 +577,24 @@ export const DocumentsSection = ({
     }
   }
 
-  const handlePreview = (document: Document, documentsArray?: Document[]) => {
+  const handlePreview = (doc: Document, documentsArray?: Document[]) => {
 
     const docsToPreview = documentsArray || allDocuments
 
-    const index = docsToPreview.findIndex((d) => d.id === document.id)
+    const index = docsToPreview.findIndex((d) => d.id === doc.id)
 
     setPreviewDocuments(docsToPreview)
     setCurrentPreviewIndex(index)
-    setPreviewDocument(document)
+    setPreviewDocument(doc)
     setPreviewZoom(1)
     setPreviewRotation(0)
     setPreviewFullscreen(false)
   }
 
-  const handleDownload = (document: Document) => {
+  const handleDownload = (doc: Document) => {
     const link = window.document.createElement("a")
-    link.href = document.downloadUrl
-    link.download = document.originalFileName
+    link.href = doc.downloadUrl
+    link.download = doc.originalFileName
     link.target = "_blank"
     window.document.body.appendChild(link)
     link.click()
@@ -627,13 +627,13 @@ export const DocumentsSection = ({
     try {
       const zip = new JSZip()
 
-      for (const document of documentsForCategory) {
-        const response = await fetch(document.downloadUrl, {
+      for (const doc of documentsForCategory) {
+        const response = await fetch(doc.downloadUrl, {
           method: "GET",
           credentials: "include",
         })
         const blob = await response.blob()
-        zip.file(document.originalFileName, blob)
+        zip.file(doc.originalFileName, blob)
       }
 
       const content = await zip.generateAsync({ type: "blob" })
@@ -677,13 +677,13 @@ export const DocumentsSection = ({
     try {
       const zip = new JSZip()
 
-      for (const document of documentsForCategory) {
-        const response = await fetch(document.downloadUrl, {
+      for (const doc of documentsForCategory) {
+        const response = await fetch(doc.downloadUrl, {
           method: "GET",
           credentials: "include",
         })
         const blob = await response.blob()
-        zip.file(document.originalFileName, blob)
+        zip.file(doc.originalFileName, blob)
       }
 
       const content = await zip.generateAsync({ type: "blob" })
@@ -799,8 +799,8 @@ export const DocumentsSection = ({
     }
   }
 
-  const FileCard = ({ document, onDelete }: { document: Document; onDelete: (id: string | number) => void }) => {
-    const isSelected = selectedDocumentIds.includes(document.id)
+  const FileCard = ({ doc, onDelete }: { doc: Document; onDelete: (id: string | number) => void }) => {
+    const isSelected = selectedDocumentIds.includes(doc.id)
     return (
       <Card className="overflow-hidden group relative">
         <div className="absolute top-2 left-2 flex items-center gap-2">
@@ -810,28 +810,28 @@ export const DocumentsSection = ({
               const value = checked === true
               setSelectedDocumentIds((prev) =>
                 value
-                  ? [...prev, document.id]
-                  : prev.filter((id) => id !== document.id),
+                  ? [...prev, doc.id]
+                  : prev.filter((id) => id !== doc.id),
               )
             }}
           />
           <Badge variant="secondary" className="capitalize">
-            {document.status}
+            {doc.status}
           </Badge>
         </div>
       <div className="aspect-w-16 aspect-h-10 bg-gray-100 flex items-center justify-center min-h-[150px]">
-        {document.contentType.startsWith("image/") ? (
+        {doc.contentType.startsWith("image/") ? (
           <img
-            src={document.previewUrl || "/placeholder.svg?height=150&width=200"}
-            alt={document.originalFileName}
+            src={doc.previewUrl || "/placeholder.svg?height=150&width=200"}
+            alt={doc.originalFileName}
             className="w-full h-full object-cover cursor-pointer"
-            onClick={() => handlePreview(document)}
+            onClick={() => handlePreview(doc)}
           />
-        ) : document.contentType.startsWith("video/") ? (
+        ) : doc.contentType.startsWith("video/") ? (
           <video
-            src={document.previewUrl || document.downloadUrl}
+            src={doc.previewUrl || doc.downloadUrl}
             className="w-full h-full object-cover cursor-pointer"
-            onClick={() => handlePreview(document)}
+            onClick={() => handlePreview(doc)}
             muted
             preload="metadata"
           />
@@ -839,11 +839,11 @@ export const DocumentsSection = ({
           <div className="flex flex-col items-center justify-center">
             <FileText className="w-12 h-12 text-gray-400 mb-2" />
             <span className="text-xs text-gray-500 text-center px-2">
-              {document.contentType === "application/pdf"
+              {doc.contentType === "application/pdf"
                 ? "PDF"
-                : document.contentType.includes("document")
+                : doc.contentType.includes("document")
                   ? "DOC"
-                  : document.contentType.startsWith("video/")
+                  : doc.contentType.startsWith("video/")
                     ? "VIDEO"
                     : "FILE"}
             </span>
@@ -851,11 +851,11 @@ export const DocumentsSection = ({
         )}
       </div>
       <div className="p-3">
-        <p className="text-sm font-medium text-gray-800 truncate" title={document.originalFileName}>
-          {document.originalFileName}
+        <p className="text-sm font-medium text-gray-800 truncate" title={doc.originalFileName}>
+          {doc.originalFileName}
         </p>
-        <p className="text-xs text-gray-500">{new Date(document.createdAt).toLocaleDateString()}</p>
-        <p className="text-xs text-gray-400">{formatBytes(document.fileSize)}</p>
+        <p className="text-xs text-gray-500">{new Date(doc.createdAt).toLocaleDateString()}</p>
+        <p className="text-xs text-gray-400">{formatBytes(doc.fileSize)}</p>
       </div>
       <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
         <Button
@@ -864,7 +864,7 @@ export const DocumentsSection = ({
           className="h-8 w-8"
           onClick={(e) => {
             e.stopPropagation()
-            onDelete(document.id)
+            onDelete(doc.id)
           }}
         >
           <Trash2 className="h-4 w-4" />
@@ -1088,14 +1088,14 @@ export const DocumentsSection = ({
                           </tr>
                         </thead>
                         <tbody>
-                          {documentsForCategory.map((document, index) => (
+                          {documentsForCategory.map((doc, index) => (
                             <tr
-                              key={document.id}
+                              key={doc.id}
                               className={`border-t ${index % 2 === 0 ? "bg-white" : "bg-gray-50/50"}`}
                             >
                               <td className="p-3 font-medium flex items-center gap-2">
-                                {getFileIcon(document.contentType)}
-                                <span className="truncate">{document.originalFileName}</span>
+                                {getFileIcon(doc.contentType)}
+                                <span className="truncate">{doc.originalFileName}</span>
                               </td>
                               <td className="p-3">
                                 <div className="flex items-center gap-1">
@@ -1103,28 +1103,28 @@ export const DocumentsSection = ({
                                     variant="ghost"
                                     size="icon"
                                     className="h-7 w-7"
-                                    onClick={() => handleGenerateAIDescription(document.id)}
+                                    onClick={() => handleGenerateAIDescription(doc.id)}
                                   >
                                     <Wand className="h-4 w-4 text-purple-500" />
                                   </Button>
                                   <Input
-                                    value={document.description || ""}
-                                    onChange={(e) => handleDescriptionChange(document.id, e.target.value)}
+                                    value={doc.description || ""}
+                                    onChange={(e) => handleDescriptionChange(doc.id, e.target.value)}
                                     className="text-sm h-8"
                                     placeholder="Wprowadź opis pliku..."
                                   />
                                 </div>
                               </td>
-                              <td className="p-3 text-gray-600">{formatBytes(document.fileSize)}</td>
-                              <td className="p-3 text-gray-600">{new Date(document.createdAt).toLocaleDateString()}</td>
-                              <td className="p-3 text-gray-600 capitalize">{document.status}</td>
+                              <td className="p-3 text-gray-600">{formatBytes(doc.fileSize)}</td>
+                              <td className="p-3 text-gray-600">{new Date(doc.createdAt).toLocaleDateString()}</td>
+                              <td className="p-3 text-gray-600 capitalize">{doc.status}</td>
                               <td className="p-3">
                                 <div className="flex items-center gap-1">
                                   <Button
                                     variant="ghost"
                                     size="icon"
                                     className="h-7 w-7"
-                                    onClick={() => handleDownload(document)}
+                                    onClick={() => handleDownload(doc)}
                                   >
                                     <Download className="h-4 w-4" />
                                   </Button>
@@ -1132,7 +1132,7 @@ export const DocumentsSection = ({
                                     variant="ghost"
                                     size="icon"
                                     className="h-7 w-7"
-                                    onClick={() => handlePreview(document, documentsForCategory)}
+                                    onClick={() => handlePreview(doc, documentsForCategory)}
                                   >
                                     <Eye className="h-4 w-4" />
                                   </Button>
@@ -1140,7 +1140,7 @@ export const DocumentsSection = ({
                                     variant="ghost"
                                     size="icon"
                                     className="h-7 w-7 text-red-500 hover:text-red-600"
-                                    onClick={() => handleFileDelete(document.id)}
+                                    onClick={() => handleFileDelete(doc.id)}
                                   >
                                     <Trash2 className="h-4 w-4" />
                                   </Button>
@@ -1174,10 +1174,10 @@ export const DocumentsSection = ({
                     </div>
                   ) : documentsForCategory.length > 0 ? (
                     <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
-                      {documentsForCategory.map((document) => (
+                      {documentsForCategory.map((doc) => (
                         <FileCard
-                          key={document.id}
-                          document={document}
+                          key={doc.id}
+                          doc={doc}
                           onDelete={handleFileDelete}
                         />
                       ))}
@@ -1250,31 +1250,31 @@ export const DocumentsSection = ({
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {allPreviewDocuments.map((document) => (
-                  <Card key={document.id} className="overflow-hidden">
+                {allPreviewDocuments.map((doc) => (
+                  <Card key={doc.id} className="overflow-hidden">
                     <div className="aspect-w-16 aspect-h-12 bg-gray-100 flex items-center justify-center min-h-[200px]">
-                      {document.contentType.startsWith("image/") ? (
+                      {doc.contentType.startsWith("image/") ? (
                         <img
-                          src={document.previewUrl || "/placeholder.svg?height=200&width=300"}
-                          alt={document.originalFileName}
+                          src={doc.previewUrl || "/placeholder.svg?height=200&width=300"}
+                          alt={doc.originalFileName}
                           className="w-full h-full object-cover cursor-pointer"
                           onClick={() => {
                             setAllPreviewOpen(false)
-                            handlePreview(document, allPreviewDocuments)
+                            handlePreview(doc, allPreviewDocuments)
                           }}
                         />
-                      ) : document.contentType.startsWith("video/") ? (
+                      ) : doc.contentType.startsWith("video/") ? (
                         <video
-                          src={document.previewUrl || document.downloadUrl}
+                          src={doc.previewUrl || doc.downloadUrl}
                           className="w-full h-full object-cover cursor-pointer"
                           onClick={() => {
                             setAllPreviewOpen(false)
-                            handlePreview(document, allPreviewDocuments)
+                            handlePreview(doc, allPreviewDocuments)
                           }}
                           muted
                           preload="metadata"
                         />
-                      ) : document.contentType === "application/pdf" ? (
+                      ) : doc.contentType === "application/pdf" ? (
                         <div className="flex flex-col items-center justify-center text-center p-4">
                           <FileText className="w-16 h-16 text-red-500 mb-2" />
                           <p className="text-sm font-medium text-gray-700 mb-2">PDF Document</p>
@@ -1282,7 +1282,7 @@ export const DocumentsSection = ({
                             size="sm"
                             onClick={() => {
                               setAllPreviewOpen(false)
-                              handlePreview(document, allPreviewDocuments)
+                              handlePreview(doc, allPreviewDocuments)
                             }}
                           >
                             <Eye className="mr-2 h-4 w-4" />
@@ -1293,9 +1293,9 @@ export const DocumentsSection = ({
                         <div className="flex flex-col items-center justify-center text-center p-4">
                           <FileText className="w-16 h-16 text-gray-400 mb-2" />
                           <p className="text-sm font-medium text-gray-700">
-                            {document.contentType.includes("document") || document.contentType.includes("word")
+                            {doc.contentType.includes("document") || doc.contentType.includes("word")
                               ? "Dokument Word"
-                              : document.contentType.startsWith("video/")
+                              : doc.contentType.startsWith("video/")
                                 ? "Plik wideo"
                                 : "Plik"}
                           </p>
@@ -1307,21 +1307,21 @@ export const DocumentsSection = ({
                       <div className="flex items-center justify-between mb-2">
                         <h4
                           className="font-medium text-sm text-gray-800 truncate"
-                          title={document.originalFileName}
+                          title={doc.originalFileName}
                         >
-                          {document.originalFileName}
+                          {doc.originalFileName}
                         </h4>
                         <Badge variant="secondary" className="ml-2 capitalize">
-                          {document.documentType}
+                          {doc.documentType}
                         </Badge>
                       </div>
                       <div className="flex items-center justify-between text-xs text-gray-500 mb-3">
-                        <span>{formatBytes(document.fileSize)}</span>
-                        <span>{new Date(document.createdAt).toLocaleDateString()}</span>
+                        <span>{formatBytes(doc.fileSize)}</span>
+                        <span>{new Date(doc.createdAt).toLocaleDateString()}</span>
                       </div>
 
-                      {document.description && (
-                        <p className="text-xs text-gray-600 mb-3 line-clamp-2">{document.description}</p>
+                      {doc.description && (
+                        <p className="text-xs text-gray-600 mb-3 line-clamp-2">{doc.description}</p>
                       )}
 
                       <div className="flex items-center gap-2">
@@ -1329,7 +1329,7 @@ export const DocumentsSection = ({
                           variant="outline"
                           size="sm"
                           className="flex-1 bg-transparent"
-                          onClick={() => handleDownload(document)}
+                          onClick={() => handleDownload(doc)}
                         >
                           <Download className="mr-1 h-3 w-3" />
                           Pobierz
@@ -1340,7 +1340,7 @@ export const DocumentsSection = ({
                           className="flex-1 bg-transparent"
                           onClick={() => {
                             setAllPreviewOpen(false)
-                            handlePreview(document, allPreviewDocuments)
+                            handlePreview(doc, allPreviewDocuments)
                           }}
                         >
                           <Eye className="mr-1 h-3 w-3" />
@@ -1376,37 +1376,37 @@ export const DocumentsSection = ({
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {allDocuments
                   .filter((d) => d.documentType === groupPreviewCategory)
-                  .map((document) => (
-                    <Card key={document.id} className="overflow-hidden">
+                  .map((doc) => (
+                    <Card key={doc.id} className="overflow-hidden">
                       <div className="aspect-w-16 aspect-h-12 bg-gray-100 flex items-center justify-center min-h-[200px]">
-                        {document.contentType.startsWith("image/") ? (
+                        {doc.contentType.startsWith("image/") ? (
                           <img
-                            src={document.previewUrl || "/placeholder.svg?height=200&width=300"}
-                            alt={document.originalFileName}
+                            src={doc.previewUrl || "/placeholder.svg?height=200&width=300"}
+                            alt={doc.originalFileName}
                             className="w-full h-full object-cover cursor-pointer"
                             onClick={() => {
                               setGroupPreviewOpen(false)
                               handlePreview(
-                                document,
+                                doc,
                                 allDocuments.filter((d) => d.documentType === groupPreviewCategory),
                               )
                             }}
                           />
-                        ) : document.contentType.startsWith("video/") ? (
+                        ) : doc.contentType.startsWith("video/") ? (
                           <video
-                            src={document.previewUrl || document.downloadUrl}
+                            src={doc.previewUrl || doc.downloadUrl}
                             className="w-full h-full object-cover cursor-pointer"
                             onClick={() => {
                               setGroupPreviewOpen(false)
                               handlePreview(
-                                document,
+                                doc,
                                 allDocuments.filter((d) => d.documentType === groupPreviewCategory),
                               )
                             }}
                             muted
                             preload="metadata"
                           />
-                        ) : document.contentType === "application/pdf" ? (
+                        ) : doc.contentType === "application/pdf" ? (
                           <div className="flex flex-col items-center justify-center text-center p-4">
                             <FileText className="w-16 h-16 text-red-500 mb-2" />
                             <p className="text-sm font-medium text-gray-700 mb-2">PDF Document</p>
@@ -1415,7 +1415,7 @@ export const DocumentsSection = ({
                               onClick={() => {
                                 setGroupPreviewOpen(false)
                                 handlePreview(
-                                  document,
+                                  doc,
                                   allDocuments.filter((d) => d.documentType === groupPreviewCategory),
                                 )
                               }}
@@ -1428,9 +1428,9 @@ export const DocumentsSection = ({
                           <div className="flex flex-col items-center justify-center text-center p-4">
                             <FileText className="w-16 h-16 text-gray-400 mb-2" />
                             <p className="text-sm font-medium text-gray-700">
-                              {document.contentType.includes("document") || document.contentType.includes("word")
+                              {doc.contentType.includes("document") || doc.contentType.includes("word")
                                 ? "Dokument Word"
-                                : document.contentType.startsWith("video/")
+                                : doc.contentType.startsWith("video/")
                                   ? "Plik wideo"
                                   : "Plik"}
                             </p>
@@ -1441,17 +1441,17 @@ export const DocumentsSection = ({
                       <div className="p-4">
                         <h4
                           className="font-medium text-sm text-gray-800 truncate mb-2"
-                          title={document.originalFileName}
+                          title={doc.originalFileName}
                         >
-                          {document.originalFileName}
+                          {doc.originalFileName}
                         </h4>
                         <div className="flex items-center justify-between text-xs text-gray-500 mb-3">
-                          <span>{formatBytes(document.fileSize)}</span>
-                          <span>{new Date(document.createdAt).toLocaleDateString()}</span>
+                          <span>{formatBytes(doc.fileSize)}</span>
+                          <span>{new Date(doc.createdAt).toLocaleDateString()}</span>
                         </div>
 
-                        {document.description && (
-                          <p className="text-xs text-gray-600 mb-3 line-clamp-2">{document.description}</p>
+                        {doc.description && (
+                          <p className="text-xs text-gray-600 mb-3 line-clamp-2">{doc.description}</p>
                         )}
 
                         <div className="flex items-center gap-2">
@@ -1459,7 +1459,7 @@ export const DocumentsSection = ({
                             variant="outline"
                             size="sm"
                             className="flex-1 bg-transparent"
-                            onClick={() => handleDownload(document)}
+                            onClick={() => handleDownload(doc)}
                           >
                             <Download className="mr-1 h-3 w-3" />
                             Pobierz
@@ -1471,7 +1471,7 @@ export const DocumentsSection = ({
                             onClick={() => {
                               setGroupPreviewOpen(false)
                               handlePreview(
-                                document,
+                                doc,
                                 allDocuments.filter((d) => d.documentType === groupPreviewCategory),
                               )
                             }}

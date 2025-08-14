@@ -736,7 +736,7 @@ const renderParticipantDetails = (participant: ParticipantInfo | undefined, titl
           </div>
         </div>
       </div>
-    )
+    );
   }
 
   return (
@@ -1080,8 +1080,8 @@ const renderParticipantDetails = (participant: ParticipantInfo | undefined, titl
         )}
       </div>
     </div>
-  )
-}
+  );
+};
 
   switch (activeClaimSection) {
     case "harmonogram":

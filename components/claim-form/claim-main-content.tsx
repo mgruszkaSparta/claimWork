@@ -406,8 +406,6 @@ export const ClaimMainContent = ({
       })
     }
   }
-}
-
   const handleServicesChange = (service: Service, checked: boolean | "indeterminate") => {
     if (typeof checked === "boolean") {
       const currentServices = claimFormData.servicesCalled || []
@@ -1029,7 +1027,8 @@ const renderParticipantDetails = (
   );
 };
 
-  switch (activeClaimSection) {
+  const renderActiveSection = () => {
+    switch (activeClaimSection) {
     case "harmonogram":
       return (
         <div className="space-y-4">
@@ -2291,7 +2290,8 @@ const renderParticipantDetails = (
           </div>
         </div>
       </div>
-    )
+      )
+    }
 
     default:
       return (
@@ -2304,5 +2304,8 @@ const renderParticipantDetails = (
           </div>
         </div>
       )
+    }
   }
-}
+
+  return renderActiveSection();
+};

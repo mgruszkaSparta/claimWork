@@ -5,20 +5,17 @@ export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url)
     const claimObjectTypeId = searchParams.get('claimObjectTypeId') || '1' // Default to communication claims
-    
-    const url = `${API_BASE_URL}/dictionaries/risk-types`
-    
+
+    const url = `${API_BASE_URL}/risk-types?claimObjectTypeId=${claimObjectTypeId}`
+
     const response = await fetch(url)
     
     if (!response.ok) {
       throw new Error('Failed to fetch risk types')
     }
 
-    let data = await response.json()
-    
-    // Filter by claimObjectTypeId
-    data = data.filter((item: any) => item.claimObjectTypeId.toString() === claimObjectTypeId)
-    
+    const data = await response.json()
+
     return NextResponse.json(data)
   } catch (error) {
     console.error('Error fetching risk types:', error)

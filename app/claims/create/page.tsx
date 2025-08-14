@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import { Car, Home } from "lucide-react";
 import ClientDropdown from "@/components/client-dropdown";
 import { Button } from "@/components/ui/button";
 import type { ClientSelectionEvent } from "@/types/client";
@@ -18,27 +19,19 @@ const claimTypes: ClaimType[] = [
     id: "1",
     title: "Szkoda komunikacyjna",
     subtitle: "Szkody związane z pojazdami",
-    icon: (
-      <svg viewBox="0 0 24 24" aria-hidden="true" className="w-6 h-6">
-        <path d="M3 13l2-5a3 3 0 012.8-2h7.4a3 3 0 012.8 2l2 5v5a1 1 0 01-1 1h-1a2 2 0 01-4 0H9a2 2 0 01-4 0H4a1 1 0 01-1-1v-5zm3.3-5.6A1 1 0 017 7h10a1 1 0 01.9.6L19.4 12H4.6l1.7-4.6zM7 18.5a1.5 1.5 0 103 0 1.5 1.5 0 00-3 0zm7 0a1.5 1.5 0 103 0 1.5 1.5 0 00-3 0z" />
-      </svg>
-    ),
+    icon: <Car className="w-12 h-12" />, 
   },
   {
     id: "2",
     title: "Szkoda mienia",
     subtitle: "szkoda osobowa OC",
-    icon: (
-      <svg viewBox="0 0 24 24" aria-hidden="true" className="w-6 h-6">
-        <path d="M12 3l8 6v11a1 1 0 01-1 1h-5v-6H10v6H5a1 1 0 01-1-1V9l8-6zm0 2.5L6 10v9h2v-6h8v6h2v-9l-6-4.5z" />
-      </svg>
-    ),
+    icon: <Home className="w-12 h-12" />, 
   },
   {
     id: "3",
     title: "Szkoda transportowa",
     icon: (
-      <svg viewBox="0 0 24 24" aria-hidden="true" className="w-6 h-6 text-red-600">
+      <svg viewBox="0 0 24 24" aria-hidden="true" className="w-12 h-12 text-red-600">
         <rect
           x="3"
           y="7"
@@ -89,16 +82,18 @@ export default function CreateClaimPage() {
         />
 
         <h3 className="text-md font-medium pt-2">Przedmiot szkody</h3>
-        <div role="radiogroup" aria-label="Przedmiot szkody" className="grid gap-3">
+        <div
+          role="radiogroup"
+          aria-label="Przedmiot szkody"
+          className="grid grid-cols-1 sm:grid-cols-3 gap-4"
+        >
           {claimTypes.map((t) => {
             const isActive = selected === t.id;
             return (
               <label
                 key={t.id}
                 tabIndex={0}
-                className={`flex items-center space-x-3 border rounded-md p-3 cursor-pointer focus:outline-none ${
-                  isActive ? "border-blue-600 bg-blue-50" : "border-gray-200"
-                }`}
+                className={`cursor-pointer focus:outline-none ${isActive ? "" : ""}`}
                 onKeyDown={(e) => {
                   if (e.key === "Enter" || e.key === " ") {
                     e.preventDefault();
@@ -114,10 +109,16 @@ export default function CreateClaimPage() {
                   onChange={() => setSelected(t.id)}
                   className="sr-only"
                 />
-                <div className="w-6 h-6 flex items-center justify-center">{t.icon}</div>
-                <div className="flex flex-col">
-                  <span className={`font-medium ${t.id === "3" ? "text-red-600" : ""}`}>{t.title}</span>
-                  {t.subtitle && <span className="text-sm text-gray-500">{t.subtitle}</span>}
+                <div
+                  className={`border rounded-md flex flex-col items-center justify-center p-6 h-full transition-colors ${
+                    isActive ? "border-blue-600 bg-blue-50" : "border-gray-200 hover:border-gray-300"
+                  }`}
+                >
+                  <div className="mb-4 flex items-center justify-center">{t.icon}</div>
+                  <span className={`font-medium text-center ${t.id === "3" ? "text-red-600" : ""}`}>{t.title}</span>
+                  {t.subtitle && (
+                    <span className="text-sm text-gray-500 text-center">{t.subtitle}</span>
+                  )}
                 </div>
               </label>
             );

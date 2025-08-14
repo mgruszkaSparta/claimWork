@@ -11,6 +11,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
+import { Label } from "@/components/ui/label"
 import { useToast } from "@/hooks/use-toast"
 import {
   getSettlements,
@@ -233,16 +234,24 @@ export function SettlementsSection({ eventId }: SettlementsSectionProps) {
                 }
               />
             )}
-            <Input
-              type="date"
-              value={formData.transferDate}
-              onChange={(e) => setFormData({ ...formData, transferDate: e.target.value })}
-            />
-            <Input
-              type="date"
-              value={formData.settlementDate}
-              onChange={(e) => setFormData({ ...formData, settlementDate: e.target.value })}
-            />
+            <div className="space-y-1">
+              <Label htmlFor="transferDate">Data przekazania do podmiotu zewnętrznego:</Label>
+              <Input
+                id="transferDate"
+                type="date"
+                value={formData.transferDate}
+                onChange={(e) => setFormData({ ...formData, transferDate: e.target.value })}
+              />
+            </div>
+            <div className="space-y-1">
+              <Label htmlFor="settlementDate">Data zawarcia ugody:</Label>
+              <Input
+                id="settlementDate"
+                type="date"
+                value={formData.settlementDate}
+                onChange={(e) => setFormData({ ...formData, settlementDate: e.target.value })}
+              />
+            </div>
             <Input
               type="number"
               step="0.01"

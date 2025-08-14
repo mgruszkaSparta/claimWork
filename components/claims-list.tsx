@@ -68,6 +68,7 @@ export function ClaimsList({
 
   useEffect(() => {
     if (initialClaims) return
+
     const loadClaims = async () => {
       try {
         await fetchClaims(
@@ -102,6 +103,7 @@ export function ClaimsList({
     filterHandler,
     claimObjectTypeId,
     initialClaims,
+
   ])
 
   // TODO: consider moving this filtering to use-claims or the API to reduce client workload
@@ -150,7 +152,9 @@ export function ClaimsList({
   )
 
   useEffect(() => {
+
     if (initialClaims) return
+
     const node = loaderRef.current
     const observer = new IntersectionObserver(
       (entries) => {
@@ -172,7 +176,9 @@ export function ClaimsList({
         observer.unobserve(node)
       }
     }
+
   }, [loading, claims.length, totalRecords, initialClaims])
+
 
   const getStatusColor = (status: string) => {
     switch (status?.toUpperCase()) {

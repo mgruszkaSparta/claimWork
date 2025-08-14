@@ -1,15 +1,29 @@
 import { type NextRequest, NextResponse } from "next/server"
+
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5200/api"
 
-export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
+export async function GET(
+  request: NextRequest,
+  { params }: { params: { claimId: string; decisionId: string } },
+) {
   try {
-    const id = params.id
+    const { claimId, decisionId } = params
 
-    const response = await fetch(`${API_BASE_URL}/decisions/${id}/preview`, {
-      headers: {
-        cookie: request.headers.get("cookie") ?? "",
+    if (!claimId || !decisionId) {
+      return NextResponse.json(
+        { error: "claimId and decisionId are required" },
+        { status: 400 },
+      )
+    }
+
+    const response = await fetch(
+      `${API_BASE_URL}/claims/${claimId}/decisions/${decisionId}/preview`,
+      {
+        headers: {
+          cookie: request.headers.get("cookie") ?? "",
+        },
       },
-    })
+    )
 
     if (!response.ok || !response.body) {
       throw new Error("Failed to preview file")
@@ -26,3 +40,4 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
     return NextResponse.json({ error: "Internal server error" }, { status: 500 })
   }
 }
+

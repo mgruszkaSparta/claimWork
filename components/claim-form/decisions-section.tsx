@@ -373,10 +373,18 @@ export function DecisionsSection({ claimId, onChange }: DecisionsSectionProps) {
       })
       return
     }
+    if (!claimId) {
+      toast({
+        title: "Brak ID roszczenia",
+        description: "Nie można wyświetlić podglądu bez ID roszczenia",
+        variant: "destructive",
+      })
+      return
+    }
 
     try {
       const response = await fetch(
-        `${API_BASE_URL}/decisions/${decision.id}/preview`,
+        `${API_BASE_URL}/claims/${claimId}/decisions/${decision.id}/preview`,
         {
           method: "GET",
           credentials: "include",

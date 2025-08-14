@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useMemo } from "react"
+import { useState, useEffect, useMemo, useRef } from "react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -10,14 +10,7 @@ import { Search, Plus, Filter, Eye, Edit, Trash2, RefreshCw, AlertCircle, Loader
 import { useClaims } from "@/hooks/use-claims"
 import { useToast } from "@/hooks/use-toast"
 import type { Claim } from "@/types"
-import {
-  Pagination,
-  PaginationContent,
-  PaginationItem,
-  PaginationLink,
-  PaginationNext,
-  PaginationPrevious,
-} from "@/components/ui/pagination"
+
 
 const RISK_TYPE_GROUPS: Record<string, string[]> = {
   "1": [
@@ -42,6 +35,7 @@ interface ClaimsListProps {
 }
 
 export function ClaimsList({
+  claims: initialClaims,
   onEditClaim,
   onNewClaim,
   claimObjectTypeId,
@@ -54,25 +48,46 @@ export function ClaimsList({
   const [showFilters, setShowFilters] = useState(false)
   const [isRefreshing, setIsRefreshing] = useState(false)
   const [page, setPage] = useState(1)
-  const pageSize = 10
+  const pageSize = 30
+  const loaderRef = useRef<HTMLDivElement | null>(null)
+  const containerRef = useRef<HTMLDivElement | null>(null)
 
-  const { claims, loading, error, deleteClaim, fetchClaims, clearError, totalCount } = useClaims()
+  const {
+    claims: fetchedClaims,
+    loading,
+    error,
+    deleteClaim,
+    fetchClaims,
+    clearError,
+    totalCount,
+  } = useClaims()
   const { toast } = useToast()
-  const totalPages = Math.max(1, Math.ceil(totalCount / pageSize))
 
-  // Refresh data on component mount and when page changes
+  const claims = initialClaims ?? fetchedClaims
+  const totalRecords = initialClaims ? initialClaims.length : totalCount
+
+  // Reset page when filters change
   useEffect(() => {
+    setPage(1)
+  }, [searchTerm, filterStatus, filterBrand, filterHandler, claimObjectTypeId])
+
+  // Fetch data on component mount and when dependencies change, unless claims are provided via props
+  useEffect(() => {
+    if (initialClaims) return
     const loadClaims = async () => {
       try {
-        await fetchClaims({
-          page,
-          pageSize,
-          search: searchTerm,
-          status: filterStatus !== "all" ? filterStatus : undefined,
-          brand: filterBrand || undefined,
-          handler: filterHandler || undefined,
-          claimObjectTypeId,
-        })
+        await fetchClaims(
+          {
+            page,
+            pageSize,
+            search: searchTerm,
+            status: filterStatus !== "all" ? filterStatus : undefined,
+            brand: filterBrand || undefined,
+            handler: filterHandler || undefined,
+            claimObjectTypeId,
+          },
+          { append: page > 1 },
+        )
       } catch (err) {
         toast({
           title: "Błąd",
@@ -92,6 +107,7 @@ export function ClaimsList({
     filterBrand,
     filterHandler,
     claimObjectTypeId,
+    initialClaims,
   ])
 
   // TODO: consider moving this filtering to use-claims or the API to reduce client workload
@@ -138,6 +154,31 @@ export function ClaimsList({
       allowedRiskTypes,
     ],
   )
+
+  useEffect(() => {
+    if (initialClaims) return
+    const node = loaderRef.current
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (
+          entries[0].isIntersecting &&
+          !loading &&
+          claims.length < totalRecords
+        ) {
+          setPage((p) => p + 1)
+        }
+      },
+      { root: containerRef.current || undefined },
+    )
+    if (node) {
+      observer.observe(node)
+    }
+    return () => {
+      if (node) {
+        observer.unobserve(node)
+      }
+    }
+  }, [loading, claims.length, totalRecords, initialClaims])
 
   const getStatusColor = (status: string) => {
     switch (status?.toUpperCase()) {
@@ -187,15 +228,19 @@ export function ClaimsList({
   const handleRefresh = async () => {
     setIsRefreshing(true)
     try {
-      await fetchClaims({
-        page,
-        pageSize,
-        search: searchTerm,
-        status: filterStatus !== "all" ? filterStatus : undefined,
-        brand: filterBrand || undefined,
-        handler: filterHandler || undefined,
-        claimObjectTypeId,
-      })
+      setPage(1)
+      await fetchClaims(
+        {
+          page: 1,
+          pageSize,
+          search: searchTerm,
+          status: filterStatus !== "all" ? filterStatus : undefined,
+          brand: filterBrand || undefined,
+          handler: filterHandler || undefined,
+          claimObjectTypeId,
+        },
+        { append: false },
+      )
       toast({
         title: "Odświeżono",
         description: "Lista szkód została odświeżona.",
@@ -353,7 +398,7 @@ export function ClaimsList({
       {/* Claims Table */}
       <div className="flex-1 px-6 pb-4 overflow-hidden">
         <div className="bg-white rounded-lg border border-gray-200 shadow-sm h-full flex flex-col">
-          <div className="flex-1 overflow-auto">
+          <div ref={containerRef} className="flex-1 overflow-auto">
             <table className="min-w-full divide-y divide-gray-200">
               <thead className="bg-gray-50 sticky top-0 z-10">
                 <tr>
@@ -460,6 +505,12 @@ export function ClaimsList({
                 ))}
               </tbody>
             </table>
+            {loading && page > 1 && (
+              <div className="flex justify-center py-4">
+                <Loader2 className="h-6 w-6 animate-spin text-[#1a3a6c]" />
+              </div>
+            )}
+            <div ref={loaderRef} />
           </div>
 
           {/* Empty State */}
@@ -489,50 +540,6 @@ export function ClaimsList({
         </div>
       </div>
 
-      {/* Pagination */}
-      {totalPages > 1 && (
-        <div className="px-6 py-4 flex justify-center flex-shrink-0">
-          <Pagination>
-            <PaginationContent>
-              <PaginationItem>
-                <PaginationPrevious
-                  href="#"
-                  onClick={(e) => {
-                    e.preventDefault()
-                    setPage((p) => Math.max(1, p - 1))
-                  }}
-                  className={page === 1 ? "pointer-events-none opacity-50" : ""}
-                />
-              </PaginationItem>
-              {Array.from({ length: totalPages }).map((_, i) => (
-                <PaginationItem key={i}>
-                  <PaginationLink
-                    href="#"
-                    isActive={page === i + 1}
-                    onClick={(e) => {
-                      e.preventDefault()
-                      setPage(i + 1)
-                    }}
-                  >
-                    {i + 1}
-                  </PaginationLink>
-                </PaginationItem>
-              ))}
-              <PaginationItem>
-                <PaginationNext
-                  href="#"
-                  onClick={(e) => {
-                    e.preventDefault()
-                    setPage((p) => Math.min(totalPages, p + 1))
-                  }}
-                  className={page === totalPages ? "pointer-events-none opacity-50" : ""}
-                />
-              </PaginationItem>
-            </PaginationContent>
-          </Pagination>
-        </div>
-      )}
-
       {/* Summary */}
       {filteredClaims.length > 0 && (
         <div className="px-6 pb-6 flex-shrink-0">
@@ -541,16 +548,10 @@ export function ClaimsList({
               Wyświetlono {filteredClaims.length} z {totalCount} szkód
               {error && " (sprawdź połączenie z API)"}
             </span>
-            <div className="flex items-center space-x-4">
-              <span>
-                Łączna wartość:{" "}
-                {filteredClaims.reduce((sum, claim) => sum + (claim.totalClaim || 0), 0).toLocaleString("pl-PL")} PLN
-              </span>
-              <span>•</span>
-              <span>
-                Strona {page} z {totalPages}
-              </span>
-            </div>
+            <span>
+              Łączna wartość:{" "}
+              {filteredClaims.reduce((sum, claim) => sum + (claim.totalClaim || 0), 0).toLocaleString("pl-PL")} PLN
+            </span>
           </div>
         </div>
       )}

@@ -4,12 +4,20 @@ const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5200/a
 export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
   try {
     const id = params.id
+    const claimId = request.nextUrl.searchParams.get("claimId")
 
-    const response = await fetch(`${API_BASE_URL}/decisions/${id}/download`, {
-      headers: {
-        cookie: request.headers.get("cookie") ?? "",
+    if (!claimId) {
+      return NextResponse.json({ error: "claimId is required" }, { status: 400 })
+    }
+
+    const response = await fetch(
+      `${API_BASE_URL}/claims/${claimId}/decisions/${id}/download`,
+      {
+        headers: {
+          cookie: request.headers.get("cookie") ?? "",
+        },
       },
-    })
+    )
 
     if (!response.ok || !response.body) {
       throw new Error("Failed to download file")

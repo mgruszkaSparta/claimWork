@@ -324,9 +324,18 @@ export function DecisionsSection({ claimId, onChange }: DecisionsSectionProps) {
       return
     }
 
+    if (!claimId) {
+      toast({
+        title: "Brak ID roszczenia",
+        description: "Nie można pobrać pliku bez ID roszczenia",
+        variant: "destructive",
+      })
+      return
+    }
+
     try {
       const response = await fetch(
-        `${API_BASE_URL}/decisions/${decision.id}/download`,
+        `${API_BASE_URL}/claims/${claimId}/decisions/${decision.id}/download`,
         {
           method: "GET",
           credentials: "include",

@@ -143,9 +143,18 @@ export function ClaimForm({ initialData, mode }: ClaimFormProps) {
     e.preventDefault()
 
     try {
+      // Settlements are handled via dedicated endpoints and should not be
+      // included when creating or updating a claim. Exclude them from the
+      // payload to prevent accidental overwrites.
+      const { settlements: _settlements, ...claimWithoutSettlements } = formData
+
       const payload: Claim = {
-        ...formData,
-        damages: formData.damages?.map((d) => ({ ...d, id: mode === 'create' ? undefined : d.id })) || [],
+        ...claimWithoutSettlements,
+        damages:
+          claimWithoutSettlements.damages?.map((d) => ({
+            ...d,
+            id: mode === 'create' ? undefined : d.id,
+          })) || [],
         documents: uploadedFiles,
       }
 

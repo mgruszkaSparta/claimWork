@@ -34,13 +34,15 @@ export async function GET(request: NextRequest) {
       
       // claimObjectTypeId = 2 (Szkody mienia)
       { id: 3, riskId: 4, name: "MAJĄTKOWE", description: "MAJĄTKOWE", claimObjectTypeId: 2 },
-      { id: 4, riskId: 4, name: "OCPD", description: "OCPD", claimObjectTypeId: 2 },
-      { id: 5, riskId: 4, name: "CARGO", description: "CARGO", claimObjectTypeId: 2 },
       { id: 8, riskId: 57, name: "NNW", description: "NNW", claimObjectTypeId: 2 },
       { id: 9, riskId: 57, name: "CPM", description: "CPM", claimObjectTypeId: 2 },
       { id: 10, riskId: 57, name: "CAR/EAR", description: "CAR/EAR", claimObjectTypeId: 2 },
       { id: 11, riskId: 57, name: "BI", description: "BI", claimObjectTypeId: 2 },
-      { id: 12, riskId: 57, name: "GWARANCJIE", description: "GWARANCJIE", claimObjectTypeId: 2 }
+      { id: 12, riskId: 57, name: "GWARANCJIE", description: "GWARANCJIE", claimObjectTypeId: 2 },
+
+      // claimObjectTypeId = 3 (Szkody transportowe)
+      { id: 4, riskId: 4, name: "OCPD", description: "OCPD", claimObjectTypeId: 3 },
+      { id: 5, riskId: 4, name: "CARGO", description: "CARGO", claimObjectTypeId: 3 }
     ]
     
     const { searchParams } = new URL(request.url)

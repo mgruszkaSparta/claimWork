@@ -52,6 +52,7 @@ interface RepairSchedule {
 export default function NewClaimPage() {
   const router = useRouter()
   const searchParams = useSearchParams()
+  const claimObjectTypeParam = searchParams.get("claimObjectType") || "1"
   const { toast } = useToast()
   const { createClaim, deleteClaim, initializeClaim } = useClaims()
   const [claimId, setClaimId] = useState<string>("")
@@ -406,6 +407,7 @@ export default function NewClaimPage() {
               setUploadedFiles={setUploadedFiles}
               requiredDocuments={requiredDocuments}
               setRequiredDocuments={setRequiredDocuments}
+              initialClaimObjectType={claimObjectTypeParam}
             />
 
             {/* Repair Schedules and Details Section */}

@@ -198,6 +198,12 @@ export function ClientClaimsSection({ clientClaims, onClientClaimsChange, claimI
         description: formData.description,
         claimNotes: formData.claimNotes || undefined,
         documentDescription: formData.documentDescription,
+        ...(selectedFile
+          ? {}
+          : {
+              documentPath: editingClaim?.documentPath,
+              documentName: editingClaim?.documentName,
+            }),
         document: selectedFile
           ? {
               id: crypto.randomUUID(),
@@ -253,6 +259,7 @@ export function ClientClaimsSection({ clientClaims, onClientClaimsChange, claimI
       claimNotes: claim.claimNotes || "",
       documentDescription: claim.documentDescription || "",
     })
+    setSelectedFile(null)
     setIsFormVisible(true)
   }
 
@@ -372,13 +379,27 @@ export function ClientClaimsSection({ clientClaims, onClientClaimsChange, claimI
     return `${amount.toLocaleString("pl-PL", { minimumFractionDigits: 2 })} ${currency}`
   }
 
+  const getFileNameFromPath = (path: string): string => {
+    return path.split("/").pop() || ""
+  }
+
   const isPreviewable = (fileName: string) => {
     const extension = fileName.split(".").pop()?.toLowerCase()
     return ["pdf", "jpg", "jpeg", "png", "gif"].includes(extension || "")
   }
 
   const previewFile = async (claim: ClientClaim) => {
-    if (!claim.document) return
+    const fileName =
+      claim.document?.name || claim.documentName || getFileNameFromPath(claim.documentPath || "")
+
+    if (!fileName) {
+      toast({
+        title: "Błąd",
+        description: "Brak dokumentu do podglądu",
+        variant: "destructive",
+      })
+      return
+    }
 
     try {
       const response = await fetch(
@@ -391,13 +412,13 @@ export function ClientClaimsSection({ clientClaims, onClientClaimsChange, claimI
       const blob = await response.blob()
       const url = URL.createObjectURL(blob)
 
-      const extension = claim.document.name.split(".").pop()?.toLowerCase()
+      const extension = fileName.split(".").pop()?.toLowerCase()
       const fileType = extension === "pdf" ? "pdf" : "image"
 
       setPreviewModal({
         isOpen: true,
         url,
-        fileName: claim.document.name,
+        fileName,
         fileType,
         claim,
       })
@@ -411,7 +432,17 @@ export function ClientClaimsSection({ clientClaims, onClientClaimsChange, claimI
   }
 
   const downloadFile = async (claim: ClientClaim) => {
-    if (!claim.document) return
+    const fileName =
+      claim.document?.name || claim.documentName || getFileNameFromPath(claim.documentPath || "")
+
+    if (!fileName) {
+      toast({
+        title: "Błąd",
+        description: "Brak dokumentu do pobrania",
+        variant: "destructive",
+      })
+      return
+    }
 
     try {
       const response = await fetch(
@@ -426,7 +457,7 @@ export function ClientClaimsSection({ clientClaims, onClientClaimsChange, claimI
 
       const a = document.createElement("a")
       a.href = url
-      a.download = claim.document.name
+      a.download = fileName
       document.body.appendChild(a)
       a.click()
       document.body.removeChild(a)
@@ -800,14 +831,18 @@ export function ClientClaimsSection({ clientClaims, onClientClaimsChange, claimI
                         </div>
                       </td>
                       <td className="py-3 px-4">
-                        {claim.document ? (
+                        {claim.document || claim.documentPath ? (
                           <div className="flex items-center space-x-2">
                             <FileText className="h-4 w-4 text-blue-600" />
                             <span className="text-sm text-blue-600">
                               {claim.documentDescription || "Załącznik"}
                             </span>
                             <div className="flex gap-1">
-                              {isPreviewable(claim.document.name) && (
+                              {isPreviewable(
+                                claim.document?.name ||
+                                  claim.documentName ||
+                                  getFileNameFromPath(claim.documentPath || "")
+                              ) && (
                                 <Button
                                   variant="ghost"
                                   size="sm"

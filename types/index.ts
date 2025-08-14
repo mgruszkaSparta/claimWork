@@ -20,6 +20,18 @@ export interface Note {
   dueDate?: string
 }
 
+export interface SubcontractorInfo {
+  subcontractorName: string
+  subcontractorPolicyNumber: string
+  subcontractorInsurer: string
+  complaintToSubcontractor?: boolean
+  complaintToSubcontractorDate?: string
+  claimFromSubcontractorPolicy?: boolean
+  claimFromSubcontractorPolicyDate?: string
+  complaintResponse?: boolean
+  complaintResponseDate?: string
+}
+
 export interface Claim
   extends Omit<
     ClaimDto,
@@ -36,6 +48,15 @@ export interface Claim
     | "clientClaims"
     | "recourses"
     | "settlements"
+    | "subcontractorName"
+    | "subcontractorPolicyNumber"
+    | "subcontractorInsurer"
+    | "complaintToSubcontractor"
+    | "complaintToSubcontractorDate"
+    | "claimFromSubcontractorPolicy"
+    | "claimFromSubcontractorPolicyDate"
+    | "complaintResponse"
+    | "complaintResponseDate"
   > {
   id?: string
   clientId?: string
@@ -85,6 +106,7 @@ export interface Claim
   documents?: UploadedFile[]
   pendingFiles?: UploadedFile[]
   documentsSectionProps?: DocumentsSectionProps
+  subcontractor?: SubcontractorInfo
 }
 
 export interface ParticipantInfo {

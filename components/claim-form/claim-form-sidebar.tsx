@@ -2,7 +2,7 @@
 
 import { Button } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
-import { FileText, AlertTriangle, Users, File, MessageSquare, FileCheck, Mail, Calendar, Wrench, Gavel, Shield, DollarSign, HandHeart, FileSignature } from 'lucide-react'
+import { FileText, AlertTriangle, Users, File, MessageSquare, FileCheck, Mail, Calendar, Wrench, Gavel, Shield, DollarSign, HandHeart, FileSignature, Car, Search } from 'lucide-react'
 
 interface ClaimFormSidebarProps {
   activeClaimSection: string
@@ -19,11 +19,33 @@ const sidebarSections = [
         label: "Teczka szkodowa",
         icon: FileText,
       },
+    ],
+  },
+  {
+    id: "dane-zdarzenia",
+    title: "DANE ZDARZENIA I SZKODY",
+    items: [
       {
-        id: "dane-zdarzenia",
-        label: "Dane zdarzenia i szkody",
+        id: "dane-zdarzenia-podstawowe",
+        label: "Dane podstawowe",
         icon: AlertTriangle,
       },
+      {
+        id: "dane-zdarzenia-pojazd",
+        label: "Dane pojazdu",
+        icon: Car,
+      },
+      {
+        id: "dane-zdarzenia-inspekcja",
+        label: "Inspekcja",
+        icon: Search,
+      },
+    ],
+  },
+  {
+    id: "pozostale",
+    title: "POZOSTAŁE",
+    items: [
       {
         id: "uczestnicy",
         label: "Uczestnicy zdarzenia",

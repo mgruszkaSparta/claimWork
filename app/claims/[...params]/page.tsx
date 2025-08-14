@@ -45,7 +45,7 @@ export default function ClaimPage() {
   const isEdit = paramsArray[1] === "edit" || isNew
   const mode: PageMode = isNew ? "new" : isEdit ? "edit" : "view"
 
-  const [activeClaimSection, setActiveClaimSection] = useState("dane-zdarzenia")
+  const [activeClaimSection, setActiveClaimSection] = useState("dane-zdarzenia-podstawowe")
   const [isSaving, setIsSaving] = useState(false)
   const [isLoading, setIsLoading] = useState(!isNew)
   const [loadError, setLoadError] = useState<string | null>(null)

@@ -101,32 +101,31 @@ export const AppealsSection = ({ claimId }: AppealsSectionProps) => {
   }
 
   const processFiles = (files: File[]) => {
-    setSelectedFiles((prev) => [...prev, ...files])
+    const file = files[0]
+    if (!file) return
+
+    setSelectedFiles([file])
     setShowFileDescription(true)
 
-    const outlookFiles = files.filter(
-      (file) => file.name.includes("outlook") || file.type === "application/octet-stream",
-    )
+    const isOutlookFile =
+      file.name.includes("outlook") || file.type === "application/octet-stream"
 
     toast({
-      title: "Pliki dodane",
-      description:
-        outlookFiles.length > 0
-          ? `Dodano ${files.length} plik(ów), w tym ${outlookFiles.length} z Outlooka`
-          : `Dodano ${files.length} plik(ów)`,
+      title: "Plik dodany",
+      description: isOutlookFile ? "Dodano plik z Outlooka" : "Dodano plik",
     })
   }
 
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = event.target.files
     if (files && files.length > 0) {
-      processFiles(Array.from(files))
+      processFiles([files[0]])
     }
   }
 
   const handleFilesDropped = (files: FileList) => {
     if (files.length > 0) {
-      processFiles(Array.from(files))
+      processFiles([files[0]])
     }
   }
 
@@ -227,7 +226,7 @@ export const AppealsSection = ({ claimId }: AppealsSectionProps) => {
     if (selectedFiles.length === 0) {
       toast({
         title: "Błąd",
-        description: "Musisz dodać co najmniej jeden plik",
+        description: "Musisz dodać plik",
         variant: "destructive",
       })
       return
@@ -507,7 +506,7 @@ export const AppealsSection = ({ claimId }: AppealsSectionProps) => {
 
               {/* File Upload Section */}
               <div className="space-y-4">
-                <Label className="text-sm font-medium text-gray-700">Załącz dokumenty odwołania</Label>
+                <Label className="text-sm font-medium text-gray-700">Załącz dokument odwołania</Label>
 
                 {/* Drop Zone */}
                 <div
@@ -522,7 +521,7 @@ export const AppealsSection = ({ claimId }: AppealsSectionProps) => {
                     <div className="absolute inset-0 bg-[#1a3a6c]/10 flex items-center justify-center rounded-lg">
                       <div className="bg-white p-4 rounded-lg shadow-lg text-center">
                         <FileText className="h-10 w-10 mx-auto mb-2 text-[#1a3a6c]" />
-                        <p className="text-[#1a3a6c] font-medium">Upuść załączniki z Outlooka tutaj</p>
+                        <p className="text-[#1a3a6c] font-medium">Upuść załącznik z Outlooka tutaj</p>
                       </div>
                     </div>
                   )}
@@ -531,10 +530,10 @@ export const AppealsSection = ({ claimId }: AppealsSectionProps) => {
                     <Upload className="h-10 w-10 text-gray-400" />
                     <div className="space-y-2">
                       <p className="text-sm text-gray-500">
-                        <span className="font-semibold">Kliknij, aby wybrać pliki</span> lub przeciągnij i upuść
+                        <span className="font-semibold">Kliknij, aby wybrać plik</span> lub przeciągnij i upuść
                       </p>
                       <p className="text-xs text-gray-400">Obsługiwane formaty: PDF, DOC, DOCX, JPG, PNG</p>
-                      <p className="text-xs text-gray-400">Możesz wybrać wiele plików jednocześnie</p>
+                      <p className="text-xs text-gray-400">Możesz przesłać tylko jeden plik</p>
                     </div>
 
                     <input
@@ -543,7 +542,6 @@ export const AppealsSection = ({ claimId }: AppealsSectionProps) => {
                       className="hidden"
                       accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
                       onChange={handleFileSelect}
-                      multiple
                     />
                     <Button
                       type="button"
@@ -551,19 +549,19 @@ export const AppealsSection = ({ claimId }: AppealsSectionProps) => {
                       onClick={() => fileInputRef.current?.click()}
                       className="bg-transparent"
                     >
-                      Wybierz pliki
+                      Wybierz plik
                     </Button>
                   </div>
                 </div>
 
-                {/* Selected Files Display */}
+                {/* Selected File Display */}
                 {selectedFiles.length > 0 && (
                   <div className="space-y-0 border border-gray-200 rounded-lg overflow-hidden">
                     <div className="p-3 bg-gray-50 flex items-center justify-between">
                       <div className="flex items-center gap-2">
                         <FileText className="h-4 w-4 text-[#1a3a6c]" />
                         <span className="text-sm font-medium">
-                          Wybrane pliki ({selectedFiles.length}) - {formatFileSize(getTotalFileSize())}
+                          Wybrany plik - {formatFileSize(getTotalFileSize())}
                         </span>
                       </div>
                       <Button
@@ -605,17 +603,19 @@ export const AppealsSection = ({ claimId }: AppealsSectionProps) => {
 
                     {showFileDescription && (
                       <div className="p-4 bg-white space-y-2">
-                        <Label className="text-sm font-medium text-gray-700">Opis dokumentów</Label>
-                        <Textarea
-                          value={formData.documentDescription}
-                          onChange={(e) => setFormData((prev) => ({ ...prev, documentDescription: e.target.value }))}
-                          placeholder="Dodaj opis dokumentów (np. 'Odwołanie od decyzji z dnia 10.05.2023', 'Pismo przewodnie', itp.)"
-                          rows={2}
-                          className="text-sm"
-                        />
-                        <p className="text-xs text-gray-500">
-                          Opis pomoże w łatwiejszej identyfikacji dokumentów w przyszłości.
-                        </p>
+                          <Label className="text-sm font-medium text-gray-700">Opis dokumentu</Label>
+                          <Textarea
+                            value={formData.documentDescription}
+                            onChange={(e) =>
+                              setFormData((prev) => ({ ...prev, documentDescription: e.target.value }))
+                            }
+                            placeholder="Dodaj opis dokumentu (np. 'Odwołanie od decyzji z dnia 10.05.2023', 'Pismo przewodnie', itp.)"
+                            rows={2}
+                            className="text-sm"
+                          />
+                          <p className="text-xs text-gray-500">
+                            Opis pomoże w łatwiejszej identyfikacji dokumentu w przyszłości.
+                          </p>
                       </div>
                     )}
                   </div>
@@ -624,7 +624,7 @@ export const AppealsSection = ({ claimId }: AppealsSectionProps) => {
                 {/* Outlook Integration Hint */}
                 <div className="flex items-center gap-2 text-xs text-gray-500 bg-blue-50 p-3 rounded-md">
                   <Info className="h-3 w-3 flex-shrink-0" />
-                  <span>Możesz przeciągnąć załączniki bezpośrednio z Outlooka lub wkleić je ze schowka (Ctrl+V)</span>
+                  <span>Możesz przeciągnąć załącznik bezpośrednio z Outlooka lub wkleić go ze schowka (Ctrl+V)</span>
                 </div>
               </div>
 
@@ -730,7 +730,7 @@ export const AppealsSection = ({ claimId }: AppealsSectionProps) => {
                           </div>
                         </div>
                       ) : (
-                        <span className="text-gray-500">Brak dokumentów</span>
+                        <span className="text-gray-500">Brak dokumentu</span>
                       )}
                     </td>
                     <td className="py-3 px-4 text-gray-700 max-w-48">

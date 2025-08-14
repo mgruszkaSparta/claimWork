@@ -1,12 +1,13 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Authorization;
 using AutomotiveClaimsApi.Data;
 using AutomotiveClaimsApi.DTOs;
 
 namespace AutomotiveClaimsApi.Controllers
 {
     [ApiController]
-    [Route("api/[controller]")]
+    [Route("api/risk-types")]
     public class RiskTypesController : ControllerBase
     {
         private readonly ApplicationDbContext _context;
@@ -17,20 +18,37 @@ namespace AutomotiveClaimsApi.Controllers
         }
 
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<RiskTypeDto>>> GetRiskTypes([FromQuery] int? claimObjectTypeId)
+        [Authorize(Roles = "catalog.read")]
+        public async Task<ActionResult<IEnumerable<RiskTypeDto>>> GetRiskTypes(
+            [FromQuery] string sortBy = "name",
+            [FromQuery] string order = "asc",
+            [FromQuery] bool? active = true,
+            [FromQuery] string? query = null)
         {
             try
             {
-                var query = _context.RiskTypes
-                    .Where(rt => rt.IsActive);
+                var riskTypesQuery = _context.RiskTypes.AsQueryable();
 
-                if (claimObjectTypeId.HasValue)
+                if (active.HasValue)
+                    riskTypesQuery = riskTypesQuery.Where(rt => rt.IsActive == active.Value);
+
+                if (!string.IsNullOrWhiteSpace(query))
+                    riskTypesQuery = riskTypesQuery.Where(rt => rt.Name.Contains(query) || rt.Code.Contains(query));
+
+                riskTypesQuery = (sortBy.ToLower(), order.ToLower()) switch
                 {
-                    query = query.Where(rt => rt.ClaimObjectTypeId == claimObjectTypeId);
-                }
+                    ("code", "desc") => riskTypesQuery.OrderByDescending(rt => rt.Code),
+                    ("code", _) => riskTypesQuery.OrderBy(rt => rt.Code),
+                    ("name", "desc") => riskTypesQuery.OrderByDescending(rt => rt.Name),
+                    ("createdat", "desc") => riskTypesQuery.OrderByDescending(rt => rt.CreatedAt),
+                    ("createdat", _) => riskTypesQuery.OrderBy(rt => rt.CreatedAt),
+                    ("updatedat", "desc") => riskTypesQuery.OrderByDescending(rt => rt.UpdatedAt),
+                    ("updatedat", _) => riskTypesQuery.OrderBy(rt => rt.UpdatedAt),
+                    (_, "desc") => riskTypesQuery.OrderByDescending(rt => rt.Name),
+                    _ => riskTypesQuery.OrderBy(rt => rt.Name)
+                };
 
-                var riskTypes = await query
-                    .OrderBy(rt => rt.Name)
+                var riskTypes = await riskTypesQuery
                     .Select(rt => new RiskTypeDto
                     {
                         Id = rt.Id,
@@ -39,7 +57,6 @@ namespace AutomotiveClaimsApi.Controllers
                         Description = rt.Description
                     })
                     .ToListAsync();
-
                 return Ok(riskTypes);
             }
             catch (Exception ex)
@@ -49,6 +66,7 @@ namespace AutomotiveClaimsApi.Controllers
         }
 
         [HttpGet("{id}")]
+        [Authorize(Roles = "catalog.read")]
         public async Task<ActionResult<RiskTypeDto>> GetRiskType(Guid id)
         {
             try
@@ -78,10 +96,17 @@ namespace AutomotiveClaimsApi.Controllers
         }
 
         [HttpPost]
+        [Authorize(Roles = "catalog.create")]
         public async Task<ActionResult<RiskTypeDto>> CreateRiskType(RiskTypeDto riskTypeDto)
         {
             try
             {
+                if (!ModelState.IsValid)
+                    return BadRequest(ModelState);
+
+                if (await _context.RiskTypes.AnyAsync(rt => rt.Code == riskTypeDto.Code || rt.Name == riskTypeDto.Name))
+                    return Conflict(new { message = "Risk type with the same code or name already exists" });
+
                 var riskType = new Models.RiskType
                 {
                     Id = Guid.NewGuid(),
@@ -113,15 +138,22 @@ namespace AutomotiveClaimsApi.Controllers
         }
 
         [HttpPut("{id}")]
+        [Authorize(Roles = "catalog.update")]
         public async Task<IActionResult> UpdateRiskType(Guid id, RiskTypeDto riskTypeDto)
         {
             try
             {
+                if (!ModelState.IsValid)
+                    return BadRequest(ModelState);
+
                 var riskType = await _context.RiskTypes.FindAsync(id);
                 if (riskType == null)
                 {
                     return NotFound();
                 }
+
+                if (await _context.RiskTypes.AnyAsync(rt => rt.Id != id && (rt.Code == riskTypeDto.Code || rt.Name == riskTypeDto.Name)))
+                    return Conflict(new { message = "Risk type with the same code or name already exists" });
 
                 riskType.Code = riskTypeDto.Code;
                 riskType.Name = riskTypeDto.Name;
@@ -139,6 +171,7 @@ namespace AutomotiveClaimsApi.Controllers
         }
 
         [HttpDelete("{id}")]
+        [Authorize(Roles = "catalog.delete")]
         public async Task<IActionResult> DeleteRiskType(Guid id)
         {
             try
@@ -147,6 +180,12 @@ namespace AutomotiveClaimsApi.Controllers
                 if (riskType == null)
                 {
                     return NotFound();
+                }
+
+                var hasDamageTypes = await _context.DamageTypes.AnyAsync(dt => dt.RiskTypeId == id && dt.IsActive);
+                if (hasDamageTypes)
+                {
+                    return Conflict(new { message = "Cannot delete risk type with related damage types" });
                 }
 
                 riskType.IsActive = false;

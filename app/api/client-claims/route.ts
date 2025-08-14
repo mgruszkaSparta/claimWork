@@ -40,7 +40,8 @@ export async function POST(request: NextRequest) {
 
     const eventId = formData.get("eventId") as string
     const claimDate = formData.get("claimDate") as string
-    const claimType = formData.get("claimType") as string
+    // Support both camelCase and PascalCase to ensure compatibility with different clients
+    const claimType = (formData.get("claimType") || formData.get("ClaimType")) as string
     const claimAmount = Number.parseFloat(formData.get("claimAmount") as string)
     const currency = (formData.get("currency") as string) || "PLN"
     const status = formData.get("status") as string

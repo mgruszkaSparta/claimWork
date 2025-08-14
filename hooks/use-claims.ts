@@ -332,9 +332,10 @@ export function useClaims() {
   const [totalCount, setTotalCount] = useState(0)
 
   const fetchClaims = useCallback(
-
-    async (params: Record<string, string | number | undefined> = {}) => {
-
+    async (
+      params: Record<string, string | number | undefined> = {},
+      options: { append?: boolean } = {},
+    ) => {
       try {
         setLoading(true)
         setError(null)
@@ -344,7 +345,6 @@ export function useClaims() {
           console.log("Fetching claims from API...")
         }
 
-
         const { items: apiClaims, totalCount } = await apiService.getClaims(params)
 
         if (isDev) {
@@ -352,7 +352,6 @@ export function useClaims() {
         }
 
         const frontendClaims = apiClaims.map((claim) => ({
-
           ...claim,
           id: claim.id,
           totalClaim: claim.totalClaim ?? 0,
@@ -364,12 +363,12 @@ export function useClaims() {
           handlerId: claim.handlerId?.toString(),
         })) as Claim[]
 
-        setClaims(frontendClaims)
+        setClaims((prev) =>
+          options.append ? [...prev, ...frontendClaims] : frontendClaims,
+        )
         setTotalCount(totalCount)
         if (isDev) {
           console.log("Claims set in state:", frontendClaims)
-
-
         }
       } catch (err) {
         const message =

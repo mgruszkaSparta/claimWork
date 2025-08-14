@@ -254,9 +254,9 @@ export const SettlementsSection: React.FC<SettlementsSectionProps> = ({ eventId 
     setFormData({
       externalEntity: isCustom ? "custom" : settlement.externalEntity ?? "",
       customExternalEntity: settlement.customExternalEntity ?? "",
-      transferDate: settlement.transferDate ?? "",
+      transferDate: settlement.transferDate?.slice(0, 10) ?? "",
       status: settlement.status ?? "",
-      settlementDate: settlement.settlementDate ?? "",
+      settlementDate: settlement.settlementDate?.slice(0, 10) ?? "",
       settlementAmount: settlement.settlementAmount ?? 0,
       currency: settlement.currency ?? "PLN",
       documentDescription: settlement.documentDescription ?? "",

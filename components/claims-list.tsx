@@ -19,13 +19,33 @@ import {
   PaginationPrevious,
 } from "@/components/ui/pagination"
 
+const RISK_TYPE_GROUPS: Record<string, string[]> = {
+  "1": [
+    "OC DZIAŁALNOŚCI",
+    "OC SPRAWCY",
+    "OC PPM",
+    "AC",
+    "NAPRAWA WŁASNA",
+    "OC W ŻYCIU PRYWATNYM",
+    "OC ROLNIKA",
+    "INNE",
+  ],
+  "2": ["MAJĄTKOWE", "NNW", "CPM", "CAR/EAR", "BI", "GWARANCJIE"],
+  "3": ["OCPD", "CARGO"],
+}
+
 interface ClaimsListProps {
   claims?: Claim[]
   onEditClaim?: (claimId: string) => void
   onNewClaim?: () => void
+  claimObjectTypeId?: string
 }
 
-export function ClaimsList({ onEditClaim, onNewClaim }: ClaimsListProps) {
+export function ClaimsList({
+  onEditClaim,
+  onNewClaim,
+  claimObjectTypeId,
+}: ClaimsListProps) {
   const router = useRouter()
   const [searchTerm, setSearchTerm] = useState("")
   const [filterStatus, setFilterStatus] = useState("all")
@@ -51,6 +71,7 @@ export function ClaimsList({ onEditClaim, onNewClaim }: ClaimsListProps) {
           status: filterStatus !== "all" ? filterStatus : undefined,
           brand: filterBrand || undefined,
           handler: filterHandler || undefined,
+          claimObjectTypeId,
         })
       } catch (err) {
         toast({
@@ -70,30 +91,52 @@ export function ClaimsList({ onEditClaim, onNewClaim }: ClaimsListProps) {
     filterStatus,
     filterBrand,
     filterHandler,
+    claimObjectTypeId,
   ])
 
   // TODO: consider moving this filtering to use-claims or the API to reduce client workload
+  const allowedRiskTypes = useMemo(
+    () => (claimObjectTypeId ? RISK_TYPE_GROUPS[claimObjectTypeId] : undefined),
+    [claimObjectTypeId],
+  )
+
   const filteredClaims = useMemo(
     () =>
-      claims.filter((claim) => {
-        const lowerCaseSearchTerm = searchTerm.toLowerCase()
-        const matchesSearch =
-          claim.vehicleNumber?.toLowerCase().includes(lowerCaseSearchTerm) ||
-          claim.claimNumber?.toLowerCase().includes(lowerCaseSearchTerm) ||
-          claim.spartaNumber?.toLowerCase().includes(lowerCaseSearchTerm) ||
-          claim.client?.toLowerCase().includes(lowerCaseSearchTerm) ||
-          claim.liquidator?.toLowerCase().includes(lowerCaseSearchTerm) ||
-          claim.brand?.toLowerCase().includes(lowerCaseSearchTerm)
+      claims
+        .filter((claim) => {
+          const lowerCaseSearchTerm = searchTerm.toLowerCase()
+          const matchesSearch =
+            claim.vehicleNumber?.toLowerCase().includes(lowerCaseSearchTerm) ||
+            claim.claimNumber?.toLowerCase().includes(lowerCaseSearchTerm) ||
+            claim.spartaNumber?.toLowerCase().includes(lowerCaseSearchTerm) ||
+            claim.client?.toLowerCase().includes(lowerCaseSearchTerm) ||
+            claim.liquidator?.toLowerCase().includes(lowerCaseSearchTerm) ||
+            claim.brand?.toLowerCase().includes(lowerCaseSearchTerm)
 
-        const matchesFilter = filterStatus === "all" || claim.status === filterStatus
-        const matchesBrand =
-          !filterBrand || claim.brand?.toLowerCase().includes(filterBrand.toLowerCase())
-        const matchesHandler =
-          !filterHandler || claim.liquidator?.toLowerCase().includes(filterHandler.toLowerCase())
+          const matchesFilter = filterStatus === "all" || claim.status === filterStatus
+          const matchesBrand =
+            !filterBrand || claim.brand?.toLowerCase().includes(filterBrand.toLowerCase())
+          const matchesHandler =
+            !filterHandler || claim.liquidator?.toLowerCase().includes(filterHandler.toLowerCase())
+          const matchesClaimType =
+            !allowedRiskTypes || allowedRiskTypes.includes(claim.riskType || "")
 
-        return matchesSearch && matchesFilter && matchesBrand && matchesHandler
-      }),
-    [claims, searchTerm, filterStatus, filterBrand, filterHandler]
+          return (
+            matchesSearch &&
+            matchesFilter &&
+            matchesBrand &&
+            matchesHandler &&
+            matchesClaimType
+          )
+        }),
+    [
+      claims,
+      searchTerm,
+      filterStatus,
+      filterBrand,
+      filterHandler,
+      allowedRiskTypes,
+    ],
   )
 
   const getStatusColor = (status: string) => {
@@ -151,6 +194,7 @@ export function ClaimsList({ onEditClaim, onNewClaim }: ClaimsListProps) {
         status: filterStatus !== "all" ? filterStatus : undefined,
         brand: filterBrand || undefined,
         handler: filterHandler || undefined,
+        claimObjectTypeId,
       })
       toast({
         title: "Odświeżono",

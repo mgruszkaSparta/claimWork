@@ -79,6 +79,7 @@ interface ClaimMainContentProps {
   setUploadedFiles: React.Dispatch<React.SetStateAction<UploadedFile[]>>
   requiredDocuments: RequiredDocument[]
   setRequiredDocuments: React.Dispatch<React.SetStateAction<RequiredDocument[]>>
+  initialClaimObjectType?: string
 }
 
 const formatDateForInput = (dateString: string | undefined): string => {
@@ -185,6 +186,7 @@ export const ClaimMainContent = ({
   setUploadedFiles,
   requiredDocuments = [],
   setRequiredDocuments,
+  initialClaimObjectType = "1",
 }: ClaimMainContentProps) => {
   const { toast } = useToast()
 
@@ -234,7 +236,7 @@ export const ClaimMainContent = ({
   // State for dropdown data
   const [riskTypes, setRiskTypes] = useState<RiskType[]>([])
   const [loadingRiskTypes, setLoadingRiskTypes] = useState(false)
-  const [claimObjectType, setClaimObjectType] = useState<string>("1") // Default to communication claims
+  const [claimObjectType, setClaimObjectType] = useState<string>(initialClaimObjectType) // Default to communication claims
 
   // Add to the state declarations at the top of the component (around line 80)
   const [caseHandlers, setCaseHandlers] = useState<any[]>([])
@@ -328,19 +330,28 @@ export const ClaimMainContent = ({
         { value: "22", label: "OC ROLNIKA" },
         { value: "1", label: "INNE" },
       ]
-      
+
       const propertyRiskTypes = [
         { value: "4", label: "MAJĄTKOWE" },
-        { value: "4", label: "OCPD" },
-        { value: "4", label: "CARGO" },
         { value: "57", label: "NNW" },
         { value: "57", label: "CPM" },
         { value: "57", label: "CAR/EAR" },
         { value: "57", label: "BI" },
         { value: "57", label: "GWARANCJIE" },
       ]
-      
-      setRiskTypes(claimObjectType === "1" ? communicationRiskTypes : propertyRiskTypes)
+
+      const transportRiskTypes = [
+        { value: "4", label: "OCPD" },
+        { value: "4", label: "CARGO" },
+      ]
+
+      setRiskTypes(
+        claimObjectType === "1"
+          ? communicationRiskTypes
+          : claimObjectType === "2"
+            ? propertyRiskTypes
+            : transportRiskTypes,
+      )
       
       toast({
         title: "Uwaga",
@@ -1295,6 +1306,7 @@ const renderParticipantDetails = (participant: ParticipantInfo | undefined, titl
                       <SelectContent>
                         <SelectItem value="1">Szkody komunikacyjne</SelectItem>
                         <SelectItem value="2">Szkody mienia</SelectItem>
+                        <SelectItem value="3">Szkody transportowe</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>

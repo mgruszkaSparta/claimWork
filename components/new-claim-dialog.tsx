@@ -22,6 +22,7 @@ interface DamageType {
 }
 
 interface FormValues {
+  claimObjectTypeId: string
   riskTypeId: string
   damageTypeId: string
   clientId?: number
@@ -35,9 +36,10 @@ interface NewClaimDialogProps {
 export function NewClaimDialog({ open, onOpenChange }: NewClaimDialogProps) {
   const router = useRouter()
   const form = useForm<FormValues>({
-    defaultValues: { riskTypeId: "", damageTypeId: "", clientId: undefined },
+    defaultValues: { claimObjectTypeId: "", riskTypeId: "", damageTypeId: "", clientId: undefined },
   })
 
+  const claimObjectTypeId = form.watch("claimObjectTypeId")
   const riskTypeId = form.watch("riskTypeId")
   const damageTypeId = form.watch("damageTypeId")
   const clientId = form.watch("clientId")
@@ -46,13 +48,13 @@ export function NewClaimDialog({ open, onOpenChange }: NewClaimDialogProps) {
     data: riskTypes = [],
     isLoading: riskLoading,
   } = useQuery<RiskType[]>({
-    queryKey: ["risk-types"],
+    queryKey: ["risk-types", claimObjectTypeId],
     queryFn: async () => {
-      const res = await fetch("/api/risk-types", { credentials: "include" })
+      const res = await fetch(`/api/risk-types?claimObjectTypeId=${claimObjectTypeId}`, { credentials: "include" })
       const data = await res.json()
       return data.options || []
     },
-    enabled: open,
+    enabled: open && !!claimObjectTypeId,
   })
 
   const {
@@ -70,13 +72,18 @@ export function NewClaimDialog({ open, onOpenChange }: NewClaimDialogProps) {
   })
 
   useEffect(() => {
+    form.setValue("riskTypeId", "")
+    form.setValue("damageTypeId", "")
+  }, [claimObjectTypeId, form])
+
+  useEffect(() => {
     form.setValue("damageTypeId", "")
   }, [riskTypeId, form])
 
   const handleContinue = () => {
-    if (!riskTypeId || !damageTypeId || !clientId) return
+    if (!claimObjectTypeId || !riskTypeId || !damageTypeId || !clientId) return
     router.push(
-      `/claims/new?riskType=${riskTypeId}&damageType=${damageTypeId}&clientId=${clientId}`,
+      `/claims/new?claimObjectType=${claimObjectTypeId}&riskType=${riskTypeId}&damageType=${damageTypeId}&clientId=${clientId}`,
     )
     onOpenChange(false)
   }
@@ -89,10 +96,27 @@ export function NewClaimDialog({ open, onOpenChange }: NewClaimDialogProps) {
         </DialogHeader>
         <div className="space-y-4 py-4">
           <div>
+            <Label className="mb-2 block">Rodzaj szkody</Label>
+            <Select
+              value={claimObjectTypeId}
+              onValueChange={(val) => form.setValue("claimObjectTypeId", val)}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Wybierz rodzaj szkody" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="1">Szkoda komunikacyjna</SelectItem>
+                <SelectItem value="2">Szkoda mienia</SelectItem>
+                <SelectItem value="3">Szkoda transportowa</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <div>
             <Label className="mb-2 block">Rodzaj ryzyka</Label>
             <Select
               value={riskTypeId}
               onValueChange={(val) => form.setValue("riskTypeId", val)}
+              disabled={!claimObjectTypeId}
             >
               <SelectTrigger>
                 <SelectValue placeholder="Wybierz ryzyko" />
@@ -149,7 +173,7 @@ export function NewClaimDialog({ open, onOpenChange }: NewClaimDialogProps) {
           <div className="flex justify-end pt-2">
             <Button
               onClick={handleContinue}
-              disabled={!riskTypeId || !damageTypeId || !clientId}
+              disabled={!claimObjectTypeId || !riskTypeId || !damageTypeId || !clientId}
             >
               Kontynuuj
             </Button>

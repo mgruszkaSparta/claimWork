@@ -166,7 +166,15 @@ export default function ClaimPage() {
           throw new Error("Nie udało się utworzyć szkody")
         }
       } else if (mode === "edit" && claimId) {
-        const updatedClaim = await updateClaim(claimId, claimFormData)
+        const {
+          settlements: _settlements,
+          recourses: _recourses,
+          ...claimWithoutSettlementsRecourses
+        } = claimFormData
+        const updatedClaim = await updateClaim(
+          claimId,
+          claimWithoutSettlementsRecourses,
+        )
         toast({
           title: "Szkoda zaktualizowana",
           description: `Szkoda ${updatedClaim.spartaNumber || updatedClaim.claimNumber} została pomyślnie zaktualizowana.`,

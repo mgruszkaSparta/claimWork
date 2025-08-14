@@ -271,10 +271,14 @@ export const transformFrontendClaimToApiPayload = (
         claimDate: toIso(claimDate, "clientClaims.claimDate"),
       }
     }),
-    recourses: recourses?.map((r) => ({
-      ...r,
-      recourseDate: toIso(r.recourseDate, "recourses.recourseDate"),
-    })),
+    ...(Array.isArray(recourses) && recourses.length > 0
+      ? {
+          recourses: recourses.map((r) => ({
+            ...r,
+            recourseDate: toIso(r.recourseDate, "recourses.recourseDate"),
+          })),
+        }
+      : {}),
 
     // Settlements may be managed through dedicated endpoints. When included
     // in the claim payload, ensure IDs are valid GUID strings; otherwise omit

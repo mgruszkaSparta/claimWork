@@ -63,18 +63,12 @@ export function ClaimsList({
   } = useClaims()
   const { toast } = useToast()
 
-  const hasInitialClaims = Array.isArray(initialClaims) && initialClaims.length > 0
-  const claims = hasInitialClaims ? initialClaims : fetchedClaims
-  const totalRecords = hasInitialClaims ? initialClaims.length : totalCount
+  const claims = initialClaims ?? fetchedClaims
+  const totalRecords = initialClaims ? initialClaims.length : totalCount
 
-  // Reset page when filters change
   useEffect(() => {
-    setPage(1)
-  }, [searchTerm, filterStatus, filterBrand, filterHandler, claimObjectTypeId])
+    if (initialClaims) return
 
-  // Fetch data on component mount and when dependencies change, unless claims are provided via props
-  useEffect(() => {
-    if (hasInitialClaims) return
     const loadClaims = async () => {
       try {
         await fetchClaims(
@@ -108,7 +102,8 @@ export function ClaimsList({
     filterBrand,
     filterHandler,
     claimObjectTypeId,
-    hasInitialClaims,
+    initialClaims,
+
   ])
 
   // TODO: consider moving this filtering to use-claims or the API to reduce client workload
@@ -157,7 +152,9 @@ export function ClaimsList({
   )
 
   useEffect(() => {
-    if (hasInitialClaims) return
+
+    if (initialClaims) return
+
     const node = loaderRef.current
     const observer = new IntersectionObserver(
       (entries) => {
@@ -179,7 +176,9 @@ export function ClaimsList({
         observer.unobserve(node)
       }
     }
-  }, [loading, claims.length, totalRecords, hasInitialClaims])
+
+  }, [loading, claims.length, totalRecords, initialClaims])
+
 
   const getStatusColor = (status: string) => {
     switch (status?.toUpperCase()) {

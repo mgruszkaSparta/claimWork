@@ -13,16 +13,6 @@ export interface Appeal {
   alertDays?: number;
 }
 
-export interface AppealPayload {
-  filingDate: string;
-  extensionDate?: string;
-  responseDate?: string;
-  decisionDate?: string;
-  status?: string;
-  documentDescription?: string;
-  document?: File;
-}
-
 function formatDate(date?: string | null): string | undefined {
   return date ? date.split("T")[0] : undefined;
 }
@@ -41,12 +31,6 @@ function mapDtoToAppeal(dto: AppealDto): Appeal {
   };
 }
 
-function ensureRequiredDates(data: { filingDate?: string }) {
-  if (!data.filingDate) {
-    throw new Error("filingDate is required");
-  }
-}
-
 const APPEALS_URL = `${API_BASE_URL}/appeals`;
 
 export async function getAppeals(claimId: string): Promise<Appeal[]> {
@@ -61,31 +45,7 @@ export async function getAppeals(claimId: string): Promise<Appeal[]> {
   return data.map(mapDtoToAppeal);
 }
 
-export async function createAppeal(
-  claimId: string,
-  appeal: AppealPayload,
-): Promise<Appeal> {
-  ensureRequiredDates(appeal);
-  const formData = new FormData();
-  formData.append("EventId", claimId);
-  formData.append("FilingDate", appeal.filingDate);
-
-  if (appeal.extensionDate) {
-    formData.append("ExtensionDate", appeal.extensionDate);
-  }
-  const decisionDate = appeal.decisionDate ?? appeal.responseDate;
-  if (decisionDate) {
-    formData.append("DecisionDate", decisionDate);
-  }
-  if (appeal.status) {
-    formData.append("Status", appeal.status);
-  }
-  if (appeal.documentDescription) {
-    formData.append("DocumentDescription", appeal.documentDescription);
-  }
-  if (appeal.document) {
-    formData.append("Document", appeal.document);
-  }
+export async function createAppeal(formData: FormData): Promise<Appeal> {
   const response = await fetch(APPEALS_URL, {
     method: "POST",
     credentials: "include",
@@ -100,28 +60,8 @@ export async function createAppeal(
 
 export async function updateAppeal(
   id: string,
-  appeal: AppealPayload,
+  formData: FormData,
 ): Promise<Appeal> {
-  ensureRequiredDates(appeal);
-  const formData = new FormData();
-  formData.append("FilingDate", appeal.filingDate);
-
-  if (appeal.extensionDate) {
-    formData.append("ExtensionDate", appeal.extensionDate);
-  }
-  const decisionDateUpdate = appeal.decisionDate ?? appeal.responseDate;
-  if (decisionDateUpdate) {
-    formData.append("DecisionDate", decisionDateUpdate);
-  }
-  if (appeal.status) {
-    formData.append("Status", appeal.status);
-  }
-  if (appeal.documentDescription) {
-    formData.append("DocumentDescription", appeal.documentDescription);
-  }
-  if (appeal.document) {
-    formData.append("Document", appeal.document);
-  }
   const response = await fetch(`${APPEALS_URL}/${id}`, {
     method: "PUT",
     credentials: "include",

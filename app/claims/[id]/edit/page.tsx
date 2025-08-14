@@ -18,7 +18,7 @@ export default function EditClaimPage() {
   const router = useRouter()
   const { toast } = useToast()
   const { updateClaim } = useClaims()
-  const [activeClaimSection, setActiveClaimSection] = useState("dane-zdarzenia")
+  const [activeClaimSection, setActiveClaimSection] = useState("dane-zdarzenia-podstawowe")
   const [isSaving, setIsSaving] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
   const [loadError, setLoadError] = useState<string | null>(null)

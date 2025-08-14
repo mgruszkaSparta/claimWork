@@ -7,7 +7,6 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Textarea } from "@/components/ui/textarea"
 import { Checkbox } from "@/components/ui/checkbox"
 import { FileText, AlertTriangle, User, FileSignature, Wrench, Car, X, MessageSquare, Clock, FileCheck, Search, Mail, Plus, CheckCircle, Trash2, Save, Calendar, Phone, MapPin, Paperclip, DollarSign, Gavel, ArrowUpDown, HandHeart, Users, CreditCard, Shield, UserCheck } from 'lucide-react'
@@ -19,8 +18,9 @@ import { AppealsSection } from "./appeals-section"
 import { ClientClaimsSection } from "./client-claims-section"
 import { RecourseSection } from "./recourse-section"
 import { SettlementsSection } from "./settlements-section"
-import { PropertyDamageSection } from "./property-damage-section"
-import { TransportDamageSection } from "./transport-damage-section"
+import { DamageBasicInfoSection } from "./damage-basic-info-section"
+import { DamageVehicleDetailsSection } from "./damage-vehicle-details-section"
+import { DamageInspectionSection } from "./damage-inspection-section"
 import type {
   Claim,
   Service,
@@ -35,16 +35,6 @@ import { EmailSection } from "../email/email-section-compact"
 import { DependentSelect } from "@/components/ui/dependent-select"
 import { useToast } from "@/hooks/use-toast"
 import { useDamages, createDamageDraft } from "@/hooks/use-damages"
-import InsuranceDropdown from "@/components/insurance-dropdown"
-import type { CompanySelectionEvent } from "@/types/insurance"
-import LeasingDropdown from "@/components/leasing-dropdown"
-import type { LeasingCompanySelectionEvent } from "@/types/leasing"
-import ClientDropdown from "@/components/client-dropdown"
-import type { ClientSelectionEvent } from "@/types/client"
-import HandlerDropdown from "@/components/handler-dropdown"
-import type { HandlerSelectionEvent } from "@/types/handler"
-import VehicleTypeDropdown from "@/components/vehicle-type-dropdown"
-import type { VehicleTypeSelectionEvent } from "@/types/vehicle-type"
 import { RepairScheduleSection } from "./repair-schedule-section"
 import { RepairDetailsSection } from "./repair-details-section"
 import type { RepairDetail } from "@/lib/repair-details-store"
@@ -241,8 +231,6 @@ export const ClaimMainContent = ({
   const [claimObjectType, setClaimObjectType] = useState<string>(initialClaimObjectType) // Default to communication claims
 
   // Add to the state declarations at the top of the component (around line 80)
-  const [caseHandlers, setCaseHandlers] = useState<any[]>([])
-  const [loadingHandlers, setLoadingHandlers] = useState(false)
 
   // Form states
   const [showNoteForm, setShowNoteForm] = useState<string | null>(null)
@@ -289,7 +277,6 @@ export const ClaimMainContent = ({
   const [autoShowRepairForm, setAutoShowRepairForm] = useState(false)
 
   const [claimStatuses, setClaimStatuses] = useState<ClaimStatus[]>([])
-  const [loadingStatuses, setLoadingStatuses] = useState(false)
 
   useEffect(() => {
     const clearCommunicationFields = () => {
@@ -326,7 +313,6 @@ export const ClaimMainContent = ({
   useEffect(() => {
     loadRiskTypes()
     loadClaimStatuses()
-    loadCaseHandlers()
   }, [claimObjectType])
 
   const loadRiskTypes = async () => {
@@ -397,7 +383,6 @@ export const ClaimMainContent = ({
   }
 
   const loadClaimStatuses = async () => {
-    setLoadingStatuses(true)
     try {
       const response = await fetch(
         `${process.env.NEXT_PUBLIC_API_URL}/dictionaries/claim-statuses`,
@@ -419,50 +404,7 @@ export const ClaimMainContent = ({
         description: "Nie udało się załadować statusów szkód.",
         variant: "destructive",
       })
-    } finally {
-      setLoadingStatuses(false)
     }
-  }
-
-  const loadCaseHandlers = async () => {
-    setLoadingHandlers(true)
-    try {
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/dictionaries/case-handlers`,
-        {
-          method: "GET",
-          credentials: "include",
-        },
-      )
-      if (response.ok) {
-        const data = await response.json()
-        setCaseHandlers(data.items ?? [])
-      } else {
-        throw new Error(`HTTP error! status: ${response.status}`)
-      }
-    } catch (error) {
-      console.error("Error loading case handlers:", error)
-      // Fallback data
-      setCaseHandlers([
-        { id: 1, name: "Marcin Małuj", phone: "734 108 909", email: "marcin.maluj@spartabrokers.pl", subrogationLimit: 0.0000, userId: null, toDoList: null, settlementTypeId: null, disabled: 0, substituteHandlerId: null, vacationStartDate: null, vacationEndDate: null },
-        { id: 2, name: "Małgorzata Roczniak", phone: "797 825 208", email: "malgorzata.roczniak@spartabrokers.pl", subrogationLimit: 0.0000, userId: "99b463cb-f134-46a1-869f-d6583421ef63", toDoList: null, settlementTypeId: null, disabled: 0, substituteHandlerId: null, vacationStartDate: null, vacationEndDate: null },
-        { id: 3, name: "Piotr Raniecki", phone: "600 333 355", email: "piotr.raniecki@spartabrokers.pl", subrogationLimit: 0.0000, userId: "99b463cb-f134-46a1-869f-d6583421ef65", toDoList: null, settlementTypeId: null, disabled: 0, substituteHandlerId: null, vacationStartDate: null, vacationEndDate: null },
-        { id: 4, name: "Joanna Romanowska", phone: "518 363 378", email: "joanna.romanowska@spartabrokers.pl", subrogationLimit: 0.0000, userId: "99b463cb-f134-46a1-869f-d6583421ef64", toDoList: null, settlementTypeId: null, disabled: 0, substituteHandlerId: null, vacationStartDate: null, vacationEndDate: null },
-        { id: 5, name: "Paweł Gułaj", phone: "508 038 245", email: "pawel.gulaj@spartabrokers.pl", subrogationLimit: 0.0000, userId: "99b463cb-f134-46a1-869f-d6583421ef66", toDoList: null, settlementTypeId: null, disabled: 0, substituteHandlerId: null, vacationStartDate: null, vacationEndDate: null },
-        { id: 6, name: "Kamila Szepit", phone: "787 669 440", email: "kamila.szepit@spartabrokers.pl", subrogationLimit: 0.0000, userId: null, toDoList: null, settlementTypeId: null, disabled: 0, substituteHandlerId: null, vacationStartDate: null, vacationEndDate: null },
-        { id: 7, name: "Jacek Kamiński", phone: "513 423 810", email: "jacek.kaminski@spartabrokers.pl", subrogationLimit: 0.0000, userId: "99b463cb-f134-46a1-869f-d6583421ef62", toDoList: null, settlementTypeId: null, disabled: 0, substituteHandlerId: null, vacationStartDate: null, vacationEndDate: null },
-        { id: 11, name: "Edyta Dyczkowska", phone: "799-040-568", email: "edyta.dyczkowska@spartabrokers.pl", subrogationLimit: 0.0000, userId: "99b463cb-f134-46a1-869f-d6583421ef67", toDoList: null, settlementTypeId: null, disabled: 0, substituteHandlerId: null, vacationStartDate: null, vacationEndDate: null },
-        { id: 10, name: "Ireneusz Osiński", phone: "572-278-718", email: "ireneusz.osinski@spartabrokers.pl", subrogationLimit: 0.0000, userId: "99b463cb-f134-46a1-869f-d6583421ef68", toDoList: null, settlementTypeId: null, disabled: 0, substituteHandlerId: null, vacationStartDate: null, vacationEndDate: null },
-        { id: 13, name: "Kinga Tuzimek", phone: "508-038-245", email: "kinga.tuzimek@spartabrokers.pl", subrogationLimit: 0.0000, userId: "99b463cb-f134-46a1-869f-d6583421ef78", toDoList: null, settlementTypeId: null, disabled: 0, substituteHandlerId: null, vacationStartDate: null, vacationEndDate: null }
-      ])
-    
-    toast({
-      title: "Uwaga",
-      description: "Nie udało się załadować listy pracowników. Używane są dane lokalne.",
-      variant: "destructive",
-    })
-  } finally {
-    setLoadingHandlers(false)
   }
 }
 
@@ -1186,665 +1128,31 @@ const renderParticipantDetails = (participant: ParticipantInfo | undefined, titl
         </div>
       )
 
-  case "dane-zdarzenia":
+  case "dane-zdarzenia-podstawowe":
       return (
-        <div className="space-y-4">
-          {/* Dane Szkody Card */}
-          <Card className="overflow-hidden shadow-sm border-gray-200 rounded-xl">
-            <CardHeader className="flex flex-row items-center space-x-4 bg-gradient-to-r from-blue-600 to-blue-700 text-white p-4">
-              <div className="w-8 h-8 bg-blue-500 rounded-lg flex items-center justify-center">
-                <FileText className="h-4 w-4" />
-              </div>
-              <CardTitle className="text-lg font-semibold">Dane szkody</CardTitle>
-            </CardHeader>
-            <CardContent className="p-6 bg-white">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
-                {/* Left Column */}
-                <div className="space-y-6">
-                  <div>
-                    <Label htmlFor="claimObjectType" className="text-sm font-medium text-gray-700">
-                      Typ szkody
-                    </Label>
-                    <Select
-                      value={claimObjectType}
-                      onValueChange={(value) => {
-                        setClaimObjectType(value)
-                        // Clear risk type and damage type when claim object type changes
-                        handleFormChange("riskType", "")
-                        handleFormChange("damageType", "")
-                      }}
-                    >
-                      <SelectTrigger className="mt-1">
-                        <SelectValue placeholder="Wybierz typ szkody..." />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="1">Szkody komunikacyjne</SelectItem>
-                        <SelectItem value="2">Szkody mienia</SelectItem>
-                        <SelectItem value="3">Szkody transportowe</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div>
-                    <Label htmlFor="riskType" className="text-sm font-medium text-gray-700">
-                      Ryzyko szkody
-                    </Label>
-                    <Select
-                      value={claimFormData.riskType || ""}
-                      onValueChange={(value) => {
-                        handleFormChange("riskType", value)
-                        // Clear damage type when risk type changes
-                        handleFormChange("damageType", "")
-                      }}
-                      disabled={loadingRiskTypes}
-                    >
-                      <SelectTrigger className="mt-1">
-                        <SelectValue placeholder={loadingRiskTypes ? "Ładowanie..." : "Wybierz ryzyko szkody..."} />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {riskTypes.map((riskType) => (
-                          <SelectItem key={riskType.value} value={riskType.value}>
-                            {riskType.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div>
-                    <Label htmlFor="status" className="text-sm font-medium text-gray-700">
-                      Status szkody
-                    </Label>
-                    <Select
-                      value={claimFormData.status?.toString() || ""}
-                      onValueChange={(value) => handleFormChange("status", value)}
-                      disabled={loadingStatuses}
-                    >
-                      <SelectTrigger className="mt-1">
-                        <SelectValue placeholder={loadingStatuses ? "Ładowanie..." : "Wybierz status szkody..."} />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {claimStatuses.map((status) => (
-                          <SelectItem key={status.id} value={status.id.toString()}>
-                            {status.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div>
-                    <Label htmlFor="reportDateToInsurer" className="text-sm font-medium text-gray-700">
-                      Data zgłoszenia do TU
-                    </Label>
-                    <Input
-                      id="reportDateToInsurer"
-                      type="date"
-                      value={formatDateForInput(claimFormData.reportDateToInsurer)}
-                      onChange={(e) => handleFormChange("reportDateToInsurer", e.target.value)}
-                      className="mt-1"
-                    />
-                  </div>
-                  <div className="relative z-10">
-                    <Label htmlFor="client" className="text-sm font-medium text-gray-700 mb-2 block">
-                      Klient
-                    </Label>
-                    <div className="relative">
-                      <ClientDropdown
-                        selectedClientId={claimFormData.clientId ? parseInt(claimFormData.clientId) : undefined}
-                        onClientSelected={(event: ClientSelectionEvent) => {
-                          handleFormChange("client", event.clientName)
-                          handleFormChange("clientId", event.clientId.toString())
-                        }}
-                        className="relative z-20"
-                      />
-                    </div>
-                  </div>
-                  <div>
-                    <Label className="text-sm font-medium text-gray-700 mb-3 block">Kanał zgłoszenia</Label>
-                    <RadioGroup
-                      value={claimFormData.reportingChannel || ""}
-                      onValueChange={(value) => handleFormChange("reportingChannel", value)}
-                      className="flex space-x-4"
-                    >
-                      <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="infolinia" id="channel-infolinia" />
-                        <Label htmlFor="channel-infolinia" className="font-normal text-sm">
-                          Infolinia
-                        </Label>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="email" id="channel-email" />
-                        <Label htmlFor="channel-email" className="font-normal text-sm">
-                          Email
-                        </Label>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="bezpośrednio" id="channel-direct" />
-                        <Label htmlFor="channel-direct" className="font-normal text-sm">
-                          Bezpośrednio
-                        </Label>
-                      </div>
-                    </RadioGroup>
-                  </div>
-                </div>
-
-                {/* Right Column */}
-                <div className="space-y-6">
-                  <div>
-                    <Label htmlFor="damageType" className="text-sm font-medium text-gray-700">
-                      Rodzaj szkody
-                    </Label>
-                    <DependentSelect
-                      value={claimFormData.damageType || ""}
-                      onValueChange={(value) => handleFormChange("damageType", value)}
-                      placeholder="Wybierz rodzaj szkody..."
-                      apiUrl="/api/damage-types"
-                      riskTypeId={claimFormData.riskType}
-                      disabled={!claimFormData.riskType}
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="insurerClaimNumber" className="text-sm font-medium text-gray-700">
-                      Nr szkody TU
-                    </Label>
-                    <Input
-                      id="insurerClaimNumber"
-                      value={claimFormData.insurerClaimNumber || ""}
-                      onChange={(e) => handleFormChange("insurerClaimNumber", e.target.value)}
-                      className="mt-1"
-                    />
-                  </div>
-                  <div>
-                    <Label className="text-sm font-medium text-gray-700">Nr szkody Sparta</Label>
-                    <Input
-                      id="spartaNumber"
-                      value={claimFormData.spartaNumber || ""}
-                      readOnly
-                      className="bg-gray-50 mt-1 border-gray-200"
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="handler" className="text-sm font-medium text-gray-700">
-                      Szkodę zarejestrował
-                    </Label>
-                    <HandlerDropdown
-                      selectedHandlerId={claimFormData.handlerId ? parseInt(claimFormData.handlerId) : undefined}
-                      onHandlerSelected={(event: HandlerSelectionEvent) => {
-                        handleFormChange("handlerId", event.handlerId.toString())
-                        handleFormChange("handler", event.handlerName)
-                        handleFormChange("handlerEmail", event.handlerEmail || "")
-                        handleFormChange("handlerPhone", event.handlerPhone || "")
-                      }}
-                      className="mt-1"
-                    />
-                  </div>
-                </div>
-              </div>
-
-              <div className="border-t border-gray-200 my-8" />
-
-              <div className="space-y-6">
-                <div className="relative z-10">
-                  <Label htmlFor="insuranceCompany" className="text-sm font-medium text-gray-700 mb-2 block">
-                    Towarzystwo ubezpieczeniowe
-                  </Label>
-                  <div className="relative">
-                    <InsuranceDropdown
-                      selectedCompanyId={claimFormData.insuranceCompanyId ? parseInt(claimFormData.insuranceCompanyId) : undefined}
-                      onCompanySelected={(event: CompanySelectionEvent) => {
-                        handleFormChange("insuranceCompany", event.companyName)
-                        handleFormChange("insuranceCompanyId", event.companyId.toString())
-                      }}
-                      className="relative z-20"
-                    />
-                  </div>
-                </div>
-
-                <div className="relative z-10">
-                  <Label htmlFor="leasingCompany" className="text-sm font-medium text-gray-700 mb-2 block">
-                    Firma leasingowa
-                  </Label>
-                  <div className="relative">
-                    <LeasingDropdown
-                      selectedCompanyId={claimFormData.leasingCompanyId ? parseInt(claimFormData.leasingCompanyId) : undefined}
-                      onCompanySelected={(event: LeasingCompanySelectionEvent) => {
-                        handleFormChange("leasingCompany", event.companyName)
-                        handleFormChange("leasingCompanyId", event.companyId.toString())
-                      }}
-                      className="relative z-10"
-                    />
-                  </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Opis zdarzenia Card */}
-          <Card className="overflow-hidden shadow-sm border-gray-200 rounded-xl">
-            <CardHeader className="flex flex-row items-center space-x-4 bg-gradient-to-r from-blue-600 to-blue-700 text-white p-4">
-              <div className="w-8 h-8 bg-blue-500 rounded-lg flex items-center justify-center">
-                <FileSignature className="h-4 w-4" />
-              </div>
-              <CardTitle className="text-lg font-semibold">Opis zdarzenia</CardTitle>
-            </CardHeader>
-            <CardContent className="p-6 bg-white space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div>
-                  <Label htmlFor="damageDate" className="text-sm font-medium text-gray-700">
-                    Data szkody
-                  </Label>
-                  <Input
-                    id="damageDate"
-                    type="date"
-                    value={formatDateForInput(claimFormData.damageDate)}
-                    onChange={(e) => handleFormChange("damageDate", e.target.value)}
-                    className="mt-1"
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="eventTime" className="text-sm font-medium text-gray-700">
-                    Godzina zdarzenia
-                  </Label>
-                  <Input
-                    id="eventTime"
-                    type="time"
-                    value={claimFormData.eventTime || ""}
-                    onChange={(e) => handleFormChange("eventTime", e.target.value)}
-                    className="mt-1"
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="reportDate" className="text-sm font-medium text-gray-700">
-                    Data zgłoszenia szkody
-                  </Label>
-                  <Input
-                    id="reportDate"
-                    type="date"
-                    value={formatDateForInput(claimFormData.reportDate)}
-                    onChange={(e) => handleFormChange("reportDate", e.target.value)}
-                    className="mt-1"
-                  />
-                </div>
-              </div>
-              <div>
-                <Label htmlFor="eventLocation" className="text-sm font-medium text-gray-700">
-                  Miejsce zdarzenia
-                </Label>
-                <Input
-                  id="eventLocation"
-                  placeholder="np. Warszawa, ul. Marszałkowska 1"
-                  value={claimFormData.eventLocation || ""}
-                  onChange={(e) => handleFormChange("eventLocation", e.target.value)}
-                  className="mt-1"
-                />
-              </div>
-              <div>
-                <Label htmlFor="eventDescription" className="text-sm font-medium text-gray-700">
-                  Opis przebiegu zdarzenia
-                </Label>
-                <Textarea
-                  id="eventDescription"
-                  placeholder="Opisz szczegółowo przebieg zdarzenia..."
-                  rows={4}
-                  value={claimFormData.eventDescription || ""}
-                  onChange={(e) => handleFormChange("eventDescription", e.target.value)}
-                  className="mt-1"
-                />
-              </div>
-              <div>
-                <Label htmlFor="comments" className="text-sm font-medium text-gray-700">
-                  Uwagi
-                </Label>
-                <Textarea
-                  id="comments"
-                  placeholder="Dodatkowe uwagi..."
-                  rows={2}
-                  value={claimFormData.comments || ""}
-                  onChange={(e) => handleFormChange("comments", e.target.value)}
-                  className="mt-1"
-                />
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                  <Label className="text-sm font-medium text-gray-700 mb-3 block">Obszar</Label>
-                  <RadioGroup
-                    value={claimFormData.area || ""}
-                    onValueChange={(value) => handleFormChange("area", value)}
-                    className="flex space-x-4"
-                  >
-                    <div className="flex items-center space-x-2">
-                      <RadioGroupItem value="krajowa" id="area-krajowa" />
-                      <Label htmlFor="area-krajowa" className="text-sm">
-                        Szkoda krajowa
-                      </Label>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <RadioGroupItem value="zagraniczna" id="area-zagraniczna" />
-                      <Label htmlFor="area-zagraniczna" className="text-sm">
-                        Szkoda zagraniczna
-                      </Label>
-                    </div>
-                  </RadioGroup>
-                </div>
-                <div>
-                  <Label className="text-sm font-medium text-gray-700 mb-3 block">Czy były osoby ranne?</Label>
-                  <RadioGroup
-                    value={claimFormData.wereInjured ? "tak" : "nie"}
-                    onValueChange={(value) => handleFormChange("wereInjured", value === "tak")}
-                    className="flex space-x-4"
-                  >
-                    <div className="flex items-center space-x-2">
-                      <RadioGroupItem value="tak" id="injured-tak" />
-                      <Label htmlFor="injured-tak" className="text-sm">
-                        Tak
-                      </Label>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <RadioGroupItem value="nie" id="injured-nie" />
-                      <Label htmlFor="injured-nie" className="text-sm">
-                        Nie
-                      </Label>
-                    </div>
-                  </RadioGroup>
-                </div>
-                <div>
-                  <Label className="text-sm font-medium text-gray-700 mb-3 block">
-                    Czy spisano oświadczenie ze sprawcą zdarzenia?
-                  </Label>
-                  <RadioGroup
-                    value={claimFormData.statementWithPerpetrator ? "tak" : "nie"}
-                    onValueChange={(value) => handleFormChange("statementWithPerpetrator", value === "tak")}
-                    className="flex space-x-4"
-                  >
-                    <div className="flex items-center space-x-2">
-                      <RadioGroupItem value="tak" id="statement-tak" />
-                      <Label htmlFor="statement-tak" className="text-sm">
-                        Tak
-                      </Label>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <RadioGroupItem value="nie" id="statement-nie" />
-                      <Label htmlFor="statement-nie" className="text-sm">
-                        Nie
-                      </Label>
-                    </div>
-                  </RadioGroup>
-                </div>
-                <div>
-                  <Label className="text-sm font-medium text-gray-700 mb-3 block">
-                    Czy sprawca został ukarany mandatem?
-                  </Label>
-                  <RadioGroup
-                    value={claimFormData.perpetratorFined ? "tak" : "nie"}
-                    onValueChange={(value) => handleFormChange("perpetratorFined", value === "tak")}
-                    className="flex space-x-4"
-                  >
-                    <div className="flex items-center space-x-2">
-                      <RadioGroupItem value="tak" id="fined-tak" />
-                      <Label htmlFor="fined-tak" className="text-sm">
-                        Tak
-                      </Label>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <RadioGroupItem value="nie" id="fined-nie" />
-                      <Label htmlFor="fined-nie" className="text-sm">
-                        Nie
-                      </Label>
-                    </div>
-                  </RadioGroup>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Służby Card */}
-          <Card className="overflow-hidden shadow-sm border-gray-200 rounded-xl">
-            <CardHeader className="flex flex-row items-center space-x-4 bg-gradient-to-r from-blue-600 to-blue-700 text-white p-4">
-              <div className="w-8 h-8 bg-blue-500 rounded-lg flex items-center justify-center">
-                <Wrench className="h-4 w-4" />
-              </div>
-              <CardTitle className="text-lg font-semibold">Służby</CardTitle>
-            </CardHeader>
-            <CardContent className="p-6 bg-white space-y-6">
-              <div>
-                <div className="flex items-center space-x-6">
-                  <div className="flex items-center space-x-2">
-                    <Checkbox
-                      id="service-police"
-                      checked={claimFormData.servicesCalled?.includes("policja") || false}
-                      onCheckedChange={(checked) => handleServicesChange("policja", checked)}
-                    />
-                    <Label htmlFor="service-police" className="text-sm">
-                      Policja
-                    </Label>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <Checkbox
-                      id="service-ambulance"
-                      checked={claimFormData.servicesCalled?.includes("pogotowie") || false}
-                      onCheckedChange={(checked) => handleServicesChange("pogotowie", checked)}
-                    />
-                    <Label htmlFor="service-ambulance" className="text-sm">
-                      Pogotowie
-                    </Label>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <Checkbox
-                      id="service-fire"
-                      checked={claimFormData.servicesCalled?.includes("straz") || false}
-                      onCheckedChange={(checked) => handleServicesChange("straz", checked)}
-                    />
-                    <Label htmlFor="service-fire" className="text-sm">
-                      Straż pożarna
-                    </Label>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <Checkbox
-                      id="service-tow"
-                      checked={claimFormData.servicesCalled?.includes("holownik") || false}
-                      onCheckedChange={(checked) => handleServicesChange("holownik", checked)}
-                    />
-                    <Label htmlFor="service-tow" className="text-sm">
-                      Holownik
-                    </Label>
-                  </div>
-                </div>
-
-                {/* Description fields for selected services */}
-                {claimFormData.servicesCalled?.includes("policja") && (
-                  <div className="mt-4">
-                    <Label htmlFor="policeDescription" className="text-sm font-medium text-gray-700">
-                      Policja - Opis
-                    </Label>
-                    <Input
-                      id="policeDescription"
-                      placeholder="Wprowadź opis interwencji policji"
-                      value={claimFormData.policeDescription || ""}
-                      onChange={(e) => handleFormChange("policeDescription", e.target.value)}
-                      className="mt-1"
-                    />
-                  </div>
-                )}
-                {claimFormData.servicesCalled?.includes("pogotowie") && (
-                  <div className="mt-4">
-                    <Label htmlFor="ambulanceDescription" className="text-sm font-medium text-gray-700">
-                      Pogotowie - Opis
-                    </Label>
-                    <Input
-                      id="ambulanceDescription"
-                      placeholder="Wprowadź opis interwencji pogotowia"
-                      value={claimFormData.ambulanceDescription || ""}
-                      onChange={(e) => handleFormChange("ambulanceDescription", e.target.value)}
-                      className="mt-1"
-                    />
-                  </div>
-                )}
-                {claimFormData.servicesCalled?.includes("straz") && (
-                  <div className="mt-4">
-                    <Label htmlFor="fireDescription" className="text-sm font-medium text-gray-700">
-                      Straż pożarna - Opis
-                    </Label>
-                    <Input
-                      id="fireDescription"
-                      placeholder="Wprowadź opis interwencji straży pożarnej"
-                      value={claimFormData.fireDescription || ""}
-                      onChange={(e) => handleFormChange("fireDescription", e.target.value)}
-                      className="mt-1"
-                    />
-                  </div>
-                )}
-                {claimFormData.servicesCalled?.includes("holownik") && (
-                  <div className="mt-4">
-                    <Label htmlFor="towDescription" className="text-sm font-medium text-gray-700">
-                      Holownik - Opis
-                    </Label>
-                    <Input
-                      id="towDescription"
-                      placeholder="Wprowadź opis usługi holowania"
-                      value={claimFormData.towDescription || ""}
-                      onChange={(e) => handleFormChange("towDescription", e.target.value)}
-                      className="mt-1"
-                    />
-                  </div>
-                )}
-              </div>
-              {claimFormData.servicesCalled?.includes("policja") && (
-                <div>
-                  <Label htmlFor="policeUnitDetails" className="text-sm font-medium text-gray-700">
-                    Policja - Dane jednostki
-                  </Label>
-                  <Input
-                    id="policeUnitDetails"
-                    placeholder="Wprowadź dane jednostki policji"
-                    value={claimFormData.policeUnitDetails || ""}
-                    onChange={(e) => handleFormChange("policeUnitDetails", e.target.value)}
-                    className="mt-1"
-                  />
-                </div>
-              )}
-            </CardContent>
-          </Card>
-
-          {/* Uszkodzenia samochodu Card */}
-          {claimObjectType === "1" && (
-            <Card className="overflow-hidden shadow-sm border-gray-200 rounded-xl">
-              <CardHeader className="flex flex-row items-center space-x-4 bg-gradient-to-r from-blue-600 to-blue-700 text-white p-4">
-                <div className="w-8 h-8 bg-blue-500 rounded-lg flex items-center justify-center">
-                  <Car className="h-4 w-4" />
-                </div>
-                <CardTitle className="text-lg font-semibold">Uszkodzenia samochodu</CardTitle>
-              </CardHeader>
-              <CardContent className="p-6 bg-white grid grid-cols-1 lg:grid-cols-2 gap-8">
-                <div className="space-y-6">
-                  <div>
-                    <div className="relative z-10">
-                      <Label htmlFor="vehicleType" className="text-sm font-medium text-gray-700 mb-2 block">
-                        Rodzaj pojazdu
-                      </Label>
-                      <div className="relative">
-                        <VehicleTypeDropdown
-                          selectedVehicleTypeId={claimFormData.vehicleTypeId}
-                          onVehicleTypeSelected={(event: VehicleTypeSelectionEvent) => {
-                            handleFormChange("vehicleType", event.vehicleTypeName)
-                            handleFormChange("vehicleTypeId", event.vehicleTypeId)
-                            handleFormChange("vehicleTypeCode", event.vehicleTypeCode)
-                          }}
-                          className="relative z-20"
-                        />
-                      </div>
-                    </div>
-                  </div>
-                  <div>
-                    <Label htmlFor="damageDescription" className="text-sm font-medium text-gray-700">
-                      Powstałe uszkodzenia opis
-                    </Label>
-                    <Textarea
-                      id="damageDescription"
-                      placeholder="Opisz uszkodzenia..."
-                      rows={3}
-                      value={claimFormData.damageDescription || ""}
-                      onChange={(e) => handleFormChange("damageDescription", e.target.value)}
-                      className="mt-1"
-                    />
-                  </div>
-                  <div>
-                    <Label className="text-sm font-medium text-gray-700">Powstałe uszkodzenia</Label>
-                    <div className="p-4 border rounded-lg bg-gray-50 space-y-2 mt-2 max-h-60 overflow-y-auto">
-                      {claimFormData.damages && claimFormData.damages.length > 0 ? (
-                        claimFormData.damages.map((damage, index) => (
-                          <div
-                            key={damage.id || `${damage.description}-${damage.detail}`}
-                            className="flex items-center justify-between text-sm hover:bg-gray-100 p-2 rounded bg-white border"
-                          >
-                            <span className="font-medium">
-                              {index + 1}. {damage.description} -{" "}
-                              <span className="text-gray-600 font-normal">{damage.detail}</span>
-                            </span>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="h-6 w-6"
-                              onClick={() => removeDamageItem(damage.description)}
-                            >
-                              <X className="h-4 w-4 text-red-500" />
-                            </Button>
-                          </div>
-                        ))
-                      ) : (
-                        <p className="text-sm text-gray-500 text-center py-4">Wybierz uszkodzone części na diagramie.</p>
-                      )}
-                    </div>
-                  </div>
-                <div>
-                  <DamageDiagram
-                    damagedParts={(claimFormData.damages || []).map((d) => d.description)}
-                    onPartClick={handleDamagePartToggle}
-                  />
-                  <div>
-                    <Label className="text-sm font-medium text-gray-700">Powstałe uszkodzenia</Label>
-                    <div className="p-4 border rounded-lg bg-gray-50 space-y-2 mt-2 max-h-60 overflow-y-auto">
-                      {claimFormData.damages && claimFormData.damages.length > 0 ? (
-                        claimFormData.damages.map((damage, index) => (
-                          <div
-                            key={damage.id || `${damage.description}-${damage.detail}`}
-                            className="flex items-center justify-between text-sm hover:bg-gray-100 p-2 rounded bg-white border"
-                          >
-                            <span className="font-medium">
-                              {index + 1}. {damage.description} -{" "}
-                              <span className="text-gray-600 font-normal">{damage.detail}</span>
-                            </span>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="h-6 w-6"
-                              onClick={() => removeDamageItem(damage.description)}
-                            >
-                              <X className="h-4 w-4 text-red-500" />
-                            </Button>
-                          </div>
-                        ))
-                      ) : (
-                        <p className="text-sm text-gray-500 text-center py-4">Wybierz uszkodzone części na diagramie.</p>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-          {claimObjectType === "2" && (
-            <PropertyDamageSection
-              claimFormData={claimFormData}
-            handleFormChange={handleFormChange}
-          />
-        )}
-        {claimObjectType === "3" && (
-          <TransportDamageSection
-            claimFormData={claimFormData}
-            handleFormChange={handleFormChange}
-          />
-        )}
-      </div>
-    )
-
+        <DamageBasicInfoSection
+          claimObjectType={claimObjectType}
+          setClaimObjectType={setClaimObjectType}
+          claimFormData={claimFormData}
+          handleFormChange={handleFormChange as any}
+          riskTypes={riskTypes}
+          loadingRiskTypes={loadingRiskTypes}
+        />
+      )
+    case "dane-zdarzenia-pojazd":
+      return (
+        <DamageVehicleDetailsSection
+          claimFormData={claimFormData}
+          handleFormChange={handleFormChange as any}
+        />
+      )
+    case "dane-zdarzenia-inspekcja":
+      return (
+        <DamageInspectionSection
+          claimFormData={claimFormData}
+          handleFormChange={handleFormChange as any}
+        />
+      )
 
     case "uczestnicy":
       return (

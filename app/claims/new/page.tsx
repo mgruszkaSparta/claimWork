@@ -56,7 +56,7 @@ export default function NewClaimPage() {
   const { toast } = useToast()
   const { createClaim, deleteClaim, initializeClaim } = useClaims()
   const [claimId, setClaimId] = useState<string>("")
-  const [activeClaimSection, setActiveClaimSection] = useState("dane-zdarzenia")
+  const [activeClaimSection, setActiveClaimSection] = useState("dane-zdarzenia-podstawowe")
   const [isSaving, setIsSaving] = useState(false)
   
   // Repair schedules and details state

@@ -50,9 +50,11 @@ export function NewClaimDialog({ open, onOpenChange }: NewClaimDialogProps) {
   } = useQuery<RiskType[]>({
     queryKey: ["risk-types", claimObjectTypeId],
     queryFn: async () => {
-      const res = await fetch(`/api/risk-types?claimObjectTypeId=${claimObjectTypeId}`, { credentials: "include" })
+      const res = await fetch(`/api/dictionaries/risk-types?claimObjectTypeId=${claimObjectTypeId}`, {
+        credentials: "include",
+      })
       const data = await res.json()
-      return data.options || []
+      return (data.items || []).map((item: any) => ({ value: String(item.id), label: item.name }))
     },
     enabled: open && !!claimObjectTypeId,
   })

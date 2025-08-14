@@ -749,50 +749,52 @@ const renderParticipantDetails = (participant: ParticipantInfo | undefined, titl
       </div>
       <div className="p-4 space-y-6">
         {/* Dane pojazdu */}
-        <div className="space-y-4">
-          <h4 className="text-sm font-semibold text-gray-800 border-b border-gray-200 pb-2 flex items-center">
-            <Car className="h-4 w-4 mr-2 text-blue-600" />
-            Dane pojazdu
-          </h4>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="text-xs font-medium text-gray-500 uppercase tracking-wide block mb-1">
-                Numer rejestracyjny:
-              </label>
-              <p className="text-sm font-medium text-gray-900">{participant.vehicleRegistration || "Nie określono"}</p>
-            </div>
-            <div>
-              <label className="text-xs font-medium text-gray-500 uppercase tracking-wide block mb-1">
-                VIN:
-              </label>
-              <p className="text-sm font-medium text-gray-900">{participant.vehicleVin || "Nie określono"}</p>
-            </div>
-            <div>
-              <label className="text-xs font-medium text-gray-500 uppercase tracking-wide block mb-1">
-                Typ pojazdu:
-              </label>
-              <p className="text-sm font-medium text-gray-900">{participant.vehicleType || "Samochód osobowy"}</p>
-            </div>
-            <div>
-              <label className="text-xs font-medium text-gray-500 uppercase tracking-wide block mb-1">
-                Marka:
-              </label>
-              <p className="text-sm font-medium text-gray-900">{participant.vehicleBrand || "Nie określono"}</p>
-            </div>
-            <div>
-              <label className="text-xs font-medium text-gray-500 uppercase tracking-wide block mb-1">
-                Model:
-              </label>
-              <p className="text-sm font-medium text-gray-900">{participant.vehicleModel || "Nie określono"}</p>
-            </div>
-            <div>
-              <label className="text-xs font-medium text-gray-500 uppercase tracking-wide block mb-1">
-                Kraj rejestracji:
-              </label>
-              <p className="text-sm font-medium text-gray-900">{participant.country === "PL" ? "Polska" : participant.country || "Polska"}</p>
+        {claimObjectType === "1" && (
+          <div className="space-y-4">
+            <h4 className="text-sm font-semibold text-gray-800 border-b border-gray-200 pb-2 flex items-center">
+              <Car className="h-4 w-4 mr-2 text-blue-600" />
+              Dane pojazdu
+            </h4>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="text-xs font-medium text-gray-500 uppercase tracking-wide block mb-1">
+                  Numer rejestracyjny:
+                </label>
+                <p className="text-sm font-medium text-gray-900">{participant.vehicleRegistration || "Nie określono"}</p>
+              </div>
+              <div>
+                <label className="text-xs font-medium text-gray-500 uppercase tracking-wide block mb-1">
+                  VIN:
+                </label>
+                <p className="text-sm font-medium text-gray-900">{participant.vehicleVin || "Nie określono"}</p>
+              </div>
+              <div>
+                <label className="text-xs font-medium text-gray-500 uppercase tracking-wide block mb-1">
+                  Typ pojazdu:
+                </label>
+                <p className="text-sm font-medium text-gray-900">{participant.vehicleType || "Samochód osobowy"}</p>
+              </div>
+              <div>
+                <label className="text-xs font-medium text-gray-500 uppercase tracking-wide block mb-1">
+                  Marka:
+                </label>
+                <p className="text-sm font-medium text-gray-900">{participant.vehicleBrand || "Nie określono"}</p>
+              </div>
+              <div>
+                <label className="text-xs font-medium text-gray-500 uppercase tracking-wide block mb-1">
+                  Model:
+                </label>
+                <p className="text-sm font-medium text-gray-900">{participant.vehicleModel || "Nie określono"}</p>
+              </div>
+              <div>
+                <label className="text-xs font-medium text-gray-500 uppercase tracking-wide block mb-1">
+                  Kraj rejestracji:
+                </label>
+                <p className="text-sm font-medium text-gray-900">{participant.country === "PL" ? "Polska" : participant.country || "Polska"}</p>
+              </div>
             </div>
           </div>
-        </div>
+        )}
 
         {/* Polisa */}
         <div className="space-y-4">
@@ -1843,46 +1845,83 @@ const renderParticipantDetails = (participant: ParticipantInfo | undefined, titl
           </Card>
 
           {/* Uszkodzenia samochodu Card */}
-          <Card className="overflow-hidden shadow-sm border-gray-200 rounded-xl">
-            <CardHeader className="flex flex-row items-center space-x-4 bg-gradient-to-r from-blue-600 to-blue-700 text-white p-4">
-              <div className="w-8 h-8 bg-blue-500 rounded-lg flex items-center justify-center">
-                <Car className="h-4 w-4" />
-              </div>
-              <CardTitle className="text-lg font-semibold">Uszkodzenia samochodu</CardTitle>
-            </CardHeader>
-            <CardContent className="p-6 bg-white grid grid-cols-1 lg:grid-cols-2 gap-8">
-              <div className="space-y-6">
-                <div>
-                  <div className="relative z-10">
-                    <Label htmlFor="vehicleType" className="text-sm font-medium text-gray-700 mb-2 block">
-                      Rodzaj pojazdu
+          {claimObjectType === "1" && (
+            <Card className="overflow-hidden shadow-sm border-gray-200 rounded-xl">
+              <CardHeader className="flex flex-row items-center space-x-4 bg-gradient-to-r from-blue-600 to-blue-700 text-white p-4">
+                <div className="w-8 h-8 bg-blue-500 rounded-lg flex items-center justify-center">
+                  <Car className="h-4 w-4" />
+                </div>
+                <CardTitle className="text-lg font-semibold">Uszkodzenia samochodu</CardTitle>
+              </CardHeader>
+              <CardContent className="p-6 bg-white grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <div className="space-y-6">
+                  <div>
+                    <div className="relative z-10">
+                      <Label htmlFor="vehicleType" className="text-sm font-medium text-gray-700 mb-2 block">
+                        Rodzaj pojazdu
+                      </Label>
+                      <div className="relative">
+                        <VehicleTypeDropdown
+                          selectedVehicleTypeId={claimFormData.vehicleTypeId}
+                          onVehicleTypeSelected={(event: VehicleTypeSelectionEvent) => {
+                            handleFormChange("vehicleType", event.vehicleTypeName)
+                            handleFormChange("vehicleTypeId", event.vehicleTypeId)
+                            handleFormChange("vehicleTypeCode", event.vehicleTypeCode)
+                          }}
+                          className="relative z-20"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                  <div>
+                    <Label htmlFor="damageDescription" className="text-sm font-medium text-gray-700">
+                      Powstałe uszkodzenia opis
                     </Label>
-                    <div className="relative">
-                      <VehicleTypeDropdown
-                        selectedVehicleTypeId={claimFormData.vehicleTypeId}
-                        onVehicleTypeSelected={(event: VehicleTypeSelectionEvent) => {
-                          handleFormChange("vehicleType", event.vehicleTypeName)
-                          handleFormChange("vehicleTypeId", event.vehicleTypeId)
-                          handleFormChange("vehicleTypeCode", event.vehicleTypeCode)
-                        }}
-                        className="relative z-20"
-                      />
+                    <Textarea
+                      id="damageDescription"
+                      placeholder="Opisz uszkodzenia..."
+                      rows={3}
+                      value={claimFormData.damageDescription || ""}
+                      onChange={(e) => handleFormChange("damageDescription", e.target.value)}
+                      className="mt-1"
+                    />
+                  </div>
+                  <div>
+                    <Label className="text-sm font-medium text-gray-700">Powstałe uszkodzenia</Label>
+                    <div className="p-4 border rounded-lg bg-gray-50 space-y-2 mt-2 max-h-60 overflow-y-auto">
+                      {claimFormData.damages && claimFormData.damages.length > 0 ? (
+                        claimFormData.damages.map((damage, index) => (
+                          <div
+                            key={damage.id || `${damage.description}-${damage.detail}`}
+                            className="flex items-center justify-between text-sm hover:bg-gray-100 p-2 rounded bg-white border"
+                          >
+                            <span className="font-medium">
+                              {index + 1}. {damage.description} -{" "}
+                              <span className="text-gray-600 font-normal">{damage.detail}</span>
+                            </span>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-6 w-6"
+                              onClick={() => removeDamageItem(damage.description)}
+                            >
+                              <X className="h-4 w-4 text-red-500" />
+                            </Button>
+                          </div>
+                        ))
+                      ) : (
+                        <p className="text-sm text-gray-500 text-center py-4">Wybierz uszkodzone części na diagramie.</p>
+                      )}
                     </div>
                   </div>
                 </div>
                 <div>
-                  <Label htmlFor="damageDescription" className="text-sm font-medium text-gray-700">
-                    Powstałe uszkodzenia opis
-                  </Label>
-                  <Textarea
-                    id="damageDescription"
-                    placeholder="Opisz uszkodzenia..."
-                    rows={3}
-                    value={claimFormData.damageDescription || ""}
-                    onChange={(e) => handleFormChange("damageDescription", e.target.value)}
-                    className="mt-1"
+                  <DamageDiagram
+                    damagedParts={(claimFormData.damages || []).map((d) => d.description)}
+                    onPartClick={handleDamagePartToggle}
                   />
                 </div>
+
                 <div>
                   <Label className="text-sm font-medium text-gray-700">Powstałe uszkodzenia</Label>
                   <div className="p-4 border rounded-lg bg-gray-50 space-y-2 mt-2 max-h-60 overflow-y-auto">
@@ -1934,6 +1973,7 @@ const renderParticipantDetails = (participant: ParticipantInfo | undefined, titl
         )}
       </div>
     )
+
 
     case "uczestnicy":
       return (
@@ -2636,55 +2676,57 @@ const renderParticipantDetails = (participant: ParticipantInfo | undefined, titl
         {/* Full Width Sections */}
         <div className="space-y-4">
           {/* Uszkodzenia samochodu */}
-          <div className="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden">
-            <div className="px-4 py-3 bg-gradient-to-r from-blue-50 to-blue-100 border-b border-gray-200">
-              <div className="flex items-center space-x-2">
-                <Car className="h-4 w-4 text-blue-600" />
-                <h3 className="text-sm font-semibold text-gray-900">Uszkodzenia samochodu</h3>
-              </div>
-            </div>
-            <div className="p-4 grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <div className="space-y-3">
-                <InfoCard label="Rodzaj pojazdu" value={claimFormData.vehicleType} />
-
-                {claimFormData.damageDescription && (
-                  <div className="bg-gray-50 rounded-lg p-3">
-                    <span className="text-xs font-medium text-gray-500 uppercase tracking-wide block mb-1">
-                      Opis uszkodzeń
-                    </span>
-                    <p className="text-sm text-gray-900 leading-relaxed">{claimFormData.damageDescription}</p>
-                  </div>
-                )}
-
-                <div className="bg-gray-50 rounded-lg p-3">
-                  <span className="text-xs font-medium text-gray-500 uppercase tracking-wide block mb-2">
-                    Lista uszkodzeń
-                  </span>
-                  <div className="space-y-1 max-h-32 overflow-y-auto">
-                    {claimFormData.damages && claimFormData.damages.length > 0 ? (
-                      claimFormData.damages.map((damage, index) => (
-                        <div
-                          key={damage.id || `${damage.description}-${damage.detail}`}
-                          className="text-sm text-gray-900 p-2 bg-white rounded border"
-                        >
-                          <span className="font-medium">{damage.description}</span>
-                          <span className="text-gray-600 ml-2">- {damage.detail}</span>
-                        </div>
-                      ))
-                    ) : (
-                      <p className="text-sm text-gray-500">Brak zdefiniowanych uszkodzeń</p>
-                    )}
-                  </div>
+          {claimObjectType === "1" && (
+            <div className="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden">
+              <div className="px-4 py-3 bg-gradient-to-r from-blue-50 to-blue-100 border-b border-gray-200">
+                <div className="flex items-center space-x-2">
+                  <Car className="h-4 w-4 text-blue-600" />
+                  <h3 className="text-sm font-semibold text-gray-900">Uszkodzenia samochodu</h3>
                 </div>
               </div>
-              <div>
-                <DamageDiagram
-                  damagedParts={(claimFormData.damages || []).map((d) => d.description)}
-                  onPartClick={() => {}} // Read-only in summary view
-                />
+              <div className="p-4 grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div className="space-y-3">
+                  <InfoCard label="Rodzaj pojazdu" value={claimFormData.vehicleType} />
+
+                  {claimFormData.damageDescription && (
+                    <div className="bg-gray-50 rounded-lg p-3">
+                      <span className="text-xs font-medium text-gray-500 uppercase tracking-wide block mb-1">
+                        Opis uszkodzeń
+                      </span>
+                      <p className="text-sm text-gray-900 leading-relaxed">{claimFormData.damageDescription}</p>
+                    </div>
+                  )}
+
+                  <div className="bg-gray-50 rounded-lg p-3">
+                    <span className="text-xs font-medium text-gray-500 uppercase tracking-wide block mb-2">
+                      Lista uszkodzeń
+                    </span>
+                    <div className="space-y-1 max-h-32 overflow-y-auto">
+                      {claimFormData.damages && claimFormData.damages.length > 0 ? (
+                        claimFormData.damages.map((damage, index) => (
+                          <div
+                            key={damage.id || `${damage.description}-${damage.detail}`}
+                            className="text-sm text-gray-900 p-2 bg-white rounded border"
+                          >
+                            <span className="font-medium">{damage.description}</span>
+                            <span className="text-gray-600 ml-2">- {damage.detail}</span>
+                          </div>
+                        ))
+                      ) : (
+                        <p className="text-sm text-gray-500">Brak zdefiniowanych uszkodzeń</p>
+                      )}
+                    </div>
+                  </div>
+                </div>
+                <div>
+                  <DamageDiagram
+                    damagedParts={(claimFormData.damages || []).map((d) => d.description)}
+                    onPartClick={() => {}} // Read-only in summary view
+                  />
+                </div>
               </div>
             </div>
-          </div>
+          )}
 
           {/* Służby */}
           {claimFormData.servicesCalled && claimFormData.servicesCalled.length > 0 && (

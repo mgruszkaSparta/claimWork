@@ -613,10 +613,19 @@ class ApiService {
     return text as unknown as T
   }
 
-  async register(username: string, email: string, password: string): Promise<void> {
+  async register(data: {
+    userName: string
+    email: string
+    password: string
+    firstName: string
+    lastName: string
+    roles: string[]
+    status: "active" | "inactive"
+    phone?: string
+  }): Promise<void> {
     await this.request<void>("/auth/register", {
       method: "POST",
-      body: JSON.stringify({ userName: username, email, password }),
+      body: JSON.stringify(data),
     })
   }
 
@@ -639,15 +648,38 @@ class ApiService {
     return { username: data.userName, email: data.email, roles: data.roles, createdAt: data.createdAt, lastLogin: data.lastLogin }
   }
 
+
   async getUser(id: string): Promise<{ id: string; userName: string; email?: string; createdAt?: string; lastLogin?: string }> {
     return await this.request<{ id: string; userName: string; email?: string; createdAt?: string; lastLogin?: string }>(`/auth/users/${id}`)
+
   }
 
-  async updateUser(id: string, data: { userName?: string; email?: string }): Promise<void> {
+  async updateUser(
+    id: string,
+    data: {
+      userName?: string
+      email?: string
+      firstName?: string
+      lastName?: string
+      roles?: string[]
+      status?: "active" | "inactive"
+      phone?: string
+    },
+  ): Promise<void> {
     await this.request<void>(`/auth/users/${id}`, {
       method: "PUT",
       body: JSON.stringify(data),
     })
+  }
+
+  async checkEmail(email: string): Promise<boolean> {
+    const result = await this.request<{ isUnique?: boolean; exists?: boolean }>(
+      `/auth/users/check-email?email=${encodeURIComponent(email)}`,
+    )
+    if (result == null) return false
+    if (typeof result.isUnique === "boolean") return result.isUnique
+    if (typeof result.exists === "boolean") return !result.exists
+    return true
   }
   async getUsers(
     params: {

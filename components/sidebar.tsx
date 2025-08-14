@@ -3,6 +3,7 @@ import Link from "next/link"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { LayoutDashboard, FileText, Car, Settings } from "lucide-react"
+import { useAuth } from "@/hooks/use-auth"
 
 interface SidebarProps {
   activeTab: string
@@ -27,10 +28,12 @@ const menuItems = [
     label: "Settings",
     icon: Settings,
     href: "/settings",
+    roles: ["Admin", "admin"],
   },
 ]
 
 export function Sidebar(props: SidebarProps) {
+  const { user } = useAuth()
   return (
     <div className="fixed left-0 top-0 z-40 h-full w-16 bg-[#1a3a6c] border-r border-[#2a4a7c] flex flex-col">
       {/* Header */}
@@ -40,9 +43,17 @@ export function Sidebar(props: SidebarProps) {
 
       {/* Navigation */}
       <nav className="flex-1 p-2 space-y-2">
-        {menuItems.map((item) => {
-          const Icon = item.icon
-          const isActive = props.activeTab === item.id
+        {menuItems
+          .filter(
+            (item) =>
+              !item.roles ||
+              item.roles.some((role) =>
+                user?.roles?.some((r) => r.toLowerCase() === role.toLowerCase())
+              )
+          )
+          .map((item) => {
+            const Icon = item.icon
+            const isActive = props.activeTab === item.id
 
           return (
             <Button

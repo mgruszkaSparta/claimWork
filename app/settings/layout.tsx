@@ -6,6 +6,7 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { Header } from '@/components/header'
 import { Sidebar } from '@/components/sidebar'
+import { ProtectedRoute } from '@/components/protected-route'
 import { cn } from '@/lib/utils'
 
 export default function SettingsLayout({ children }: { children: ReactNode }) {
@@ -20,32 +21,34 @@ export default function SettingsLayout({ children }: { children: ReactNode }) {
   ]
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <Sidebar activeTab={activeTab} onTabChange={setActiveTab} />
-      <div className="ml-16 flex flex-col min-h-screen">
-        <Header onMenuClick={() => {}} />
-        <div className="flex flex-1">
-          <nav className="w-48 border-r bg-white p-4 space-y-2">
-            {settingsItems.map((item) => (
-              <Link
-                key={item.href}
-                href={item.href}
-                className={cn(
-                  'block px-3 py-2 rounded-md text-sm font-medium hover:bg-gray-100',
-                  pathname === item.href
-                    ? 'bg-gray-100 text-[#1a3a6c]'
-                    : 'text-gray-700'
-                )}
-              >
-                {item.label}
-              </Link>
-            ))}
-          </nav>
-          <main className="flex-1 p-6">
-            {children}
-          </main>
+    <ProtectedRoute roles={["Admin", "admin"]}>
+      <div className="min-h-screen bg-gray-50">
+        <Sidebar activeTab={activeTab} onTabChange={setActiveTab} />
+        <div className="ml-16 flex flex-col min-h-screen">
+          <Header onMenuClick={() => {}} />
+          <div className="flex flex-1">
+            <nav className="w-48 border-r bg-white p-4 space-y-2">
+              {settingsItems.map((item) => (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className={cn(
+                    'block px-3 py-2 rounded-md text-sm font-medium hover:bg-gray-100',
+                    pathname === item.href
+                      ? 'bg-gray-100 text-[#1a3a6c]'
+                      : 'text-gray-700'
+                  )}
+                >
+                  {item.label}
+                </Link>
+              ))}
+            </nav>
+            <main className="flex-1 p-6">
+              {children}
+            </main>
+          </div>
         </div>
       </div>
-    </div>
+    </ProtectedRoute>
   )
 }

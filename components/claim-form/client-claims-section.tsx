@@ -218,14 +218,40 @@ export function ClientClaimsSection({ clientClaims, onClientClaimsChange, claimI
         updatedAt: new Date().toISOString(),
       }
 
+      const submitData = new FormData()
+      Object.entries(claimData).forEach(([key, value]) => {
+        if (value !== undefined && key !== "document") {
+          submitData.append(key, typeof value === "string" ? value : String(value))
+        }
+      })
+      if (selectedFile) {
+        submitData.append("document", selectedFile)
+      }
+
+      const response = await fetch(
+        editingClaim ? `/api/client-claims/${editingClaim.id}` : "/api/client-claims",
+        {
+          method: editingClaim ? "PUT" : "POST",
+          body: submitData,
+        }
+      )
+
+      if (!response.ok) {
+        throw new Error("Failed to save claim")
+      }
+
+      const savedClaim: ClientClaim = await response.json()
+
       if (editingClaim) {
-        onClientClaimsChange(clientClaims.map((claim) => (claim.id === editingClaim.id ? claimData : claim)))
+        onClientClaimsChange(
+          clientClaims.map((claim) => (claim.id === editingClaim.id ? savedClaim : claim))
+        )
         toast({
           title: "Sukces",
           description: "Roszczenie zostało zaktualizowane",
         })
       } else {
-        onClientClaimsChange([...clientClaims, claimData])
+        onClientClaimsChange([...clientClaims, savedClaim])
         toast({
           title: "Sukces",
           description: "Roszczenie zostało dodane",

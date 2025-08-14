@@ -87,7 +87,7 @@ export default function UsersPage() {
     action: "activate" | "deactivate" | "assignRole" | "delete",
     roleValue?: string,
   ) => {
-    await apiService.updateUsersBulk({
+    await apiService.bulkUpdateUsers({
       action,
       userIds: selected,
       role: roleValue,

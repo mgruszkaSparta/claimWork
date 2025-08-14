@@ -25,17 +25,4 @@ namespace AutomotiveClaimsApi.DTOs
         public string? Password { get; set; }
     }
 
-    public class UpdateUserDto
-    {
-        public string? UserName { get; set; }
-        public string? Email { get; set; }
-    }
-
-    public class UserDto
-    {
-        public string? Id { get; set; }
-        public string? UserName { get; set; }
-        public string? Email { get; set; }
-        public IEnumerable<string>? Roles { get; set; }
-    }
 }

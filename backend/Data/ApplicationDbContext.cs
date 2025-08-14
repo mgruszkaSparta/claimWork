@@ -46,6 +46,14 @@ namespace AutomotiveClaimsApi.Data
         {
             base.OnModelCreating(modelBuilder);
 
+            modelBuilder.Entity<ApplicationUser>(entity =>
+            {
+                entity.Property(u => u.FirstName).HasMaxLength(100);
+                entity.Property(u => u.LastName).HasMaxLength(100);
+                entity.Property(u => u.IsActive).HasDefaultValue(true);
+                entity.Property(u => u.CreatedAt).HasDefaultValueSql("GETUTCDATE()");
+            });
+
             // Event is the central aggregate root
             modelBuilder.Entity<Event>(entity =>
             {

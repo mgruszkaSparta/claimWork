@@ -131,7 +131,18 @@ export interface UserListItemDto {
   status: "active" | "inactive"
 }
 
-export interface UpdateUsersBulkDto {
+export interface UserDto {
+  id: string
+  userName: string
+  email: string
+  firstName?: string
+  lastName?: string
+  phoneNumber?: string
+  roles: string[]
+  isActive: boolean
+}
+
+export interface BulkUpdateUsersDto {
   userIds: string[]
   action: "activate" | "deactivate" | "assignRole" | "delete"
   role?: string
@@ -637,16 +648,48 @@ class ApiService {
     return { username: data.userName, email: data.email, roles: data.roles }
   }
 
-  async getUser(id: string): Promise<{ id: string; userName: string; email?: string }> {
-    return await this.request<{ id: string; userName: string; email?: string }>(`/auth/users/${id}`)
+  async getUser(id: string): Promise<UserDto> {
+    return await this.request<UserDto>(`/users/${id}`)
   }
 
-  async updateUser(id: string, data: { userName?: string; email?: string }): Promise<void> {
-    await this.request<void>(`/auth/users/${id}`, {
+  async createUser(data: {
+    userName: string
+    email: string
+    password: string
+    firstName?: string
+    lastName?: string
+    phoneNumber?: string
+    roles?: string[]
+    isActive?: boolean
+  }): Promise<void> {
+    await this.request<void>("/users", {
+      method: "POST",
+      body: JSON.stringify(data),
+    })
+  }
+
+  async updateUser(
+    id: string,
+    data: {
+      userName?: string
+      email?: string
+      firstName?: string
+      lastName?: string
+      phoneNumber?: string
+      roles?: string[]
+      isActive?: boolean
+    },
+  ): Promise<void> {
+    await this.request<void>(`/users/${id}`, {
       method: "PUT",
       body: JSON.stringify(data),
     })
   }
+
+  async deleteUser(id: string): Promise<void> {
+    await this.request<void>(`/users/${id}`, { method: "DELETE" })
+  }
+
   async getUsers(
     params: {
       search?: string
@@ -665,7 +708,7 @@ class ApiService {
       }
     })
 
-    const url = `/auth/users${searchParams.toString() ? `?${searchParams.toString()}` : ""}`
+    const url = `/users${searchParams.toString() ? `?${searchParams.toString()}` : ""}`
 
     const token = this.getToken()
     const response = await fetch(`${API_BASE_URL}${url}`, {
@@ -693,8 +736,8 @@ class ApiService {
     return { items: data ?? [], totalCount }
   }
 
-  async updateUsersBulk(data: UpdateUsersBulkDto): Promise<void> {
-    await this.request<void>("/auth/users/bulk", {
+  async bulkUpdateUsers(data: BulkUpdateUsersDto): Promise<void> {
+    await this.request<void>("/users/bulk", {
       method: "POST",
       body: JSON.stringify(data),
     })

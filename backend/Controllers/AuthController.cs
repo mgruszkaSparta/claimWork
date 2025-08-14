@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Identity;
+using System;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using AutomotiveClaimsApi.Models;
@@ -101,6 +102,14 @@ namespace AutomotiveClaimsApi.Controllers
             {
                 return Unauthorized();
             }
+
+            var user = await _userManager.FindByNameAsync(dto.UserName);
+            if (user != null)
+            {
+                user.LastLogin = DateTime.UtcNow;
+                await _userManager.UpdateAsync(user);
+            }
+
             return Ok();
         }
 
@@ -120,29 +129,6 @@ namespace AutomotiveClaimsApi.Controllers
             if (user == null) return Unauthorized();
             var roles = await _userManager.GetRolesAsync(user);
             return new UserDto { Id = user.Id, UserName = user.UserName, Email = user.Email, Roles = roles };
-        }
-
-        [Authorize]
-        [HttpGet("users/{id}")]
-        public async Task<ActionResult<UserDto>> GetUser(string id)
-        {
-            var user = await _userManager.FindByIdAsync(id);
-            if (user == null) return NotFound();
-            var roles = await _userManager.GetRolesAsync(user);
-            return new UserDto { Id = user.Id, UserName = user.UserName, Email = user.Email, Roles = roles };
-        }
-
-        [Authorize]
-        [HttpPut("users/{id}")]
-        public async Task<IActionResult> UpdateUser(string id, [FromBody] UpdateUserDto dto)
-        {
-            var user = await _userManager.FindByIdAsync(id);
-            if (user == null) return NotFound();
-            if (dto.UserName != null) user.UserName = dto.UserName;
-            if (dto.Email != null) user.Email = dto.Email;
-            var result = await _userManager.UpdateAsync(user);
-            if (!result.Succeeded) return BadRequest(result.Errors);
-            return NoContent();
         }
 
     }

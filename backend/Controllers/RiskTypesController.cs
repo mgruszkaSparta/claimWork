@@ -2,6 +2,10 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using AutomotiveClaimsApi.Data;
 using AutomotiveClaimsApi.DTOs;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace AutomotiveClaimsApi.Controllers
 {
@@ -17,12 +21,16 @@ namespace AutomotiveClaimsApi.Controllers
         }
 
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<RiskTypeDto>>> GetRiskTypes([FromQuery] int? claimObjectTypeId)
+        public async Task<ActionResult<IEnumerable<RiskTypeDto>>> GetRiskTypes([FromQuery] int? claimObjectTypeId, [FromQuery] bool? isActive)
         {
             try
             {
-                var query = _context.RiskTypes
-                    .Where(rt => rt.IsActive);
+                var query = _context.RiskTypes.AsQueryable();
+
+                if (isActive.HasValue)
+                {
+                    query = query.Where(rt => rt.IsActive == isActive.Value);
+                }
 
                 if (claimObjectTypeId.HasValue)
                 {
@@ -36,7 +44,8 @@ namespace AutomotiveClaimsApi.Controllers
                         Id = rt.Id,
                         Code = rt.Code,
                         Name = rt.Name,
-                        Description = rt.Description
+                        Description = rt.Description,
+                        IsActive = rt.IsActive
                     })
                     .ToListAsync();
 
@@ -54,13 +63,14 @@ namespace AutomotiveClaimsApi.Controllers
             try
             {
                 var riskType = await _context.RiskTypes
-                    .Where(rt => rt.Id == id && rt.IsActive)
+                    .Where(rt => rt.Id == id)
                     .Select(rt => new RiskTypeDto
                     {
                         Id = rt.Id,
                         Code = rt.Code,
                         Name = rt.Name,
-                        Description = rt.Description
+                        Description = rt.Description,
+                        IsActive = rt.IsActive
                     })
                     .FirstOrDefaultAsync();
 
@@ -88,7 +98,7 @@ namespace AutomotiveClaimsApi.Controllers
                     Code = riskTypeDto.Code,
                     Name = riskTypeDto.Name,
                     Description = riskTypeDto.Description,
-                    IsActive = true,
+                    IsActive = riskTypeDto.IsActive,
                     CreatedAt = DateTime.UtcNow,
                     UpdatedAt = DateTime.UtcNow
                 };
@@ -101,7 +111,8 @@ namespace AutomotiveClaimsApi.Controllers
                     Id = riskType.Id,
                     Code = riskType.Code,
                     Name = riskType.Name,
-                    Description = riskType.Description
+                    Description = riskType.Description,
+                    IsActive = riskType.IsActive
                 };
 
                 return CreatedAtAction(nameof(GetRiskType), new { id = riskType.Id }, result);
@@ -126,6 +137,7 @@ namespace AutomotiveClaimsApi.Controllers
                 riskType.Code = riskTypeDto.Code;
                 riskType.Name = riskTypeDto.Name;
                 riskType.Description = riskTypeDto.Description;
+                riskType.IsActive = riskTypeDto.IsActive;
                 riskType.UpdatedAt = DateTime.UtcNow;
 
                 await _context.SaveChangesAsync();
@@ -147,6 +159,13 @@ namespace AutomotiveClaimsApi.Controllers
                 if (riskType == null)
                 {
                     return NotFound();
+                }
+
+                var hasDamageTypes = await _context.DamageTypes
+                    .AnyAsync(dt => dt.RiskTypeId == id && dt.IsActive);
+                if (hasDamageTypes)
+                {
+                    return Conflict(new { error = "Cannot delete risk type with associated damage types" });
                 }
 
                 riskType.IsActive = false;

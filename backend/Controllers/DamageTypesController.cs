@@ -24,13 +24,18 @@ namespace AutomotiveClaimsApi.Controllers
         }
 
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<DamageTypeDto>>> GetDamageTypes([FromQuery] Guid? riskTypeId = null)
+        public async Task<ActionResult<IEnumerable<DamageTypeDto>>> GetDamageTypes([FromQuery] Guid? riskTypeId = null, [FromQuery] bool? isActive = null)
         {
             try
             {
                 var query = _context.DamageTypes
                     .Include(dt => dt.RiskType)
-                    .Where(dt => dt.IsActive);
+                    .AsQueryable();
+
+                if (isActive.HasValue)
+                {
+                    query = query.Where(dt => dt.IsActive == isActive.Value);
+                }
 
                 if (riskTypeId.HasValue)
                 {

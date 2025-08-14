@@ -184,6 +184,56 @@ export interface UpdateClientDto {
   isActive?: boolean
 }
 
+export interface RiskTypeDto {
+  id: string
+  code: string
+  name: string
+  description?: string
+  isActive: boolean
+}
+
+export interface DamageTypeDto {
+  id: string
+  code: string
+  name: string
+  description?: string
+  riskTypeId: string
+  riskTypeName?: string
+  isActive: boolean
+  createdAt: string
+  updatedAt?: string
+}
+
+export interface CreateRiskTypeDto {
+  code: string
+  name: string
+  description?: string
+  isActive?: boolean
+}
+
+export interface UpdateRiskTypeDto {
+  code?: string
+  name?: string
+  description?: string
+  isActive?: boolean
+}
+
+export interface CreateDamageTypeDto {
+  code: string
+  name: string
+  description?: string
+  riskTypeId: string
+  isActive?: boolean
+}
+
+export interface UpdateDamageTypeDto {
+  code?: string
+  name?: string
+  description?: string
+  riskTypeId?: string
+  isActive?: boolean
+}
+
 export interface NoteDto {
   id: string
   eventId: string
@@ -882,6 +932,80 @@ class ApiService {
 
   async deleteClient(id: number): Promise<void> {
     await this.request<void>(`/clients/${id}`, {
+      method: 'DELETE',
+    })
+  }
+
+  // Risk Types API
+  async getRiskTypes(params: { isActive?: boolean } = {}): Promise<RiskTypeDto[]> {
+    const searchParams = new URLSearchParams()
+    if (params.isActive !== undefined) {
+      searchParams.append('isActive', String(params.isActive))
+    }
+    const url = `/risk-types${searchParams.toString() ? `?${searchParams.toString()}` : ''}`
+    return this.request<RiskTypeDto[]>(url)
+  }
+
+  async createRiskType(data: CreateRiskTypeDto): Promise<RiskTypeDto> {
+    return this.request<RiskTypeDto>('/risk-types', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    })
+  }
+
+  async updateRiskType(id: string, data: UpdateRiskTypeDto): Promise<void> {
+    await this.request<void>(`/risk-types/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    })
+  }
+
+  async deleteRiskType(id: string): Promise<void> {
+    const token = this.getToken()
+    const response = await fetch(`${API_BASE_URL}/risk-types/${id}`, {
+      method: 'DELETE',
+      credentials: 'include',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      },
+    })
+    if (!response.ok) {
+      const errorText = await response.text()
+      const error: any = new Error(errorText)
+      error.status = response.status
+      throw error
+    }
+  }
+
+  // Damage Types API
+  async getDamageTypes(params: { riskTypeId?: string; isActive?: boolean } = {}): Promise<DamageTypeDto[]> {
+    const searchParams = new URLSearchParams()
+    Object.entries(params).forEach(([key, value]) => {
+      if (value !== undefined) {
+        searchParams.append(key, String(value))
+      }
+    })
+    const url = `/damage-types${searchParams.toString() ? `?${searchParams.toString()}` : ''}`
+    return this.request<DamageTypeDto[]>(url)
+  }
+
+  async createDamageType(data: CreateDamageTypeDto): Promise<DamageTypeDto> {
+    return this.request<DamageTypeDto>('/damage-types', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    })
+  }
+
+  async updateDamageType(id: string, data: UpdateDamageTypeDto): Promise<void> {
+    await this.request<void>(`/damage-types/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    })
+  }
+
+  async deleteDamageType(id: string): Promise<void> {
+    await this.request<void>(`/damage-types/${id}`, {
       method: 'DELETE',
     })
   }

@@ -708,9 +708,8 @@ const renderParticipantDetails = (
                   Numer rejestracyjny:
                 </label>
                 <p className="text-sm font-medium text-gray-900">{participant.vehicleRegistration || "Nie określono"}</p>
-                    </div>
-                  </div>
-                  <div>
+              </div>
+              <div>
                 <label className="text-xs font-medium text-gray-500 uppercase tracking-wide block mb-1">
                   VIN:
                 </label>

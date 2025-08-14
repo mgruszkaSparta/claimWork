@@ -298,7 +298,7 @@ export const ClaimMainContent = ({
     setLoadingRiskTypes(true)
     try {
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/dictionaries/risk-types?claimObjectTypeId=${claimObjectType}`,
+        `${process.env.NEXT_PUBLIC_API_URL}/risk-types?claimObjectTypeId=${claimObjectType}`,
         {
           method: "GET",
           credentials: "include",

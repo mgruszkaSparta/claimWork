@@ -5,8 +5,8 @@ const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5200/a
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url)
-    const claimObjectTypeId = searchParams.get("claimObjectTypeId") ?? ""
-    const url = `${API_BASE_URL}/risk-types?claimObjectTypeId=${claimObjectTypeId}`
+    const claimObjectTypeId = searchParams.get("claimObjectTypeId") || ""
+    const url = `${API_BASE_URL}/risk-types?claimObjectTypeId=${encodeURIComponent(claimObjectTypeId)}`
 
     const response = await fetch(url, {
       method: "GET",

@@ -1,25 +1,30 @@
 import { type NextRequest, NextResponse } from "next/server"
 
-export async function GET(request: NextRequest) {
-  try {
-    // Mock implementation - replace with actual backend API call
-    const unassignedEmails = [
-      {
-        id: 3,
-        from: "Maria Kowalczyk <maria.kowalczyk@example.com>",
-        to: "claims@company.com",
-        subject: "Nowa szkoda do przypisania",
-        body: "<p>Proszę o przypisanie tej szkody...</p>",
-        receivedDate: new Date("2024-01-16T09:15:00"),
-        read: false,
-        claimId: null,
-        attachments: [],
-      },
-    ]
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5200/api"
 
+export async function GET(_request: NextRequest) {
+  try {
+    const response = await fetch(`${API_BASE_URL}/emails/unassigned`, {
+      cache: "no-store",
+    })
+
+    if (!response.ok) {
+      const errorText = await response.text()
+      return NextResponse.json({ error: errorText }, { status: response.status })
+    }
+
+    const unassignedEmails = await response.json()
     return NextResponse.json(unassignedEmails)
   } catch (error) {
     console.error("Error fetching unassigned emails:", error)
-    return NextResponse.json({ error: "Failed to fetch unassigned emails" }, { status: 500 })
+    return NextResponse.json(
+      {
+        error:
+          error instanceof Error
+            ? error.message
+            : "Failed to fetch unassigned emails",
+      },
+      { status: 500 },
+    )
   }
 }

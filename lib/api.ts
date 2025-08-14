@@ -122,6 +122,21 @@ export interface ClaimUpsertDto extends EventUpsertDto {
   notes?: NoteUpsertDto[]
 }
 
+export interface UserListItemDto {
+  id: string
+  firstName: string
+  lastName: string
+  email: string
+  role: string
+  status: "active" | "inactive"
+}
+
+export interface UpdateUsersBulkDto {
+  userIds: string[]
+  action: "activate" | "deactivate" | "assignRole" | "delete"
+  role?: string
+}
+
 export interface ClientDto {
   id: number
   name: string
@@ -632,8 +647,58 @@ class ApiService {
       body: JSON.stringify(data),
     })
   }
+  async getUsers(
+    params: {
+      search?: string
+      role?: string
+      status?: string
+      page?: number
+      pageSize?: number
+      sortBy?: string
+      sortOrder?: "asc" | "desc"
+    } = {},
+  ): Promise<{ items: UserListItemDto[]; totalCount: number }> {
+    const searchParams = new URLSearchParams()
+    Object.entries(params).forEach(([key, value]) => {
+      if (value !== undefined && value !== null && value !== "") {
+        searchParams.append(key, String(value))
+      }
+    })
 
+    const url = `/auth/users${searchParams.toString() ? `?${searchParams.toString()}` : ""}`
 
+    const token = this.getToken()
+    const response = await fetch(`${API_BASE_URL}${url}`, {
+      credentials: "include",
+      headers: {
+        "Content-Type": "application/json",
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      },
+    })
+
+    if (!response.ok) {
+      if (response.status === 404) {
+        return { items: [], totalCount: 0 }
+      }
+      const errorText = await response.text()
+      throw new Error(`API Error: ${response.status} - ${errorText}`)
+    }
+
+    const data = (await response.json()) as UserListItemDto[]
+    const totalCountHeader = response.headers.get("X-Total-Count")
+    const totalCount = totalCountHeader
+      ? parseInt(totalCountHeader, 10)
+      : data.length
+
+    return { items: data ?? [], totalCount }
+  }
+
+  async updateUsersBulk(data: UpdateUsersBulkDto): Promise<void> {
+    await this.request<void>("/auth/users/bulk", {
+      method: "POST",
+      body: JSON.stringify(data),
+    })
+  }
 
   async getClaims(
     params: Record<string, string | number | undefined> = {},

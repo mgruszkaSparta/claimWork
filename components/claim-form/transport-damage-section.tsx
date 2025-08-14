@@ -9,6 +9,10 @@ import { Textarea } from "@/components/ui/textarea"
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Plus, Trash2 } from "lucide-react"
+import type { Claim, TransportDamage } from "@/types"
+
+
+
 
 interface SubcontractorInfo {
   subcontractorName: string
@@ -36,30 +40,45 @@ interface TransportDamage {
 export interface TransportDamageSectionProps {
   value: TransportDamage
   onChange: (value: TransportDamage) => void
+
   disabled?: boolean
 }
 
 export function TransportDamageSection({
-  value,
-  onChange,
+  claimFormData,
+  handleFormChange,
   disabled = false,
 }: TransportDamageSectionProps) {
+  const transportDamage: TransportDamage =
+    claimFormData.transportDamage || {
+      cargoDescription: "",
+      losses: [""],
+      carrier: "",
+      policyNumber: "",
+      inspectionContactName: "",
+      inspectionContactPhone: "",
+      inspectionContactEmail: "",
+    }
+
   const handleFieldChange = (field: keyof TransportDamage, fieldValue: any) => {
-    onChange({ ...value, [field]: fieldValue })
+    handleFormChange("transportDamage", {
+      ...transportDamage,
+      [field]: fieldValue,
+    })
   }
 
   const handleLossChange = (index: number, newLoss: string) => {
-    const updated = [...value.losses]
+    const updated = [...transportDamage.losses]
     updated[index] = newLoss
     handleFieldChange("losses", updated)
   }
 
   const addLoss = () => {
-    handleFieldChange("losses", [...value.losses, ""])
+    handleFieldChange("losses", [...transportDamage.losses, ""])
   }
 
   const removeLoss = (index: number) => {
-    const updated = value.losses.filter((_, i) => i !== index)
+    const updated = transportDamage.losses.filter((_, i) => i !== index)
     handleFieldChange("losses", updated)
   }
 
@@ -84,7 +103,7 @@ export function TransportDamageSection({
           <Textarea
             id="cargoDescription"
             placeholder="Opisz ładunek lub ogólną listę strat"
-            value={value.cargoDescription}
+            value={transportDamage.cargoDescription}
             onChange={(e) => handleFieldChange("cargoDescription", e.target.value)}
             disabled={disabled}
             rows={3}
@@ -93,7 +112,7 @@ export function TransportDamageSection({
 
         <div className="space-y-2">
           <Label>Lista strat</Label>
-          {value.losses.map((loss, index) => (
+          {transportDamage.losses.map((loss, index) => (
             <div key={`loss-${index}`} className="flex items-center space-x-2">
               <Input
                 placeholder={`Strata ${index + 1}`}
@@ -127,7 +146,7 @@ export function TransportDamageSection({
             <Input
               id="carrier"
               placeholder="Nazwa przewoźnika lub ubezpieczyciela"
-              value={value.carrier}
+              value={transportDamage.carrier}
               onChange={(e) => handleFieldChange("carrier", e.target.value)}
               disabled={disabled}
             />
@@ -137,7 +156,7 @@ export function TransportDamageSection({
             <Input
               id="policyNumber"
               placeholder=""
-              value={value.policyNumber}
+              value={transportDamage.policyNumber}
               onChange={(e) => handleFieldChange("policyNumber", e.target.value)}
               disabled={disabled}
             />
@@ -149,20 +168,20 @@ export function TransportDamageSection({
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <Input
               placeholder="Imię i nazwisko"
-              value={value.inspectionContactName}
+              value={transportDamage.inspectionContactName}
               onChange={(e) => handleFieldChange("inspectionContactName", e.target.value)}
               disabled={disabled}
             />
             <Input
               placeholder="Telefon"
-              value={value.inspectionContactPhone}
+              value={transportDamage.inspectionContactPhone}
               onChange={(e) => handleFieldChange("inspectionContactPhone", e.target.value)}
               disabled={disabled}
             />
             <Input
               type="email"
               placeholder="E-mail"
-              value={value.inspectionContactEmail}
+              value={transportDamage.inspectionContactEmail}
               onChange={(e) => handleFieldChange("inspectionContactEmail", e.target.value)}
               disabled={disabled}
             />

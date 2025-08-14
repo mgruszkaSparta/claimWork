@@ -20,6 +20,16 @@ export interface Note {
   dueDate?: string
 }
 
+
+export interface TransportDamage {
+  cargoDescription: string
+  losses: string[]
+  carrier: string
+  policyNumber: string
+  inspectionContactName: string
+  inspectionContactPhone: string
+  inspectionContactEmail: string
+}
 export interface SubcontractorInfo {
   subcontractorName: string
   subcontractorPolicyNumber: string
@@ -30,6 +40,7 @@ export interface SubcontractorInfo {
   claimFromSubcontractorPolicyDate?: string
   complaintResponse?: boolean
   complaintResponseDate?: string
+
 }
 
 export interface Claim
@@ -92,6 +103,7 @@ export interface Claim
   cargoDetails?: string
   carrierInfo?: string
   damageDescription?: string
+  transportDamage?: TransportDamage
   damages?: DamageItem[]
   notes?: Note[]
   injuredParty?: ParticipantInfo

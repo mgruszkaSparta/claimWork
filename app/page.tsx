@@ -273,6 +273,7 @@ function HomePage({ user, onLogout }: PageProps) {
                           <Button
                             key={`quick-action-${action.title}`}
                             variant="outline"
+                          >
                             <Icon className="h-6 w-6" />
                             <span className="text-sm">{action.title}</span>
                           </Button>

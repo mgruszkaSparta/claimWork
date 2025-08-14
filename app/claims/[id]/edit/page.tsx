@@ -147,7 +147,12 @@ export default function EditClaimPage() {
 
     setIsSaving(true)
     try {
-      const updatedClaim = await updateClaim(id, claimFormData)
+      // Settlements are managed via their own endpoints; remove them from the
+      // claim payload to avoid unintentionally overwriting existing records.
+      const { settlements: _settlements, ...claimWithoutSettlements } =
+        claimFormData
+
+      const updatedClaim = await updateClaim(id, claimWithoutSettlements)
 
       if (updatedClaim) {
         setClaimFormData(updatedClaim)

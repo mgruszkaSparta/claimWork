@@ -3,11 +3,19 @@ const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5200/a
 
 export async function GET(request: NextRequest) {
   const urlObj = new URL(request.url)
-  const dependsOn = urlObj.searchParams.get('dependsOn') // This is the RiskId
+  const riskTypeId =
+    urlObj.searchParams.get('riskTypeId') || urlObj.searchParams.get('dependsOn')
+  const search = urlObj.searchParams.get('search')
 
-  const url = dependsOn
-    ? `${API_BASE_URL}/damage-types?riskTypeId=${dependsOn}`
-    : `${API_BASE_URL}/damage-types`
+  const params = new URLSearchParams()
+  if (riskTypeId) {
+    params.set('riskTypeId', riskTypeId)
+  }
+  if (search) {
+    params.set('search', search)
+  }
+  const query = params.toString()
+  const url = `${API_BASE_URL}/damage-types${query ? `?${query}` : ''}`
 
   try {
     const response = await fetch(url)

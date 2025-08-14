@@ -1411,7 +1411,7 @@ const renderParticipantDetails = (participant: ParticipantInfo | undefined, titl
                       onValueChange={(value) => handleFormChange("damageType", value)}
                       placeholder="Wybierz rodzaj szkody..."
                       apiUrl="/api/damage-types"
-                      dependsOn={claimFormData.riskType}
+                      riskTypeId={claimFormData.riskType}
                       disabled={!claimFormData.riskType}
                     />
                   </div>

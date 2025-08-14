@@ -93,7 +93,7 @@ namespace AutomotiveClaimsApi.Controllers
                     UpdatedAt = DateTime.UtcNow
                 };
 
-                if (createDto.Document != null)
+                if (createDto.Document != null && createDto.Document.Length > 0)
                 {
                     var documentResult = await _documentService.SaveDocumentAsync(
                         createDto.Document,
@@ -104,6 +104,10 @@ namespace AutomotiveClaimsApi.Controllers
                     appeal.DocumentPath = documentResult.FilePath;
                     appeal.DocumentName = documentResult.OriginalFileName;
                     appeal.DocumentDescription = createDto.DocumentDescription;
+                }
+                else if (createDto.Document != null)
+                {
+                    return BadRequest(new { error = "Document file is empty" });
                 }
 
                 _context.Appeals.Add(appeal);
@@ -137,7 +141,7 @@ namespace AutomotiveClaimsApi.Controllers
                 appeal.DecisionDate = updateDto.DecisionDate;
                 appeal.UpdatedAt = DateTime.UtcNow;
 
-                if (updateDto.Document != null)
+                if (updateDto.Document != null && updateDto.Document.Length > 0)
                 {
                     if (!string.IsNullOrEmpty(appeal.DocumentPath))
                     {
@@ -153,6 +157,10 @@ namespace AutomotiveClaimsApi.Controllers
                     appeal.DocumentPath = documentResult.FilePath;
                     appeal.DocumentName = documentResult.OriginalFileName;
                     appeal.DocumentDescription = updateDto.DocumentDescription;
+                }
+                else if (updateDto.Document != null)
+                {
+                    return BadRequest(new { error = "Document file is empty" });
                 }
                 else if (!string.IsNullOrEmpty(updateDto.DocumentDescription))
                 {

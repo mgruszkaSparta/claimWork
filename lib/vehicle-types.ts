@@ -1,4 +1,4 @@
-import type { VehicleType, VehicleTypeResponse } from "@/types/vehicle-type"
+import type { VehicleType } from "@/types/vehicle-type"
 import { API_BASE_URL } from "./api"
 
 const VEHICLE_TYPES_URL = `${API_BASE_URL}/dictionaries/vehicle-types`
@@ -21,18 +21,30 @@ export const vehicleTypeService = {
         credentials: "include",
       })
 
-
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`)
       }
 
-      const data: VehicleTypeResponse = await response.json()
+      const data = await response.json()
 
-      if (data.success && Array.isArray(data.data)) {
-        return data.data.filter((type) => type.isActive)
-      }
+      const items = Array.isArray(data)
+        ? data
+        : Array.isArray(data?.data)
+          ? data.data
+          : Array.isArray(data?.items)
+            ? data.items
+            : []
 
-      return []
+      return items
+        .filter((type: any) => type.isActive)
+        .map((type: any) => ({
+          id: type.id,
+          code: type.code,
+          name: type.name,
+          label: type.label ?? type.name,
+          value: type.value ?? type.code,
+          isActive: type.isActive,
+        }))
     } catch (error) {
       console.error("Error fetching vehicle types:", error)
       return []
@@ -41,7 +53,6 @@ export const vehicleTypeService = {
 
   async getVehicleTypeById(id: string): Promise<VehicleType | null> {
     try {
-
       const response = await fetch(`${VEHICLE_TYPES_URL}/${id}`, {
         method: "GET",
         credentials: "include",
@@ -52,9 +63,17 @@ export const vehicleTypeService = {
       }
 
       const data = await response.json()
+      const item = data?.data || data?.item || data
 
-      if (data.success && data.data) {
-        return data.data
+      if (item) {
+        return {
+          id: item.id,
+          code: item.code,
+          name: item.name,
+          label: item.label ?? item.name,
+          value: item.value ?? item.code,
+          isActive: item.isActive,
+        }
       }
 
       return null

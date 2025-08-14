@@ -81,7 +81,7 @@ export const transformApiClaimToFrontend = (apiClaim: ClaimDto): Claim => {
         id: c.id,
         eventId: c.eventId,
         claimNumber: c.claimNumber,
-        claimDate: c.claimDate,
+        claimDate: c.claimDate ? c.claimDate.split("T")[0] : "",
         claimType: c.claimType,
         claimAmount: c.claimAmount,
         currency: c.currency,

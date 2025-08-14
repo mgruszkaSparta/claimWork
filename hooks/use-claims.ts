@@ -77,23 +77,39 @@ export const transformApiClaimToFrontend = (apiClaim: ClaimDto): Claim => {
     decisions: apiClaim.decisions || [],
     appeals: apiClaim.appeals,
     clientClaims:
-      apiClaim.clientClaims?.map((c: any) => ({
-        id: c.id,
-        eventId: c.eventId,
-        claimNumber: c.claimNumber,
-        claimDate: c.claimDate ? c.claimDate.split("T")[0] : "",
-        claimType: c.claimType,
-        claimAmount: c.claimAmount,
-        currency: c.currency,
-        status: c.status,
-        description: c.description,
-        documentPath: c.documentPath,
-        documentName: c.documentName,
-        documentDescription: c.documentDescription,
-        claimNotes: c.claimNotes,
-        createdAt: c.createdAt,
-        updatedAt: c.updatedAt,
-      })) || [],
+      apiClaim.clientClaims?.map((c: any) => {
+        const document =
+          c.documentPath && c.documentName
+            ? {
+                id: c.id?.toString(),
+                name: c.documentName,
+                size: 0,
+                type: "other" as const,
+                uploadedAt: c.createdAt || new Date().toISOString(),
+                url: c.documentPath,
+                description: c.documentDescription,
+              }
+            : undefined
+
+        return {
+          id: c.id,
+          eventId: c.eventId,
+          claimNumber: c.claimNumber,
+          claimDate: c.claimDate ? c.claimDate.split("T")[0] : "",
+          claimType: c.claimType,
+          claimAmount: c.claimAmount,
+          currency: c.currency,
+          status: c.status,
+          description: c.description,
+          documentPath: c.documentPath,
+          documentName: c.documentName,
+          documentDescription: c.documentDescription,
+          claimNotes: c.claimNotes,
+          createdAt: c.createdAt,
+          updatedAt: c.updatedAt,
+          ...(document ? { document } : {}),
+        }
+      }) || [],
     recourses: apiClaim.recourses || [],
     settlements: apiClaim.settlements || [],
     injuredParty: injuredParty ? mapParticipantDto(injuredParty) : undefined,

@@ -25,15 +25,7 @@ export default function EditClaimPage() {
 
   const id = params.id as string
 
-  const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([
-    {
-      id: "1",
-      name: "Analiza zmian.csv",
-      size: 301,
-      type: "other",
-      url: "/placeholder.svg?width=400&height=300",
-    },
-  ])
+  const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([])
 
   const [requiredDocuments, setRequiredDocuments] = useState<RequiredDocument[]>([
     {
@@ -120,6 +112,7 @@ export default function EditClaimPage() {
         const transformedData = transformApiClaimToFrontend(claimData)
 
         setClaimFormData(transformedData)
+        setUploadedFiles(transformedData.documents ?? [])
       } else {
         throw new Error("Nie znaleziono danych szkody")
       }
@@ -135,7 +128,7 @@ export default function EditClaimPage() {
     } finally {
       setIsLoading(false)
     }
-  }, [id, setClaimFormData, toast])
+  }, [id, setClaimFormData, setUploadedFiles, toast])
 
   // Load claim data on mount
   useEffect(() => {

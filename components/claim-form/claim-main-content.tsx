@@ -720,7 +720,12 @@ export const ClaimMainContent = ({
   }
 
   // Helper function to render participant details
-const renderParticipantDetails = (participant: ParticipantInfo | undefined, title: string, icon: React.ReactNode, bgColor: string) => {
+const renderParticipantDetails = (
+  participant: ParticipantInfo | undefined,
+  title: string,
+  icon: React.ReactNode,
+  bgColor: string
+) => {
   if (!participant) {
     return (
       <div className="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden">

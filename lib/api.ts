@@ -937,12 +937,16 @@ class ApiService {
   }
 
   // Risk Types API
-  async getRiskTypes(params: { isActive?: boolean } = {}): Promise<RiskTypeDto[]> {
+  async getRiskTypes(
+    params: { claimObjectTypeId?: number } = {},
+  ): Promise<RiskTypeDto[]> {
     const searchParams = new URLSearchParams()
-    if (params.isActive !== undefined) {
-      searchParams.append('isActive', String(params.isActive))
+    if (params.claimObjectTypeId !== undefined) {
+      searchParams.append('claimObjectTypeId', String(params.claimObjectTypeId))
     }
+
     const url = `/RiskTypes${searchParams.toString() ? `?${searchParams.toString()}` : ''}`
+
     return this.request<RiskTypeDto[]>(url)
   }
 

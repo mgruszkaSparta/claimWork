@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
+import { useAuth } from '@/hooks/use-auth'
 
 interface UserFormProps {
   userId?: string
@@ -17,6 +18,7 @@ export default function UserForm({ userId }: UserFormProps) {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const router = useRouter()
+  const { hasPermission } = useAuth()
 
   useEffect(() => {
     if (isEdit && userId) {
@@ -36,6 +38,11 @@ export default function UserForm({ userId }: UserFormProps) {
     }
     router.push('/')
   }
+
+  const canCreate = hasPermission('users.create')
+  const canUpdate = hasPermission('users.update')
+  if (!isEdit && !canCreate) return null
+  if (isEdit && !canUpdate) return null
 
   return (
     <form onSubmit={handleSubmit} className="max-w-md space-y-4 p-4">

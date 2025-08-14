@@ -5,6 +5,8 @@ using Microsoft.AspNetCore.Authorization;
 using AutomotiveClaimsApi.Models;
 using AutomotiveClaimsApi.DTOs;
 using AutomotiveClaimsApi.Services;
+using AutomotiveClaimsApi.Authorization;
+using System.Linq;
 namespace AutomotiveClaimsApi.Controllers
 {
     [ApiController]
@@ -70,7 +72,7 @@ namespace AutomotiveClaimsApi.Controllers
         public record ForgotPasswordDto(string Email);
         public record ResetPasswordDto(string Email, string Token, string NewPassword);
 
-        [AllowAnonymous]
+        [Authorize(Policy = Permissions.UsersCreate)]
         [HttpPost("register")]
         public async Task<IActionResult> Register([FromBody] RegisterDto dto)
         {
@@ -112,27 +114,29 @@ namespace AutomotiveClaimsApi.Controllers
             return Ok();
         }
 
-        [Authorize]
+        [Authorize(Policy = Permissions.UsersRead)]
         [HttpGet("me")]
         public async Task<ActionResult<UserDto>> Me()
         {
             var user = await _userManager.GetUserAsync(User);
             if (user == null) return Unauthorized();
             var roles = await _userManager.GetRolesAsync(user);
-            return new UserDto { Id = user.Id, UserName = user.UserName, Email = user.Email, Roles = roles };
+            var permissions = roles.SelectMany(r => RolePermissions.Mapping.GetValueOrDefault(r, System.Array.Empty<string>())).Distinct();
+            return new UserDto { Id = user.Id, UserName = user.UserName, Email = user.Email, Roles = roles, Permissions = permissions };
         }
 
-        [Authorize]
+        [Authorize(Policy = Permissions.UsersRead)]
         [HttpGet("users/{id}")]
         public async Task<ActionResult<UserDto>> GetUser(string id)
         {
             var user = await _userManager.FindByIdAsync(id);
             if (user == null) return NotFound();
             var roles = await _userManager.GetRolesAsync(user);
-            return new UserDto { Id = user.Id, UserName = user.UserName, Email = user.Email, Roles = roles };
+            var permissions = roles.SelectMany(r => RolePermissions.Mapping.GetValueOrDefault(r, System.Array.Empty<string>())).Distinct();
+            return new UserDto { Id = user.Id, UserName = user.UserName, Email = user.Email, Roles = roles, Permissions = permissions };
         }
 
-        [Authorize]
+        [Authorize(Policy = Permissions.UsersUpdate)]
         [HttpPut("users/{id}")]
         public async Task<IActionResult> UpdateUser(string id, [FromBody] UpdateUserDto dto)
         {
@@ -143,6 +147,39 @@ namespace AutomotiveClaimsApi.Controllers
             var result = await _userManager.UpdateAsync(user);
             if (!result.Succeeded) return BadRequest(result.Errors);
             return NoContent();
+        }
+
+        [Authorize(Policy = Permissions.UsersDelete)]
+        [HttpDelete("users/{id}")]
+        public async Task<IActionResult> DeleteUser(string id)
+        {
+            var user = await _userManager.FindByIdAsync(id);
+            if (user == null) return NotFound();
+            var result = await _userManager.DeleteAsync(user);
+            if (!result.Succeeded) return BadRequest(result.Errors);
+            return NoContent();
+        }
+
+        [Authorize(Policy = Permissions.UsersAssignRoles)]
+        [HttpPost("users/{id}/roles")]
+        public async Task<IActionResult> AssignRoles(string id, [FromBody] string[] roles)
+        {
+            var user = await _userManager.FindByIdAsync(id);
+            if (user == null) return NotFound();
+            var currentRoles = await _userManager.GetRolesAsync(user);
+            var removeResult = await _userManager.RemoveFromRolesAsync(user, currentRoles);
+            if (!removeResult.Succeeded) return BadRequest(removeResult.Errors);
+            var addResult = await _userManager.AddToRolesAsync(user, roles);
+            if (!addResult.Succeeded) return BadRequest(addResult.Errors);
+            return NoContent();
+        }
+
+        [Authorize(Policy = Permissions.UsersInvite)]
+        [HttpPost("users/{id}/invite")]
+        public IActionResult InviteUser(string id)
+        {
+            // Invitation logic would go here
+            return Ok();
         }
 
     }

@@ -631,10 +631,10 @@ class ApiService {
     this.setToken(null)
   }
 
-  async getCurrentUser(): Promise<{ username: string; email?: string; roles?: string[] } | undefined> {
-    const data = await this.request<{ id: string; userName: string; email: string; roles: string[] }>("/auth/me")
+  async getCurrentUser(): Promise<{ username: string; email?: string; roles?: string[]; permissions?: string[] } | undefined> {
+    const data = await this.request<{ id: string; userName: string; email: string; roles: string[]; permissions: string[] }>("/auth/me")
     if (!data) return undefined
-    return { username: data.userName, email: data.email, roles: data.roles }
+    return { username: data.userName, email: data.email, roles: data.roles, permissions: data.permissions }
   }
 
   async getUser(id: string): Promise<{ id: string; userName: string; email?: string }> {

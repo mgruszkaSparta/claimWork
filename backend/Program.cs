@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using AutomotiveClaimsApi.Data;
 using AutomotiveClaimsApi.Services;
 using AutomotiveClaimsApi.Models;
+using AutomotiveClaimsApi.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
@@ -34,6 +35,15 @@ builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
 })
     .AddEntityFrameworkStores<ApplicationDbContext>()
     .AddDefaultTokenProviders();
+
+builder.Services.AddAuthorization(options =>
+{
+    var permissions = RolePermissions.Invert();
+    foreach (var kvp in permissions)
+    {
+        options.AddPolicy(kvp.Key, policy => policy.RequireRole(kvp.Value));
+    }
+});
 
 builder.Services.ConfigureApplicationCookie(options =>
 {
@@ -98,12 +108,12 @@ using (var scope = app.Services.CreateScope())
 {
     var services = scope.ServiceProvider;
     var context = services.GetRequiredService<ApplicationDbContext>();
-    await context.Database.EnsureCreatedAsync();
+    await context.Database.MigrateAsync();
 
     var roleManager = services.GetRequiredService<RoleManager<IdentityRole>>();
     var userManager = services.GetRequiredService<UserManager<ApplicationUser>>();
 
-    var roles = new[] { "Admin", "User" };
+    var roles = Roles.All;
     foreach (var role in roles)
     {
         if (!await roleManager.RoleExistsAsync(role))
@@ -117,7 +127,7 @@ using (var scope = app.Services.CreateScope())
     {
         admin = new ApplicationUser { UserName = "admin", Email = "admin@example.com" };
         await userManager.CreateAsync(admin, "Admin123!");
-        await userManager.AddToRoleAsync(admin, "Admin");
+        await userManager.AddToRoleAsync(admin, Roles.Owner);
     }
 }
 

@@ -9,9 +9,9 @@ namespace AutomotiveClaimsApi.DTOs
         [Required]
         [MaxLength(20)]
         public string Code { get; set; } = string.Empty;
-        
+
         [Required]
-        [MaxLength(200)]
+        [StringLength(120, MinimumLength = 1)]
         public string Name { get; set; } = string.Empty;
         
         [MaxLength(500)]

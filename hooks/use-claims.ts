@@ -268,7 +268,9 @@ export const transformFrontendClaimToApiPayload = (
       return {
         ...rest,
         ...(id && isGuid(id) ? { id } : {}),
-        claimDate: toIso(claimDate, "clientClaims.claimDate"),
+        ...(claimDate
+          ? { claimDate: `${claimDate}T00:00:00.000Z` }
+          : {}),
       }
     }),
     ...(Array.isArray(recourses) && recourses.length > 0

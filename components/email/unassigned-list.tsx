@@ -1,6 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
+
 import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { SearchableSelect } from "@/components/ui/searchable-select"
@@ -21,10 +22,12 @@ export function UnassignedEmailList() {
       } catch (error) {
         console.error("Failed to load emails", error)
         setEmails([])
+
       } finally {
         setLoading(false)
       }
     }
+
     fetchEmails()
   }, [])
 
@@ -78,10 +81,12 @@ export function UnassignedEmailList() {
           }
         }}
       >
+
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Przypisz do szkody</DialogTitle>
           </DialogHeader>
+
           <SearchableSelect
             apiEndpoint="/api/claims/options"
             value={selectedClaim}
@@ -93,9 +98,11 @@ export function UnassignedEmailList() {
           <DialogFooter className="mt-4">
             <Button variant="outline" onClick={() => { setAssigningEmail(null); setSelectedClaim("") }}>Anuluj</Button>
             <Button onClick={handleAssign} disabled={!selectedClaim}>Przypisz</Button>
+
           </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>
   )
 }
+

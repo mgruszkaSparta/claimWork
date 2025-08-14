@@ -127,6 +127,27 @@ namespace AutomotiveClaimsApi.DTOs
         [StringLength(100)]
         public string? VehicleType { get; set; }
 
+        [StringLength(200)]
+        public string? SubcontractorName { get; set; }
+
+        [StringLength(100)]
+        public string? SubcontractorPolicyNumber { get; set; }
+
+        [StringLength(200)]
+        public string? SubcontractorInsurer { get; set; }
+
+        public bool? ComplaintToSubcontractor { get; set; }
+
+        public DateTime? ComplaintToSubcontractorDate { get; set; }
+
+        public bool? ClaimFromSubcontractorPolicy { get; set; }
+
+        public DateTime? ClaimFromSubcontractorPolicyDate { get; set; }
+
+        public bool? ComplaintResponse { get; set; }
+
+        public DateTime? ComplaintResponseDate { get; set; }
+
         [StringLength(2000)]
         public string? DamageDescription { get; set; }
 

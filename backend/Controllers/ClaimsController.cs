@@ -701,6 +701,15 @@ namespace AutomotiveClaimsApi.Controllers
             entity.ServicesCalled = dto.ServicesCalled;
             entity.PoliceUnitDetails = dto.PoliceUnitDetails;
             entity.VehicleType = dto.VehicleType;
+            entity.SubcontractorName = dto.SubcontractorName;
+            entity.SubcontractorPolicyNumber = dto.SubcontractorPolicyNumber;
+            entity.SubcontractorInsurer = dto.SubcontractorInsurer;
+            entity.ComplaintToSubcontractor = dto.ComplaintToSubcontractor;
+            entity.ComplaintToSubcontractorDate = dto.ComplaintToSubcontractorDate;
+            entity.ClaimFromSubcontractorPolicy = dto.ClaimFromSubcontractorPolicy;
+            entity.ClaimFromSubcontractorPolicyDate = dto.ClaimFromSubcontractorPolicyDate;
+            entity.ComplaintResponse = dto.ComplaintResponse;
+            entity.ComplaintResponseDate = dto.ComplaintResponseDate;
             entity.DamageDescription = dto.DamageDescription;
             entity.Description = dto.Description;
         }
@@ -1463,6 +1472,15 @@ namespace AutomotiveClaimsApi.Controllers
             ServicesCalled = e.ServicesCalled?.Split(',', StringSplitOptions.RemoveEmptyEntries),
             PoliceUnitDetails = e.PoliceUnitDetails,
             VehicleType = e.VehicleType,
+            SubcontractorName = e.SubcontractorName,
+            SubcontractorPolicyNumber = e.SubcontractorPolicyNumber,
+            SubcontractorInsurer = e.SubcontractorInsurer,
+            ComplaintToSubcontractor = e.ComplaintToSubcontractor,
+            ComplaintToSubcontractorDate = e.ComplaintToSubcontractorDate,
+            ClaimFromSubcontractorPolicy = e.ClaimFromSubcontractorPolicy,
+            ClaimFromSubcontractorPolicyDate = e.ClaimFromSubcontractorPolicyDate,
+            ComplaintResponse = e.ComplaintResponse,
+            ComplaintResponseDate = e.ComplaintResponseDate,
             DamageDescription = e.DamageDescription,
             Description = e.Description,
             CreatedAt = e.CreatedAt,

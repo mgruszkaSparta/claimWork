@@ -50,6 +50,15 @@ namespace AutomotiveClaimsApi.DTOs
         public string[]? ServicesCalled { get; set; }
         public string? PoliceUnitDetails { get; set; }
         public string? VehicleType { get; set; }
+        public string? SubcontractorName { get; set; }
+        public string? SubcontractorPolicyNumber { get; set; }
+        public string? SubcontractorInsurer { get; set; }
+        public bool? ComplaintToSubcontractor { get; set; }
+        public DateTime? ComplaintToSubcontractorDate { get; set; }
+        public bool? ClaimFromSubcontractorPolicy { get; set; }
+        public DateTime? ClaimFromSubcontractorPolicyDate { get; set; }
+        public bool? ComplaintResponse { get; set; }
+        public DateTime? ComplaintResponseDate { get; set; }
         public string? DamageDescription { get; set; }
         public string? Description { get; set; }
         public DateTime CreatedAt { get; set; }

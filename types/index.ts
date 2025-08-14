@@ -42,6 +42,8 @@ export interface Claim
   insuranceCompanyId?: string
   leasingCompanyId?: string
   handlerId?: string
+  registeredByUserId?: string
+  registeredByUserName?: string
   /**
    * List of services called.
    * API stores this as a comma-separated string

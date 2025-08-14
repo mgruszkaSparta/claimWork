@@ -2597,7 +2597,7 @@ const renderParticipantDetails = (participant: ParticipantInfo | undefined, titl
 
                 <div className="grid grid-cols-2 gap-3">
                   <InfoCard label="Status" value={getStatusLabel(claimFormData.status)} />
-                  <InfoCard label="Szkodę zarejestrował" value={claimFormData.handler} />
+                  <InfoCard label="Szkodę zarejestrował" value={claimFormData.registeredByUserName} />
                 </div>
 
                 <InfoCard label="Rodzaj szkody" value={claimFormData.damageType} />

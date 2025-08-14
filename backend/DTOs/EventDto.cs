@@ -54,6 +54,8 @@ namespace AutomotiveClaimsApi.DTOs
         public string? Description { get; set; }
         public DateTime CreatedAt { get; set; }
         public DateTime UpdatedAt { get; set; }
+        public string? RegisteredByUserId { get; set; }
+        public string? RegisteredByUserName { get; set; }
         
         public List<ParticipantDto> Participants { get; set; } = new();
         public List<DocumentDto> Documents { get; set; } = new();

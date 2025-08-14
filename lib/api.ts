@@ -23,6 +23,8 @@ export interface EventListItemDto {
   leasingCompany?: string
   handlerId?: number
   handler?: string
+  registeredByUserId?: string
+  registeredByUserName?: string
 }
 
 export interface EventDto extends EventListItemDto {

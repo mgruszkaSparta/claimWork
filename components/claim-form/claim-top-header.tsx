@@ -107,7 +107,7 @@ export function ClaimTopHeader({ claimFormData, onClose }: ClaimTopHeaderProps) 
             <div className="flex-1 min-w-0">
               <span className="block text-sm font-medium text-gray-700 mb-1">Szkodę zarejestrował</span>
               <span className="block text-sm text-gray-900 font-semibold truncate">
-                {claimFormData.handler || "Nie określono"}
+                {claimFormData.registeredByUserName || "Nie określono"}
               </span>
             </div>
           </div>

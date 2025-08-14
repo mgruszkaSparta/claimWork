@@ -860,6 +860,9 @@ namespace AutomotiveClaimsApi.Migrations
                         .HasMaxLength(50)
                         .HasColumnType("character varying(50)");
 
+                    b.Property<string>("RegisteredByUserId")
+                        .HasColumnType("nvarchar(450)");
+
 
                     b.Property<int?>("InsuranceCompanyId")
 
@@ -988,7 +991,13 @@ namespace AutomotiveClaimsApi.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("RegisteredByUserId");
+
                     b.ToTable("Events");
+
+                    b.HasOne("AutomotiveClaimsApi.Models.ApplicationUser", "RegisteredByUser")
+                        .WithMany()
+                        .HasForeignKey("RegisteredByUserId");
                 });
 
             modelBuilder.Entity("AutomotiveClaimsApi.Models.Participant", b =>
@@ -1399,6 +1408,8 @@ namespace AutomotiveClaimsApi.Migrations
                     b.Navigation("Recourses");
 
                     b.Navigation("Settlements");
+
+                    b.Navigation("RegisteredByUser");
                 });
 
             modelBuilder.Entity("AutomotiveClaimsApi.Models.Participant", b =>

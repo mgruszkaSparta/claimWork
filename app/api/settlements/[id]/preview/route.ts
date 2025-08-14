@@ -6,6 +6,7 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
   try {
     const response = await fetch(`${API_BASE_URL}/settlements/${params.id}/preview`, {
       method: "GET",
+      headers: { cookie: request.headers.get("cookie") ?? "" },
     })
 
     if (!response.ok) {

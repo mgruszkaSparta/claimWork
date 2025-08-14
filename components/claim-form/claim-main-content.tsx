@@ -19,6 +19,8 @@ import { AppealsSection } from "./appeals-section"
 import { ClientClaimsSection } from "./client-claims-section"
 import { RecourseSection } from "./recourse-section"
 import { SettlementsSection } from "./settlements-section"
+import { PropertyDamageSection } from "./property-damage-section"
+import { TransportDamageSection } from "./transport-damage-section"
 import type {
   Claim,
   Service,
@@ -1880,15 +1882,27 @@ const renderParticipantDetails = (participant: ParticipantInfo | undefined, titl
                 </div>
               </div>
               <div>
-                <DamageDiagram
-                  damagedParts={(claimFormData.damages || []).map((d) => d.description)}
-                  onPartClick={handleDamagePartToggle}
-                />
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-      )
+              <DamageDiagram
+                damagedParts={(claimFormData.damages || []).map((d) => d.description)}
+                onPartClick={handleDamagePartToggle}
+              />
+            </div>
+          </CardContent>
+        </Card>
+        {claimObjectType === "2" && (
+          <PropertyDamageSection
+            claimFormData={claimFormData}
+            handleFormChange={handleFormChange}
+          />
+        )}
+        {claimObjectType === "3" && (
+          <TransportDamageSection
+            claimFormData={claimFormData}
+            handleFormChange={handleFormChange}
+          />
+        )}
+      </div>
+    )
 
     case "uczestnicy":
       return (

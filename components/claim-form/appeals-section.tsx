@@ -52,6 +52,8 @@ export const AppealsSection = ({ claimId }: AppealsSectionProps) => {
   const [showFileDescription, setShowFileDescription] = useState(false)
   const [previewAppeal, setPreviewAppeal] = useState<Appeal | null>(null)
   const [isPreviewOpen, setIsPreviewOpen] = useState(false)
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null)
+  const [previewFileType, setPreviewFileType] = useState<string>("")
 
   // Form data
   const [formData, setFormData] = useState({
@@ -282,7 +284,18 @@ export const AppealsSection = ({ claimId }: AppealsSectionProps) => {
     }
   }
 
-  const downloadFile = (appeal: Appeal) => {
+  const getFileNameFromPath = (path: string): string => {
+    return path.split("/").pop()?.split("?")[0] || "document"
+  }
+
+  const getFileType = (fileName: string): string => {
+    const ext = fileName.split(".").pop()?.toLowerCase()
+    if (["pdf"].includes(ext || "")) return "pdf"
+    if (["jpg", "jpeg", "png", "gif", "bmp"].includes(ext || "")) return "image"
+    return "other"
+  }
+
+  const downloadFile = async (appeal: Appeal) => {
     if (!appeal.documentPath) {
       toast({
         title: "Błąd",
@@ -292,16 +305,35 @@ export const AppealsSection = ({ claimId }: AppealsSectionProps) => {
       return
     }
 
-    // Create download link
-    const link = document.createElement("a")
-    link.href = `${API_BASE_URL}/appeals/${appeal.id}/download`
-    link.download = appeal.documentName || "document"
-    document.body.appendChild(link)
-    link.click()
-    document.body.removeChild(link)
+    try {
+      const response = await fetch(`${API_BASE_URL}/appeals/${appeal.id}/download`, {
+        method: "GET",
+        credentials: "include",
+      })
+      if (!response.ok) {
+        throw new Error("Failed to download file")
+      }
+      const blob = await response.blob()
+      const url = window.URL.createObjectURL(blob)
+      const a = document.createElement("a")
+      a.href = url
+      const fileName = appeal.documentName || getFileNameFromPath(appeal.documentPath)
+      a.download = fileName
+      document.body.appendChild(a)
+      a.click()
+      a.remove()
+      window.URL.revokeObjectURL(url)
+    } catch (error) {
+      console.error("Error downloading file:", error)
+      toast({
+        title: "Błąd",
+        description: "Błąd podczas pobierania pliku",
+        variant: "destructive",
+      })
+    }
   }
 
-  const previewFile = (appeal: Appeal) => {
+  const previewFile = async (appeal: Appeal) => {
     if (!appeal.documentPath) {
       toast({
         title: "Błąd",
@@ -311,14 +343,34 @@ export const AppealsSection = ({ claimId }: AppealsSectionProps) => {
       return
     }
 
-    setPreviewAppeal(appeal)
-    setIsPreviewOpen(true)
+    try {
+      const response = await fetch(`${API_BASE_URL}/appeals/${appeal.id}/preview`, {
+        method: "GET",
+        credentials: "include",
+      })
+      if (!response.ok) {
+        throw new Error("Failed to preview file")
+      }
+      const blob = await response.blob()
+      const url = window.URL.createObjectURL(blob)
+      setPreviewUrl(url)
+      setPreviewFileType(getFileType(appeal.documentName || getFileNameFromPath(appeal.documentPath)))
+      setPreviewAppeal(appeal)
+      setIsPreviewOpen(true)
+    } catch (error) {
+      console.error("Error previewing file:", error)
+      toast({
+        title: "Błąd",
+        description: "Błąd podczas wczytywania podglądu",
+        variant: "destructive",
+      })
+    }
   }
 
   const isPreviewable = (fileName?: string) => {
     if (!fileName) return false
-    const ext = fileName.toLowerCase().split(".").pop()
-    return ["pdf", "jpg", "jpeg", "png", "gif"].includes(ext || "")
+    const fileType = getFileType(fileName)
+    return ["pdf", "image"].includes(fileType)
   }
 
   const getStatusBadge = (status: Appeal["status"]) => {
@@ -726,7 +778,17 @@ export const AppealsSection = ({ claimId }: AppealsSectionProps) => {
       )}
 
       {/* File Preview Dialog */}
-      <Dialog open={isPreviewOpen} onOpenChange={setIsPreviewOpen}>
+      <Dialog
+        open={isPreviewOpen}
+        onOpenChange={(open) => {
+          setIsPreviewOpen(open)
+          if (!open && previewUrl) {
+            window.URL.revokeObjectURL(previewUrl)
+            setPreviewUrl(null)
+            setPreviewAppeal(null)
+          }
+        }}
+      >
         <DialogContent className="max-w-4xl max-h-[90vh]">
           <DialogHeader>
             <DialogTitle>Podgląd: {previewAppeal?.documentName}</DialogTitle>
@@ -735,18 +797,10 @@ export const AppealsSection = ({ claimId }: AppealsSectionProps) => {
             )}
           </DialogHeader>
           <div className="flex-1 overflow-auto flex items-center justify-center bg-gray-100 rounded p-4 min-h-[400px]">
-            {previewAppeal?.documentName?.toLowerCase().endsWith(".pdf") ? (
-              <iframe
-                src={`${API_BASE_URL}/documents/${previewAppeal.id}/preview`}
-                className="w-full h-full border-0"
-                title="PDF Preview"
-              />
-            ) : previewAppeal?.documentName && isPreviewable(previewAppeal.documentName) ? (
-              <img
-                src={`${API_BASE_URL}/documents/${previewAppeal.id}/preview`}
-                alt="Preview"
-                className="max-w-full max-h-[70vh] object-contain"
-              />
+            {previewFileType === "pdf" && previewUrl ? (
+              <iframe src={previewUrl} className="w-full h-full border-0" title="PDF Preview" />
+            ) : previewFileType === "image" && previewUrl ? (
+              <img src={previewUrl} alt="Preview" className="max-w-full max-h-[70vh] object-contain" />
             ) : (
               <div className="text-center p-8 space-y-4">
                 <FileText className="h-12 w-12 mx-auto text-gray-400" />

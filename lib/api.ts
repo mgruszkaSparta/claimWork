@@ -629,12 +629,28 @@ class ApiService {
     })
   }
 
-  async login(username: string, password: string): Promise<void> {
-    const data = await this.request<{ token: string }>("/auth/login", {
+  async login(
+    username: string,
+    password: string,
+  ): Promise<{ mustChangePassword: boolean }> {
+    const data = await this.request<{ mustChangePassword: boolean }>(
+      "/auth/login",
+      {
+        method: "POST",
+        body: JSON.stringify({ userName: username, password }),
+      },
+    )
+    return { mustChangePassword: data.mustChangePassword }
+  }
+
+  async forceChangePassword(
+    currentPassword: string,
+    newPassword: string,
+  ): Promise<void> {
+    await this.request<void>("/auth/force-change-password", {
       method: "POST",
-      body: JSON.stringify({ userName: username, password }),
+      body: JSON.stringify({ currentPassword, newPassword }),
     })
-    this.setToken(data.token)
   }
 
   async logout(): Promise<void> {

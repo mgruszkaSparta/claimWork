@@ -78,7 +78,9 @@ namespace AutomotiveClaimsApi.Controllers
             if (dto.UserName == null || dto.Password == null)
                 return BadRequest();
 
-            var user = new ApplicationUser { UserName = dto.UserName, Email = dto.Email, CreatedAt = DateTime.UtcNow };
+            var user = new ApplicationUser { UserName = dto.UserName, Email = dto.Email, MustChangePassword = true , CreatedAt = DateTime.UtcNow};
+
+
             var result = await _userManager.CreateAsync(user, dto.Password);
             if (!result.Succeeded)
             {
@@ -96,12 +98,26 @@ namespace AutomotiveClaimsApi.Controllers
                 _logger.LogWarning("Login attempt with missing username or password");
                 return BadRequest(new { message = "Username and password are required." });
             }
+            var user = await _userManager.FindByNameAsync(dto.UserName);
+            if (user == null)
+            {
+                return Unauthorized();
+            }
 
             var result = await _signInManager.PasswordSignInAsync(dto.UserName, dto.Password, true, true);
             if (!result.Succeeded)
             {
                 return Unauthorized();
             }
+
+
+            if (user.MustChangePassword)
+            {
+                return Ok(new { mustChangePassword = true });
+            }
+
+            return Ok(new { mustChangePassword = false });
+
             var user = await _userManager.FindByNameAsync(dto.UserName);
             if (user != null)
             {
@@ -109,6 +125,7 @@ namespace AutomotiveClaimsApi.Controllers
                 await _userManager.UpdateAsync(user);
             }
             return Ok();
+
         }
 
         [Authorize]
@@ -118,6 +135,30 @@ namespace AutomotiveClaimsApi.Controllers
             await _signInManager.SignOutAsync();
             return Ok();
         }
+
+        [Authorize]
+        [HttpPost("force-change-password")]
+        public async Task<IActionResult> ForceChangePassword([FromBody] ForceChangePasswordDto dto)
+        {
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null)
+            {
+                return Unauthorized();
+            }
+
+            var result = await _userManager.ChangePasswordAsync(user, dto.CurrentPassword, dto.NewPassword);
+            if (!result.Succeeded)
+            {
+                return BadRequest(result.Errors);
+            }
+
+            user.MustChangePassword = false;
+            await _userManager.UpdateAsync(user);
+
+            return Ok();
+        }
+
+        public record ForceChangePasswordDto(string CurrentPassword, string NewPassword);
 
         [Authorize]
         [HttpGet("me")]

@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Identity;
+using System;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using AutomotiveClaimsApi.Models;
@@ -77,7 +78,9 @@ namespace AutomotiveClaimsApi.Controllers
             if (dto.UserName == null || dto.Password == null)
                 return BadRequest();
 
-            var user = new ApplicationUser { UserName = dto.UserName, Email = dto.Email, MustChangePassword = true };
+            var user = new ApplicationUser { UserName = dto.UserName, Email = dto.Email, MustChangePassword = true , CreatedAt = DateTime.UtcNow};
+
+
             var result = await _userManager.CreateAsync(user, dto.Password);
             if (!result.Succeeded)
             {
@@ -107,12 +110,22 @@ namespace AutomotiveClaimsApi.Controllers
                 return Unauthorized();
             }
 
+
             if (user.MustChangePassword)
             {
                 return Ok(new { mustChangePassword = true });
             }
 
             return Ok(new { mustChangePassword = false });
+
+            var user = await _userManager.FindByNameAsync(dto.UserName);
+            if (user != null)
+            {
+                user.LastLogin = DateTime.UtcNow;
+                await _userManager.UpdateAsync(user);
+            }
+            return Ok();
+
         }
 
         [Authorize]
@@ -154,7 +167,7 @@ namespace AutomotiveClaimsApi.Controllers
             var user = await _userManager.GetUserAsync(User);
             if (user == null) return Unauthorized();
             var roles = await _userManager.GetRolesAsync(user);
-            return new UserDto { Id = user.Id, UserName = user.UserName, Email = user.Email, Roles = roles };
+            return new UserDto { Id = user.Id, UserName = user.UserName, Email = user.Email, Roles = roles, CreatedAt = user.CreatedAt, LastLogin = user.LastLogin };
         }
 
         [Authorize]
@@ -164,7 +177,7 @@ namespace AutomotiveClaimsApi.Controllers
             var user = await _userManager.FindByIdAsync(id);
             if (user == null) return NotFound();
             var roles = await _userManager.GetRolesAsync(user);
-            return new UserDto { Id = user.Id, UserName = user.UserName, Email = user.Email, Roles = roles };
+            return new UserDto { Id = user.Id, UserName = user.UserName, Email = user.Email, Roles = roles, CreatedAt = user.CreatedAt, LastLogin = user.LastLogin };
         }
 
         [Authorize]

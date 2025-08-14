@@ -6,7 +6,7 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url)
     const claimObjectTypeId = searchParams.get('claimObjectTypeId') || '1' // Default to communication claims
 
-    const url = `${API_BASE_URL}/risk-types?claimObjectTypeId=${claimObjectTypeId}`
+    const url = `${API_BASE_URL}/dictionaries/risk-types?claimObjectTypeId=${claimObjectTypeId}`
 
     const response = await fetch(url)
     
@@ -48,7 +48,7 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url)
     const claimObjectTypeId = searchParams.get('claimObjectTypeId') || '1'
     const filteredData = allRiskTypes.filter(item => item.claimObjectTypeId.toString() === claimObjectTypeId)
-    
-    return NextResponse.json(filteredData)
+
+    return NextResponse.json({ items: filteredData })
   }
 }

@@ -224,7 +224,7 @@ export const API_ENDPOINTS = {
   DAMAGES_INIT: `${API_BASE_URL}/damages/init`,
   DOCUMENTS: `${API_BASE_URL}/documents`,
   CLIENTS: `${API_BASE_URL}/clients`,
-  RISK_TYPES: `${API_BASE_URL}/risk-types`,
+  RISK_TYPES: `${API_BASE_URL}/dictionaries/risk-types`,
   DAMAGE_TYPES: `${API_BASE_URL}/damage-types`,
   COUNTRIES: `${API_BASE_URL}/countries`,
   CURRENCIES: `${API_BASE_URL}/currencies`,

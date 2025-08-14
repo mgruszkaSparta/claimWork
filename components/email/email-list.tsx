@@ -192,9 +192,9 @@ export const EmailList = ({
                       <span className={cn("font-medium truncate", !email.isRead ? "text-gray-900" : "text-gray-600")}>
                         {email.fromName}
                       </span>
-                      {email.claimId && (
+                      {email.claimIds && email.claimIds.length > 0 && (
                         <Badge variant="outline" className="text-xs">
-                          {email.claimId}
+                          {email.claimIds.join(", ")}
                         </Badge>
                       )}
                       {email.labels.map((label) => (

@@ -1,144 +1,104 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { emailService, type EmailDto } from "@/lib/email-service"
-import { apiService, type ClaimListItemDto } from "@/lib/api"
-import {
-  Table,
-  TableHeader,
-  TableRow,
-  TableHead,
-  TableBody,
-  TableCell,
-} from "@/components/ui/table"
-import { Button } from "@/components/ui/button"
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-} from "@/components/ui/dialog"
-import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select"
 
-export default function UnassignedEmailList() {
+import { Button } from "@/components/ui/button"
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { SearchableSelect } from "@/components/ui/searchable-select"
+import { emailService, type EmailDto } from "@/lib/email-service"
+
+export function UnassignedEmailList() {
   const [emails, setEmails] = useState<EmailDto[]>([])
   const [loading, setLoading] = useState(false)
-  const [error, setError] = useState("")
-
-  const [isAssignOpen, setIsAssignOpen] = useState(false)
-  const [selectedEmail, setSelectedEmail] = useState<EmailDto | null>(null)
-  const [claims, setClaims] = useState<ClaimListItemDto[]>([])
-  const [selectedClaimId, setSelectedClaimId] = useState("")
-  const [assigning, setAssigning] = useState(false)
+  const [assigningEmail, setAssigningEmail] = useState<EmailDto | null>(null)
+  const [selectedClaim, setSelectedClaim] = useState("")
 
   useEffect(() => {
-    const loadEmails = async () => {
+    const fetchEmails = async () => {
       setLoading(true)
-      setError("")
       try {
         const data = await emailService.getUnassignedEmails()
         setEmails(data)
-      } catch (err) {
-        console.error(err)
-        setError("Nie udało się pobrać wiadomości")
+      } catch (error) {
+        console.error("Failed to load emails", error)
+        setEmails([])
+
       } finally {
         setLoading(false)
       }
     }
-    loadEmails()
+
+    fetchEmails()
   }, [])
 
-  const openAssign = async (email: EmailDto) => {
-    setSelectedEmail(email)
-    setIsAssignOpen(true)
-    setSelectedClaimId("")
-    try {
-      const { items } = await apiService.getClaims({ page: 1, pageSize: 50 })
-      setClaims(items)
-    } catch (err) {
-      console.error("Failed to load claims", err)
-      setClaims([])
-    }
-  }
-
   const handleAssign = async () => {
-    if (!selectedEmail || !selectedClaimId) return
-    setAssigning(true)
+    if (!assigningEmail || !selectedClaim) return
     try {
-      const success = await emailService.assignEmailToClaim(selectedEmail.id, selectedClaimId)
+      const success = await emailService.assignEmailToClaim(
+        assigningEmail.id,
+        selectedClaim,
+      )
       if (success) {
-        setEmails((prev) => prev.filter((e) => e.id !== selectedEmail.id))
-        setIsAssignOpen(false)
+        setEmails((prev) => prev.filter((e) => e.id !== assigningEmail.id))
+        setAssigningEmail(null)
+        setSelectedClaim("")
       }
-    } catch (err) {
-      console.error("Assign failed", err)
-    } finally {
-      setAssigning(false)
+    } catch (error) {
+      console.error("Failed to assign email", error)
     }
   }
-
-  if (loading) return <p className="p-4">Ładowanie...</p>
-  if (error) return <p className="p-4 text-red-500">{error}</p>
 
   return (
     <div className="p-4">
-      <h1 className="text-2xl font-semibold mb-4">Nieprzypisane wiadomości</h1>
-      {emails.length === 0 ? (
-        <p>Brak nieprzypisanych wiadomości.</p>
+      <h1 className="text-2xl font-bold mb-4">Szkody nieprzydzielone</h1>
+      {loading ? (
+        <p>Ładowanie...</p>
       ) : (
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Nadawca</TableHead>
-              <TableHead>Temat</TableHead>
-              <TableHead>Otrzymano</TableHead>
-              <TableHead className="w-32">Akcje</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {emails.map((email) => (
-              <TableRow key={email.id}>
-                <TableCell>{email.from}</TableCell>
-                <TableCell>{email.subject}</TableCell>
-                <TableCell>{new Date(email.receivedDate).toLocaleString()}</TableCell>
-                <TableCell>
-                  <Button size="sm" onClick={() => openAssign(email)}>
-                    Przypisz
-                  </Button>
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
+        <ul className="space-y-4">
+          {emails.map((email) => (
+            <li key={email.id} className="border rounded p-4">
+              <div className="flex justify-between items-start">
+                <div>
+                  <p className="font-medium">{email.subject}</p>
+                  <p className="text-sm text-gray-500">{email.from}</p>
+                </div>
+                <Button onClick={() => setAssigningEmail(email)}>Przypisz</Button>
+              </div>
+            </li>
+          ))}
+          {emails.length === 0 && !loading && (
+            <li className="text-gray-500">Brak e-maili do przypisania</li>
+          )}
+        </ul>
       )}
 
-      <Dialog open={isAssignOpen} onOpenChange={setIsAssignOpen}>
+      <Dialog
+        open={assigningEmail !== null}
+        onOpenChange={(open) => {
+          if (!open) {
+            setAssigningEmail(null)
+            setSelectedClaim("")
+          }
+        }}
+      >
+
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Przypisz do szkody</DialogTitle>
           </DialogHeader>
-          <div className="py-4">
-            <Select value={selectedClaimId} onValueChange={setSelectedClaimId}>
-              <SelectTrigger>
-                <SelectValue placeholder="Wybierz szkodę" />
-              </SelectTrigger>
-              <SelectContent>
-                {claims.map((claim) => (
-                  <SelectItem key={claim.id} value={claim.id}>
-                    {claim.claimNumber || claim.spartaNumber || claim.id}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setIsAssignOpen(false)}>
-              Anuluj
-            </Button>
-            <Button onClick={handleAssign} disabled={assigning || !selectedClaimId}>
-              Przypisz
-            </Button>
+
+          <SearchableSelect
+            apiEndpoint="/api/claims/options"
+            value={selectedClaim}
+            onValueChange={setSelectedClaim}
+            placeholder="Wybierz szkodę"
+            searchPlaceholder="Szukaj szkody..."
+            emptyText="Nie znaleziono"
+          />
+          <DialogFooter className="mt-4">
+            <Button variant="outline" onClick={() => { setAssigningEmail(null); setSelectedClaim("") }}>Anuluj</Button>
+            <Button onClick={handleAssign} disabled={!selectedClaim}>Przypisz</Button>
+
           </DialogFooter>
         </DialogContent>
       </Dialog>

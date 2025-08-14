@@ -298,7 +298,7 @@ export const ClaimMainContent = ({
     setLoadingRiskTypes(true)
     try {
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/risk-types?claimObjectTypeId=${claimObjectType}`,
+        `${process.env.NEXT_PUBLIC_API_URL}/dictionaries/risk-types?claimObjectTypeId=${claimObjectType}`,
         {
           method: "GET",
           credentials: "include",
@@ -306,9 +306,8 @@ export const ClaimMainContent = ({
       )
       if (response.ok) {
         const data = await response.json()
-        // Map data according to your database structure
-        const riskTypeOptions = data.map((item: any) => ({
-          value: item.riskId.toString(), // Use RiskId as value
+        const riskTypeOptions = (data.items || []).map((item: any) => ({
+          value: String(item.id),
           label: item.name,
         }))
         setRiskTypes(riskTypeOptions)

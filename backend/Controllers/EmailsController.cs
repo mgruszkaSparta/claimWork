@@ -106,5 +106,14 @@ namespace AutomotiveClaimsApi.Controllers
             await _emailService.FetchEmailsAsync();
             return Ok(new { message = "Emails fetched successfully" });
         }
+
+        [HttpPost("assign-to-claim")]
+        public async Task<IActionResult> AssignToClaim(AssignEmailToClaimDto dto)
+        {
+            var success = await _emailService.AssignEmailToClaimAsync(dto.EmailId, dto.ClaimIds);
+            if (!success)
+                return NotFound();
+            return NoContent();
+        }
     }
 }

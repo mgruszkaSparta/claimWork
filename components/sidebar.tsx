@@ -2,7 +2,9 @@
 import Link from "next/link"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
-import { LayoutDashboard, FileText, Car, Settings, Mail } from "lucide-react"
+
+import { LayoutDashboard, FileText, Car, Settings, Inbox } from "lucide-react"
+
 import { useAuth } from "@/hooks/use-auth"
 
 interface SidebarProps {
@@ -26,7 +28,9 @@ const menuItems = [
   {
     id: "unassigned",
     label: "Szkody nieprzydzielone",
-    icon: Mail,
+
+    icon: Inbox,
+
     href: "/emails/unassigned",
   },
   {

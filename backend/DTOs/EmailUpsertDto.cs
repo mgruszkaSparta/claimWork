@@ -42,7 +42,7 @@ namespace AutomotiveClaimsApi.DTOs
         public bool IsArchived { get; set; } = false;
         public string? Tags { get; set; }
         public string? Category { get; set; }
-        public string? ClaimId { get; set; }
+        public List<string>? ClaimIds { get; set; }
         public string? ClaimNumber { get; set; }
         public string? ThreadId { get; set; }
         public string? MessageId { get; set; }

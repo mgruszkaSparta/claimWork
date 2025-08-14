@@ -332,16 +332,16 @@ export default function EmailInbox({ claimId, claimNumber, claimInsuranceNumber 
         setErrorMessage("Nie można przypisać emaila: brak ID szkody lub emaila.")
         return
       }
-      if (email.claimId === claimId) {
+      if (email.claimIds && email.claimIds.includes(claimId)) {
         setSuccessMessage("Email jest już przypisany do tej szkody.")
         return
       }
 
       try {
-        const success = await emailService.assignEmailToClaim(email.id, claimId)
+        const success = await emailService.assignEmailToClaim(email.id, [claimId])
         if (success) {
           setSuccessMessage("Email pomyślnie przypisany do szkody.")
-          email.claimId = claimId
+          email.claimIds = [...(email.claimIds ?? []), claimId]
           if (selectedFolder === EmailFolder.Unassigned) {
             setAllEmailsForCurrentFolder((prev) => prev.filter((e) => e.id !== email.id))
           }
@@ -686,7 +686,7 @@ export default function EmailInbox({ claimId, claimNumber, claimInsuranceNumber 
                   Przekaż dalej
                 </Button>
 
-                {selectedEmail && !selectedEmail.claimId && (
+                {selectedEmail && !(selectedEmail.claimIds && selectedEmail.claimIds.length > 0) && (
                   <Button variant="secondary" onClick={() => assignEmailToCurrentClaim(selectedEmail)}>
                     Przypisz do szkody
                   </Button>

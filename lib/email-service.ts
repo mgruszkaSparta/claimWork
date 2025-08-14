@@ -16,7 +16,7 @@ export interface EmailDto {
   body: string
   receivedDate: Date
   read?: boolean
-  claimId?: string | null
+  claimIds?: string[]
   attachments: AttachmentDto[]
 }
 
@@ -32,7 +32,7 @@ export interface SendEmailRequestDto {
 
 export interface AssignEmailToClaimDto {
   emailId: number
-  claimId: string
+  claimIds: string[]
 }
 
 class EmailService {
@@ -209,13 +209,13 @@ class EmailService {
     }
   }
 
-  async assignEmailToClaim(emailId: number, claimId: string): Promise<boolean> {
+  async assignEmailToClaim(emailId: number, claimIds: string[]): Promise<boolean> {
     try {
       const response = await fetch(`${this.apiUrl}/assign-to-claim`, {
         method: "POST",
         credentials: "include",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ emailId, claimId }),
+        body: JSON.stringify({ emailId, claimIds }),
       })
       return response.ok
     } catch (error) {

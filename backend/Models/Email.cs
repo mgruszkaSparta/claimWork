@@ -60,7 +60,6 @@ namespace AutomotiveClaimsApi.Models
         [ForeignKey("EventId")]
         public Event? Event { get; set; }
 
-        public string? ClaimId { get; set; }
         public string? ClaimNumber { get; set; }
         public string? ThreadId { get; set; }
         public string? MessageId { get; set; }
@@ -68,5 +67,7 @@ namespace AutomotiveClaimsApi.Models
         public string? References { get; set; }
 
         public ICollection<EmailAttachment> Attachments { get; set; } = new List<EmailAttachment>();
+
+        public ICollection<EmailClaim> EmailClaims { get; set; } = new List<EmailClaim>();
     }
 }

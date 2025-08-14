@@ -19,6 +19,8 @@ import { AppealsSection } from "./appeals-section"
 import { ClientClaimsSection } from "./client-claims-section"
 import { RecourseSection } from "./recourse-section"
 import { SettlementsSection } from "./settlements-section"
+import { PropertyDamageSection } from "./property-damage-section"
+import { TransportDamageSection } from "./transport-damage-section"
 import type {
   Claim,
   Service,
@@ -288,6 +290,37 @@ export const ClaimMainContent = ({
 
   const [claimStatuses, setClaimStatuses] = useState<ClaimStatus[]>([])
   const [loadingStatuses, setLoadingStatuses] = useState(false)
+
+  useEffect(() => {
+    const clearCommunicationFields = () => {
+      handleFormChange("vehicleType", "")
+      handleFormChange("brand", "")
+      handleFormChange("vehicleNumber", "")
+      handleFormChange("liquidator", "")
+    }
+
+    const clearPropertyFields = () => {
+      handleFormChange("propertySubject", "")
+      handleFormChange("propertyDamageList", [])
+      handleFormChange("injuredPartyData", {})
+    }
+
+    const clearTransportFields = () => {
+      handleFormChange("cargoDetails", "")
+      handleFormChange("carrierInfo", "")
+    }
+
+    if (claimObjectType === "1") {
+      clearPropertyFields()
+      clearTransportFields()
+    } else if (claimObjectType === "2") {
+      clearCommunicationFields()
+      clearTransportFields()
+    } else if (claimObjectType === "3") {
+      clearCommunicationFields()
+      clearPropertyFields()
+    }
+  }, [claimObjectType, handleFormChange])
 
   // Load data on component mount
   useEffect(() => {
@@ -1888,11 +1921,59 @@ const renderParticipantDetails = (participant: ParticipantInfo | undefined, titl
                     onPartClick={handleDamagePartToggle}
                   />
                 </div>
-              </CardContent>
-            </Card>
-          )}
-        </div>
-      )
+
+                <div>
+                  <Label className="text-sm font-medium text-gray-700">Powstałe uszkodzenia</Label>
+                  <div className="p-4 border rounded-lg bg-gray-50 space-y-2 mt-2 max-h-60 overflow-y-auto">
+                    {claimFormData.damages && claimFormData.damages.length > 0 ? (
+                      claimFormData.damages.map((damage, index) => (
+                        <div
+                          key={damage.id || `${damage.description}-${damage.detail}`}
+                          className="flex items-center justify-between text-sm hover:bg-gray-100 p-2 rounded bg-white border"
+                        >
+                          <span className="font-medium">
+                            {index + 1}. {damage.description} -{" "}
+                            <span className="text-gray-600 font-normal">{damage.detail}</span>
+                          </span>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-6 w-6"
+                            onClick={() => removeDamageItem(damage.description)}
+                          >
+                            <X className="h-4 w-4 text-red-500" />
+                          </Button>
+                        </div>
+                      ))
+                    ) : (
+                      <p className="text-sm text-gray-500 text-center py-4">Wybierz uszkodzone części na diagramie.</p>
+                    )}
+                  </div>
+                </div>
+              </div>
+              <div>
+              <DamageDiagram
+                damagedParts={(claimFormData.damages || []).map((d) => d.description)}
+                onPartClick={handleDamagePartToggle}
+              />
+            </div>
+          </CardContent>
+        </Card>
+        {claimObjectType === "2" && (
+          <PropertyDamageSection
+            claimFormData={claimFormData}
+            handleFormChange={handleFormChange}
+          />
+        )}
+        {claimObjectType === "3" && (
+          <TransportDamageSection
+            claimFormData={claimFormData}
+            handleFormChange={handleFormChange}
+          />
+        )}
+      </div>
+    )
+
 
     case "uczestnicy":
       return (

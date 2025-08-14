@@ -66,12 +66,6 @@ export function ClaimsList({
   const claims = initialClaims ?? fetchedClaims
   const totalRecords = initialClaims ? initialClaims.length : totalCount
 
-  // Reset page when filters change
-  useEffect(() => {
-    setPage(1)
-  }, [searchTerm, filterStatus, filterBrand, filterHandler, claimObjectTypeId])
-
-  // Fetch data on component mount and when dependencies change, unless claims are provided via props
   useEffect(() => {
     if (initialClaims) return
     const loadClaims = async () => {

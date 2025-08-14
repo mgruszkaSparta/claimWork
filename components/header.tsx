@@ -116,10 +116,12 @@ export function Header({ onMenuClick, user, onLogout }: HeaderProps) {
                   <User className="mr-2 h-4 w-4" />
                   <span>Profil</span>
                 </DropdownMenuItem>
-                <DropdownMenuItem>
-                  <Settings className="mr-2 h-4 w-4" />
-                  <span>Ustawienia</span>
-                </DropdownMenuItem>
+                {user?.roles?.some((r) => r.toLowerCase() === 'admin') && (
+                  <DropdownMenuItem>
+                    <Settings className="mr-2 h-4 w-4" />
+                    <span>Ustawienia</span>
+                  </DropdownMenuItem>
+                )}
                 <DropdownMenuSeparator />
                 <DropdownMenuItem 
                   onClick={() => {

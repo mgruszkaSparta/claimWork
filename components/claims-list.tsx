@@ -42,6 +42,7 @@ interface ClaimsListProps {
 }
 
 export function ClaimsList({
+  claims: initialClaims,
   onEditClaim,
   onNewClaim,
   claimObjectTypeId,
@@ -56,12 +57,24 @@ export function ClaimsList({
   const [page, setPage] = useState(1)
   const pageSize = 10
 
-  const { claims, loading, error, deleteClaim, fetchClaims, clearError, totalCount } = useClaims()
+  const {
+    claims: fetchedClaims,
+    loading,
+    error,
+    deleteClaim,
+    fetchClaims,
+    clearError,
+    totalCount,
+  } = useClaims()
   const { toast } = useToast()
-  const totalPages = Math.max(1, Math.ceil(totalCount / pageSize))
 
-  // Refresh data on component mount and when page changes
+  const claims = initialClaims ?? fetchedClaims
+  const totalRecords = initialClaims ? initialClaims.length : totalCount
+  const totalPages = Math.max(1, Math.ceil(totalRecords / pageSize))
+
+  // Refresh data on component mount and when dependencies change, unless claims are provided via props
   useEffect(() => {
+    if (initialClaims) return
     const loadClaims = async () => {
       try {
         await fetchClaims({
@@ -92,6 +105,7 @@ export function ClaimsList({
     filterBrand,
     filterHandler,
     claimObjectTypeId,
+    initialClaims,
   ])
 
   // TODO: consider moving this filtering to use-claims or the API to reduce client workload

@@ -70,7 +70,7 @@ export function TransportDamageSection({
         <div className="space-y-2">
           <Label>Lista strat</Label>
           {value.losses.map((loss, index) => (
-            <div key={index} className="flex items-center space-x-2">
+            <div key={`loss-${index}`} className="flex items-center space-x-2">
               <Input
                 placeholder={`Strata ${index + 1}`}
                 value={loss}

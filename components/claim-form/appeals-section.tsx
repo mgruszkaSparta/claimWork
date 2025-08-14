@@ -580,7 +580,7 @@ export const AppealsSection = ({ claimId }: AppealsSectionProps) => {
                     <div className="max-h-40 overflow-y-auto">
                       {selectedFiles.map((file, index) => (
                         <div
-                          key={index}
+                          key={`selected-file-${index}`}
                           className="p-2 bg-white border-b last:border-b-0 flex items-center justify-between"
                         >
                           <div className="flex items-center gap-2 flex-1 min-w-0">

@@ -11,6 +11,7 @@ import { Badge } from "@/components/ui/badge"
 import { useToast } from "@/hooks/use-toast"
 import { HandHeart, Plus, Minus, Edit, Trash2, Download, Eye, X, Upload, FileText, Info, Loader2 } from "lucide-react"
 import { getSettlements, createSettlement, updateSettlement, deleteSettlement } from "@/lib/api/settlements"
+import { API_BASE_URL } from "@/lib/api"
 import type { Settlement } from "@/types"
 
 interface SettlementsSectionProps {
@@ -297,44 +298,91 @@ export const SettlementsSection: React.FC<SettlementsSectionProps> = ({ eventId 
     return ["pdf", "jpg", "jpeg", "png", "gif"].includes(ext || "")
   }, [])
 
-  const previewFile = useCallback((settlement: Settlement) => {
-    if (!settlement.documentPath) return
+  const previewFile = useCallback(
+    async (settlement: Settlement) => {
+      if (!settlement.documentPath) return
 
-    const fileName = settlement.documentName || "document"
-    const ext = fileName.toLowerCase().split(".").pop()
+      try {
+        const response = await fetch(`${API_BASE_URL}/settlements/${settlement.id}/preview`, {
+          method: "GET",
+          credentials: "include",
+        })
+        if (!response.ok) {
+          throw new Error("Failed to preview file")
+        }
+        const blob = await response.blob()
+        const url = window.URL.createObjectURL(blob)
 
-    setPreviewUrl(settlement.documentPath)
-    setPreviewFileName(fileName)
-    setCurrentPreviewSettlement(settlement)
+        const fileName = settlement.documentName || "document"
+        const ext = fileName.toLowerCase().split(".").pop()
 
-    if (ext === "pdf") {
-      setPreviewFileType("pdf")
-    } else if (["jpg", "jpeg", "png", "gif"].includes(ext || "")) {
-      setPreviewFileType("image")
-    } else {
-      setPreviewFileType("other")
-    }
+        setPreviewUrl(url)
+        setPreviewFileName(fileName)
+        setCurrentPreviewSettlement(settlement)
 
-    setIsPreviewVisible(true)
-  }, [])
+        if (ext === "pdf") {
+          setPreviewFileType("pdf")
+        } else if (["jpg", "jpeg", "png", "gif"].includes(ext || "")) {
+          setPreviewFileType("image")
+        } else {
+          setPreviewFileType("other")
+        }
+
+        setIsPreviewVisible(true)
+      } catch (error) {
+        console.error("Error previewing file:", error)
+        toast({
+          title: "Błąd",
+          description: "Błąd podczas wczytywania podglądu",
+          variant: "destructive",
+        })
+      }
+    },
+    [toast],
+  )
 
   const closePreview = useCallback(() => {
     setIsPreviewVisible(false)
+    if (previewUrl) {
+      window.URL.revokeObjectURL(previewUrl)
+    }
     setPreviewUrl("")
     setPreviewFileName("")
     setCurrentPreviewSettlement(null)
-  }, [])
+  }, [previewUrl])
 
-  const downloadFile = useCallback((settlement: Settlement) => {
-    if (!settlement.documentPath || !settlement.documentName) return
+  const downloadFile = useCallback(
+    async (settlement: Settlement) => {
+      if (!settlement.documentPath) return
 
-    const link = document.createElement("a")
-    link.href = settlement.documentPath
-    link.download = settlement.documentName
-    document.body.appendChild(link)
-    link.click()
-    document.body.removeChild(link)
-  }, [])
+      try {
+        const response = await fetch(`${API_BASE_URL}/settlements/${settlement.id}/download`, {
+          method: "GET",
+          credentials: "include",
+        })
+        if (!response.ok) {
+          throw new Error("Failed to download file")
+        }
+        const blob = await response.blob()
+        const url = window.URL.createObjectURL(blob)
+        const a = document.createElement("a")
+        a.href = url
+        a.download = settlement.documentName || "document"
+        document.body.appendChild(a)
+        a.click()
+        window.URL.revokeObjectURL(url)
+        document.body.removeChild(a)
+      } catch (error) {
+        console.error("Error downloading file:", error)
+        toast({
+          title: "Błąd",
+          description: "Błąd podczas pobierania pliku",
+          variant: "destructive",
+        })
+      }
+    },
+    [toast],
+  )
 
   // Get display name for external entity
   const getDisplayExternalEntity = useCallback((settlement: Settlement) => {

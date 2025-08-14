@@ -143,15 +143,19 @@ export function ClaimForm({ initialData, mode }: ClaimFormProps) {
     e.preventDefault()
 
     try {
-      // Settlements are handled via dedicated endpoints and should not be
-      // included when creating or updating a claim. Exclude them from the
-      // payload to prevent accidental overwrites.
-      const { settlements: _settlements, ...claimWithoutSettlements } = formData
+      // Settlements and recourses are handled via dedicated endpoints and
+      // should not be included when creating or updating a claim. Exclude
+      // them from the payload to prevent accidental overwrites.
+      const {
+        settlements: _settlements,
+        recourses: _recourses,
+        ...claimWithoutSettlementsRecourses
+      } = formData
 
       const payload: Claim = {
-        ...claimWithoutSettlements,
+        ...claimWithoutSettlementsRecourses,
         damages:
-          claimWithoutSettlements.damages?.map((d) => ({
+          claimWithoutSettlementsRecourses.damages?.map((d) => ({
             ...d,
             id: mode === 'create' ? undefined : d.id,
           })) || [],

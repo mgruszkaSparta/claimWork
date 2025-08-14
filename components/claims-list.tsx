@@ -131,7 +131,7 @@ export function ClaimsList({
           const matchesHandler =
             !filterHandler || claim.liquidator?.toLowerCase().includes(filterHandler.toLowerCase())
           const matchesClaimType =
-            !allowedRiskTypes || allowedRiskTypes.includes(claim.riskType || "")
+            !allowedRiskTypes || !claim.riskType || allowedRiskTypes.includes(claim.riskType)
 
           return (
             matchesSearch &&

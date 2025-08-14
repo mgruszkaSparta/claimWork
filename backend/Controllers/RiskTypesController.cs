@@ -1,7 +1,6 @@
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using AutomotiveClaimsApi.Data;
 using AutomotiveClaimsApi.DTOs;
+using AutomotiveClaimsApi.Services;
+using Microsoft.AspNetCore.Mvc;
 
 namespace AutomotiveClaimsApi.Controllers
 {
@@ -9,157 +8,72 @@ namespace AutomotiveClaimsApi.Controllers
     [Route("api/[controller]")]
     public class RiskTypesController : ControllerBase
     {
-        private readonly ApplicationDbContext _context;
+        private readonly IRiskTypeService _service;
 
-        public RiskTypesController(ApplicationDbContext context)
+        public RiskTypesController(IRiskTypeService service)
         {
-            _context = context;
+            _service = service;
         }
 
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<RiskTypeDto>>> GetRiskTypes([FromQuery] int? claimObjectTypeId)
+        public async Task<IActionResult> GetRiskTypes([FromQuery] int? claimObjectTypeId)
         {
-            try
+            var result = await _service.GetRiskTypesAsync(claimObjectTypeId);
+            if (!result.Success)
             {
-                var query = _context.RiskTypes
-                    .Where(rt => rt.IsActive);
-
-                if (claimObjectTypeId.HasValue)
-                {
-                    query = query.Where(rt => rt.ClaimObjectTypeId == claimObjectTypeId);
-                }
-
-                var riskTypes = await query
-                    .OrderBy(rt => rt.Name)
-                    .Select(rt => new RiskTypeDto
-                    {
-                        Id = rt.Id,
-                        Code = rt.Code,
-                        Name = rt.Name,
-                        Description = rt.Description
-                    })
-                    .ToListAsync();
-
-                return Ok(riskTypes);
+                return StatusCode(result.StatusCode, new { error = result.Error });
             }
-            catch (Exception ex)
-            {
-                return StatusCode(500, new { error = "Failed to fetch risk types", details = ex.Message });
-            }
+
+            return Ok(result.Data);
         }
 
         [HttpGet("{id}")]
-        public async Task<ActionResult<RiskTypeDto>> GetRiskType(Guid id)
+        public async Task<IActionResult> GetRiskType(Guid id)
         {
-            try
+            var result = await _service.GetRiskTypeAsync(id);
+            if (!result.Success)
             {
-                var riskType = await _context.RiskTypes
-                    .Where(rt => rt.Id == id && rt.IsActive)
-                    .Select(rt => new RiskTypeDto
-                    {
-                        Id = rt.Id,
-                        Code = rt.Code,
-                        Name = rt.Name,
-                        Description = rt.Description
-                    })
-                    .FirstOrDefaultAsync();
-
-                if (riskType == null)
-                {
-                    return NotFound();
-                }
-
-                return Ok(riskType);
+                return StatusCode(result.StatusCode, new { error = result.Error });
             }
-            catch (Exception ex)
-            {
-                return StatusCode(500, new { error = "Failed to fetch risk type", details = ex.Message });
-            }
+
+            return Ok(result.Data);
         }
 
         [HttpPost]
-        public async Task<ActionResult<RiskTypeDto>> CreateRiskType(RiskTypeDto riskTypeDto)
+        public async Task<IActionResult> CreateRiskType(RiskTypeDto dto)
         {
-            try
+            var result = await _service.CreateRiskTypeAsync(dto);
+            if (!result.Success)
             {
-                var riskType = new Models.RiskType
-                {
-                    Id = Guid.NewGuid(),
-                    Code = riskTypeDto.Code,
-                    Name = riskTypeDto.Name,
-                    Description = riskTypeDto.Description,
-                    IsActive = true,
-                    CreatedAt = DateTime.UtcNow,
-                    UpdatedAt = DateTime.UtcNow
-                };
-
-                _context.RiskTypes.Add(riskType);
-                await _context.SaveChangesAsync();
-
-                var result = new RiskTypeDto
-                {
-                    Id = riskType.Id,
-                    Code = riskType.Code,
-                    Name = riskType.Name,
-                    Description = riskType.Description
-                };
-
-                return CreatedAtAction(nameof(GetRiskType), new { id = riskType.Id }, result);
+                return StatusCode(result.StatusCode, new { error = result.Error });
             }
-            catch (Exception ex)
-            {
-                return StatusCode(500, new { error = "Failed to create risk type", details = ex.Message });
-            }
+
+            return CreatedAtAction(nameof(GetRiskType), new { id = result.Data!.Id }, result.Data);
         }
 
         [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateRiskType(Guid id, RiskTypeDto riskTypeDto)
+        public async Task<IActionResult> UpdateRiskType(Guid id, RiskTypeDto dto)
         {
-            try
+            var result = await _service.UpdateRiskTypeAsync(id, dto);
+            if (!result.Success)
             {
-                var riskType = await _context.RiskTypes.FindAsync(id);
-                if (riskType == null)
-                {
-                    return NotFound();
-                }
-
-                riskType.Code = riskTypeDto.Code;
-                riskType.Name = riskTypeDto.Name;
-                riskType.Description = riskTypeDto.Description;
-                riskType.UpdatedAt = DateTime.UtcNow;
-
-                await _context.SaveChangesAsync();
-
-                return NoContent();
+                return StatusCode(result.StatusCode, new { error = result.Error });
             }
-            catch (Exception ex)
-            {
-                return StatusCode(500, new { error = "Failed to update risk type", details = ex.Message });
-            }
+
+            return NoContent();
         }
 
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteRiskType(Guid id)
         {
-            try
+            var result = await _service.DeleteRiskTypeAsync(id);
+            if (!result.Success)
             {
-                var riskType = await _context.RiskTypes.FindAsync(id);
-                if (riskType == null)
-                {
-                    return NotFound();
-                }
-
-                riskType.IsActive = false;
-                riskType.UpdatedAt = DateTime.UtcNow;
-
-                await _context.SaveChangesAsync();
-
-                return NoContent();
+                return StatusCode(result.StatusCode, new { error = result.Error });
             }
-            catch (Exception ex)
-            {
-                return StatusCode(500, new { error = "Failed to delete risk type", details = ex.Message });
-            }
+
+            return NoContent();
         }
     }
 }
+

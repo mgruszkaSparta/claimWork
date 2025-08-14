@@ -944,21 +944,21 @@ class ApiService {
     if (params.claimObjectTypeId !== undefined) {
       searchParams.append('claimObjectTypeId', String(params.claimObjectTypeId))
     }
-    const url = `/risk-types${
-      searchParams.toString() ? `?${searchParams.toString()}` : ''
-    }`
+
+    const url = `/RiskTypes${searchParams.toString() ? `?${searchParams.toString()}` : ''}`
+
     return this.request<RiskTypeDto[]>(url)
   }
 
   async createRiskType(data: CreateRiskTypeDto): Promise<RiskTypeDto> {
-    return this.request<RiskTypeDto>('/risk-types', {
+    return this.request<RiskTypeDto>('/RiskTypes', {
       method: 'POST',
       body: JSON.stringify(data),
     })
   }
 
   async updateRiskType(id: string, data: UpdateRiskTypeDto): Promise<void> {
-    await this.request<void>(`/risk-types/${id}`, {
+    await this.request<void>(`/RiskTypes/${id}`, {
       method: 'PUT',
       body: JSON.stringify(data),
     })
@@ -966,7 +966,7 @@ class ApiService {
 
   async deleteRiskType(id: string): Promise<void> {
     const token = this.getToken()
-    const response = await fetch(`${API_BASE_URL}/risk-types/${id}`, {
+    const response = await fetch(`${API_BASE_URL}/RiskTypes/${id}`, {
       method: 'DELETE',
       credentials: 'include',
       headers: {

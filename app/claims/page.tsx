@@ -1,16 +1,15 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { ClaimsList } from "@/components/claims-list"
-import { NewClaimDialog } from "@/components/new-claim-dialog"
+import { useRouter } from "next/navigation";
+import { ClaimsList } from "@/components/claims-list";
 
 export default function ClaimsPage() {
-  const [open, setOpen] = useState(false)
-
+  const router = useRouter();
   return (
-    <>
-      <ClaimsList onNewClaim={() => setOpen(true)} />
-      <NewClaimDialog open={open} onOpenChange={setOpen} />
-    </>
-  )
+    <ClaimsList
+      onNewClaim={() => router.push("/claims/create?claimObjectType=1")}
+      claimObjectTypeId="1"
+    />
+  );
 }
+

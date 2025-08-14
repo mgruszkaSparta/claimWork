@@ -129,6 +129,8 @@ export interface UserListItemDto {
   email: string
   role: string
   status: "active" | "inactive"
+  createdAt?: string
+  lastLogin?: string
 }
 
 export interface UpdateUsersBulkDto {
@@ -640,34 +642,16 @@ class ApiService {
     this.setToken(null)
   }
 
-  async getCurrentUser(): Promise<{ username: string; email?: string; roles?: string[] } | undefined> {
-    const data = await this.request<{ id: string; userName: string; email: string; roles: string[] }>("/auth/me")
+  async getCurrentUser(): Promise<{ username: string; email?: string; roles?: string[]; createdAt?: string; lastLogin?: string } | undefined> {
+    const data = await this.request<{ id: string; userName: string; email: string; roles: string[]; createdAt: string; lastLogin?: string }>("/auth/me")
     if (!data) return undefined
-    return { username: data.userName, email: data.email, roles: data.roles }
+    return { username: data.userName, email: data.email, roles: data.roles, createdAt: data.createdAt, lastLogin: data.lastLogin }
   }
 
-  async getUser(
-    id: string,
-  ): Promise<{
-    id: string
-    userName: string
-    email?: string
-    firstName?: string
-    lastName?: string
-    roles?: string[]
-    status?: "active" | "inactive"
-    phone?: string
-  }> {
-    return await this.request<{
-      id: string
-      userName: string
-      email?: string
-      firstName?: string
-      lastName?: string
-      roles?: string[]
-      status?: "active" | "inactive"
-      phone?: string
-    }>(`/auth/users/${id}`)
+
+  async getUser(id: string): Promise<{ id: string; userName: string; email?: string; createdAt?: string; lastLogin?: string }> {
+    return await this.request<{ id: string; userName: string; email?: string; createdAt?: string; lastLogin?: string }>(`/auth/users/${id}`)
+
   }
 
   async updateUser(

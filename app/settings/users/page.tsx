@@ -203,11 +203,25 @@ export default function UsersPage() {
               Rola
               <ArrowUpDown className="inline h-4 w-4 ml-2" />
             </TableHead>
-            <TableHead
+          <TableHead
               onClick={() => toggleSort("status")}
               className="cursor-pointer"
             >
               Status
+              <ArrowUpDown className="inline h-4 w-4 ml-2" />
+            </TableHead>
+            <TableHead
+              onClick={() => toggleSort("createdAt")}
+              className="cursor-pointer"
+            >
+              Utworzono
+              <ArrowUpDown className="inline h-4 w-4 ml-2" />
+            </TableHead>
+            <TableHead
+              onClick={() => toggleSort("lastLogin")}
+              className="cursor-pointer"
+            >
+              Ostatnie logowanie
               <ArrowUpDown className="inline h-4 w-4 ml-2" />
             </TableHead>
           </TableRow>
@@ -231,6 +245,8 @@ export default function UsersPage() {
               <TableCell>
                 {u.status === "active" ? "Aktywny" : "Nieaktywny"}
               </TableCell>
+              <TableCell>{u.createdAt ? new Date(u.createdAt).toLocaleString() : "-"}</TableCell>
+              <TableCell>{u.lastLogin ? new Date(u.lastLogin).toLocaleString() : "-"}</TableCell>
             </TableRow>
           ))}
         </TableBody>

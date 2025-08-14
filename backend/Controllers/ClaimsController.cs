@@ -100,6 +100,8 @@ namespace AutomotiveClaimsApi.Controllers
                         PolicyNumber = e.PolicyNumber,
                         InsuranceCompanyId = e.InsuranceCompanyId,
                         InsuranceCompany = e.InsuranceCompany,
+                        RiskType = e.RiskType,
+                        DamageType = e.DamageType,
                         LeasingCompanyId = e.LeasingCompanyId,
                         LeasingCompany = e.LeasingCompany,
                         HandlerId = e.HandlerId,

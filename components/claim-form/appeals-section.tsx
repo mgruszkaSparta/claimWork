@@ -29,7 +29,6 @@ import {
   updateAppeal,
   deleteAppeal as apiDeleteAppeal,
   Appeal,
-  AppealPayload,
 } from "@/lib/api/appeals"
 import { API_BASE_URL } from "@/lib/api"
 
@@ -225,16 +224,36 @@ export const AppealsSection = ({ claimId }: AppealsSectionProps) => {
       return
     }
 
+    if (selectedFiles.length === 0) {
+      toast({
+        title: "Błąd",
+        description: "Musisz dodać co najmniej jeden plik",
+        variant: "destructive",
+      })
+      return
+    }
+
     setIsLoading(true)
     try {
-      const payload: AppealPayload = {
-        filingDate: formData.filingDate,
-        extensionDate: formData.extensionDate || undefined,
-        responseDate: formData.responseDate || undefined,
-        status: formData.responseDate ? "Zamknięte" : formData.status,
-        documentDescription: formData.documentDescription || undefined,
-        document: selectedFiles[0],
+      const payload = new FormData()
+      if (!isEditing) {
+        payload.append("EventId", claimId)
       }
+      payload.append("FilingDate", formData.filingDate)
+      if (formData.extensionDate) {
+        payload.append("ExtensionDate", formData.extensionDate)
+      }
+      if (formData.responseDate) {
+        payload.append("DecisionDate", formData.responseDate)
+      }
+      const status = formData.responseDate ? "Zamknięte" : formData.status
+      if (status) {
+        payload.append("Status", status)
+      }
+      if (formData.documentDescription) {
+        payload.append("DocumentDescription", formData.documentDescription)
+      }
+      selectedFiles.forEach((file) => payload.append("Document", file))
 
       if (isEditing && editingId) {
         await updateAppeal(editingId, payload)
@@ -243,7 +262,7 @@ export const AppealsSection = ({ claimId }: AppealsSectionProps) => {
           description: "Odwołanie zostało zaktualizowane",
         })
       } else {
-        await createAppeal(claimId, payload)
+        await createAppeal(payload)
         toast({
           title: "Sukces",
           description: "Odwołanie zostało dodane",

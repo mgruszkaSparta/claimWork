@@ -39,13 +39,14 @@ export function useAuth() {
   }, [])
 
   const login = async (username: string, password: string) => {
-    await apiService.login(username, password)
+    const result = await apiService.login(username, password)
     const user = await apiService.getCurrentUser()
     setAuthState({
       user: user || null,
       isAuthenticated: !!user,
       isLoading: false,
     })
+    return result
   }
 
   const logout = async () => {

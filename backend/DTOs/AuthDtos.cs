@@ -1,3 +1,5 @@
+using System;
+
 namespace AutomotiveClaimsApi.DTOs
 {
     public class RegisterDto
@@ -37,5 +39,7 @@ namespace AutomotiveClaimsApi.DTOs
         public string? UserName { get; set; }
         public string? Email { get; set; }
         public IEnumerable<string>? Roles { get; set; }
+        public DateTime CreatedAt { get; set; }
+        public DateTime? LastLogin { get; set; }
     }
 }

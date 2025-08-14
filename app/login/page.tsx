@@ -22,8 +22,12 @@ export default function LoginPage() {
     setError('')
 
     try {
-      await login(credentials.username, credentials.password)
-      router.push('/')
+      const result = await login(credentials.username, credentials.password)
+      if (result?.mustChangePassword) {
+        router.push('/reset-password')
+      } else {
+        router.push('/')
+      }
     } catch (error) {
       setError('Nieprawidłowa nazwa użytkownika lub hasło.')
     } finally {

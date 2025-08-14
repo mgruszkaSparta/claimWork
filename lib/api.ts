@@ -129,6 +129,8 @@ export interface UserListItemDto {
   email: string
   role: string
   status: "active" | "inactive"
+  createdAt?: string
+  lastLogin?: string
 }
 
 export interface UpdateUsersBulkDto {
@@ -179,6 +181,56 @@ export interface UpdateClientDto {
   address?: string
   city?: string
   postalCode?: string
+  isActive?: boolean
+}
+
+export interface RiskTypeDto {
+  id: string
+  code: string
+  name: string
+  description?: string
+  isActive: boolean
+}
+
+export interface DamageTypeDto {
+  id: string
+  code: string
+  name: string
+  description?: string
+  riskTypeId: string
+  riskTypeName?: string
+  isActive: boolean
+  createdAt: string
+  updatedAt?: string
+}
+
+export interface CreateRiskTypeDto {
+  code: string
+  name: string
+  description?: string
+  isActive?: boolean
+}
+
+export interface UpdateRiskTypeDto {
+  code?: string
+  name?: string
+  description?: string
+  isActive?: boolean
+}
+
+export interface CreateDamageTypeDto {
+  code: string
+  name: string
+  description?: string
+  riskTypeId: string
+  isActive?: boolean
+}
+
+export interface UpdateDamageTypeDto {
+  code?: string
+  name?: string
+  description?: string
+  riskTypeId?: string
   isActive?: boolean
 }
 
@@ -611,19 +663,44 @@ class ApiService {
     return text as unknown as T
   }
 
-  async register(username: string, email: string, password: string): Promise<void> {
+  async register(data: {
+    userName: string
+    email: string
+    password: string
+    firstName: string
+    lastName: string
+    roles: string[]
+    status: "active" | "inactive"
+    phone?: string
+  }): Promise<void> {
     await this.request<void>("/auth/register", {
       method: "POST",
-      body: JSON.stringify({ userName: username, email, password }),
+      body: JSON.stringify(data),
     })
   }
 
-  async login(username: string, password: string): Promise<void> {
-    const data = await this.request<{ token: string }>("/auth/login", {
+  async login(
+    username: string,
+    password: string,
+  ): Promise<{ mustChangePassword: boolean }> {
+    const data = await this.request<{ mustChangePassword: boolean }>(
+      "/auth/login",
+      {
+        method: "POST",
+        body: JSON.stringify({ userName: username, password }),
+      },
+    )
+    return { mustChangePassword: data.mustChangePassword }
+  }
+
+  async forceChangePassword(
+    currentPassword: string,
+    newPassword: string,
+  ): Promise<void> {
+    await this.request<void>("/auth/force-change-password", {
       method: "POST",
-      body: JSON.stringify({ userName: username, password }),
+      body: JSON.stringify({ currentPassword, newPassword }),
     })
-    this.setToken(data.token)
   }
 
   async logout(): Promise<void> {
@@ -631,21 +708,44 @@ class ApiService {
     this.setToken(null)
   }
 
-  async getCurrentUser(): Promise<{ username: string; email?: string; roles?: string[] } | undefined> {
-    const data = await this.request<{ id: string; userName: string; email: string; roles: string[] }>("/auth/me")
+  async getCurrentUser(): Promise<{ username: string; email?: string; roles?: string[]; createdAt?: string; lastLogin?: string } | undefined> {
+    const data = await this.request<{ id: string; userName: string; email: string; roles: string[]; createdAt: string; lastLogin?: string }>("/auth/me")
     if (!data) return undefined
-    return { username: data.userName, email: data.email, roles: data.roles }
+    return { username: data.userName, email: data.email, roles: data.roles, createdAt: data.createdAt, lastLogin: data.lastLogin }
   }
 
-  async getUser(id: string): Promise<{ id: string; userName: string; email?: string }> {
-    return await this.request<{ id: string; userName: string; email?: string }>(`/auth/users/${id}`)
+
+  async getUser(id: string): Promise<{ id: string; userName: string; email?: string; createdAt?: string; lastLogin?: string }> {
+    return await this.request<{ id: string; userName: string; email?: string; createdAt?: string; lastLogin?: string }>(`/auth/users/${id}`)
+
   }
 
-  async updateUser(id: string, data: { userName?: string; email?: string }): Promise<void> {
+  async updateUser(
+    id: string,
+    data: {
+      userName?: string
+      email?: string
+      firstName?: string
+      lastName?: string
+      roles?: string[]
+      status?: "active" | "inactive"
+      phone?: string
+    },
+  ): Promise<void> {
     await this.request<void>(`/auth/users/${id}`, {
       method: "PUT",
       body: JSON.stringify(data),
     })
+  }
+
+  async checkEmail(email: string): Promise<boolean> {
+    const result = await this.request<{ isUnique?: boolean; exists?: boolean }>(
+      `/auth/users/check-email?email=${encodeURIComponent(email)}`,
+    )
+    if (result == null) return false
+    if (typeof result.isUnique === "boolean") return result.isUnique
+    if (typeof result.exists === "boolean") return !result.exists
+    return true
   }
   async getUsers(
     params: {
@@ -832,6 +932,80 @@ class ApiService {
 
   async deleteClient(id: number): Promise<void> {
     await this.request<void>(`/clients/${id}`, {
+      method: 'DELETE',
+    })
+  }
+
+  // Risk Types API
+  async getRiskTypes(params: { isActive?: boolean } = {}): Promise<RiskTypeDto[]> {
+    const searchParams = new URLSearchParams()
+    if (params.isActive !== undefined) {
+      searchParams.append('isActive', String(params.isActive))
+    }
+    const url = `/risk-types${searchParams.toString() ? `?${searchParams.toString()}` : ''}`
+    return this.request<RiskTypeDto[]>(url)
+  }
+
+  async createRiskType(data: CreateRiskTypeDto): Promise<RiskTypeDto> {
+    return this.request<RiskTypeDto>('/risk-types', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    })
+  }
+
+  async updateRiskType(id: string, data: UpdateRiskTypeDto): Promise<void> {
+    await this.request<void>(`/risk-types/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    })
+  }
+
+  async deleteRiskType(id: string): Promise<void> {
+    const token = this.getToken()
+    const response = await fetch(`${API_BASE_URL}/risk-types/${id}`, {
+      method: 'DELETE',
+      credentials: 'include',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      },
+    })
+    if (!response.ok) {
+      const errorText = await response.text()
+      const error: any = new Error(errorText)
+      error.status = response.status
+      throw error
+    }
+  }
+
+  // Damage Types API
+  async getDamageTypes(params: { riskTypeId?: string; isActive?: boolean } = {}): Promise<DamageTypeDto[]> {
+    const searchParams = new URLSearchParams()
+    Object.entries(params).forEach(([key, value]) => {
+      if (value !== undefined) {
+        searchParams.append(key, String(value))
+      }
+    })
+    const url = `/damage-types${searchParams.toString() ? `?${searchParams.toString()}` : ''}`
+    return this.request<DamageTypeDto[]>(url)
+  }
+
+  async createDamageType(data: CreateDamageTypeDto): Promise<DamageTypeDto> {
+    return this.request<DamageTypeDto>('/damage-types', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    })
+  }
+
+  async updateDamageType(id: string, data: UpdateDamageTypeDto): Promise<void> {
+    await this.request<void>(`/damage-types/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    })
+  }
+
+  async deleteDamageType(id: string): Promise<void> {
+    await this.request<void>(`/damage-types/${id}`, {
       method: 'DELETE',
     })
   }

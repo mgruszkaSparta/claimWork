@@ -289,6 +289,37 @@ export const ClaimMainContent = ({
   const [claimStatuses, setClaimStatuses] = useState<ClaimStatus[]>([])
   const [loadingStatuses, setLoadingStatuses] = useState(false)
 
+  useEffect(() => {
+    const clearCommunicationFields = () => {
+      handleFormChange("vehicleType", "")
+      handleFormChange("brand", "")
+      handleFormChange("vehicleNumber", "")
+      handleFormChange("liquidator", "")
+    }
+
+    const clearPropertyFields = () => {
+      handleFormChange("propertySubject", "")
+      handleFormChange("propertyDamageList", [])
+      handleFormChange("injuredPartyData", {})
+    }
+
+    const clearTransportFields = () => {
+      handleFormChange("cargoDetails", "")
+      handleFormChange("carrierInfo", "")
+    }
+
+    if (claimObjectType === "1") {
+      clearPropertyFields()
+      clearTransportFields()
+    } else if (claimObjectType === "2") {
+      clearCommunicationFields()
+      clearTransportFields()
+    } else if (claimObjectType === "3") {
+      clearCommunicationFields()
+      clearPropertyFields()
+    }
+  }, [claimObjectType, handleFormChange])
+
   // Load data on component mount
   useEffect(() => {
     loadRiskTypes()

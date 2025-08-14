@@ -65,6 +65,11 @@ export interface Claim
   vehicleType?: string
   vehicleTypeId?: string
   vehicleTypeCode?: string
+  propertySubject?: string
+  propertyDamageList?: string[]
+  injuredPartyData?: Record<string, any>
+  cargoDetails?: string
+  carrierInfo?: string
   damageDescription?: string
   damages?: DamageItem[]
   notes?: Note[]

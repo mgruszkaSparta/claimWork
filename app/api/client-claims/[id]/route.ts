@@ -31,7 +31,8 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
     const formData = await request.formData()
 
     const claimDate = formData.get("claimDate") as string
-    const claimType = formData.get("claimType") as string
+    // Handle both claimType and ClaimType keys from the incoming form data
+    const claimType = (formData.get("claimType") || formData.get("ClaimType")) as string
     const claimAmount = Number.parseFloat(formData.get("claimAmount") as string)
     const currency = (formData.get("currency") as string) || "PLN"
     const status = formData.get("status") as string

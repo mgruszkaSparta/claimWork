@@ -561,6 +561,8 @@ export interface SettlementDto {
   documentPath?: string
   documentName?: string
   documentDescription?: string
+  createdAt?: string
+  updatedAt?: string
 }
 
 export interface SettlementUpsertDto {

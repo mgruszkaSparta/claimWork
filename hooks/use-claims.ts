@@ -7,7 +7,7 @@ import {
   type ClaimDto,
   type ParticipantUpsertDto,
 } from "@/lib/api"
-import type { Claim, ParticipantInfo, DriverInfo, Note } from "@/types"
+import type { Claim, ParticipantInfo, DriverInfo, Note, Settlement } from "@/types"
 
 const toIso = (value?: string, field?: string): string | undefined => {
   if (!value) return undefined
@@ -38,6 +38,30 @@ export const transformApiClaimToFrontend = (apiClaim: ClaimDto): Claim => {
       ...d,
       id: d.id?.toString() || "",
     })) || [],
+  })
+
+  const mapSettlementDto = (s: any): Settlement => ({
+    id: s.id?.toString() || "",
+    eventId: s.eventId?.toString(),
+    claimId: s.claimId?.toString(),
+    externalEntity: s.externalEntity,
+    customExternalEntity: s.customExternalEntity,
+    transferDate: s.transferDate ? s.transferDate.split("T")[0] : undefined,
+    status: s.status,
+    settlementDate: s.settlementDate ? s.settlementDate.split("T")[0] : undefined,
+    settlementAmount: s.settlementAmount,
+    amount: s.amount,
+    currency: s.currency,
+    paymentMethod: s.paymentMethod,
+    notes: s.notes,
+    description: s.description,
+    documentPath: s.documentPath,
+    documentName: s.documentName,
+    documentDescription: s.documentDescription,
+    settlementNumber: s.settlementNumber,
+    settlementType: s.settlementType,
+    createdAt: s.createdAt,
+    updatedAt: s.updatedAt,
   })
 
   return {
@@ -111,7 +135,7 @@ export const transformApiClaimToFrontend = (apiClaim: ClaimDto): Claim => {
         }
       }) || [],
     recourses: apiClaim.recourses || [],
-    settlements: apiClaim.settlements || [],
+    settlements: apiClaim.settlements?.map(mapSettlementDto) || [],
     injuredParty: injuredParty ? mapParticipantDto(injuredParty) : undefined,
     perpetrator: perpetrator ? mapParticipantDto(perpetrator) : undefined,
   }

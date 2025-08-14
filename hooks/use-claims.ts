@@ -7,7 +7,13 @@ import {
   type ClaimDto,
   type ParticipantUpsertDto,
 } from "@/lib/api"
-import type { Claim, ParticipantInfo, DriverInfo, Note } from "@/types"
+import type {
+  Claim,
+  ParticipantInfo,
+  DriverInfo,
+  Note,
+  UploadedFile,
+} from "@/types"
 
 const toIso = (value?: string, field?: string): string | undefined => {
   if (!value) return undefined
@@ -39,6 +45,28 @@ export const transformApiClaimToFrontend = (apiClaim: ClaimDto): Claim => {
       id: d.id?.toString() || "",
     })) || [],
   })
+
+  const documents: UploadedFile[] =
+    (apiClaim as any).documents?.map((doc: any) => ({
+      id: doc.id?.toString() || "",
+      name: doc.originalFileName || doc.fileName,
+      size: doc.fileSize ?? 0,
+      type: doc.contentType?.includes("video")
+        ? "video"
+        : doc.contentType?.includes("image")
+        ? "image"
+        : doc.contentType?.includes("pdf")
+        ? "pdf"
+        : doc.contentType?.includes("msword") ||
+          doc.contentType?.includes("wordprocessingml")
+        ? "doc"
+        : "other",
+      uploadedAt: doc.createdAt || new Date().toISOString(),
+      url: doc.previewUrl || doc.downloadUrl || doc.filePath,
+      category: doc.documentType || doc.category,
+      categoryCode: doc.categoryCode,
+      description: doc.description,
+    })) || []
 
   return {
     ...apiClaim,
@@ -110,6 +138,7 @@ export const transformApiClaimToFrontend = (apiClaim: ClaimDto): Claim => {
           ...(document ? { document } : {}),
         }
       }) || [],
+    documents,
     recourses: apiClaim.recourses || [],
     settlements: apiClaim.settlements || [],
     injuredParty: injuredParty ? mapParticipantDto(injuredParty) : undefined,

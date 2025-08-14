@@ -20,6 +20,6 @@ export interface Email {
   body: string
   receivedDate: Date
   read?: boolean
-  claimId?: string | null
+  claimIds?: string[]
   attachments: EmailAttachment[]
 }

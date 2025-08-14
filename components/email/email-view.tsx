@@ -90,9 +90,9 @@ export const EmailView = ({
                   {label}
                 </Badge>
               ))}
-              {email.claimId && (
+              {email.claimIds && email.claimIds.length > 0 && (
                 <Badge variant="outline" className="text-xs">
-                  Szkoda: {email.claimId}
+                  Szkoda: {email.claimIds.join(", ")}
                 </Badge>
               )}
             </div>

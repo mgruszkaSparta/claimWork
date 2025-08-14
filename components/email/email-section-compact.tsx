@@ -20,7 +20,9 @@ interface EmailSectionProps {
 
 export const EmailSection = ({ claimId }: EmailSectionProps) => {
   const { toast } = useToast()
-  const [emails, setEmails] = useState<Email[]>(sampleEmails.filter((email) => !claimId || email.claimId === claimId))
+  const [emails, setEmails] = useState<Email[]>(
+    sampleEmails.filter((email) => !claimId || (email.claimIds && email.claimIds.includes(claimId)))
+  )
   const [activeTab, setActiveTab] = useState("inbox")
   const [currentView, setCurrentView] = useState<"list" | "view" | "compose">("list")
   const [selectedEmail, setSelectedEmail] = useState<Email | null>(null)

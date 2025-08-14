@@ -7,7 +7,7 @@ namespace AutomotiveClaimsApi.DTOs
 {
 public class CreateEmailDto
 {
-  public string? ClaimId { get; set; }
+  public List<string>? ClaimIds { get; set; }
   public int? EventId { get; set; }
   public string? ClaimNumber { get; set; }
   public string? ThreadId { get; set; }

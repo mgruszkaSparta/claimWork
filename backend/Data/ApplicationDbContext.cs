@@ -24,6 +24,7 @@ namespace AutomotiveClaimsApi.Data
         public DbSet<Recourse> Recourses { get; set; }
         public DbSet<Email> Emails { get; set; }
         public DbSet<EmailAttachment> EmailAttachments { get; set; }
+        public DbSet<EmailClaim> EmailClaims { get; set; }
         public DbSet<Client> Clients { get; set; }
         public DbSet<RiskType> RiskTypes { get; set; }
         public DbSet<DamageType> DamageTypes { get; set; }
@@ -88,6 +89,19 @@ namespace AutomotiveClaimsApi.Data
             modelBuilder.Entity<DamageType>(entity =>
             {
                 entity.HasOne(dt => dt.RiskType).WithMany(rt => rt.DamageTypes).HasForeignKey(dt => dt.RiskTypeId);
+            });
+
+            modelBuilder.Entity<EmailClaim>(entity =>
+            {
+                entity.HasKey(ec => new { ec.EmailId, ec.ClaimId });
+
+                entity.HasOne(ec => ec.Email)
+                      .WithMany(e => e.EmailClaims)
+                      .HasForeignKey(ec => ec.EmailId);
+
+                entity.HasOne(ec => ec.Claim)
+                      .WithMany(c => c.EmailClaims)
+                      .HasForeignKey(ec => ec.ClaimId);
             });
         }
     }

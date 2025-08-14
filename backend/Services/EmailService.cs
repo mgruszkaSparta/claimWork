@@ -10,6 +10,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using System.Text.RegularExpressions;
 
 namespace AutomotiveClaimsApi.Services
 {
@@ -121,6 +122,7 @@ namespace AutomotiveClaimsApi.Services
         {
             var emails = await _context.Emails
                 .Where(e => e.EventId == eventId)
+                .Include(e => e.EmailClaims)
                 .Select(e => MapEmailToDto(e))
                 .OrderByDescending(e => e.CreatedAt)
                 .ToListAsync();
@@ -132,6 +134,7 @@ namespace AutomotiveClaimsApi.Services
         {
             var email = await _context.Emails
                 .Where(e => e.Id == id)
+                .Include(e => e.EmailClaims)
                 .Select(e => MapEmailToDto(e))
                 .FirstOrDefaultAsync();
 
@@ -167,7 +170,7 @@ namespace AutomotiveClaimsApi.Services
                 ErrorMessage = email.ErrorMessage,
                 RetryCount = email.RetryCount,
                 ClaimNumber = email.ClaimNumber,
-                ClaimId = email.ClaimId,
+                ClaimIds = email.EmailClaims.Select(ec => ec.ClaimId.ToString()).ToList(),
                 ThreadId = email.ThreadId,
                 InReplyTo = email.InReplyTo,
                 MessageId = email.MessageId,
@@ -186,12 +189,12 @@ namespace AutomotiveClaimsApi.Services
 
         public async Task<IEnumerable<EmailDto>> GetEmailsAsync()
         {
-            return await _context.Emails.Select(e => MapEmailToDto(e)).ToListAsync();
+            return await _context.Emails.Include(e => e.EmailClaims).Select(e => MapEmailToDto(e)).ToListAsync();
         }
 
         public async Task<IEnumerable<EmailDto>> GetEmailsByClaimNumberAsync(string claimNumber)
         {
-            return await _context.Emails.Where(e => e.ClaimNumber == claimNumber).Select(e => MapEmailToDto(e)).ToListAsync();
+            return await _context.Emails.Where(e => e.ClaimNumber == claimNumber).Include(e => e.EmailClaims).Select(e => MapEmailToDto(e)).ToListAsync();
         }
 
         public Task<EmailDto> SendEmailAsync(SendEmailDto sendEmailDto)
@@ -243,6 +246,42 @@ namespace AutomotiveClaimsApi.Services
             _context.Emails.Remove(email);
             await _context.SaveChangesAsync();
             return true;
+        }
+
+        public async Task<bool> AssignEmailToClaimAsync(Guid emailId, IEnumerable<Guid> claimIds)
+        {
+            var email = await _context.Emails.Include(e => e.EmailClaims).FirstOrDefaultAsync(e => e.Id == emailId);
+            if (email == null) return false;
+
+            foreach (var claimId in claimIds)
+            {
+                if (!email.EmailClaims.Any(ec => ec.ClaimId == claimId))
+                {
+                    email.EmailClaims.Add(new EmailClaim { EmailId = emailId, ClaimId = claimId });
+                }
+            }
+
+            await _context.SaveChangesAsync();
+            return true;
+        }
+
+        public IEnumerable<string> ExtractClaimNumbers(string message)
+        {
+            if (string.IsNullOrWhiteSpace(message))
+                return Enumerable.Empty<string>();
+
+            var matches = Regex.Matches(message, @"\b\w{3}\d{7}\b");
+            return matches.Select(m => m.Value).Distinct();
+        }
+
+        public async Task<List<Guid>> FindClaimIdsFromMessage(string message)
+        {
+            var numbers = ExtractClaimNumbers(message);
+
+            return await _context.ClientClaims
+                .Where(c => c.ClaimNumber != null && numbers.Contains(c.ClaimNumber))
+                .Select(c => c.Id)
+                .ToListAsync();
         }
 
         public Task FetchEmailsAsync()

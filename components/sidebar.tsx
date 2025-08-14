@@ -2,7 +2,7 @@
 import Link from "next/link"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
-import { LayoutDashboard, FileText, Car } from "lucide-react"
+import { LayoutDashboard, FileText, Car, Settings } from "lucide-react"
 
 interface SidebarProps {
   activeTab: string
@@ -21,6 +21,12 @@ const menuItems = [
     label: "Szkody",
     icon: FileText,
     href: "/claims",
+  },
+  {
+    id: "settings",
+    label: "Settings",
+    icon: Settings,
+    href: "/settings",
   },
 ]
 

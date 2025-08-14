@@ -292,8 +292,9 @@ export const SettlementsSection: React.FC<SettlementsSectionProps> = ({ eventId 
   )
 
   // File operations
-  const isPreviewable = useCallback((fileName?: string) => {
-    if (!fileName) return false
+  const isPreviewable = useCallback((nameOrPath?: string) => {
+    if (!nameOrPath) return false
+    const fileName = nameOrPath.split("/").pop() || nameOrPath
     const ext = fileName.toLowerCase().split(".").pop()
     return ["pdf", "jpg", "jpeg", "png", "gif"].includes(ext || "")
   }, [])
@@ -312,12 +313,13 @@ export const SettlementsSection: React.FC<SettlementsSectionProps> = ({ eventId 
         }
         const blob = await response.blob()
         const url = window.URL.createObjectURL(blob)
-
-        const fileName = settlement.documentName || "document"
-        const ext = fileName.toLowerCase().split(".").pop()
+        const nameSource = settlement.documentName || settlement.documentPath || ""
+        const displayName =
+          settlement.documentName || settlement.documentPath?.split("/").pop() || "document"
+        const ext = nameSource.toLowerCase().split(".").pop()
 
         setPreviewUrl(url)
-        setPreviewFileName(fileName)
+        setPreviewFileName(displayName)
         setCurrentPreviewSettlement(settlement)
 
         if (ext === "pdf") {
@@ -752,7 +754,7 @@ export const SettlementsSection: React.FC<SettlementsSectionProps> = ({ eventId 
                           <div className="flex items-center gap-2">
                             <span className="text-gray-700">{settlement.documentName}</span>
                             <div className="flex gap-1">
-                              {isPreviewable(settlement.documentName) && (
+                              {isPreviewable(settlement.documentName || settlement.documentPath) && (
                                 <Button
                                   onClick={() => previewFile(settlement)}
                                   variant="ghost"

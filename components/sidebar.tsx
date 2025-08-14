@@ -2,7 +2,7 @@
 import Link from "next/link"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
-import { LayoutDashboard, FileText, Car, Settings } from "lucide-react"
+import { LayoutDashboard, FileText, Car, Settings, Mail } from "lucide-react"
 import { useAuth } from "@/hooks/use-auth"
 
 interface SidebarProps {
@@ -22,6 +22,12 @@ const menuItems = [
     label: "Szkody",
     icon: FileText,
     href: "/claims",
+  },
+  {
+    id: "unassigned",
+    label: "Szkody nieprzydzielone",
+    icon: Mail,
+    href: "/emails/unassigned",
   },
   {
     id: "settings",

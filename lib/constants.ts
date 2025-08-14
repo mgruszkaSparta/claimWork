@@ -88,6 +88,17 @@ export const initialClaimFormData: Partial<Claim> = {
   leasingCompany: "",
   leasingCompanyId: "",
   description: "",
+  subcontractor: {
+    subcontractorName: "",
+    subcontractorPolicyNumber: "",
+    subcontractorInsurer: "",
+    complaintToSubcontractor: false,
+    complaintToSubcontractorDate: "",
+    claimFromSubcontractorPolicy: false,
+    claimFromSubcontractorPolicyDate: "",
+    complaintResponse: false,
+    complaintResponseDate: "",
+  },
   perpetrator: {
     ...emptyParticipant,
     drivers: [{ ...emptyDriver }],

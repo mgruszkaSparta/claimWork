@@ -7,7 +7,6 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Textarea } from "@/components/ui/textarea"
 import { Checkbox } from "@/components/ui/checkbox"
 import { FileText, AlertTriangle, User, FileSignature, Wrench, Car, X, MessageSquare, Clock, FileCheck, Search, Mail, Plus, CheckCircle, Trash2, Save, Calendar, Phone, MapPin, Paperclip, DollarSign, Gavel, ArrowUpDown, HandHeart, Users, CreditCard, Shield, UserCheck } from 'lucide-react'
@@ -19,8 +18,9 @@ import { AppealsSection } from "./appeals-section"
 import { ClientClaimsSection } from "./client-claims-section"
 import { RecourseSection } from "./recourse-section"
 import { SettlementsSection } from "./settlements-section"
-import { PropertyDamageSection } from "./property-damage-section"
-import { TransportDamageSection } from "./transport-damage-section"
+import { DamageBasicInfoSection } from "./damage-basic-info-section"
+import { DamageVehicleDetailsSection } from "./damage-vehicle-details-section"
+import { DamageInspectionSection } from "./damage-inspection-section"
 import type {
   Claim,
   Service,
@@ -35,16 +35,6 @@ import { EmailSection } from "../email/email-section-compact"
 import { DependentSelect } from "@/components/ui/dependent-select"
 import { useToast } from "@/hooks/use-toast"
 import { useDamages, createDamageDraft } from "@/hooks/use-damages"
-import InsuranceDropdown from "@/components/insurance-dropdown"
-import type { CompanySelectionEvent } from "@/types/insurance"
-import LeasingDropdown from "@/components/leasing-dropdown"
-import type { LeasingCompanySelectionEvent } from "@/types/leasing"
-import ClientDropdown from "@/components/client-dropdown"
-import type { ClientSelectionEvent } from "@/types/client"
-import HandlerDropdown from "@/components/handler-dropdown"
-import type { HandlerSelectionEvent } from "@/types/handler"
-import VehicleTypeDropdown from "@/components/vehicle-type-dropdown"
-import type { VehicleTypeSelectionEvent } from "@/types/vehicle-type"
 import { RepairScheduleSection } from "./repair-schedule-section"
 import { RepairDetailsSection } from "./repair-details-section"
 import type { RepairDetail } from "@/lib/repair-details-store"
@@ -241,8 +231,6 @@ export const ClaimMainContent = ({
   const [claimObjectType, setClaimObjectType] = useState<string>(initialClaimObjectType) // Default to communication claims
 
   // Add to the state declarations at the top of the component (around line 80)
-  const [caseHandlers, setCaseHandlers] = useState<any[]>([])
-  const [loadingHandlers, setLoadingHandlers] = useState(false)
 
   // Form states
   const [showNoteForm, setShowNoteForm] = useState<string | null>(null)
@@ -289,7 +277,6 @@ export const ClaimMainContent = ({
   const [autoShowRepairForm, setAutoShowRepairForm] = useState(false)
 
   const [claimStatuses, setClaimStatuses] = useState<ClaimStatus[]>([])
-  const [loadingStatuses, setLoadingStatuses] = useState(false)
 
   useEffect(() => {
     const clearCommunicationFields = () => {
@@ -326,7 +313,6 @@ export const ClaimMainContent = ({
   useEffect(() => {
     loadRiskTypes()
     loadClaimStatuses()
-    loadCaseHandlers()
   }, [claimObjectType])
 
   const loadRiskTypes = async () => {
@@ -397,7 +383,6 @@ export const ClaimMainContent = ({
   }
 
   const loadClaimStatuses = async () => {
-    setLoadingStatuses(true)
     try {
       const response = await fetch(
         `${process.env.NEXT_PUBLIC_API_URL}/dictionaries/claim-statuses`,
@@ -419,53 +404,8 @@ export const ClaimMainContent = ({
         description: "Nie udało się załadować statusów szkód.",
         variant: "destructive",
       })
-    } finally {
-      setLoadingStatuses(false)
     }
   }
-
-  const loadCaseHandlers = async () => {
-    setLoadingHandlers(true)
-    try {
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/dictionaries/case-handlers`,
-        {
-          method: "GET",
-          credentials: "include",
-        },
-      )
-      if (response.ok) {
-        const data = await response.json()
-        setCaseHandlers(data.items ?? [])
-      } else {
-        throw new Error(`HTTP error! status: ${response.status}`)
-      }
-    } catch (error) {
-      console.error("Error loading case handlers:", error)
-      // Fallback data
-      setCaseHandlers([
-        { id: 1, name: "Marcin Małuj", phone: "734 108 909", email: "marcin.maluj@spartabrokers.pl", subrogationLimit: 0.0000, userId: null, toDoList: null, settlementTypeId: null, disabled: 0, substituteHandlerId: null, vacationStartDate: null, vacationEndDate: null },
-        { id: 2, name: "Małgorzata Roczniak", phone: "797 825 208", email: "malgorzata.roczniak@spartabrokers.pl", subrogationLimit: 0.0000, userId: "99b463cb-f134-46a1-869f-d6583421ef63", toDoList: null, settlementTypeId: null, disabled: 0, substituteHandlerId: null, vacationStartDate: null, vacationEndDate: null },
-        { id: 3, name: "Piotr Raniecki", phone: "600 333 355", email: "piotr.raniecki@spartabrokers.pl", subrogationLimit: 0.0000, userId: "99b463cb-f134-46a1-869f-d6583421ef65", toDoList: null, settlementTypeId: null, disabled: 0, substituteHandlerId: null, vacationStartDate: null, vacationEndDate: null },
-        { id: 4, name: "Joanna Romanowska", phone: "518 363 378", email: "joanna.romanowska@spartabrokers.pl", subrogationLimit: 0.0000, userId: "99b463cb-f134-46a1-869f-d6583421ef64", toDoList: null, settlementTypeId: null, disabled: 0, substituteHandlerId: null, vacationStartDate: null, vacationEndDate: null },
-        { id: 5, name: "Paweł Gułaj", phone: "508 038 245", email: "pawel.gulaj@spartabrokers.pl", subrogationLimit: 0.0000, userId: "99b463cb-f134-46a1-869f-d6583421ef66", toDoList: null, settlementTypeId: null, disabled: 0, substituteHandlerId: null, vacationStartDate: null, vacationEndDate: null },
-        { id: 6, name: "Kamila Szepit", phone: "787 669 440", email: "kamila.szepit@spartabrokers.pl", subrogationLimit: 0.0000, userId: null, toDoList: null, settlementTypeId: null, disabled: 0, substituteHandlerId: null, vacationStartDate: null, vacationEndDate: null },
-        { id: 7, name: "Jacek Kamiński", phone: "513 423 810", email: "jacek.kaminski@spartabrokers.pl", subrogationLimit: 0.0000, userId: "99b463cb-f134-46a1-869f-d6583421ef62", toDoList: null, settlementTypeId: null, disabled: 0, substituteHandlerId: null, vacationStartDate: null, vacationEndDate: null },
-        { id: 11, name: "Edyta Dyczkowska", phone: "799-040-568", email: "edyta.dyczkowska@spartabrokers.pl", subrogationLimit: 0.0000, userId: "99b463cb-f134-46a1-869f-d6583421ef67", toDoList: null, settlementTypeId: null, disabled: 0, substituteHandlerId: null, vacationStartDate: null, vacationEndDate: null },
-        { id: 10, name: "Ireneusz Osiński", phone: "572-278-718", email: "ireneusz.osinski@spartabrokers.pl", subrogationLimit: 0.0000, userId: "99b463cb-f134-46a1-869f-d6583421ef68", toDoList: null, settlementTypeId: null, disabled: 0, substituteHandlerId: null, vacationStartDate: null, vacationEndDate: null },
-        { id: 13, name: "Kinga Tuzimek", phone: "508-038-245", email: "kinga.tuzimek@spartabrokers.pl", subrogationLimit: 0.0000, userId: "99b463cb-f134-46a1-869f-d6583421ef78", toDoList: null, settlementTypeId: null, disabled: 0, substituteHandlerId: null, vacationStartDate: null, vacationEndDate: null }
-      ])
-    
-    toast({
-      title: "Uwaga",
-      description: "Nie udało się załadować listy pracowników. Używane są dane lokalne.",
-      variant: "destructive",
-    })
-  } finally {
-    setLoadingHandlers(false)
-  }
-}
-
   const handleServicesChange = (service: Service, checked: boolean | "indeterminate") => {
     if (typeof checked === "boolean") {
       const currentServices = claimFormData.servicesCalled || []
@@ -720,7 +660,12 @@ export const ClaimMainContent = ({
   }
 
   // Helper function to render participant details
-const renderParticipantDetails = (participant: ParticipantInfo | undefined, title: string, icon: React.ReactNode, bgColor: string) => {
+const renderParticipantDetails = (
+  participant: ParticipantInfo | undefined,
+  title: string,
+  icon: React.ReactNode,
+  bgColor: string
+) => {
   if (!participant) {
     return (
       <div className="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden">
@@ -736,7 +681,7 @@ const renderParticipantDetails = (participant: ParticipantInfo | undefined, titl
           </div>
         </div>
       </div>
-    )
+    );
   }
 
   return (
@@ -1077,10 +1022,11 @@ const renderParticipantDetails = (participant: ParticipantInfo | undefined, titl
         )}
       </div>
     </div>
-  )
-}
+  );
+};
 
-  switch (activeClaimSection) {
+  const renderActiveSection = () => {
+    switch (activeClaimSection) {
     case "harmonogram":
       return (
         <div className="space-y-4">
@@ -1112,82 +1058,13 @@ const renderParticipantDetails = (participant: ParticipantInfo | undefined, titl
                     </div>
                   </div>
                 </div>
-                <div className="p-4">
-                  {expandedSections.harmonogram && eventId ? (
+                {expandedSections.harmonogram && eventId && (
+                  <div className="p-4">
                     <div className="border rounded-lg overflow-hidden">
                       <RepairScheduleSection eventId={eventId} />
                     </div>
-                  ) : (
-                    <div className="space-y-4">
-                      {/* Preview of repair schedules */}
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <InfoCard
-                          icon={<Calendar className="h-4 w-4" />}
-                          label="Liczba harmonogramów"
-                          value="2"
-                        />
-                        <InfoCard
-                          icon={<Clock className="h-4 w-4" />}
-                          label="Status ostatniego"
-                          value="W trakcie"
-                        />
-                      </div>
-
-                      {/* Sample repair schedule items */}
-                      <div className="space-y-2">
-                        <div className="bg-gray-50 rounded-lg p-3 border border-gray-200">
-                          <div className="flex items-center justify-between mb-2">
-                            <h4 className="font-medium text-gray-900 text-sm">Harmonogram #1</h4>
-                            <span className="px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-xs font-medium">
-                              W trakcie
-                            </span>
-                          </div>
-                          <div className="grid grid-cols-2 gap-4 text-xs text-gray-600">
-                            <div>
-                              <span className="font-medium">Data rozpoczęcia:</span> 15.01.2025
-                            </div>
-                            <div>
-                              <span className="font-medium">Planowane zakończenie:</span> 22.01.2025
-                            </div>
-                            <div>
-                              <span className="font-medium">Warsztat:</span> AutoSerwis Kowalski
-                            </div>
-                            <div>
-                              <span className="font-medium">Koszt:</span> 4,500 PLN
-                            </div>
-                          </div>
-                        </div>
-
-                        <div className="bg-gray-50 rounded-lg p-3 border border-gray-200">
-                          <div className="flex items-center justify-between mb-2">
-                            <h4 className="font-medium text-gray-900 text-sm">Harmonogram #2</h4>
-                            <span className="px-2 py-1 bg-green-100 text-green-800 rounded-full text-xs font-medium">
-                              Zakończony
-                            </span>
-                          </div>
-                          <div className="grid grid-cols-2 gap-4 text-xs text-gray-600">
-                            <div>
-                              <span className="font-medium">Data rozpoczęcia:</span> 08.01.2025
-                            </div>
-                            <div>
-                              <span className="font-medium">Data zakończenia:</span> 12.01.2025
-                            </div>
-                            <div>
-                              <span className="font-medium">Warsztat:</span> Lakiernia Nowak
-                            </div>
-                            <div>
-                              <span className="font-medium">Koszt:</span> 2,800 PLN
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-
-                      <div className="text-center pt-2">
-                        <p className="text-xs text-gray-400">Kliknij "Rozwiń" aby zobaczyć pełne szczegóły i dodać nowe harmonogramy</p>
-                      </div>
-                    </div>
-                  )}
-                </div>
+                  </div>
+                )}
               </div>
             </CardContent>
           </Card>
@@ -1235,8 +1112,8 @@ const renderParticipantDetails = (participant: ParticipantInfo | undefined, titl
                     </div>
                   </div>
                 </div>
-                <div className="p-4">
-                  {expandedSections.naprawa && eventId ? (
+                {expandedSections.naprawa && eventId && (
+                  <div className="p-4">
                     <div className="border rounded-lg overflow-hidden">
                       <RepairDetailsSection
                         eventId={eventId}
@@ -1244,69 +1121,17 @@ const renderParticipantDetails = (participant: ParticipantInfo | undefined, titl
                         onAutoShowFormHandled={() => setAutoShowRepairForm(false)}
                       />
                     </div>
-                  ) : (
-                    <div className="space-y-4">
-                      {/* Preview of repair details */}
-                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        <InfoCard
-                          icon={<Wrench className="h-4 w-4" />}
-                          label="Liczba pozycji"
-                          value={repairDetails.length.toString()}
-                        />
-                        <InfoCard
-                          icon={<DollarSign className="h-4 w-4" />}
-                          label="Całkowity koszt"
-                          value=""
-                        />
-                        <InfoCard
-                          icon={<Clock className="h-4 w-4" />}
-                          label="Status"
-                          value={summaryStatus}
-                        />
-                      </div>
-
-                      {repairDetails.length > 0 && (
-                        <div className="space-y-2">
-                          {repairDetails.slice(0, 2).map((detail, index) => (
-                            <div key={detail.id || index} className="bg-gray-50 rounded-lg p-3 border border-gray-200">
-                              <div className="flex items-center justify-between mb-2">
-                                <h4 className="font-medium text-gray-900 text-sm">
-                                  {detail.vehicleTabNumber} ({detail.vehicleRegistration})
-                                </h4>
-                                <span className="px-2 py-1 bg-gray-100 text-gray-800 rounded-full text-xs font-medium">
-                                  {detail.status}
-                                </span>
-                              </div>
-                              <div className="grid grid-cols-2 gap-4 text-xs text-gray-600">
-                                <div>
-                                  <span className="font-medium">Łączne godziny:</span>{" "}
-                                  {(detail.bodyworkHours + detail.paintingHours + detail.assemblyHours + detail.otherWorkHours).toFixed(1)}
-                                </div>
-                                {detail.repairStartDate && (
-                                  <div>
-                                    <span className="font-medium">Rozpoczęcie:</span> {detail.repairStartDate}
-                                  </div>
-                                )}
-                              </div>
-                            </div>
-                            ))}
-                          </div>
-                        )}
-
-                      <div className="text-center pt-2">
-                        <p className="text-xs text-gray-400">Kliknij "Rozwiń" aby zobaczyć pełne szczegóły i dodać nowe pozycje naprawy</p>
-                      </div>
-                    </div>
-                  )}
-                </div>
+                  </div>
+                )}
               </div>
             </CardContent>
           </Card>
         </div>
       )
 
-  case "dane-zdarzenia":
+  case "dane-zdarzenia-podstawowe":
       return (
+
         <div className="space-y-4">
           {/* Dane Szkody Card */}
           <Card className="overflow-hidden shadow-sm border-gray-200 rounded-xl">
@@ -1934,6 +1759,7 @@ const renderParticipantDetails = (participant: ParticipantInfo | undefined, titl
         )}
       </div>
     )
+
 
     case "uczestnicy":
       return (
@@ -3066,7 +2892,7 @@ const renderParticipantDetails = (participant: ParticipantInfo | undefined, titl
           </div>
         </div>
       </div>
-    )
+      )
     }
 
     default:
@@ -3080,5 +2906,8 @@ const renderParticipantDetails = (participant: ParticipantInfo | undefined, titl
           </div>
         </div>
       )
+    }
   }
-}
+
+  return renderActiveSection();
+};

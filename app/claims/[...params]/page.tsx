@@ -45,7 +45,7 @@ export default function ClaimPage() {
   const isEdit = paramsArray[1] === "edit" || isNew
   const mode: PageMode = isNew ? "new" : isEdit ? "edit" : "view"
 
-  const [activeClaimSection, setActiveClaimSection] = useState("dane-zdarzenia")
+  const [activeClaimSection, setActiveClaimSection] = useState("dane-zdarzenia-podstawowe")
   const [isSaving, setIsSaving] = useState(false)
   const [isLoading, setIsLoading] = useState(!isNew)
   const [loadError, setLoadError] = useState<string | null>(null)
@@ -671,7 +671,7 @@ export default function ClaimPage() {
                 <CardContent>
                   <div className="space-y-3">
                     {claim.damages.map((damage, index) => (
-                      <div key={index} className="border rounded-lg p-3 bg-gray-50">
+                      <div key={`damage-${index}`} className="border rounded-lg p-3 bg-gray-50">
                         <div className="flex justify-between items-start mb-2">
                           <h4 className="font-medium">{damage.description}</h4>
                           {damage.estimatedCost && (
@@ -718,7 +718,7 @@ export default function ClaimPage() {
                 <CardContent>
                   <div className="flex flex-wrap gap-2">
                     {claim.servicesCalled.map((service, index) => (
-                      <Badge key={index} variant="outline" className="capitalize">
+                      <Badge key={`service-${index}`} variant="outline" className="capitalize">
                         {service}
                       </Badge>
                     ))}

@@ -614,7 +614,7 @@ export default function ViewClaimPage() {
                       <p className="text-sm font-medium text-gray-700 mb-3">Kierowcy ({claim.injuredParty.drivers.length})</p>
                       <div className="space-y-4">
                         {claim.injuredParty.drivers.map((driver, index) => (
-                          <div key={index} className="bg-gray-50 rounded-lg p-4 space-y-3">
+                          <div key={`driver-${index}`} className="bg-gray-50 rounded-lg p-4 space-y-3">
                             <div className="flex items-center justify-between">
                               <h5 className="font-medium text-gray-900">
                                 {driver.firstName} {driver.lastName} {driver.name && `(${driver.name})`}
@@ -765,7 +765,7 @@ export default function ViewClaimPage() {
                       <p className="text-sm font-medium text-gray-700 mb-3">Kierowcy ({claim.perpetrator.drivers.length})</p>
                       <div className="space-y-4">
                         {claim.perpetrator.drivers.map((driver, index) => (
-                          <div key={index} className="bg-gray-50 rounded-lg p-4 space-y-3">
+                          <div key={`perp-driver-primary-${index}`} className="bg-gray-50 rounded-lg p-4 space-y-3">
                             <div className="flex items-center justify-between">
                               <h5 className="font-medium text-gray-900">
                                 {driver.firstName} {driver.lastName} {driver.name && `(${driver.name})`}
@@ -916,7 +916,7 @@ export default function ViewClaimPage() {
                       <p className="text-sm font-medium text-gray-700 mb-3">Kierowcy ({claim.perpetrator.drivers.length})</p>
                       <div className="space-y-4">
                         {claim.perpetrator.drivers.map((driver, index) => (
-                          <div key={index} className="bg-gray-50 rounded-lg p-4 space-y-3">
+                          <div key={`perp-driver-secondary-${index}`} className="bg-gray-50 rounded-lg p-4 space-y-3">
                             <div className="flex items-center justify-between">
                               <h5 className="font-medium text-gray-900">
                                 {driver.firstName} {driver.lastName} {driver.name && `(${driver.name})`}
@@ -1036,7 +1036,7 @@ export default function ViewClaimPage() {
               <CardContent>
                 <div className="space-y-3">
                   {claim.damages.map((damage, index) => (
-                    <div key={index} className="border rounded-lg p-3 bg-gray-50">
+                    <div key={`damage-${index}`} className="border rounded-lg p-3 bg-gray-50">
                       <div className="flex justify-between items-start mb-2">
                         <h4 className="font-medium">{damage.description}</h4>
                         {damage.estimatedCost && (
@@ -1083,7 +1083,7 @@ export default function ViewClaimPage() {
               <CardContent>
                 <div className="flex flex-wrap gap-2">
                   {claim.servicesCalled.map((service, index) => (
-                    <Badge key={index} variant="outline" className="capitalize">
+                    <Badge key={`service-${index}`} variant="outline" className="capitalize">
                       {service}
                     </Badge>
                   ))}

@@ -140,7 +140,7 @@ function HomePage({ user, onLogout }: PageProps) {
                   {stats.map((stat, index) => {
                     const Icon = stat.icon
                     return (
-                      <Card key={index} className="hover:shadow-lg transition-shadow">
+                      <Card key={`stat-${stat.title}`} className="hover:shadow-lg transition-shadow">
                         <CardContent className="p-6">
                           <div className="flex items-center justify-between">
                             <div>
@@ -196,7 +196,7 @@ function HomePage({ user, onLogout }: PageProps) {
                     <CardContent>
                       <div className="space-y-4">
                         {statusOverview.map((item, index) => (
-                          <div key={index} className="flex items-center justify-between">
+                          <div key={`status-${item.status}`} className="flex items-center justify-between">
                             <div className="flex items-center space-x-3">
                               <div className={`w-3 h-3 rounded-full ${item.color}`} />
                               <span className="text-sm font-medium text-gray-700">{item.status}</span>
@@ -228,7 +228,7 @@ function HomePage({ user, onLogout }: PageProps) {
                     <CardContent>
                       <div className="space-y-4">
                         {recentClaims.map((claim, index) => (
-                          <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                          <div key={claim.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                             <div className="flex-1">
                               <p className="font-medium text-gray-900">{claim.id}</p>
                               <p className="text-sm text-gray-600">{claim.client}</p>
@@ -271,8 +271,9 @@ function HomePage({ user, onLogout }: PageProps) {
                         const Icon = action.icon
                         return (
                           <Button
-                            key={index}
+                            key={`quick-action-${action.title}`}
                             variant="outline"
+                          >
                             <Icon className="h-6 w-6" />
                             <span className="text-sm">{action.title}</span>
                           </Button>
@@ -294,7 +295,7 @@ function HomePage({ user, onLogout }: PageProps) {
                     <ul className="space-y-2">
                       {tasks.map((task, index) => (
                         <li
-                          key={index}
+                          key={`task-${task.title}`}
                           className="flex items-center justify-between"
                         >
                           <span className="text-sm text-gray-700">{task.title}</span>

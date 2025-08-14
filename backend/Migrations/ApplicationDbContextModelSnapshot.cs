@@ -983,6 +983,36 @@ namespace AutomotiveClaimsApi.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("character varying(100)");
 
+                    b.Property<string>("SubcontractorName")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<string>("SubcontractorPolicyNumber")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<string>("SubcontractorInsurer")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<bool?>("ComplaintToSubcontractor")
+                        .HasColumnType("boolean");
+
+                    b.Property<DateTime?>("ComplaintToSubcontractorDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<bool?>("ClaimFromSubcontractorPolicy")
+                        .HasColumnType("boolean");
+
+                    b.Property<DateTime?>("ClaimFromSubcontractorPolicyDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<bool?>("ComplaintResponse")
+                        .HasColumnType("boolean");
+
+                    b.Property<DateTime?>("ComplaintResponseDate")
+                        .HasColumnType("timestamp with time zone");
+
                     b.Property<bool?>("WereInjured")
                         .HasColumnType("boolean");
 

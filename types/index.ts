@@ -20,6 +20,29 @@ export interface Note {
   dueDate?: string
 }
 
+
+export interface TransportDamage {
+  cargoDescription: string
+  losses: string[]
+  carrier: string
+  policyNumber: string
+  inspectionContactName: string
+  inspectionContactPhone: string
+  inspectionContactEmail: string
+}
+export interface SubcontractorInfo {
+  subcontractorName: string
+  subcontractorPolicyNumber: string
+  subcontractorInsurer: string
+  complaintToSubcontractor?: boolean
+  complaintToSubcontractorDate?: string
+  claimFromSubcontractorPolicy?: boolean
+  claimFromSubcontractorPolicyDate?: string
+  complaintResponse?: boolean
+  complaintResponseDate?: string
+
+}
+
 export interface Claim
   extends Omit<
     ClaimDto,
@@ -36,6 +59,15 @@ export interface Claim
     | "clientClaims"
     | "recourses"
     | "settlements"
+    | "subcontractorName"
+    | "subcontractorPolicyNumber"
+    | "subcontractorInsurer"
+    | "complaintToSubcontractor"
+    | "complaintToSubcontractorDate"
+    | "claimFromSubcontractorPolicy"
+    | "claimFromSubcontractorPolicyDate"
+    | "complaintResponse"
+    | "complaintResponseDate"
   > {
   id?: string
   clientId?: string
@@ -71,6 +103,7 @@ export interface Claim
   cargoDetails?: string
   carrierInfo?: string
   damageDescription?: string
+  transportDamage?: TransportDamage
   damages?: DamageItem[]
   notes?: Note[]
   injuredParty?: ParticipantInfo
@@ -85,6 +118,7 @@ export interface Claim
   documents?: UploadedFile[]
   pendingFiles?: UploadedFile[]
   documentsSectionProps?: DocumentsSectionProps
+  subcontractor?: SubcontractorInfo
 }
 
 export interface ParticipantInfo {

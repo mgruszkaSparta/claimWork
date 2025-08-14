@@ -130,6 +130,27 @@ namespace AutomotiveClaimsApi.Models
         [MaxLength(100)]
         public string? VehicleType { get; set; }
 
+        [MaxLength(200)]
+        public string? SubcontractorName { get; set; }
+
+        [MaxLength(100)]
+        public string? SubcontractorPolicyNumber { get; set; }
+
+        [MaxLength(200)]
+        public string? SubcontractorInsurer { get; set; }
+
+        public bool? ComplaintToSubcontractor { get; set; }
+
+        public DateTime? ComplaintToSubcontractorDate { get; set; }
+
+        public bool? ClaimFromSubcontractorPolicy { get; set; }
+
+        public DateTime? ClaimFromSubcontractorPolicyDate { get; set; }
+
+        public bool? ComplaintResponse { get; set; }
+
+        public DateTime? ComplaintResponseDate { get; set; }
+
         public string? DamageDescription { get; set; }
 
         public string? Description { get; set; }

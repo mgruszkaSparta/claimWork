@@ -20,6 +20,7 @@ export interface Note {
   dueDate?: string
 }
 
+
 export interface TransportDamage {
   cargoDescription: string
   losses: string[]
@@ -28,6 +29,18 @@ export interface TransportDamage {
   inspectionContactName: string
   inspectionContactPhone: string
   inspectionContactEmail: string
+}
+export interface SubcontractorInfo {
+  subcontractorName: string
+  subcontractorPolicyNumber: string
+  subcontractorInsurer: string
+  complaintToSubcontractor?: boolean
+  complaintToSubcontractorDate?: string
+  claimFromSubcontractorPolicy?: boolean
+  claimFromSubcontractorPolicyDate?: string
+  complaintResponse?: boolean
+  complaintResponseDate?: string
+
 }
 
 export interface Claim
@@ -46,6 +59,15 @@ export interface Claim
     | "clientClaims"
     | "recourses"
     | "settlements"
+    | "subcontractorName"
+    | "subcontractorPolicyNumber"
+    | "subcontractorInsurer"
+    | "complaintToSubcontractor"
+    | "complaintToSubcontractorDate"
+    | "claimFromSubcontractorPolicy"
+    | "claimFromSubcontractorPolicyDate"
+    | "complaintResponse"
+    | "complaintResponseDate"
   > {
   id?: string
   clientId?: string
@@ -96,6 +118,7 @@ export interface Claim
   documents?: UploadedFile[]
   pendingFiles?: UploadedFile[]
   documentsSectionProps?: DocumentsSectionProps
+  subcontractor?: SubcontractorInfo
 }
 
 export interface ParticipantInfo {

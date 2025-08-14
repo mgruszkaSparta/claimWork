@@ -761,8 +761,9 @@ const renderParticipantDetails = (participant: ParticipantInfo | undefined, titl
                   Numer rejestracyjny:
                 </label>
                 <p className="text-sm font-medium text-gray-900">{participant.vehicleRegistration || "Nie określono"}</p>
-              </div>
-              <div>
+                    </div>
+                  </div>
+                  <div>
                 <label className="text-xs font-medium text-gray-500 uppercase tracking-wide block mb-1">
                   VIN:
                 </label>
@@ -1792,54 +1793,46 @@ const renderParticipantDetails = (participant: ParticipantInfo | undefined, titl
                       )}
                     </div>
                   </div>
-                </div>
                 <div>
                   <DamageDiagram
                     damagedParts={(claimFormData.damages || []).map((d) => d.description)}
                     onPartClick={handleDamagePartToggle}
                   />
-                </div>
-
-                <div>
-                  <Label className="text-sm font-medium text-gray-700">Powstałe uszkodzenia</Label>
-                  <div className="p-4 border rounded-lg bg-gray-50 space-y-2 mt-2 max-h-60 overflow-y-auto">
-                    {claimFormData.damages && claimFormData.damages.length > 0 ? (
-                      claimFormData.damages.map((damage, index) => (
-                        <div
-                          key={damage.id || `${damage.description}-${damage.detail}`}
-                          className="flex items-center justify-between text-sm hover:bg-gray-100 p-2 rounded bg-white border"
-                        >
-                          <span className="font-medium">
-                            {index + 1}. {damage.description} -{" "}
-                            <span className="text-gray-600 font-normal">{damage.detail}</span>
-                          </span>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-6 w-6"
-                            onClick={() => removeDamageItem(damage.description)}
+                  <div>
+                    <Label className="text-sm font-medium text-gray-700">Powstałe uszkodzenia</Label>
+                    <div className="p-4 border rounded-lg bg-gray-50 space-y-2 mt-2 max-h-60 overflow-y-auto">
+                      {claimFormData.damages && claimFormData.damages.length > 0 ? (
+                        claimFormData.damages.map((damage, index) => (
+                          <div
+                            key={damage.id || `${damage.description}-${damage.detail}`}
+                            className="flex items-center justify-between text-sm hover:bg-gray-100 p-2 rounded bg-white border"
                           >
-                            <X className="h-4 w-4 text-red-500" />
-                          </Button>
-                        </div>
-                      ))
-                    ) : (
-                      <p className="text-sm text-gray-500 text-center py-4">Wybierz uszkodzone części na diagramie.</p>
-                    )}
+                            <span className="font-medium">
+                              {index + 1}. {damage.description} -{" "}
+                              <span className="text-gray-600 font-normal">{damage.detail}</span>
+                            </span>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-6 w-6"
+                              onClick={() => removeDamageItem(damage.description)}
+                            >
+                              <X className="h-4 w-4 text-red-500" />
+                            </Button>
+                          </div>
+                        ))
+                      ) : (
+                        <p className="text-sm text-gray-500 text-center py-4">Wybierz uszkodzone części na diagramie.</p>
+                      )}
+                    </div>
                   </div>
                 </div>
               </div>
-              <div>
-              <DamageDiagram
-                damagedParts={(claimFormData.damages || []).map((d) => d.description)}
-                onPartClick={handleDamagePartToggle}
-              />
-            </div>
-          </CardContent>
-        </Card>
-        {claimObjectType === "2" && (
-          <PropertyDamageSection
-            claimFormData={claimFormData}
+            </CardContent>
+          </Card>
+          {claimObjectType === "2" && (
+            <PropertyDamageSection
+              claimFormData={claimFormData}
             handleFormChange={handleFormChange}
           />
         )}
@@ -2987,7 +2980,6 @@ const renderParticipantDetails = (participant: ParticipantInfo | undefined, titl
         </div>
       </div>
     )
-    }
 
     default:
       return (

@@ -4,6 +4,7 @@ import { API_BASE_URL } from "../api";
 const settlementSchema = z.object({
   id: z.string(),
   eventId: z.string(),
+  claimId: z.string().nullish(),
   externalEntity: z.string().nullish(),
   customExternalEntity: z.string().nullish(),
   transferDate: z.string().nullish(),
@@ -20,6 +21,8 @@ const settlementSchema = z.object({
   documentDescription: z.string().nullish(),
   settlementNumber: z.string().nullish(),
   settlementType: z.string().nullish(),
+  createdAt: z.string().nullish(),
+  updatedAt: z.string().nullish(),
 });
 
 const settlementUpsertSchema = z.object({

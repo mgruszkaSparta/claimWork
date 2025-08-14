@@ -1,39 +1,57 @@
 import { type NextRequest, NextResponse } from "next/server"
 
-export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
-  try {
-    const emailId = Number.parseInt(params.id)
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5200/api"
 
-    // Mock implementation - replace with actual backend API call
-    const email = {
-      id: emailId,
-      from: "Jan Kowalski <jan.kowalski@example.com>",
-      to: "claims@company.com",
-      subject: "Zgłoszenie szkody - polisa ABC123",
-      body: "<p>Dzień dobry,</p><p>Zgłaszam szkodę komunikacyjną...</p>",
-      receivedDate: new Date("2024-01-15T10:30:00"),
-      read: false,
-      claimId: null,
-      attachments: [],
+export async function GET(
+  _request: NextRequest,
+  { params }: { params: { id: string } },
+) {
+  try {
+    const emailId = params.id
+
+    const response = await fetch(`${API_BASE_URL}/emails/${emailId}`, {
+      cache: "no-store",
+    })
+
+    if (!response.ok) {
+      const errorText = await response.text()
+      return NextResponse.json({ error: errorText }, { status: response.status })
     }
 
+    const email = await response.json()
     return NextResponse.json(email)
   } catch (error) {
     console.error("Error fetching email:", error)
-    return NextResponse.json({ error: "Failed to fetch email" }, { status: 500 })
+    return NextResponse.json(
+      { error: error instanceof Error ? error.message : "Failed to fetch email" },
+      { status: 500 },
+    )
   }
 }
 
-export async function DELETE(request: NextRequest, { params }: { params: { id: string } }) {
+export async function DELETE(
+  _request: NextRequest,
+  { params }: { params: { id: string } },
+) {
   try {
-    const emailId = Number.parseInt(params.id)
+    const emailId = params.id
 
-    // Mock implementation - replace with actual backend API call
-    console.log("Deleting email:", emailId)
+    const response = await fetch(`${API_BASE_URL}/emails/${emailId}`, {
+      method: "DELETE",
+    })
 
-    return NextResponse.json({ success: true, message: "Email deleted successfully" })
+    if (!response.ok) {
+      const errorText = await response.text()
+      return NextResponse.json({ error: errorText }, { status: response.status })
+    }
+
+    const data = await response.json()
+    return NextResponse.json(data, { status: response.status })
   } catch (error) {
     console.error("Error deleting email:", error)
-    return NextResponse.json({ error: "Failed to delete email" }, { status: 500 })
+    return NextResponse.json(
+      { error: error instanceof Error ? error.message : "Failed to delete email" },
+      { status: 500 },
+    )
   }
 }

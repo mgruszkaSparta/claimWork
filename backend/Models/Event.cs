@@ -70,6 +70,8 @@ namespace AutomotiveClaimsApi.Models
         [MaxLength(100)]
         public string? DamageType { get; set; }
 
+        public int? ObjectTypeId { get; set; }
+
         [MaxLength(200)]
         public string? Liquidator { get; set; }
 

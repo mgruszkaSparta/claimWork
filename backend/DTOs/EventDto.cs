@@ -27,6 +27,7 @@ namespace AutomotiveClaimsApi.DTOs
         public string? Currency { get; set; }
         public string? RiskType { get; set; }
         public string? DamageType { get; set; }
+        public int? ObjectTypeId { get; set; }
         public string? Liquidator { get; set; }
         public int? ClientId { get; set; }
         public string? Client { get; set; }

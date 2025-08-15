@@ -65,6 +65,8 @@ namespace AutomotiveClaimsApi.DTOs
         [StringLength(100)]
         public string? DamageType { get; set; }
 
+        public int? ObjectTypeId { get; set; }
+
         [StringLength(200)]
         public string? Liquidator { get; set; }
 

@@ -102,6 +102,7 @@ namespace AutomotiveClaimsApi.Controllers
                         InsuranceCompany = e.InsuranceCompany,
                         RiskType = e.RiskType,
                         DamageType = e.DamageType,
+                        ObjectTypeId = e.ObjectTypeId,
                         LeasingCompanyId = e.LeasingCompanyId,
                         LeasingCompany = e.LeasingCompany,
                         HandlerId = e.HandlerId,
@@ -675,6 +676,7 @@ namespace AutomotiveClaimsApi.Controllers
             entity.Currency = dto.Currency;
             entity.RiskType = dto.RiskType;
             entity.DamageType = dto.DamageType;
+            entity.ObjectTypeId = dto.ObjectTypeId;
             entity.Liquidator = dto.Liquidator;
             entity.ClientId = dto.ClientId;
             entity.Client = dto.Client;
@@ -1451,6 +1453,7 @@ namespace AutomotiveClaimsApi.Controllers
             Currency = e.Currency,
             RiskType = e.RiskType,
             DamageType = e.DamageType,
+            ObjectTypeId = e.ObjectTypeId,
             Liquidator = e.Liquidator,
             ClientId = e.ClientId,
             Client = e.Client,

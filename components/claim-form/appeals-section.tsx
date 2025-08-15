@@ -20,7 +20,22 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
-import { ArrowUpDown, Plus, Edit, Trash2, Eye, Download, Upload, FileText, X, Info, Loader2, Minus } from "lucide-react"
+import {
+  ArrowUpDown,
+  Plus,
+  Edit,
+  Trash2,
+  Eye,
+  Download,
+  Upload,
+  FileText,
+  X,
+  Info,
+  Loader2,
+  Minus,
+  ChevronLeft,
+  ChevronRight,
+} from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 import { useDragDrop } from "@/hooks/use-drag-drop"
 import {
@@ -53,6 +68,12 @@ export const AppealsSection = ({ claimId }: AppealsSectionProps) => {
   const [isPreviewOpen, setIsPreviewOpen] = useState(false)
   const [previewUrl, setPreviewUrl] = useState<string | null>(null)
   const [previewFileType, setPreviewFileType] = useState<string>("")
+
+  // Preview for newly selected files
+  const [isSelectedPreviewOpen, setIsSelectedPreviewOpen] = useState(false)
+  const [selectedPreviewIndex, setSelectedPreviewIndex] = useState(0)
+  const [selectedPreviewUrl, setSelectedPreviewUrl] = useState<string | null>(null)
+  const [selectedPreviewType, setSelectedPreviewType] = useState<string>("")
 
   // Form data
   const [formData, setFormData] = useState({
@@ -101,39 +122,67 @@ export const AppealsSection = ({ claimId }: AppealsSectionProps) => {
   }
 
   const processFiles = (files: File[]) => {
-    const file = files[0]
-    if (!file) return
+    if (!files || files.length === 0) return
 
-    setSelectedFiles([file])
+    setSelectedFiles((prev) => [...prev, ...files])
     setShowFileDescription(true)
 
-    const isOutlookFile =
-      file.name.includes("outlook") || file.type === "application/octet-stream"
-
     toast({
-      title: "Plik dodany",
-      description: isOutlookFile ? "Dodano plik z Outlooka" : "Dodano plik",
+      title: "Pliki dodane",
+      description: `Dodano ${files.length} plik(ów)`,
     })
   }
 
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = event.target.files
     if (files && files.length > 0) {
-      processFiles([files[0]])
+      processFiles(Array.from(files))
     }
   }
 
   const handleFilesDropped = (files: FileList) => {
     if (files.length > 0) {
-      processFiles([files[0]])
+      processFiles(Array.from(files))
     }
   }
 
   const removeSelectedFile = (index: number) => {
-    setSelectedFiles((prev) => prev.filter((_, i) => i !== index))
-    if (selectedFiles.length === 1) {
-      setShowFileDescription(false)
+    setSelectedFiles((prev) => {
+      const updated = prev.filter((_, i) => i !== index)
+      if (updated.length === 0) {
+        setShowFileDescription(false)
+      }
+      return updated
+    })
+  }
+
+  const previewSelectedFile = (index: number) => {
+    const file = selectedFiles[index]
+    if (!file) return
+    const url = URL.createObjectURL(file)
+    setSelectedPreviewIndex(index)
+    setSelectedPreviewUrl(url)
+    setSelectedPreviewType(getFileType(file.name))
+    setIsSelectedPreviewOpen(true)
+  }
+
+  const closeSelectedPreview = () => {
+    setIsSelectedPreviewOpen(false)
+    if (selectedPreviewUrl) {
+      URL.revokeObjectURL(selectedPreviewUrl)
     }
+    setSelectedPreviewUrl(null)
+  }
+
+  const showNextSelected = () => {
+    const nextIndex = (selectedPreviewIndex + 1) % selectedFiles.length
+    previewSelectedFile(nextIndex)
+  }
+
+  const showPrevSelected = () => {
+    const prevIndex =
+      (selectedPreviewIndex - 1 + selectedFiles.length) % selectedFiles.length
+    previewSelectedFile(prevIndex)
   }
 
   const removeAllFiles = () => {
@@ -533,7 +582,7 @@ export const AppealsSection = ({ claimId }: AppealsSectionProps) => {
                         <span className="font-semibold">Kliknij, aby wybrać plik</span> lub przeciągnij i upuść
                       </p>
                       <p className="text-xs text-gray-400">Obsługiwane formaty: PDF, DOC, DOCX, JPG, PNG</p>
-                      <p className="text-xs text-gray-400">Możesz przesłać tylko jeden plik</p>
+                      <p className="text-xs text-gray-400">Możesz przesłać wiele plików</p>
                     </div>
 
                     <input
@@ -541,6 +590,7 @@ export const AppealsSection = ({ claimId }: AppealsSectionProps) => {
                       type="file"
                       className="hidden"
                       accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
+                      multiple
                       onChange={handleFileSelect}
                     />
                     <Button
@@ -561,7 +611,7 @@ export const AppealsSection = ({ claimId }: AppealsSectionProps) => {
                       <div className="flex items-center gap-2">
                         <FileText className="h-4 w-4 text-[#1a3a6c]" />
                         <span className="text-sm font-medium">
-                          Wybrany plik - {formatFileSize(getTotalFileSize())}
+                          Wybrane pliki ({selectedFiles.length}) - {formatFileSize(getTotalFileSize())}
                         </span>
                       </div>
                       <Button
@@ -588,15 +638,26 @@ export const AppealsSection = ({ claimId }: AppealsSectionProps) => {
                               ({formatFileSize(file.size)})
                             </span>
                           </div>
-                          <Button
-                            type="button"
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => removeSelectedFile(index)}
-                            className="h-6 w-6 p-0 flex-shrink-0"
-                          >
-                            <X className="h-3 w-3" />
-                          </Button>
+                          <div className="flex items-center gap-1 flex-shrink-0">
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => previewSelectedFile(index)}
+                              className="h-6 w-6 p-0"
+                            >
+                              <Eye className="h-3 w-3" />
+                            </Button>
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => removeSelectedFile(index)}
+                              className="h-6 w-6 p-0"
+                            >
+                              <X className="h-3 w-3" />
+                            </Button>
+                          </div>
                         </div>
                       ))}
                     </div>
@@ -839,6 +900,61 @@ export const AppealsSection = ({ claimId }: AppealsSectionProps) => {
               Pobierz plik
             </Button>
           </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Selected Files Preview Dialog */}
+      <Dialog
+        open={isSelectedPreviewOpen}
+        onOpenChange={(open) => {
+          setIsSelectedPreviewOpen(open)
+          if (!open) {
+            closeSelectedPreview()
+          }
+        }}
+      >
+        <DialogContent className="max-w-4xl max-h-[90vh]">
+          <DialogHeader>
+            <DialogTitle>Podgląd: {selectedFiles[selectedPreviewIndex]?.name}</DialogTitle>
+          </DialogHeader>
+          <div className="flex-1 overflow-auto flex items-center justify-center bg-gray-100 rounded p-4 min-h-[400px]">
+            {selectedPreviewType === "pdf" && selectedPreviewUrl ? (
+              <iframe src={selectedPreviewUrl} className="w-full h-full border-0" title="PDF Preview" />
+            ) : selectedPreviewType === "image" && selectedPreviewUrl ? (
+              <img
+                src={selectedPreviewUrl}
+                alt="Preview"
+                className="max-w-full max-h-[70vh] object-contain"
+              />
+            ) : (
+              <div className="text-center p-8 space-y-4">
+                <FileText className="h-12 w-12 mx-auto text-gray-400" />
+                <p className="text-gray-600">Podgląd niedostępny dla tego typu pliku.</p>
+              </div>
+            )}
+          </div>
+          {selectedFiles.length > 1 && (
+            <div className="flex justify-between items-center pt-4 border-t border-gray-200">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={showPrevSelected}
+                className="flex items-center gap-1"
+              >
+                <ChevronLeft className="h-4 w-4" />
+                Poprzedni
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={showNextSelected}
+                className="flex items-center gap-1"
+              >
+                Następny
+                <ChevronRight className="h-4 w-4" />
+              </Button>
+            </div>
+          )}
         </DialogContent>
       </Dialog>
     </div>

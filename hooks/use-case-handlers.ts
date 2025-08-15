@@ -1,48 +1,51 @@
-"use client"
 
-import useSWR from "swr"
-import { getJson } from "@/lib/api"
-import type { Handler } from "@/types/handler"
+'use client'
 
-type DictionaryItemDto = {
+import useSWR from 'swr'
+import type { DictionaryResponseDto } from '@/lib/dictionary-service'
+
+interface Handler {
   id: string
   name: string
   code?: string
-  isActive?: boolean
+  isActive: boolean
 }
 
-type DictionaryResponseDto = {
-  items: DictionaryItemDto[]
-  totalCount: number
-  category: string
+async function getJson<T>(url: string): Promise<T> {
+  const response = await fetch(url)
+  if (!response.ok) {
+    throw new Error(`Failed to fetch ${url}: ${response.status}`)
+  }
+  return (await response.json()) as T
 }
 
-const fetchCaseHandlers = async (): Promise<Handler[]> => {
-  const data = await getJson<DictionaryResponseDto>("/api/dictionaries/case-handlers")
-  return (data.items || []).map((it) => ({
-    id: it.id,
-    name: it.name,
-    code: it.code,
-    isActive: it.isActive,
+async function fetchCaseHandlers(): Promise<Handler[]> {
+  const data = await getJson<DictionaryResponseDto>('/api/dictionaries/case-handlers')
+  return data.items.map(({ id, name, code, isActive }) => ({
+    id,
+    name,
+    code,
+    isActive,
+
   }))
 }
 
 export function useCaseHandlers() {
-  const { data, error, isLoading, mutate } = useSWR<Handler[]>(
-    "case-handlers",
+
+  const { data, error, isLoading, mutate } = useSWR(
+    'case-handlers',
     fetchCaseHandlers,
     {
-      dedupingInterval: 5 * 60 * 1000,
+      dedupingInterval: 5 * 60_000,
+
       revalidateOnFocus: false,
       revalidateIfStale: true,
       revalidateOnReconnect: true,
     },
   )
 
-  return {
-    handlers: data ?? [],
-    loading: isLoading,
-    error: error as Error | undefined,
-    refresh: () => mutate(),
-  }
+
+  return { handlers: data ?? [], loading: isLoading, error, refresh: mutate }
 }
+
+

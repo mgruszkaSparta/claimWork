@@ -2,10 +2,7 @@ import type React from "react"
 import type { Metadata } from "next"
 import { GeistSans } from "geist/font/sans"
 import { GeistMono } from "geist/font/mono"
-import { ThemeProvider } from "@/components/theme-provider"
-import { Toaster } from "@/components/ui/toaster"
-import Footer from "@/components/footer"
-import QueryProvider from "@/components/query-provider"
+import Providers from "./providers"
 import "./globals.css"
 
 export const metadata: Metadata = {
@@ -31,13 +28,7 @@ html {
         `}</style>
       </head>
       <body className="min-h-screen bg-gray-50">
-        <QueryProvider>
-          <ThemeProvider attribute="class" defaultTheme="light" enableSystem disableTransitionOnChange>
-            <main className="flex-1">{children}</main>
-            <Footer />
-            <Toaster />
-          </ThemeProvider>
-        </QueryProvider>
+        <Providers>{children}</Providers>
       </body>
     </html>
   )

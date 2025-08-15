@@ -1,13 +1,18 @@
 "use client"
 
-import { useState, useEffect, useMemo, useRef } from "react"
+
+import { useState, useEffect, useRef, useMemo } from "react"
+
 import { createPortal } from "react-dom"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { ChevronDown, Phone, Mail, MapPin, Check } from "lucide-react"
-import type { Handler, HandlerSelectionEvent } from "@/types/handler"
-import { useCaseHandlers } from "@/hooks/use-case-handlers"
+
+import type { DictionaryItemDto } from "@/lib/dictionary-service"
+import type { HandlerSelectionEvent } from "@/types/handler"
+import { useCaseHandlers } from "@/hooks/use-dictionaries"
+
 
 interface HandlerDropdownProps {
   selectedHandlerId?: string
@@ -26,18 +31,16 @@ export default function HandlerDropdown({
   onHandlerSelected,
   className = "",
 }: HandlerDropdownProps) {
-  const { handlers, loading, error, refresh } = useCaseHandlers()
 
-  const sortedHandlers = useMemo(
-    () =>
-      [...handlers].sort((a, b) =>
-        a.name.localeCompare(b.name, "pl", { sensitivity: "base" }),
-      ),
-    [handlers],
-  )
+  const { data: handlerData = [], loading, error, refetch: refresh } = useCaseHandlers()
 
-  const [filteredHandlers, setFilteredHandlers] = useState<Handler[]>(sortedHandlers)
-  const [selectedHandler, setSelectedHandler] = useState<Handler | null>(null)
+  const handlers = useMemo(() => {
+    return [...handlerData].sort((a, b) => a.name.localeCompare(b.name, "pl"))
+  }, [handlerData])
+
+  const [filteredHandlers, setFilteredHandlers] = useState<DictionaryItemDto[]>(handlers)
+  const [selectedHandler, setSelectedHandler] = useState<DictionaryItemDto | null>(null)
+
   const [isDropdownOpen, setIsDropdownOpen] = useState(false)
   const [searchTerm, setSearchTerm] = useState("")
   const [dropdownPosition, setDropdownPosition] = useState<DropdownPosition>({ top: 0, left: 0, width: 0 })
@@ -54,22 +57,26 @@ export default function HandlerDropdown({
 
   // Ustaw preselekt, gdy mamy dane i id
   useEffect(() => {
-    if (!selectedHandlerId || sortedHandlers.length === 0) return
-    const found = sortedHandlers.find(h => h.id === selectedHandlerId) || null
-    setSelectedHandler(found)
-  }, [selectedHandlerId, sortedHandlers])
+
+    if (selectedHandlerId && handlers.length > 0) {
+      const handler = handlers.find((h) => h.id === selectedHandlerId)
+      if (handler) {
+        setSelectedHandler(handler)
+      }
+    }
+  }, [selectedHandlerId, handlers])
+
 
   // Filtrowanie po zmianie searchTerm/danych
   useEffect(() => {
-    const term = searchTerm.trim().toLowerCase()
-    if (!term) {
-      setFilteredHandlers(sortedHandlers)
-      return
-    }
-    const filtered = sortedHandlers.filter(h =>
-      h.name.toLowerCase().includes(term) ||
-      (h.code?.toLowerCase().includes(term) ?? false) ||
-      (h.email?.toLowerCase().includes(term) ?? false),
+
+    const term = searchTerm.toLowerCase()
+    const filtered = handlers.filter(
+      (handler) =>
+        handler.name.toLowerCase().includes(term) ||
+        (handler.code && handler.code.toLowerCase().includes(term)) ||
+        (handler.email && handler.email.toLowerCase().includes(term)),
+
     )
     setFilteredHandlers(filtered)
   }, [searchTerm, sortedHandlers])
@@ -117,15 +124,26 @@ export default function HandlerDropdown({
     setIsDropdownOpen(!isDropdownOpen)
   }
 
-  const selectHandler = (handler: Handler) => {
+  const selectHandler = (handler: DictionaryItemDto) => {
     setSelectedHandler(handler)
     setIsDropdownOpen(false)
     setSearchTerm("")
-    onHandlerSelected?.({ handlerId: handler.id, handlerName: handler.name })
+
+
+    if (onHandlerSelected) {
+      onHandlerSelected({
+        handlerId: handler.id,
+        handlerName: handler.name,
+        handlerEmail: handler.email,
+        handlerPhone: handler.phone,
+      })
+    }
   }
 
-  const hasContactInfo = (info?: string): boolean =>
-    !!info && info !== "brak" && info.trim() !== ""
+  const hasContactInfo = (info?: string): boolean => {
+    return !!info && info !== "brak" && info.trim() !== ""
+  }
+
 
   const renderDropdownPortal = () => {
     if (!mounted || !isDropdownOpen) return null
@@ -153,21 +171,28 @@ export default function HandlerDropdown({
           />
         </div>
 
-        {/* Items */}
-        <div className="dropdown-items max-h-72 overflow-auto bg-white border border-t-0 border-gray-200 rounded-b-lg">
+
+        {/* Dropdown Items */}
+        <div className="dropdown-items">
           {loading ? (
-            <div className="px-3 py-2 text-sm text-gray-500">Ładowanie…</div>
+            <div className="dropdown-no-results">Ładowanie...</div>
           ) : error ? (
-            <div className="px-3 py-2 text-sm text-red-600">
-              Błąd pobierania.{" "}
-              <button className="underline" onClick={(e) => { e.stopPropagation(); refresh() }}>
+            <div className="dropdown-no-results flex flex-col items-center gap-2">
+              <span>Wystąpił błąd podczas ładowania likwidatorów.</span>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={(e) => {
+                  e.stopPropagation()
+                  refresh()
+                }}
+              >
                 Spróbuj ponownie
-              </button>
+              </Button>
             </div>
           ) : filteredHandlers.length === 0 ? (
-            <div className="px-3 py-2 text-sm text-gray-500">
-              Nie znaleziono likwidatorów spełniających kryteria
-            </div>
+            <div className="dropdown-no-results">Nie znaleziono likwidatorów spełniających kryteria wyszukiwania</div>
+
           ) : (
             filteredHandlers.map((handler) => (
               <div
@@ -182,9 +207,11 @@ export default function HandlerDropdown({
                 )}
                 <div className="flex flex-col">
                   <span className="font-medium">{handler.name}</span>
-                  <span className="text-xs text-gray-500">
-                    {handler.code || ""}
-                  </span>
+
+                  {handler.email && (
+                    <span className="text-xs text-gray-500">{handler.email}</span>
+                  )}
+
                 </div>
               </div>
             ))

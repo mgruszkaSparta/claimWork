@@ -1409,7 +1409,7 @@ const renderParticipantDetails = (participant: ParticipantInfo | undefined, titl
                       value={claimFormData.damageType || ""}
                       onValueChange={(value) => handleFormChange("damageType", value)}
                       placeholder="Wybierz rodzaj szkody..."
-                      apiUrl="/api/damage-types"
+                      apiUrl="/api/DamageTypes"
                       riskTypeId={claimFormData.riskType}
                       disabled={!claimFormData.riskType}
                     />

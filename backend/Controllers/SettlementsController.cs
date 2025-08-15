@@ -10,6 +10,8 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
+using Microsoft.AspNetCore.Identity;
+using System.Security.Claims;
 
 namespace AutomotiveClaimsApi.Controllers
 {
@@ -20,12 +22,18 @@ namespace AutomotiveClaimsApi.Controllers
         private readonly ApplicationDbContext _context;
         private readonly IDocumentService _documentService;
         private readonly ILogger<SettlementsController> _logger;
+        private readonly UserManager<ApplicationUser>? _userManager;
+        private readonly INotificationService? _notificationService;
 
-        public SettlementsController(ApplicationDbContext context, IDocumentService documentService, ILogger<SettlementsController> logger)
+        public SettlementsController(ApplicationDbContext context, IDocumentService documentService, ILogger<SettlementsController> logger,
+            UserManager<ApplicationUser>? userManager = null,
+            INotificationService? notificationService = null)
         {
             _context = context;
             _documentService = documentService;
             _logger = logger;
+            _userManager = userManager;
+            _notificationService = notificationService;
         }
 
         [HttpGet("event/{eventId}")]
@@ -96,6 +104,29 @@ namespace AutomotiveClaimsApi.Controllers
 
             _context.Settlements.Add(settlement);
             await _context.SaveChangesAsync();
+
+            if (_notificationService != null)
+            {
+                ApplicationUser? currentUser = null;
+                bool isHandler = false;
+                if (_userManager != null)
+                {
+                    currentUser = await _userManager.GetUserAsync(User);
+                    if (currentUser != null)
+                    {
+                        isHandler = await _userManager.IsInRoleAsync(currentUser, "Admin");
+                    }
+                }
+
+                if (!isHandler)
+                {
+                    var eventEntity = await _context.Events.FindAsync(createDto.EventId);
+                    if (eventEntity != null)
+                    {
+                        await _notificationService.NotifyAsync(eventEntity, currentUser, ClaimNotificationEvent.SettlementAdded);
+                    }
+                }
+            }
 
             return CreatedAtAction(nameof(GetSettlement), new { id = settlement.Id }, MapToDto(settlement));
         }

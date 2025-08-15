@@ -85,6 +85,11 @@ export interface DocumentDto {
   canPreview?: boolean
 }
 
+export interface ClaimNotificationSettings {
+  recipients: string[]
+  events: string[]
+}
+
 export interface EventUpsertDto {
   id?: string
   rowVersion?: string
@@ -1034,6 +1039,18 @@ class ApiService {
   async deleteDamageType(id: string): Promise<void> {
     await this.request<void>(`/damage-types/${id}`, {
       method: 'DELETE',
+    })
+  }
+
+  // Notification settings API
+  async getNotificationSettings(): Promise<ClaimNotificationSettings> {
+    return this.request<ClaimNotificationSettings>('/ClaimNotifications')
+  }
+
+  async updateNotificationSettings(data: ClaimNotificationSettings): Promise<void> {
+    await this.request<void>('/ClaimNotifications', {
+      method: 'PUT',
+      body: JSON.stringify(data),
     })
   }
 

@@ -11,21 +11,29 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.Authorization;
 using System.Security.Claims;
+using Microsoft.AspNetCore.Identity;
+using AutomotiveClaimsApi.Services;
 
 namespace AutomotiveClaimsApi.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    [Authorize(Roles = "Admin")]
+    [Authorize(Roles = "Admin,User")]
     public class ClaimsController : ControllerBase
     {
         private readonly ApplicationDbContext _context;
         private readonly ILogger<ClaimsController> _logger;
+        private readonly UserManager<ApplicationUser>? _userManager;
+        private readonly INotificationService? _notificationService;
 
-        public ClaimsController(ApplicationDbContext context, ILogger<ClaimsController> logger)
+        public ClaimsController(ApplicationDbContext context, ILogger<ClaimsController> logger,
+            UserManager<ApplicationUser>? userManager = null,
+            INotificationService? notificationService = null)
         {
             _context = context;
             _logger = logger;
+            _userManager = userManager;
+            _notificationService = notificationService;
         }
 
         [HttpGet]
@@ -191,6 +199,17 @@ namespace AutomotiveClaimsApi.Controllers
             {
                 Event eventEntity;
                 var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                ApplicationUser? currentUser = null;
+                bool isHandler = false;
+
+                if (_userManager != null)
+                {
+                    currentUser = await _userManager.GetUserAsync(User);
+                    if (currentUser != null)
+                    {
+                        isHandler = await _userManager.IsInRoleAsync(currentUser, "Admin");
+                    }
+                }
 
                 if (eventDto.Id.HasValue)
                 {
@@ -232,6 +251,12 @@ namespace AutomotiveClaimsApi.Controllers
 
                 await UpsertClaimAsync(eventEntity, eventDto);
 
+                if (isHandler && currentUser != null)
+                {
+                    eventEntity.Handler = currentUser.UserName;
+                    eventEntity.HandlerEmail = currentUser.Email;
+                }
+
                 if (string.IsNullOrEmpty(eventEntity.SpartaNumber))
                 {
                     eventEntity.SpartaNumber = await GenerateNextSpartaNumber();
@@ -253,6 +278,11 @@ namespace AutomotiveClaimsApi.Controllers
                     .Include(e => e.Notes)
                     .Include(e => e.RegisteredBy)
                     .FirstOrDefaultAsync(e => e.Id == eventEntity.Id);
+
+                if (!isHandler && currentUser != null && _notificationService != null && createdEvent != null)
+                {
+                    await _notificationService.NotifyAsync(createdEvent, currentUser, ClaimNotificationEvent.ClaimCreated);
+                }
 
                 var createdClaimDto = MapEventToDto(createdEvent!);
                 return CreatedAtAction(nameof(GetClaim), new { id = eventEntity.Id }, createdClaimDto);
@@ -276,6 +306,17 @@ namespace AutomotiveClaimsApi.Controllers
                 var existing = await _context.Events
                     .AsNoTracking()
                     .FirstOrDefaultAsync(e => e.Id == id);
+
+                ApplicationUser? currentUser = null;
+                bool isHandler = false;
+                if (_userManager != null)
+                {
+                    currentUser = await _userManager.GetUserAsync(User);
+                    if (currentUser != null)
+                    {
+                        isHandler = await _userManager.IsInRoleAsync(currentUser, "Admin");
+                    }
+                }
 
                 var isNew = existing == null;
 
@@ -393,9 +434,20 @@ namespace AutomotiveClaimsApi.Controllers
                     _context.Entry(existing).State = EntityState.Detached;
                 }
 
+                var originalStatus = existing.Status;
+
                 await UpsertClaimAsync(existing, eventDto);
 
                 await _context.SaveChangesAsync();
+
+                if (!isHandler && _notificationService != null)
+                {
+                    await _notificationService.NotifyAsync(existing, currentUser, ClaimNotificationEvent.ClaimUpdated);
+                    if (originalStatus != eventDto.Status)
+                    {
+                        await _notificationService.NotifyAsync(existing, currentUser, ClaimNotificationEvent.StatusChanged);
+                    }
+                }
 
                 return NoContent();
             }

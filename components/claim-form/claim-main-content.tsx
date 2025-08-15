@@ -1440,7 +1440,9 @@ const renderParticipantDetails = (participant: ParticipantInfo | undefined, titl
                     </Label>
                     <HandlerDropdown
 
+
                       selectedHandlerId={claimFormData.handlerId || undefined}
+
 
                       onHandlerSelected={(event: HandlerSelectionEvent) => {
                         handleFormChange("handlerId", event.handlerId)

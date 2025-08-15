@@ -1,7 +1,9 @@
 "use client"
 
 
+
 import { useState, useEffect, useRef, useMemo } from "react"
+
 
 import { createPortal } from "react-dom"
 import { Input } from "@/components/ui/input"
@@ -9,9 +11,11 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { ChevronDown, Phone, Mail, MapPin, Check } from "lucide-react"
 
+
 import type { DictionaryItemDto } from "@/lib/dictionary-service"
 import type { HandlerSelectionEvent } from "@/types/handler"
 import { useCaseHandlers } from "@/hooks/use-dictionaries"
+
 
 
 interface HandlerDropdownProps {
@@ -32,6 +36,7 @@ export default function HandlerDropdown({
   className = "",
 }: HandlerDropdownProps) {
 
+
   const { data: handlerData = [], loading, error, refetch: refresh } = useCaseHandlers()
 
   const handlers = useMemo(() => {
@@ -40,6 +45,7 @@ export default function HandlerDropdown({
 
   const [filteredHandlers, setFilteredHandlers] = useState<DictionaryItemDto[]>(handlers)
   const [selectedHandler, setSelectedHandler] = useState<DictionaryItemDto | null>(null)
+
 
   const [isDropdownOpen, setIsDropdownOpen] = useState(false)
   const [searchTerm, setSearchTerm] = useState("")
@@ -58,7 +64,9 @@ export default function HandlerDropdown({
   // Ustaw preselekt, gdy mamy dane i id
   useEffect(() => {
 
+
     if (selectedHandlerId && handlers.length > 0) {
+
       const handler = handlers.find((h) => h.id === selectedHandlerId)
       if (handler) {
         setSelectedHandler(handler)
@@ -82,6 +90,10 @@ export default function HandlerDropdown({
   }, [searchTerm, sortedHandlers])
 
   // Close/relayout
+  useEffect(() => {
+    setFilteredHandlers(handlers)
+  }, [handlers])
+
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (

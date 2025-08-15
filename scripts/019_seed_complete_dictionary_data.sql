@@ -1,20 +1,20 @@
 -- Seed all dictionary tables with initial data
 
 -- Case Handlers (Prowadzący sprawę)
-INSERT INTO CaseHandlers (Name, Email, Phone, Department) VALUES
-('Marcin Małuj', 'marcin.maluj@spartabrokers.pl', '600 111 222', 'Likwidacja szkód'),
-('Małgorzata Roczniak', 'malgorzata.roczniak@spartabrokers.pl', '600 222 333', 'Likwidacja szkód'),
-('Piotr Raniecki', 'piotr.raniecki@spartabrokers.pl', '600 333 355', 'Likwidacja szkód'),
-('Joanna Romanowska', 'joanna.romanowska@spartabrokers.pl', '600 444 555', 'Likwidacja szkód'),
-('Paweł Gułaj', 'pawel.gulaj@spartabrokers.pl', '600 555 666', 'Likwidacja szkód'),
-('Kamila Szepit', 'kamila.szepit@spartabrokers.pl', '600 666 777', 'Likwidacja szkód'),
-('Jacek Kamiński', 'jacek.kaminski@spartabrokers.pl', '600 777 888', 'Likwidacja szkód'),
-('Edyta Dyczkowska', 'edyta.dyczkowska@spartabrokers.pl', '600 888 999', 'Likwidacja szkód'),
-('Ireneusz Osiński', 'ireneusz.osinski@spartabrokers.pl', '600 999 000', 'Likwidacja szkód'),
-('Kinga Tuzimek', 'kinga.tuzimek@spartabrokers.pl', '600 000 111', 'Likwidacja szkód'),
-('Jan Kowalski', 'jan.kowalski@sparta.pl', '+48 123 456 789', 'Obsługa klienta'),
-('Anna Nowak', 'anna.nowak@sparta.pl', '+48 987 654 321', 'Obsługa klienta'),
-('Piotr Wiśniewski', 'piotr.wisniewski@sparta.pl', '+48 555 666 777', 'Obsługa klienta')
+INSERT INTO dict.CaseHandlers (Name, Code, Email, Phone, Department) VALUES
+('Marcin Małuj', 'CH001', 'marcin.maluj@spartabrokers.pl', '600 111 222', 'Likwidacja szkód'),
+('Małgorzata Roczniak', 'CH002', 'malgorzata.roczniak@spartabrokers.pl', '600 222 333', 'Likwidacja szkód'),
+('Piotr Raniecki', 'CH003', 'piotr.raniecki@spartabrokers.pl', '600 333 355', 'Likwidacja szkód'),
+('Joanna Romanowska', 'CH004', 'joanna.romanowska@spartabrokers.pl', '600 444 555', 'Likwidacja szkód'),
+('Paweł Gułaj', 'CH005', 'pawel.gulaj@spartabrokers.pl', '600 555 666', 'Likwidacja szkód'),
+('Kamila Szepit', 'CH006', 'kamila.szepit@spartabrokers.pl', '600 666 777', 'Likwidacja szkód'),
+('Jacek Kamiński', 'CH007', 'jacek.kaminski@spartabrokers.pl', '600 777 888', 'Likwidacja szkód'),
+('Edyta Dyczkowska', 'CH008', 'edyta.dyczkowska@spartabrokers.pl', '600 888 999', 'Likwidacja szkód'),
+('Ireneusz Osiński', 'CH009', 'ireneusz.osinski@spartabrokers.pl', '600 999 000', 'Likwidacja szkód'),
+('Kinga Tuzimek', 'CH010', 'kinga.tuzimek@spartabrokers.pl', '600 000 111', 'Likwidacja szkód'),
+('Jan Kowalski', 'CH011', 'jan.kowalski@sparta.pl', '+48 123 456 789', 'Obsługa klienta'),
+('Anna Nowak', 'CH012', 'anna.nowak@sparta.pl', '+48 987 654 321', 'Obsługa klienta'),
+('Piotr Wiśniewski', 'CH013', 'piotr.wisniewski@sparta.pl', '+48 555 666 777', 'Obsługa klienta')
 ON CONFLICT (Name) DO NOTHING;
 
 -- Countries

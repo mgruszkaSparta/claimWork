@@ -1,4 +1,4 @@
-interface DictionaryItem {
+interface DictionaryItemDto {
   id: string
   code?: string
   name: string
@@ -14,26 +14,42 @@ interface DictionaryItem {
   updatedAt: string
 }
 
+interface DictionaryResponseDto {
+  items: DictionaryItemDto[]
+  [key: string]: unknown
+}
+
 class DictionaryService {
-  private cache = new Map<string, { data: DictionaryItem[]; timestamp: number }>()
+  private cache = new Map<string, { data: DictionaryResponseDto; timestamp: number }>()
   private readonly CACHE_DURATION = 5 * 60 * 1000 // 5 minutes
 
-  private async fetchFromAPI(endpoint: string): Promise<DictionaryItem[]> {
-    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/dictionaries/${endpoint}`, {
-      method: "GET",
-      credentials: "include",
-    })
+  private async fetchFromAPI(endpoint: string): Promise<DictionaryResponseDto> {
+    const response = await fetch(
+      `${process.env.NEXT_PUBLIC_API_URL}/dictionaries/${endpoint}`,
+      {
+        method: "GET",
+        credentials: "include",
+      },
+    )
     if (!response.ok) {
       throw new Error(`Failed to fetch ${endpoint}`)
     }
-    return response.json()
+    const data: unknown = await response.json()
+    if (
+      !data ||
+      typeof data !== "object" ||
+      !Array.isArray((data as any).items)
+    ) {
+      throw new Error(`Malformed dictionary response for ${endpoint}`)
+    }
+    return data as DictionaryResponseDto
   }
 
   private isCacheValid(timestamp: number): boolean {
     return Date.now() - timestamp < this.CACHE_DURATION
   }
 
-  async getDictionary(type: string): Promise<DictionaryItem[]> {
+  async getDictionary(type: string): Promise<DictionaryResponseDto> {
     const cached = this.cache.get(type)
     
     if (cached && this.isCacheValid(cached.timestamp)) {
@@ -55,59 +71,59 @@ class DictionaryService {
   }
 
   // Specific methods for each dictionary type
-  async getCaseHandlers(): Promise<DictionaryItem[]> {
+  async getCaseHandlers(): Promise<DictionaryResponseDto> {
     return this.getDictionary('case-handlers')
   }
 
-  async getCountries(): Promise<DictionaryItem[]> {
+  async getCountries(): Promise<DictionaryResponseDto> {
     return this.getDictionary('countries')
   }
 
-  async getCurrencies(): Promise<DictionaryItem[]> {
+  async getCurrencies(): Promise<DictionaryResponseDto> {
     return this.getDictionary('currencies')
   }
 
-  async getInsuranceCompanies(): Promise<DictionaryItem[]> {
+  async getInsuranceCompanies(): Promise<DictionaryResponseDto> {
     return this.getDictionary('insurance-companies')
   }
 
-  async getLeasingCompanies(): Promise<DictionaryItem[]> {
+  async getLeasingCompanies(): Promise<DictionaryResponseDto> {
     return this.getDictionary('leasing-companies')
   }
 
-  async getVehicleTypes(): Promise<DictionaryItem[]> {
+  async getVehicleTypes(): Promise<DictionaryResponseDto> {
     return this.getDictionary('vehicle-types')
   }
 
-  async getClaimStatuses(): Promise<DictionaryItem[]> {
+  async getClaimStatuses(): Promise<DictionaryResponseDto> {
     return this.getDictionary('claim-statuses')
   }
 
-  async getPriorities(): Promise<DictionaryItem[]> {
+  async getPriorities(): Promise<DictionaryResponseDto> {
     return this.getDictionary('priorities')
   }
 
-  async getEventStatuses(): Promise<DictionaryItem[]> {
+  async getEventStatuses(): Promise<DictionaryResponseDto> {
     return this.getDictionary('event-statuses')
   }
 
-  async getPaymentMethods(): Promise<DictionaryItem[]> {
+  async getPaymentMethods(): Promise<DictionaryResponseDto> {
     return this.getDictionary('payment-methods')
   }
 
-  async getContractTypes(): Promise<DictionaryItem[]> {
+  async getContractTypes(): Promise<DictionaryResponseDto> {
     return this.getDictionary('contract-types')
   }
 
-  async getDocumentStatuses(): Promise<DictionaryItem[]> {
+  async getDocumentStatuses(): Promise<DictionaryResponseDto> {
     return this.getDictionary('document-statuses')
   }
 
-  async getRiskTypes(): Promise<DictionaryItem[]> {
+  async getRiskTypes(): Promise<DictionaryResponseDto> {
     return this.getDictionary('risk-types')
   }
 
-  async getDamageTypesByRisk(riskType?: string): Promise<DictionaryItem[]> {
+  async getDamageTypesByRisk(riskType?: string): Promise<DictionaryResponseDto> {
     const cacheKey = riskType ? `damage-types-${riskType}` : 'damage-types'
     const cached = this.cache.get(cacheKey)
     
@@ -139,4 +155,4 @@ class DictionaryService {
 }
 
 export const dictionaryService = new DictionaryService()
-export type { DictionaryItem }
+export type { DictionaryItemDto, DictionaryResponseDto }

@@ -4,6 +4,7 @@ import { useState, useEffect } from "react"
 import { apiService } from "@/lib/api"
 
 interface User {
+  id: string
   username: string
   email?: string
   roles?: string[]

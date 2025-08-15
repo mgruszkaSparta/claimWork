@@ -20,6 +20,7 @@ import { ClaimTopHeader } from "@/components/claim-form/claim-top-header"
 import { ClaimMainContent } from "@/components/claim-form/claim-main-content"
 import { useClaimForm } from "@/hooks/use-claim-form"
 import { useClaims } from "@/hooks/use-claims"
+import { useAuth } from "@/hooks/use-auth"
 import { generateId } from "@/lib/constants"
 import { apiService } from "@/lib/api"
 import { pksData, type Employee } from "@/lib/pks-data"
@@ -55,6 +56,7 @@ export default function NewClaimPage() {
   const claimObjectTypeParam = searchParams.get("claimObjectType") || "1"
   const { toast } = useToast()
   const { createClaim, deleteClaim, initializeClaim } = useClaims()
+  const { user } = useAuth()
   const [claimId, setClaimId] = useState<string>("")
   const [activeClaimSection, setActiveClaimSection] = useState("dane-zdarzenia-podstawowe")
   const [isSaving, setIsSaving] = useState(false)
@@ -113,6 +115,12 @@ export default function NewClaimPage() {
       }
     })
   }, [initializeClaim, setClaimFormData])
+
+  useEffect(() => {
+    if (user) {
+      setClaimFormData((prev) => ({ ...prev, registeredById: user.id, registeredByName: user.username }))
+    }
+  }, [user, setClaimFormData])
 
   useEffect(() => {
     const clientId = searchParams.get("clientId")
@@ -296,6 +304,7 @@ export default function NewClaimPage() {
         claimNumber:
           claimFormData.claimNumber ||
           `PL${new Date().getFullYear()}${String(Date.now()).slice(-8)}`,
+        registeredById: user?.id,
       } as Claim
 
       const createdClaim = await createClaim(newClaimData)

@@ -54,6 +54,11 @@ namespace AutomotiveClaimsApi.Data
                 entity.Property(e => e.ClaimNumber).HasMaxLength(50);
                 entity.HasIndex(e => e.ClaimNumber).IsUnique();
 
+                entity.HasOne(e => e.RegisteredBy)
+                      .WithMany()
+                      .HasForeignKey(e => e.RegisteredById)
+                      .OnDelete(DeleteBehavior.SetNull);
+
                 entity.HasMany(e => e.Damages).WithOne(d => d.Event).HasForeignKey(d => d.EventId).OnDelete(DeleteBehavior.Cascade);
                 entity.HasMany(e => e.Appeals).WithOne(a => a.Event).HasForeignKey(a => a.EventId).OnDelete(DeleteBehavior.Cascade);
                 entity.HasMany(e => e.ClientClaims).WithOne(c => c.Event).HasForeignKey(c => c.EventId).OnDelete(DeleteBehavior.Cascade);

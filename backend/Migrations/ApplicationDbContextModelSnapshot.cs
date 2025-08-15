@@ -1019,9 +1019,18 @@ namespace AutomotiveClaimsApi.Migrations
                     b.Property<bool?>("WereInjured")
                         .HasColumnType("boolean");
 
+                    b.Property<string>("RegisteredById")
+                        .HasColumnType("text");
+
+                    b.HasIndex("RegisteredById");
+
                     b.HasKey("Id");
 
                     b.ToTable("Events");
+
+                    b.HasOne("AutomotiveClaimsApi.Models.ApplicationUser", "RegisteredBy")
+                        .WithMany()
+                        .HasForeignKey("RegisteredById");
                 });
 
             modelBuilder.Entity("AutomotiveClaimsApi.Models.Participant", b =>
@@ -1432,6 +1441,8 @@ namespace AutomotiveClaimsApi.Migrations
                     b.Navigation("Recourses");
 
                     b.Navigation("Settlements");
+
+                    b.Navigation("RegisteredBy");
                 });
 
             modelBuilder.Entity("AutomotiveClaimsApi.Models.Participant", b =>

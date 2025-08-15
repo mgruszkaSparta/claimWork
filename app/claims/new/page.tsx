@@ -58,7 +58,7 @@ export default function NewClaimPage() {
   const { createClaim, deleteClaim, initializeClaim } = useClaims()
   const { user } = useAuth()
   const [claimId, setClaimId] = useState<string>("")
-  const [activeClaimSection, setActiveClaimSection] = useState("dane-zdarzenia-podstawowe")
+  const [activeClaimSection, setActiveClaimSection] = useState("teczka-szkodowa")
   const [isSaving, setIsSaving] = useState(false)
   
   // Repair schedules and details state
@@ -121,6 +121,15 @@ export default function NewClaimPage() {
       setClaimFormData((prev) => ({ ...prev, registeredById: user.id, registeredByName: user.username }))
     }
   }, [user, setClaimFormData])
+
+  useEffect(() => {
+    if (user?.roles) {
+      const privileged = user.roles.some((r) =>
+        ["likwidacja", "administrator", "admin"].includes(r.toLowerCase()),
+      )
+      setActiveClaimSection(privileged ? "dane-zdarzenia" : "teczka-szkodowa")
+    }
+  }, [user])
 
   useEffect(() => {
     const clientId = searchParams.get("clientId")

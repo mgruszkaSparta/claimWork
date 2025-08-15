@@ -47,7 +47,7 @@ export default function ClaimPage() {
   const isEdit = paramsArray[1] === "edit" || isNew
   const mode: PageMode = isNew ? "new" : isEdit ? "edit" : "view"
 
-  const [activeClaimSection, setActiveClaimSection] = useState("dane-zdarzenia-podstawowe")
+  const [activeClaimSection, setActiveClaimSection] = useState("teczka-szkodowa")
   const [isSaving, setIsSaving] = useState(false)
   const [isLoading, setIsLoading] = useState(!isNew)
   const [loadError, setLoadError] = useState<string | null>(null)
@@ -78,6 +78,15 @@ export default function ClaimPage() {
     { id: "11", name: "Faktura za holowanie", required: true, uploaded: false },
     { id: "12", name: "Faktura za wynajem", required: true, uploaded: false },
   ])
+
+  useEffect(() => {
+    if (user?.roles) {
+      const privileged = user.roles.some((r) =>
+        ["likwidacja", "administrator", "admin"].includes(r.toLowerCase()),
+      )
+      setActiveClaimSection(privileged ? "dane-zdarzenia" : "teczka-szkodowa")
+    }
+  }, [user])
 
   const {
     claimFormData,

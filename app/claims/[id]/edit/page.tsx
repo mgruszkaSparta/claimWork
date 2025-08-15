@@ -11,6 +11,7 @@ import { ClaimTopHeader } from "@/components/claim-form/claim-top-header"
 import { ClaimMainContent } from "@/components/claim-form/claim-main-content"
 import { useClaimForm } from "@/hooks/use-claim-form"
 import { useClaims, transformApiClaimToFrontend } from "@/hooks/use-claims"
+import { useAuth } from "@/hooks/use-auth"
 import type { UploadedFile, RequiredDocument } from "@/types"
 
 export default function EditClaimPage() {
@@ -18,12 +19,22 @@ export default function EditClaimPage() {
   const router = useRouter()
   const { toast } = useToast()
   const { updateClaim } = useClaims()
-  const [activeClaimSection, setActiveClaimSection] = useState("dane-zdarzenia-podstawowe")
+  const { user } = useAuth()
+  const [activeClaimSection, setActiveClaimSection] = useState("teczka-szkodowa")
   const [isSaving, setIsSaving] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
   const [loadError, setLoadError] = useState<string | null>(null)
 
   const id = params.id as string
+
+  useEffect(() => {
+    if (user?.roles) {
+      const privileged = user.roles.some((r) =>
+        ["likwidacja", "administrator", "admin"].includes(r.toLowerCase()),
+      )
+      setActiveClaimSection(privileged ? "dane-zdarzenia" : "teczka-szkodowa")
+    }
+  }, [user])
 
   const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([
     {

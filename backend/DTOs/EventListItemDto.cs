@@ -25,6 +25,7 @@ namespace AutomotiveClaimsApi.DTOs
         public DateTime? ReportDate { get; set; }
         public string? RiskType { get; set; }
         public string? DamageType { get; set; }
+        public int? ObjectTypeId { get; set; }
         public int? HandlerId { get; set; }
         public string? Handler { get; set; }
         public int? LeasingCompanyId { get; set; }

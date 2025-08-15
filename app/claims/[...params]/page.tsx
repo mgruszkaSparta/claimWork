@@ -328,6 +328,9 @@ export default function ClaimPage() {
                 setUploadedFiles={setUploadedFiles}
                 requiredDocuments={requiredDocuments}
                 setRequiredDocuments={setRequiredDocuments}
+                initialClaimObjectType={
+                  claim?.objectTypeId?.toString() ?? claimFormData.objectTypeId?.toString()
+                }
               />
             </div>
           </div>

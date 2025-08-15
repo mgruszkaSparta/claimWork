@@ -259,6 +259,7 @@ export default function EditClaimPage() {
               setUploadedFiles={setUploadedFiles}
               requiredDocuments={requiredDocuments}
               setRequiredDocuments={setRequiredDocuments}
+              initialClaimObjectType={claimFormData.objectTypeId?.toString()}
             />
           </div>
         </div>

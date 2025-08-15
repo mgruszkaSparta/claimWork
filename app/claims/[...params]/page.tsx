@@ -300,7 +300,11 @@ export default function ClaimPage() {
       <div className="fixed inset-0 bg-white z-50 flex flex-col">
         <ClaimTopHeader claimFormData={claimFormData} onClose={handleClose} />
         <div className="flex flex-1 min-h-0">
-          <ClaimFormSidebar activeClaimSection={activeClaimSection} setActiveClaimSection={setActiveClaimSection} />
+          <ClaimFormSidebar
+            activeClaimSection={activeClaimSection}
+            setActiveClaimSection={setActiveClaimSection}
+            claimObjectType={claim?.objectTypeId?.toString()}
+          />
           <div className="flex-1 overflow-y-auto bg-gray-50">
             <div className="p-6 min-h-full">
               <ClaimMainContent

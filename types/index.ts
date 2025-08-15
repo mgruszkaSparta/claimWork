@@ -102,6 +102,8 @@ export interface Claim
   vehicleTypeCode?: string
   propertySubject?: string
   propertyDamageList?: string[]
+  injuredData?: string
+  perpetratorData?: string
   injuredPartyData?: Record<string, any>
   cargoDetails?: string
   carrierInfo?: string

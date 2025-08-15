@@ -7,6 +7,7 @@ import { FileText, AlertTriangle, Users, File, MessageSquare, FileCheck, Mail, C
 interface ClaimFormSidebarProps {
   activeClaimSection: string
   setActiveClaimSection: (section: string) => void
+  claimObjectType?: string
 }
 
 const sidebarSections = [
@@ -100,12 +101,18 @@ const sidebarSections = [
   },
 ]
 
-function ClaimFormSidebar({ activeClaimSection, setActiveClaimSection }: ClaimFormSidebarProps) {
+function ClaimFormSidebar({ activeClaimSection, setActiveClaimSection, claimObjectType }: ClaimFormSidebarProps) {
+  const sections = sidebarSections.map((section) => ({
+    ...section,
+    items: section.items.filter(
+      (item) => !(item.id === "uczestnicy" && claimObjectType === "3")
+    ),
+  }))
   return (
     <div className="w-64 bg-white border-r border-gray-200 h-full overflow-y-auto">
       <div className="p-3">
         <div className="space-y-6">
-          {sidebarSections.map((section, sectionIndex) => (
+          {sections.map((section, sectionIndex) => (
             <div key={section.id} className="space-y-3">
               {/* Section Header */}
               <div className="flex items-center space-x-2 px-2">
@@ -146,7 +153,7 @@ function ClaimFormSidebar({ activeClaimSection, setActiveClaimSection }: ClaimFo
               </div>
 
               {/* Separator between sections (except last) */}
-              {sectionIndex < sidebarSections.length - 1 && (
+              {sectionIndex < sections.length - 1 && (
                 <div className="pt-2">
                   <Separator className="bg-gray-100" />
                 </div>

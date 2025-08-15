@@ -10,7 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Textarea } from "@/components/ui/textarea"
 import { Checkbox } from "@/components/ui/checkbox"
-import { FileText, AlertTriangle, User, FileSignature, Wrench, Car, X, MessageSquare, Clock, FileCheck, Search, Mail, Plus, CheckCircle, Trash2, Save, Calendar, Phone, MapPin, Paperclip, DollarSign, Gavel, ArrowUpDown, HandHeart, Users, CreditCard, Shield, UserCheck } from 'lucide-react'
+import { AlertTriangle, User, FileSignature, Wrench, Car, X, MessageSquare, Clock, FileCheck, Search, Mail, Plus, CheckCircle, Trash2, Save, Calendar, Phone, MapPin, Paperclip, DollarSign, Gavel, ArrowUpDown, HandHeart, Users, CreditCard, Shield, UserCheck } from 'lucide-react'
 import { DamageDiagram } from "@/components/damage-diagram"
 import { ParticipantForm } from "./participant-form"
 import { DocumentsSection } from "../documents-section"
@@ -30,21 +30,13 @@ import type {
   Note,
 } from "@/types"
 import { EmailSection } from "../email/email-section-compact"
-import { DependentSelect } from "@/components/ui/dependent-select"
 import { useToast } from "@/hooks/use-toast"
 import { useDamages, createDamageDraft } from "@/hooks/use-damages"
-import InsuranceDropdown from "@/components/insurance-dropdown"
-import type { CompanySelectionEvent } from "@/types/insurance"
-import LeasingDropdown from "@/components/leasing-dropdown"
-import type { LeasingCompanySelectionEvent } from "@/types/leasing"
-import ClientDropdown from "@/components/client-dropdown"
-import type { ClientSelectionEvent } from "@/types/client"
-import HandlerDropdown from "@/components/handler-dropdown"
-import type { HandlerSelectionEvent } from "@/types/handler"
 import VehicleTypeDropdown from "@/components/vehicle-type-dropdown"
 import type { VehicleTypeSelectionEvent } from "@/types/vehicle-type"
 import { RepairScheduleSection } from "./repair-schedule-section"
 import { RepairDetailsSection } from "./repair-details-section"
+import { DamageDataSection } from "./damage-data-section"
 import type { RepairDetail } from "@/lib/repair-details-store"
 
 interface RiskType {
@@ -1263,234 +1255,17 @@ const renderParticipantDetails = (participant: ParticipantInfo | undefined, titl
   case "dane-zdarzenia":
       return (
         <div className="space-y-4">
-          {/* Dane Szkody Card */}
-          <Card className="overflow-hidden shadow-sm border-gray-200 rounded-xl">
-            <CardHeader className="flex flex-row items-center space-x-4 bg-gradient-to-r from-blue-600 to-blue-700 text-white p-4">
-              <div className="w-8 h-8 bg-blue-500 rounded-lg flex items-center justify-center">
-                <FileText className="h-4 w-4" />
-              </div>
-              <CardTitle className="text-lg font-semibold">Dane szkody</CardTitle>
-            </CardHeader>
-            <CardContent className="p-6 bg-white">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
-                {/* Left Column */}
-                <div className="space-y-6">
-                  <div>
-                    <Label htmlFor="claimObjectType" className="text-sm font-medium text-gray-700">
-                      Typ szkody
-                    </Label>
-                    <Select
-                      value={claimObjectType}
-                      onValueChange={(value) => {
-                        setClaimObjectType(value)
-                        // Clear risk type and damage type when claim object type changes
-                        handleFormChange("riskType", "")
-                        handleFormChange("damageType", "")
-                      }}
-                    >
-                      <SelectTrigger className="mt-1">
-                        <SelectValue placeholder="Wybierz typ szkody..." />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="1">Szkody komunikacyjne</SelectItem>
-                        <SelectItem value="2">Szkody mienia</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div>
-                    <Label htmlFor="riskType" className="text-sm font-medium text-gray-700">
-                      Ryzyko szkody
-                    </Label>
-                    <Select
-                      value={claimFormData.riskType || ""}
-                      onValueChange={(value) => {
-                        handleFormChange("riskType", value)
-                        // Clear damage type when risk type changes
-                        handleFormChange("damageType", "")
-                      }}
-                      disabled={loadingRiskTypes}
-                    >
-                      <SelectTrigger className="mt-1">
-                        <SelectValue placeholder={loadingRiskTypes ? "Ładowanie..." : "Wybierz ryzyko szkody..."} />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {riskTypes.map((riskType) => (
-                          <SelectItem key={riskType.value} value={riskType.value}>
-                            {riskType.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div>
-                    <Label htmlFor="status" className="text-sm font-medium text-gray-700">
-                      Status szkody
-                    </Label>
-                    <Select
-                      value={claimFormData.status?.toString() || ""}
-                      onValueChange={(value) => handleFormChange("status", value)}
-                      disabled={loadingStatuses}
-                    >
-                      <SelectTrigger className="mt-1">
-                        <SelectValue placeholder={loadingStatuses ? "Ładowanie..." : "Wybierz status szkody..."} />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {claimStatuses.map((status) => (
-                          <SelectItem key={status.id} value={status.id.toString()}>
-                            {status.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div>
-                    <Label htmlFor="reportDateToInsurer" className="text-sm font-medium text-gray-700">
-                      Data zgłoszenia do TU
-                    </Label>
-                    <Input
-                      id="reportDateToInsurer"
-                      type="date"
-                      value={formatDateForInput(claimFormData.reportDateToInsurer)}
-                      onChange={(e) => handleFormChange("reportDateToInsurer", e.target.value)}
-                      className="mt-1"
-                    />
-                  </div>
-                  <div className="relative z-10">
-                    <Label htmlFor="client" className="text-sm font-medium text-gray-700 mb-2 block">
-                      Klient
-                    </Label>
-                    <div className="relative">
-                      <ClientDropdown
-                        selectedClientId={claimFormData.clientId ? parseInt(claimFormData.clientId) : undefined}
-                        onClientSelected={(event: ClientSelectionEvent) => {
-                          handleFormChange("client", event.clientName)
-                          handleFormChange("clientId", event.clientId.toString())
-                        }}
-                        className="relative z-20"
-                      />
-                    </div>
-                  </div>
-                  <div>
-                    <Label className="text-sm font-medium text-gray-700 mb-3 block">Kanał zgłoszenia</Label>
-                    <RadioGroup
-                      value={claimFormData.reportingChannel || ""}
-                      onValueChange={(value) => handleFormChange("reportingChannel", value)}
-                      className="flex space-x-4"
-                    >
-                      <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="infolinia" id="channel-infolinia" />
-                        <Label htmlFor="channel-infolinia" className="font-normal text-sm">
-                          Infolinia
-                        </Label>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="email" id="channel-email" />
-                        <Label htmlFor="channel-email" className="font-normal text-sm">
-                          Email
-                        </Label>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="bezpośrednio" id="channel-direct" />
-                        <Label htmlFor="channel-direct" className="font-normal text-sm">
-                          Bezpośrednio
-                        </Label>
-                      </div>
-                    </RadioGroup>
-                  </div>
-                </div>
 
-                {/* Right Column */}
-                <div className="space-y-6">
-                  <div>
-                    <Label htmlFor="damageType" className="text-sm font-medium text-gray-700">
-                      Rodzaj szkody
-                    </Label>
-                    <DependentSelect
-                      value={claimFormData.damageType || ""}
-                      onValueChange={(value) => handleFormChange("damageType", value)}
-                      placeholder="Wybierz rodzaj szkody..."
-                      apiUrl="/api/damage-types"
-                      riskTypeId={claimFormData.riskType}
-                      disabled={!claimFormData.riskType}
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="insurerClaimNumber" className="text-sm font-medium text-gray-700">
-                      Nr szkody TU
-                    </Label>
-                    <Input
-                      id="insurerClaimNumber"
-                      value={claimFormData.insurerClaimNumber || ""}
-                      onChange={(e) => handleFormChange("insurerClaimNumber", e.target.value)}
-                      className="mt-1"
-                    />
-                  </div>
-                  <div>
-                    <Label className="text-sm font-medium text-gray-700">Nr szkody Sparta</Label>
-                    <Input
-                      id="spartaNumber"
-                      value={claimFormData.spartaNumber || ""}
-                      readOnly
-                      className="bg-gray-50 mt-1 border-gray-200"
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="handler" className="text-sm font-medium text-gray-700">
-                      Szkodę zarejestrował
-                    </Label>
-                    <HandlerDropdown
-
-
-                      selectedHandlerId={claimFormData.handlerId || undefined}
-
-
-                      onHandlerSelected={(event: HandlerSelectionEvent) => {
-                        handleFormChange("handlerId", event.handlerId)
-                        handleFormChange("handler", event.handlerName)
-                      }}
-                      className="mt-1"
-                    />
-                  </div>
-                </div>
-              </div>
-
-              <div className="border-t border-gray-200 my-8" />
-
-              <div className="space-y-6">
-                <div className="relative z-10">
-                  <Label htmlFor="insuranceCompany" className="text-sm font-medium text-gray-700 mb-2 block">
-                    Towarzystwo ubezpieczeniowe
-                  </Label>
-                  <div className="relative">
-                    <InsuranceDropdown
-                      selectedCompanyId={claimFormData.insuranceCompanyId ? parseInt(claimFormData.insuranceCompanyId) : undefined}
-                      onCompanySelected={(event: CompanySelectionEvent) => {
-                        handleFormChange("insuranceCompany", event.companyName)
-                        handleFormChange("insuranceCompanyId", event.companyId.toString())
-                      }}
-                      className="relative z-20"
-                    />
-                  </div>
-                </div>
-
-                <div className="relative z-10">
-                  <Label htmlFor="leasingCompany" className="text-sm font-medium text-gray-700 mb-2 block">
-                    Firma leasingowa
-                  </Label>
-                  <div className="relative">
-                    <LeasingDropdown
-                      selectedCompanyId={claimFormData.leasingCompanyId ? parseInt(claimFormData.leasingCompanyId) : undefined}
-                      onCompanySelected={(event: LeasingCompanySelectionEvent) => {
-                        handleFormChange("leasingCompany", event.companyName)
-                        handleFormChange("leasingCompanyId", event.companyId.toString())
-                      }}
-                      className="relative z-10"
-                    />
-                  </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+          <DamageDataSection
+            claimFormData={claimFormData}
+            handleFormChange={handleFormChange}
+            claimObjectType={claimObjectType}
+            setClaimObjectType={setClaimObjectType}
+            riskTypes={riskTypes}
+            loadingRiskTypes={loadingRiskTypes}
+            claimStatuses={claimStatuses}
+            loadingStatuses={loadingStatuses}
+          />
 
           {/* Opis zdarzenia Card */}
           <Card className="overflow-hidden shadow-sm border-gray-200 rounded-xl">
@@ -1880,6 +1655,9 @@ const renderParticipantDetails = (participant: ParticipantInfo | undefined, titl
       )
 
     case "uczestnicy":
+      if (claimObjectType === "3") {
+        return null
+      }
       return (
         <div className="space-y-4">
           {/* Sprawca Card */}

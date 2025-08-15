@@ -1,12 +1,10 @@
 "use client"
 
-
-
-
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Label } from "@/components/ui/label"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
+import { Checkbox } from "@/components/ui/checkbox"
 
 interface PropertyDamageSectionProps {
   claimFormData: Record<string, any>
@@ -14,6 +12,14 @@ interface PropertyDamageSectionProps {
 }
 
 export function PropertyDamageSection({ claimFormData, handleFormChange }: PropertyDamageSectionProps) {
+  const handleServiceChange = (service: string, checked: boolean) => {
+    const currentServices = claimFormData.servicesCalled || []
+    const newServices = checked
+      ? [...currentServices, service]
+      : currentServices.filter((s: string) => s !== service)
+    handleFormChange("servicesCalled", newServices)
+  }
+
   return (
     <Card className="border border-gray-200 bg-white shadow-sm">
       <CardHeader className="bg-gray-50 border-b">
@@ -39,16 +45,6 @@ export function PropertyDamageSection({ claimFormData, handleFormChange }: Prope
             value={claimFormData.damageListing || ""}
             onChange={(e) => handleFormChange("damageListing", e.target.value)}
             placeholder="Opis uszkodzeń lub strat"
-          />
-        </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="injuredData">Dane poszkodowanego</Label>
-          <Textarea
-            id="injuredData"
-            value={claimFormData.injuredData || ""}
-            onChange={(e) => handleFormChange("injuredData", e.target.value)}
-            placeholder="Wprowadź dane poszkodowanego"
           />
         </div>
 
@@ -82,6 +78,79 @@ export function PropertyDamageSection({ claimFormData, handleFormChange }: Prope
             placeholder="Osoba kontaktowa i informacje do oględzin"
           />
         </div>
+
+        <div className="space-y-2">
+          <Label>Wezwane służby</Label>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            {['policja', 'pogotowie', 'straz', 'holownik'].map((service) => (
+              <div key={service} className="flex items-center space-x-2">
+                <Checkbox
+                  id={service}
+                  checked={claimFormData.servicesCalled?.includes(service) || false}
+                  onCheckedChange={(checked) => handleServiceChange(service, checked as boolean)}
+                />
+                <Label htmlFor={service} className="capitalize">
+                  {service === 'straz' ? 'Straż pożarna' : service}
+                </Label>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {claimFormData.servicesCalled?.includes("policja") && (
+          <div className="space-y-2">
+            <Label htmlFor="policeDescription">Policja - opis</Label>
+            <Input
+              id="policeDescription"
+              value={claimFormData.policeDescription || ""}
+              onChange={(e) => handleFormChange("policeDescription", e.target.value)}
+              placeholder="Wprowadź opis interwencji policji"
+            />
+            <Label htmlFor="policeUnitDetails">Policja - dane jednostki</Label>
+            <Input
+              id="policeUnitDetails"
+              value={claimFormData.policeUnitDetails || ""}
+              onChange={(e) => handleFormChange("policeUnitDetails", e.target.value)}
+              placeholder="Wprowadź dane jednostki policji"
+            />
+          </div>
+        )}
+
+        {claimFormData.servicesCalled?.includes("pogotowie") && (
+          <div className="space-y-2">
+            <Label htmlFor="ambulanceDescription">Pogotowie - opis</Label>
+            <Input
+              id="ambulanceDescription"
+              value={claimFormData.ambulanceDescription || ""}
+              onChange={(e) => handleFormChange("ambulanceDescription", e.target.value)}
+              placeholder="Wprowadź opis interwencji pogotowia"
+            />
+          </div>
+        )}
+
+        {claimFormData.servicesCalled?.includes("straz") && (
+          <div className="space-y-2">
+            <Label htmlFor="fireDescription">Straż pożarna - opis</Label>
+            <Input
+              id="fireDescription"
+              value={claimFormData.fireDescription || ""}
+              onChange={(e) => handleFormChange("fireDescription", e.target.value)}
+              placeholder="Wprowadź opis interwencji straży pożarnej"
+            />
+          </div>
+        )}
+
+        {claimFormData.servicesCalled?.includes("holownik") && (
+          <div className="space-y-2">
+            <Label htmlFor="towDescription">Holownik - opis</Label>
+            <Input
+              id="towDescription"
+              value={claimFormData.towDescription || ""}
+              onChange={(e) => handleFormChange("towDescription", e.target.value)}
+              placeholder="Wprowadź opis usługi holowania"
+            />
+          </div>
+        )}
       </CardContent>
     </Card>
   )

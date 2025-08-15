@@ -1439,9 +1439,9 @@ const renderParticipantDetails = (participant: ParticipantInfo | undefined, titl
                       Szkodę zarejestrował
                     </Label>
                     <HandlerDropdown
-                      selectedHandlerId={claimFormData.handlerId ? parseInt(claimFormData.handlerId) : undefined}
+                      selectedHandlerId={claimFormData.handlerId}
                       onHandlerSelected={(event: HandlerSelectionEvent) => {
-                        handleFormChange("handlerId", event.handlerId.toString())
+                        handleFormChange("handlerId", event.handlerId)
                         handleFormChange("handler", event.handlerName)
                         handleFormChange("handlerEmail", event.handlerEmail || "")
                         handleFormChange("handlerPhone", event.handlerPhone || "")

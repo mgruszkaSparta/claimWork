@@ -1,7 +1,10 @@
 -- Create dictionary tables for all dropdowns used in the frontend
 
+-- Ensure dictionary schema exists
+CREATE SCHEMA IF NOT EXISTS dict;
+
 -- Case Handlers table (Prowadzący sprawę)
-CREATE TABLE IF NOT EXISTS CaseHandlers (
+CREATE TABLE IF NOT EXISTS dict.CaseHandlers (
     Id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     Name VARCHAR(200) NOT NULL,
     Email VARCHAR(200) NOT NULL DEFAULT '',
@@ -11,10 +14,10 @@ CREATE TABLE IF NOT EXISTS CaseHandlers (
     CreatedAt TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     UpdatedAt TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
-CREATE INDEX IF NOT EXISTS idx_case_handlers_is_active ON CaseHandlers(IsActive);
+CREATE INDEX IF NOT EXISTS idx_case_handlers_is_active ON dict.CaseHandlers(IsActive);
 
 -- Countries table
-CREATE TABLE IF NOT EXISTS Countries (
+CREATE TABLE IF NOT EXISTS dict.Countries (
     Id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     Code VARCHAR(10) NOT NULL UNIQUE,
     Name VARCHAR(200) NOT NULL,
@@ -22,11 +25,11 @@ CREATE TABLE IF NOT EXISTS Countries (
     CreatedAt TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     UpdatedAt TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
-CREATE INDEX IF NOT EXISTS idx_countries_code ON Countries(Code);
-CREATE INDEX IF NOT EXISTS idx_countries_is_active ON Countries(IsActive);
+CREATE INDEX IF NOT EXISTS idx_countries_code ON dict.Countries(Code);
+CREATE INDEX IF NOT EXISTS idx_countries_is_active ON dict.Countries(IsActive);
 
 -- Currencies table
-CREATE TABLE IF NOT EXISTS Currencies (
+CREATE TABLE IF NOT EXISTS dict.Currencies (
     Id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     Code VARCHAR(10) NOT NULL UNIQUE,
     Name VARCHAR(100) NOT NULL,
@@ -35,11 +38,11 @@ CREATE TABLE IF NOT EXISTS Currencies (
     CreatedAt TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     UpdatedAt TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
-CREATE INDEX IF NOT EXISTS idx_currencies_code ON Currencies(Code);
-CREATE INDEX IF NOT EXISTS idx_currencies_is_active ON Currencies(IsActive);
+CREATE INDEX IF NOT EXISTS idx_currencies_code ON dict.Currencies(Code);
+CREATE INDEX IF NOT EXISTS idx_currencies_is_active ON dict.Currencies(IsActive);
 
 -- Insurance Companies table
-CREATE TABLE IF NOT EXISTS InsuranceCompanies (
+CREATE TABLE IF NOT EXISTS dict.InsuranceCompanies (
     Id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     Name VARCHAR(200) NOT NULL,
     FullName VARCHAR(500),
@@ -50,11 +53,11 @@ CREATE TABLE IF NOT EXISTS InsuranceCompanies (
     CreatedAt TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     UpdatedAt TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
-CREATE INDEX IF NOT EXISTS idx_insurance_companies_is_active ON InsuranceCompanies(IsActive);
-CREATE INDEX IF NOT EXISTS idx_insurance_companies_name ON InsuranceCompanies(Name);
+CREATE INDEX IF NOT EXISTS idx_insurance_companies_is_active ON dict.InsuranceCompanies(IsActive);
+CREATE INDEX IF NOT EXISTS idx_insurance_companies_name ON dict.InsuranceCompanies(Name);
 
 -- Leasing Companies table
-CREATE TABLE IF NOT EXISTS LeasingCompanies (
+CREATE TABLE IF NOT EXISTS dict.LeasingCompanies (
     Id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     Name VARCHAR(200) NOT NULL,
     FullName VARCHAR(500),
@@ -65,11 +68,11 @@ CREATE TABLE IF NOT EXISTS LeasingCompanies (
     CreatedAt TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     UpdatedAt TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
-CREATE INDEX IF NOT EXISTS idx_leasing_companies_is_active ON LeasingCompanies(IsActive);
-CREATE INDEX IF NOT EXISTS idx_leasing_companies_name ON LeasingCompanies(Name);
+CREATE INDEX IF NOT EXISTS idx_leasing_companies_is_active ON dict.LeasingCompanies(IsActive);
+CREATE INDEX IF NOT EXISTS idx_leasing_companies_name ON dict.LeasingCompanies(Name);
 
 -- Document Statuses table
-CREATE TABLE IF NOT EXISTS DocumentStatuses (
+CREATE TABLE IF NOT EXISTS dict.DocumentStatuses (
     Id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     Code VARCHAR(50) NOT NULL UNIQUE,
     Name VARCHAR(200) NOT NULL,
@@ -79,11 +82,11 @@ CREATE TABLE IF NOT EXISTS DocumentStatuses (
     CreatedAt TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     UpdatedAt TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
-CREATE INDEX IF NOT EXISTS idx_document_statuses_code ON DocumentStatuses(Code);
-CREATE INDEX IF NOT EXISTS idx_document_statuses_is_active ON DocumentStatuses(IsActive);
+CREATE INDEX IF NOT EXISTS idx_document_statuses_code ON dict.DocumentStatuses(Code);
+CREATE INDEX IF NOT EXISTS idx_document_statuses_is_active ON dict.DocumentStatuses(IsActive);
 
 -- Contract Types table
-CREATE TABLE IF NOT EXISTS ContractTypes (
+CREATE TABLE IF NOT EXISTS dict.ContractTypes (
     Id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     Code VARCHAR(50) NOT NULL UNIQUE,
     Name VARCHAR(200) NOT NULL,
@@ -92,11 +95,11 @@ CREATE TABLE IF NOT EXISTS ContractTypes (
     CreatedAt TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     UpdatedAt TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
-CREATE INDEX IF NOT EXISTS idx_contract_types_code ON ContractTypes(Code);
-CREATE INDEX IF NOT EXISTS idx_contract_types_is_active ON ContractTypes(IsActive);
+CREATE INDEX IF NOT EXISTS idx_contract_types_code ON dict.ContractTypes(Code);
+CREATE INDEX IF NOT EXISTS idx_contract_types_is_active ON dict.ContractTypes(IsActive);
 
 -- Payment Methods table
-CREATE TABLE IF NOT EXISTS PaymentMethods (
+CREATE TABLE IF NOT EXISTS dict.PaymentMethods (
     Id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     Code VARCHAR(50) NOT NULL UNIQUE,
     Name VARCHAR(200) NOT NULL,
@@ -105,11 +108,11 @@ CREATE TABLE IF NOT EXISTS PaymentMethods (
     CreatedAt TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     UpdatedAt TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
-CREATE INDEX IF NOT EXISTS idx_payment_methods_code ON PaymentMethods(Code);
-CREATE INDEX IF NOT EXISTS idx_payment_methods_is_active ON PaymentMethods(IsActive);
+CREATE INDEX IF NOT EXISTS idx_payment_methods_code ON dict.PaymentMethods(Code);
+CREATE INDEX IF NOT EXISTS idx_payment_methods_is_active ON dict.PaymentMethods(IsActive);
 
 -- Claim Statuses table
-CREATE TABLE IF NOT EXISTS ClaimStatuses (
+CREATE TABLE IF NOT EXISTS dict.ClaimStatuses (
     Id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     Code VARCHAR(50) NOT NULL UNIQUE,
     Name VARCHAR(200) NOT NULL,
@@ -119,11 +122,11 @@ CREATE TABLE IF NOT EXISTS ClaimStatuses (
     CreatedAt TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     UpdatedAt TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
-CREATE INDEX IF NOT EXISTS idx_claim_statuses_code ON ClaimStatuses(Code);
-CREATE INDEX IF NOT EXISTS idx_claim_statuses_is_active ON ClaimStatuses(IsActive);
+CREATE INDEX IF NOT EXISTS idx_claim_statuses_code ON dict.ClaimStatuses(Code);
+CREATE INDEX IF NOT EXISTS idx_claim_statuses_is_active ON dict.ClaimStatuses(IsActive);
 
 -- Vehicle Types table
-CREATE TABLE IF NOT EXISTS VehicleTypes (
+CREATE TABLE IF NOT EXISTS dict.VehicleTypes (
     Id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     Code VARCHAR(50) NOT NULL UNIQUE,
     Name VARCHAR(200) NOT NULL,
@@ -132,11 +135,11 @@ CREATE TABLE IF NOT EXISTS VehicleTypes (
     CreatedAt TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     UpdatedAt TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
-CREATE INDEX IF NOT EXISTS idx_vehicle_types_code ON VehicleTypes(Code);
-CREATE INDEX IF NOT EXISTS idx_vehicle_types_is_active ON VehicleTypes(IsActive);
+CREATE INDEX IF NOT EXISTS idx_vehicle_types_code ON dict.VehicleTypes(Code);
+CREATE INDEX IF NOT EXISTS idx_vehicle_types_is_active ON dict.VehicleTypes(IsActive);
 
 -- Priorities table
-CREATE TABLE IF NOT EXISTS Priorities (
+CREATE TABLE IF NOT EXISTS dict.Priorities (
     Id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     Code VARCHAR(50) NOT NULL UNIQUE,
     Name VARCHAR(200) NOT NULL,
@@ -147,12 +150,12 @@ CREATE TABLE IF NOT EXISTS Priorities (
     CreatedAt TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     UpdatedAt TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
-CREATE INDEX IF NOT EXISTS idx_priorities_code ON Priorities(Code);
-CREATE INDEX IF NOT EXISTS idx_priorities_is_active ON Priorities(IsActive);
-CREATE INDEX IF NOT EXISTS idx_priorities_sort_order ON Priorities(SortOrder);
+CREATE INDEX IF NOT EXISTS idx_priorities_code ON dict.Priorities(Code);
+CREATE INDEX IF NOT EXISTS idx_priorities_is_active ON dict.Priorities(IsActive);
+CREATE INDEX IF NOT EXISTS idx_priorities_sort_order ON dict.Priorities(SortOrder);
 
 -- Event Statuses table
-CREATE TABLE IF NOT EXISTS EventStatuses (
+CREATE TABLE IF NOT EXISTS dict.EventStatuses (
     Id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     Code VARCHAR(50) NOT NULL UNIQUE,
     Name VARCHAR(200) NOT NULL,
@@ -162,5 +165,5 @@ CREATE TABLE IF NOT EXISTS EventStatuses (
     CreatedAt TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     UpdatedAt TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
-CREATE INDEX IF NOT EXISTS idx_event_statuses_code ON EventStatuses(Code);
-CREATE INDEX IF NOT EXISTS idx_event_statuses_is_active ON EventStatuses(IsActive);
+CREATE INDEX IF NOT EXISTS idx_event_statuses_code ON dict.EventStatuses(Code);
+CREATE INDEX IF NOT EXISTS idx_event_statuses_is_active ON dict.EventStatuses(IsActive);

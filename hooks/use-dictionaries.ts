@@ -1,8 +1,11 @@
 import { useState, useEffect } from 'react'
-import { dictionaryService, type DictionaryItem } from '@/lib/dictionary-service'
+import {
+  dictionaryService,
+  type DictionaryItemDto,
+} from '@/lib/dictionary-service'
 
 export function useDictionary(type: string) {
-  const [data, setData] = useState<DictionaryItem[]>([])
+  const [data, setData] = useState<DictionaryItemDto[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
@@ -12,7 +15,7 @@ export function useDictionary(type: string) {
         setLoading(true)
         setError(null)
         const result = await dictionaryService.getDictionary(type)
-        setData(result)
+        setData(result.items)
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Unknown error')
       } finally {

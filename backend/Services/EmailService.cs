@@ -201,9 +201,85 @@ namespace AutomotiveClaimsApi.Services
             return await _context.Emails.Where(e => e.ClaimNumber == claimNumber).Include(e => e.EmailClaims).Select(e => MapEmailToDto(e)).ToListAsync();
         }
 
-        public Task<EmailDto> SendEmailAsync(SendEmailDto sendEmailDto)
+        public async Task<EmailDto> SendEmailAsync(SendEmailDto sendEmailDto)
         {
-            throw new NotImplementedException();
+            try
+            {
+                var message = new MimeMessage();
+                message.From.Add(new MailboxAddress(_smtpSettings.FromName, _smtpSettings.FromEmail));
+                message.To.AddRange(sendEmailDto.To.Split(';').Select(e => MailboxAddress.Parse(e.Trim())));
+
+                if (!string.IsNullOrWhiteSpace(sendEmailDto.Cc))
+                    message.Cc.AddRange(sendEmailDto.Cc.Split(';').Select(e => MailboxAddress.Parse(e.Trim())));
+
+                if (!string.IsNullOrWhiteSpace(sendEmailDto.Bcc))
+                    message.Bcc.AddRange(sendEmailDto.Bcc.Split(';').Select(e => MailboxAddress.Parse(e.Trim())));
+
+                message.Subject = sendEmailDto.Subject;
+
+                var bodyBuilder = new BodyBuilder();
+                if (sendEmailDto.IsHtml)
+                    bodyBuilder.HtmlBody = sendEmailDto.Body;
+                else
+                    bodyBuilder.TextBody = sendEmailDto.Body;
+
+                message.Body = bodyBuilder.ToMessageBody();
+
+                using (var client = new SmtpClient())
+                {
+                    await client.ConnectAsync(_smtpSettings.Host, _smtpSettings.Port, SecureSocketOptions.StartTls);
+                    await client.AuthenticateAsync(_smtpSettings.Username, _smtpSettings.Password);
+                    await client.SendAsync(message);
+                    await client.DisconnectAsync(true);
+                }
+
+                var email = new Email
+                {
+                    Id = Guid.NewGuid(),
+                    Subject = sendEmailDto.Subject,
+                    Body = sendEmailDto.Body,
+                    BodyHtml = sendEmailDto.IsHtml ? sendEmailDto.Body : null,
+                    From = _smtpSettings.FromEmail,
+                    To = sendEmailDto.To,
+                    Cc = sendEmailDto.Cc,
+                    Bcc = sendEmailDto.Bcc,
+                    IsHtml = sendEmailDto.IsHtml,
+                    EventId = sendEmailDto.EventId,
+                    ClaimNumber = sendEmailDto.ClaimNumber,
+                    Direction = "Outbound",
+                    Status = "Sent",
+                    SentAt = DateTime.UtcNow,
+                    CreatedAt = DateTime.UtcNow,
+                    UpdatedAt = DateTime.UtcNow
+                };
+
+                ClientClaim? claim = null;
+                if (!string.IsNullOrWhiteSpace(sendEmailDto.ClaimId) && Guid.TryParse(sendEmailDto.ClaimId, out var claimGuid))
+                {
+                    claim = await _context.ClientClaims.FirstOrDefaultAsync(c => c.Id == claimGuid);
+                }
+
+                if (claim == null && !string.IsNullOrWhiteSpace(sendEmailDto.ClaimNumber))
+                {
+                    claim = await _context.ClientClaims.FirstOrDefaultAsync(c => c.ClaimNumber == sendEmailDto.ClaimNumber);
+                }
+
+                if (claim != null)
+                {
+                    email.EmailClaims.Add(new EmailClaim { EmailId = email.Id, ClaimId = claim.Id });
+                    email.ClaimNumber ??= claim.ClaimNumber;
+                }
+
+                _context.Emails.Add(email);
+                await _context.SaveChangesAsync();
+
+                return MapEmailToDto(email);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error sending email");
+                throw;
+            }
         }
 
         public async Task<EmailDto> CreateDraftAsync(CreateEmailDto createEmailDto)

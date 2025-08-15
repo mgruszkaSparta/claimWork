@@ -63,11 +63,11 @@ export function ClaimsList({
   } = useClaims()
   const { toast } = useToast()
 
-  const claims = initialClaims ?? fetchedClaims
-  const totalRecords = initialClaims ? initialClaims.length : totalCount
+  const claims = initialClaims?.length ? initialClaims : fetchedClaims
+  const totalRecords = initialClaims?.length ? initialClaims.length : totalCount
 
   useEffect(() => {
-    if (initialClaims) return
+    if (initialClaims?.length) return
 
     const loadClaims = async () => {
       try {
@@ -158,7 +158,7 @@ export function ClaimsList({
 
   useEffect(() => {
 
-    if (initialClaims) return
+    if (initialClaims?.length) return
 
     const node = loaderRef.current
     const observer = new IntersectionObserver(

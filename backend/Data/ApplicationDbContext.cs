@@ -25,6 +25,11 @@ namespace AutomotiveClaimsApi.Data
         public DbSet<Email> Emails { get; set; }
         public DbSet<EmailAttachment> EmailAttachments { get; set; }
         public DbSet<EmailClaim> EmailClaims { get; set; }
+        public DbSet<TaskTemplate> TaskTemplates { get; set; }
+        public DbSet<NotificationTemplate> NotificationTemplates { get; set; }
+        public DbSet<EventRule> EventRules { get; set; }
+        public DbSet<TaskHistory> TaskHistories { get; set; }
+        public DbSet<NotificationHistory> NotificationHistories { get; set; }
         public DbSet<Client> Clients { get; set; }
         public DbSet<RiskType> RiskTypes { get; set; }
         public DbSet<DamageType> DamageTypes { get; set; }
@@ -72,6 +77,8 @@ namespace AutomotiveClaimsApi.Data
                       .OnDelete(DeleteBehavior.Cascade);
                 entity.HasMany(e => e.Notes).WithOne(n => n.Event).HasForeignKey(n => n.EventId).OnDelete(DeleteBehavior.Cascade);
                 entity.HasMany(e => e.Documents).WithOne(d => d.Event).HasForeignKey(d => d.EventId).OnDelete(DeleteBehavior.Restrict);
+                entity.HasMany(e => e.TaskHistories).WithOne(th => th.Event).HasForeignKey(th => th.EventId).OnDelete(DeleteBehavior.Cascade);
+                entity.HasMany(e => e.NotificationHistories).WithOne(nh => nh.Event).HasForeignKey(nh => nh.EventId).OnDelete(DeleteBehavior.Cascade);
 
             });
 

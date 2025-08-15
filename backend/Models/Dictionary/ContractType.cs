@@ -1,7 +1,9 @@
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace AutomotiveClaimsApi.Models.Dictionary
 {
+    [Table("ContractTypes", Schema = "dict")]
     public class ContractType
     {
         public Guid Id { get; set; }

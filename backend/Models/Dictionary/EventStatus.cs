@@ -1,7 +1,9 @@
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace AutomotiveClaimsApi.Models.Dictionary
 {
+    [Table("EventStatuses", Schema = "dict")]
     public class EventStatus
     {
         public Guid Id { get; set; }

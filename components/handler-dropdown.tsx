@@ -5,7 +5,7 @@ import { createPortal } from "react-dom"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
-import { ChevronDown, Phone, Mail, MapPin, Check } from "lucide-react"
+import { ChevronDown, Phone, Mail, MapPin, Check, Briefcase } from "lucide-react"
 import type { Handler, HandlerSelectionEvent } from "@/types/handler"
 import { HandlersService } from "@/lib/handlers"
 
@@ -125,6 +125,9 @@ export default function HandlerDropdown({
       onHandlerSelected({
         handlerId: handler.id,
         handlerName: handler.name,
+        handlerEmail: handler.email,
+        handlerPhone: handler.phone,
+        handlerDepartment: handler.department,
       })
     }
   }
@@ -207,7 +210,7 @@ export default function HandlerDropdown({
       {selectedHandler && (
         <Card className="mt-6 border-gray-200 shadow-sm">
           <CardContent className="p-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
               {/* Phone */}
               <div>
                 <h3 className="flex items-center text-sm font-medium mb-2 text-gray-700">
@@ -236,6 +239,19 @@ export default function HandlerDropdown({
                   </a>
                 ) : (
                   <p className="text-gray-500 italic text-sm">Brak adresu e-mail</p>
+                )}
+              </div>
+
+              {/* Department */}
+              <div>
+                <h3 className="flex items-center text-sm font-medium mb-2 text-gray-700">
+                  <Briefcase className="h-4 w-4 mr-2 text-blue-600" />
+                  Dział
+                </h3>
+                {hasContactInfo(selectedHandler.department || "") ? (
+                  <p className="text-gray-900 text-sm">{selectedHandler.department}</p>
+                ) : (
+                  <p className="text-gray-500 italic text-sm">Brak działu</p>
                 )}
               </div>
             </div>

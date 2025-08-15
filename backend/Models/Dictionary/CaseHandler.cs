@@ -16,6 +16,15 @@ namespace AutomotiveClaimsApi.Models.Dictionary
         [StringLength(20)]
         public string? Code { get; set; }
 
+        [StringLength(200)]
+        public string Email { get; set; } = string.Empty;
+
+        [StringLength(50)]
+        public string Phone { get; set; } = string.Empty;
+
+        [StringLength(100)]
+        public string Department { get; set; } = string.Empty;
+
         public bool IsActive { get; set; } = true;
     }
 }

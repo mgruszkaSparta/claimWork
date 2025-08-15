@@ -3,7 +3,14 @@
 import DamageDataSection from "./damage-data-section"
 import { TransportDamageSection } from "./transport-damage-section"
 import SubcontractorSection from "./subcontractor-section"
-import type { Claim } from "@/types"
+import type { Dispatch, SetStateAction } from "react"
+import type {
+  Claim,
+  UploadedFile,
+  RequiredDocument,
+  ParticipantInfo,
+  DriverInfo,
+} from "@/types"
 
 interface RiskType {
   value: string
@@ -19,6 +26,23 @@ interface ClaimStatus {
 interface TransportClaimFormProps {
   claimFormData: Partial<Claim>
   handleFormChange: (field: keyof Claim, value: any) => void
+  handleParticipantChange: (
+    party: "injuredParty" | "perpetrator",
+    field: keyof Omit<ParticipantInfo, "drivers">,
+    value: any,
+  ) => void
+  handleDriverChange: (
+    party: "injuredParty" | "perpetrator",
+    driverIndex: number,
+    field: keyof DriverInfo,
+    value: any,
+  ) => void
+  handleAddDriver: (party: "injuredParty" | "perpetrator") => void
+  handleRemoveDriver: (party: "injuredParty" | "perpetrator", driverIndex: number) => void
+  uploadedFiles: UploadedFile[]
+  setUploadedFiles: Dispatch<SetStateAction<UploadedFile[]>>
+  requiredDocuments: RequiredDocument[]
+  setRequiredDocuments: Dispatch<SetStateAction<RequiredDocument[]>>
   claimObjectType: string
   setClaimObjectType: (value: string) => void
   riskTypes: RiskType[]
@@ -30,6 +54,14 @@ interface TransportClaimFormProps {
 export function TransportClaimForm({
   claimFormData,
   handleFormChange,
+  handleParticipantChange,
+  handleDriverChange,
+  handleAddDriver,
+  handleRemoveDriver,
+  uploadedFiles,
+  setUploadedFiles,
+  requiredDocuments,
+  setRequiredDocuments,
   claimObjectType,
   setClaimObjectType,
   riskTypes,

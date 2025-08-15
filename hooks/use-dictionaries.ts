@@ -9,24 +9,24 @@ export function useDictionary(type: string) {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        setLoading(true)
-        setError(null)
-        const result = await dictionaryService.getDictionary(type)
-        setData(result.items)
-      } catch (err) {
-        setError(err instanceof Error ? err.message : 'Unknown error')
-      } finally {
-        setLoading(false)
-      }
+  const fetchData = async () => {
+    try {
+      setLoading(true)
+      setError(null)
+      const result = await dictionaryService.getDictionary(type)
+      setData(result.items)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Unknown error')
+    } finally {
+      setLoading(false)
     }
+  }
 
+  useEffect(() => {
     fetchData()
   }, [type])
 
-  return { data, loading, error, refetch: () => fetchData() }
+  return { data, loading, error, refetch: fetchData }
 }
 
 // Specific hooks for each dictionary type

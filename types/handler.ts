@@ -1,9 +1,12 @@
+
 // Base model for handler data
 export interface Handler {
-  id: number
+  id: string
   name: string
-  email: string
-  phone: string
+  code?: string
+  email?: string
+  phone?: string
+  address?: string
   department?: string
   position?: string
 }
@@ -12,7 +15,7 @@ export interface Handler {
 export interface HandlerDropdownState {
   isOpen: boolean
   searchTerm: string
-  selectedHandlerId: number | null
+  selectedHandlerId: string | null
 }
 
 // Model for handler filtering options
@@ -31,10 +34,10 @@ export interface HandlerDetails extends Handler {
 
 // Model for handler selection event
 export interface HandlerSelectionEvent {
-  handlerId: number
+  handlerId: string
   handlerName: string
-  handlerEmail: string
-  handlerPhone: string
+  handlerEmail?: string
+  handlerPhone?: string
 }
 
 // Enum for handler departments
@@ -53,4 +56,5 @@ export interface ExtendedHandler extends Handler {
   avatar?: string
   bio?: string
   specializations?: string[]
+
 }

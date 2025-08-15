@@ -1,16 +1,25 @@
 "use client"
 
-import { useState, useEffect, useRef } from "react"
+
+
+import { useState, useEffect, useRef, useMemo } from "react"
+
+
 import { createPortal } from "react-dom"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { ChevronDown, Phone, Mail, MapPin, Check } from "lucide-react"
-import type { Handler, HandlerSelectionEvent } from "@/types/handler"
-import { HandlersService } from "@/lib/handlers"
+
+
+import type { DictionaryItemDto } from "@/lib/dictionary-service"
+import type { HandlerSelectionEvent } from "@/types/handler"
+import { useCaseHandlers } from "@/hooks/use-dictionaries"
+
+
 
 interface HandlerDropdownProps {
-  selectedHandlerId?: number
+  selectedHandlerId?: string
   onHandlerSelected?: (event: HandlerSelectionEvent) => void
   className?: string
 }
@@ -26,9 +35,18 @@ export default function HandlerDropdown({
   onHandlerSelected,
   className = "",
 }: HandlerDropdownProps) {
-  const [handlers] = useState<Handler[]>(HandlersService.sortHandlersAlphabetically(HandlersService.getHandlers()))
-  const [filteredHandlers, setFilteredHandlers] = useState<Handler[]>(handlers)
-  const [selectedHandler, setSelectedHandler] = useState<Handler | null>(null)
+
+
+  const { data: handlerData = [], loading, error, refetch: refresh } = useCaseHandlers()
+
+  const handlers = useMemo(() => {
+    return [...handlerData].sort((a, b) => a.name.localeCompare(b.name, "pl"))
+  }, [handlerData])
+
+  const [filteredHandlers, setFilteredHandlers] = useState<DictionaryItemDto[]>(handlers)
+  const [selectedHandler, setSelectedHandler] = useState<DictionaryItemDto | null>(null)
+
+
   const [isDropdownOpen, setIsDropdownOpen] = useState(false)
   const [searchTerm, setSearchTerm] = useState("")
   const [dropdownPosition, setDropdownPosition] = useState<DropdownPosition>({ top: 0, left: 0, width: 0 })
@@ -37,29 +55,44 @@ export default function HandlerDropdown({
   const dropdownRef = useRef<HTMLDivElement>(null)
   const buttonRef = useRef<HTMLButtonElement>(null)
 
-  // Handle mounting for portal
+  // Portal mount
   useEffect(() => {
     setMounted(true)
     return () => setMounted(false)
   }, [])
 
+  // Ustaw preselekt, gdy mamy dane i id
   useEffect(() => {
-    if (selectedHandlerId) {
-      const handler = HandlersService.getHandlerById(selectedHandlerId)
+
+
+    if (selectedHandlerId && handlers.length > 0) {
+
+      const handler = handlers.find((h) => h.id === selectedHandlerId)
       if (handler) {
         setSelectedHandler(handler)
       }
     }
-  }, [selectedHandlerId])
+  }, [selectedHandlerId, handlers])
 
+
+  // Filtrowanie po zmianie searchTerm/danych
   useEffect(() => {
+
+    const term = searchTerm.toLowerCase()
     const filtered = handlers.filter(
       (handler) =>
-        handler.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        handler.email.toLowerCase().includes(searchTerm.toLowerCase()),
+        handler.name.toLowerCase().includes(term) ||
+        (handler.code && handler.code.toLowerCase().includes(term)) ||
+        (handler.email && handler.email.toLowerCase().includes(term)),
+
     )
     setFilteredHandlers(filtered)
-  }, [searchTerm, handlers])
+  }, [searchTerm, sortedHandlers])
+
+  // Close/relayout
+  useEffect(() => {
+    setFilteredHandlers(handlers)
+  }, [handlers])
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -72,25 +105,14 @@ export default function HandlerDropdown({
         setIsDropdownOpen(false)
       }
     }
-
-    const handleScroll = () => {
-      if (isDropdownOpen) {
-        updateDropdownPosition()
-      }
-    }
-
-    const handleResize = () => {
-      if (isDropdownOpen) {
-        updateDropdownPosition()
-      }
-    }
+    const handleScroll = () => isDropdownOpen && updateDropdownPosition()
+    const handleResize = () => isDropdownOpen && updateDropdownPosition()
 
     if (isDropdownOpen) {
       document.addEventListener("mousedown", handleClickOutside)
       window.addEventListener("scroll", handleScroll, true)
       window.addEventListener("resize", handleResize)
     }
-
     return () => {
       document.removeEventListener("mousedown", handleClickOutside)
       window.removeEventListener("scroll", handleScroll, true)
@@ -110,28 +132,30 @@ export default function HandlerDropdown({
   }
 
   const toggleDropdown = () => {
-    if (!isDropdownOpen) {
-      updateDropdownPosition()
-    }
+    if (!isDropdownOpen) updateDropdownPosition()
     setIsDropdownOpen(!isDropdownOpen)
   }
 
-  const selectHandler = (handler: Handler) => {
+  const selectHandler = (handler: DictionaryItemDto) => {
     setSelectedHandler(handler)
     setIsDropdownOpen(false)
     setSearchTerm("")
+
 
     if (onHandlerSelected) {
       onHandlerSelected({
         handlerId: handler.id,
         handlerName: handler.name,
+        handlerEmail: handler.email,
+        handlerPhone: handler.phone,
       })
     }
   }
 
-  const hasContactInfo = (info: string): boolean => {
-    return info && info !== "brak" && info.trim() !== ""
+  const hasContactInfo = (info?: string): boolean => {
+    return !!info && info !== "brak" && info.trim() !== ""
   }
+
 
   const renderDropdownPortal = () => {
     if (!mounted || !isDropdownOpen) return null
@@ -139,41 +163,67 @@ export default function HandlerDropdown({
     return createPortal(
       <div
         ref={dropdownRef}
-        className="dropdown-portal"
+        className="dropdown-portal z-50 absolute"
         style={{
           top: `${dropdownPosition.top}px`,
           left: `${dropdownPosition.left}px`,
           width: `${dropdownPosition.width}px`,
         }}
       >
-        {/* Search Input */}
-        <div className="dropdown-search">
+        {/* Search */}
+        <div className="dropdown-search bg-white border border-gray-200 rounded-t-lg">
           <Input
             type="text"
             placeholder="Wyszukaj likwidatora..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full border-gray-300 focus:border-blue-500 focus:ring-blue-500"
+            className="w-full border-0 focus:ring-0 px-3 py-2"
             onClick={(e) => e.stopPropagation()}
             autoFocus
           />
         </div>
 
+
         {/* Dropdown Items */}
         <div className="dropdown-items">
-          {filteredHandlers.length === 0 ? (
+          {loading ? (
+            <div className="dropdown-no-results">Ładowanie...</div>
+          ) : error ? (
+            <div className="dropdown-no-results flex flex-col items-center gap-2">
+              <span>Wystąpił błąd podczas ładowania likwidatorów.</span>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={(e) => {
+                  e.stopPropagation()
+                  refresh()
+                }}
+              >
+                Spróbuj ponownie
+              </Button>
+            </div>
+          ) : filteredHandlers.length === 0 ? (
             <div className="dropdown-no-results">Nie znaleziono likwidatorów spełniających kryteria wyszukiwania</div>
+
           ) : (
             filteredHandlers.map((handler) => (
               <div
                 key={`handler-${handler.id}`}
-                className={`dropdown-item ${selectedHandler?.id === handler.id ? "selected" : ""}`}
+                className={`dropdown-item flex items-center px-3 py-2 cursor-pointer hover:bg-gray-50 ${
+                  selectedHandler?.id === handler.id ? "bg-blue-50" : ""
+                }`}
                 onClick={() => selectHandler(handler)}
               >
-                {selectedHandler?.id === handler.id && <Check className="h-4 w-4 mr-2 text-blue-600" />}
+                {selectedHandler?.id === handler.id && (
+                  <Check className="h-4 w-4 mr-2 text-blue-600" />
+                )}
                 <div className="flex flex-col">
                   <span className="font-medium">{handler.name}</span>
-                  <span className="text-xs text-gray-500">{handler.email}</span>
+
+                  {handler.email && (
+                    <span className="text-xs text-gray-500">{handler.email}</span>
+                  )}
+
                 </div>
               </div>
             ))
@@ -186,24 +236,28 @@ export default function HandlerDropdown({
 
   return (
     <div className={`handler-dropdown relative w-full ${className}`}>
-      {/* Dropdown Button */}
+      {/* Button */}
       <Button
         ref={buttonRef}
         variant="outline"
         onClick={toggleDropdown}
         className="w-full justify-between h-12 px-4 text-left font-normal bg-white hover:bg-gray-50"
         type="button"
+        disabled={loading && !isDropdownOpen}
       >
         <span className="truncate text-gray-900">
-          {selectedHandler ? selectedHandler.name : "Wybierz likwidatora..."}
+          {selectedHandler ? selectedHandler.name :
+            loading ? "Ładowanie..." :
+            error ? "Błąd ładowania (kliknij by spróbować)" :
+            "Wybierz likwidatora..."}
         </span>
         <ChevronDown className={`h-4 w-4 transition-transform text-gray-500 ${isDropdownOpen ? "rotate-180" : ""}`} />
       </Button>
 
-      {/* Render dropdown portal */}
+      {/* Portal */}
       {renderDropdownPortal()}
 
-      {/* Handler Details Card */}
+      {/* Szczegóły (opcjonalne) */}
       {selectedHandler && (
         <Card className="mt-6 border-gray-200 shadow-sm">
           <CardContent className="p-6">
@@ -228,10 +282,7 @@ export default function HandlerDropdown({
                   Adres e-mail
                 </h3>
                 {hasContactInfo(selectedHandler.email) ? (
-                  <a
-                    href={`mailto:${selectedHandler.email}`}
-                    className="text-blue-600 hover:underline break-all text-sm"
-                  >
+                  <a href={`mailto:${selectedHandler.email}`} className="text-blue-600 hover:underline break-all text-sm">
                     {selectedHandler.email}
                   </a>
                 ) : (

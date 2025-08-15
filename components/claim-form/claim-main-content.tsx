@@ -1255,6 +1255,7 @@ const renderParticipantDetails = (participant: ParticipantInfo | undefined, titl
   case "dane-zdarzenia":
       return (
         <div className="space-y-4">
+
           <DamageDataSection
             claimFormData={claimFormData}
             handleFormChange={handleFormChange}

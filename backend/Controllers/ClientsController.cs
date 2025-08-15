@@ -45,8 +45,8 @@ namespace AutomotiveClaimsApi.Controllers
                     Name = c.Name,
                     FullName = c.FullName,
                     ShortName = c.ShortName,
-                    TaxId = c.TaxId,
-                    RegistrationNumber = c.RegistrationNumber,
+                    Nip = c.Nip,
+                    Regon = c.Regon,
                     PhoneNumber = c.PhoneNumber,
                     Email = c.Email,
                     Address = c.Address,
@@ -72,8 +72,8 @@ namespace AutomotiveClaimsApi.Controllers
                     Name = c.Name,
                     FullName = c.FullName,
                     ShortName = c.ShortName,
-                    TaxId = c.TaxId,
-                    RegistrationNumber = c.RegistrationNumber,
+                    Nip = c.Nip,
+                    Regon = c.Regon,
                     PhoneNumber = c.PhoneNumber,
                     Email = c.Email,
                     Address = c.Address,
@@ -101,8 +101,8 @@ namespace AutomotiveClaimsApi.Controllers
                 Name = createClientDto.Name,
                 FullName = createClientDto.FullName,
                 ShortName = createClientDto.ShortName,
-                TaxId = createClientDto.TaxId,
-                RegistrationNumber = createClientDto.RegistrationNumber,
+                Nip = createClientDto.Nip,
+                Regon = createClientDto.Regon,
                 PhoneNumber = createClientDto.PhoneNumber,
                 Email = createClientDto.Email,
                 Address = createClientDto.Address,
@@ -121,8 +121,8 @@ namespace AutomotiveClaimsApi.Controllers
                 Name = client.Name,
                 FullName = client.FullName,
                 ShortName = client.ShortName,
-                TaxId = client.TaxId,
-                RegistrationNumber = client.RegistrationNumber,
+                Nip = client.Nip,
+                Regon = client.Regon,
                 PhoneNumber = client.PhoneNumber,
                 Email = client.Email,
                 Address = client.Address,
@@ -148,8 +148,8 @@ namespace AutomotiveClaimsApi.Controllers
             client.Name = updateClientDto.Name ?? client.Name;
             client.FullName = updateClientDto.FullName ?? client.FullName;
             client.ShortName = updateClientDto.ShortName ?? client.ShortName;
-            client.TaxId = updateClientDto.TaxId ?? client.TaxId;
-            client.RegistrationNumber = updateClientDto.RegistrationNumber ?? client.RegistrationNumber;
+            client.Nip = updateClientDto.Nip ?? client.Nip;
+            client.Regon = updateClientDto.Regon ?? client.Regon;
             client.PhoneNumber = updateClientDto.PhoneNumber ?? client.PhoneNumber;
             client.Email = updateClientDto.Email ?? client.Email;
             client.Address = updateClientDto.Address ?? client.Address;

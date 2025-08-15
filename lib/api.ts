@@ -193,8 +193,8 @@ export interface ClientDto {
   name: string
   fullName?: string
   shortName?: string
-  taxId?: string
-  registrationNumber?: string
+  nip?: string
+  regon?: string
   phoneNumber?: string
   email?: string
   address?: string
@@ -209,8 +209,8 @@ export interface CreateClientDto {
   name: string
   fullName?: string
   shortName?: string
-  taxId?: string
-  registrationNumber?: string
+  nip?: string
+  regon?: string
   phoneNumber?: string
   email?: string
   address?: string
@@ -223,8 +223,8 @@ export interface UpdateClientDto {
   name?: string
   fullName?: string
   shortName?: string
-  taxId?: string
-  registrationNumber?: string
+  nip?: string
+  regon?: string
   phoneNumber?: string
   email?: string
   address?: string

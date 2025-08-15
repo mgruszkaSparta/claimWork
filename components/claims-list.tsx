@@ -108,7 +108,10 @@ export function ClaimsList({
 
   // TODO: consider moving this filtering to use-claims or the API to reduce client workload
   const allowedRiskTypes = useMemo(
-    () => (claimObjectTypeId ? RISK_TYPE_GROUPS[claimObjectTypeId] : undefined),
+    () =>
+      claimObjectTypeId
+        ? RISK_TYPE_GROUPS[claimObjectTypeId]?.map((type) => type.toLowerCase())
+        : undefined,
     [claimObjectTypeId],
   )
 
@@ -131,7 +134,9 @@ export function ClaimsList({
           const matchesHandler =
             !filterHandler || claim.liquidator?.toLowerCase().includes(filterHandler.toLowerCase())
           const matchesClaimType =
-            !allowedRiskTypes || !claim.riskType || allowedRiskTypes.includes(claim.riskType)
+            !allowedRiskTypes ||
+            !claim.riskType ||
+            allowedRiskTypes.includes(claim.riskType.toLowerCase())
 
           return (
             matchesSearch &&

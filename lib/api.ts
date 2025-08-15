@@ -1,6 +1,27 @@
 // API Configuration
 export const API_BASE_URL =
-  process.env.NEXT_PUBLIC_API_URL || "http://localhost:5200/api"
+  process.env.NEXT_PUBLIC_API_BASE_URL?.replace(/\/+$/, "") ||
+  process.env.NEXT_PUBLIC_API_URL?.replace(/\/+$/, "") ||
+  "http://localhost:5200/api"
+
+export async function getJson<T>(
+  path: string,
+  init?: RequestInit,
+): Promise<T> {
+  const res = await fetch(`${API_BASE_URL}${path}`, {
+    ...init,
+    headers: {
+      "Content-Type": "application/json",
+      ...(init?.headers || {}),
+    },
+    cache: "no-store",
+  })
+  if (!res.ok) {
+    const text = await res.text().catch(() => "")
+    throw new Error(`GET ${path} ${res.status}: ${text || res.statusText}`)
+  }
+  return res.json() as Promise<T>
+}
 
 // Types for API responses
 export interface EventListItemDto {
@@ -21,7 +42,7 @@ export interface EventListItemDto {
   insuranceCompany?: string
   leasingCompanyId?: number
   leasingCompany?: string
-  handlerId?: number
+  handlerId?: string
   handler?: string
   objectTypeId?: number
   registeredById?: string
@@ -43,7 +64,7 @@ export interface EventDto extends EventListItemDto {
   servicesCalled?: string
 
   insuranceCompanyId?: number
-  handlerId?: number
+  handlerId?: string
   riskType?: string
   damageType?: string
   subcontractorName?: string
@@ -104,7 +125,7 @@ export interface EventUpsertDto {
   insuranceCompany?: string
   leasingCompanyId?: number
   leasingCompany?: string
-  handlerId?: number
+  handlerId?: string
   handler?: string
   damageDate?: string
   reportDate?: string

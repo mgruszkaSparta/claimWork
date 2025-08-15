@@ -1,17 +1,19 @@
 -- Create dictionary tables for all dropdowns used in the frontend
 
+CREATE SCHEMA IF NOT EXISTS dict;
+
 -- Case Handlers table (Prowadzący sprawę)
-CREATE TABLE IF NOT EXISTS CaseHandlers (
-    Id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+CREATE TABLE IF NOT EXISTS dict.CaseHandlers (
+    Id SERIAL PRIMARY KEY,
     Name VARCHAR(200) NOT NULL,
-    Email VARCHAR(200) NOT NULL DEFAULT '',
-    Phone VARCHAR(50) NOT NULL DEFAULT '',
-    Department VARCHAR(100) NOT NULL DEFAULT '',
-    IsActive BOOLEAN NOT NULL DEFAULT TRUE,
-    CreatedAt TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-    UpdatedAt TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+    Code VARCHAR(20),
+    Email VARCHAR(200),
+    Phone VARCHAR(50),
+    Department VARCHAR(100),
+    IsActive BOOLEAN NOT NULL DEFAULT TRUE
 );
-CREATE INDEX IF NOT EXISTS idx_case_handlers_is_active ON CaseHandlers(IsActive);
+CREATE INDEX IF NOT EXISTS idx_case_handlers_is_active ON dict.CaseHandlers(IsActive);
+CREATE INDEX IF NOT EXISTS idx_case_handlers_code ON dict.CaseHandlers(Code);
 
 -- Countries table
 CREATE TABLE IF NOT EXISTS Countries (

@@ -62,6 +62,8 @@ namespace AutomotiveClaimsApi.DTOs
         public DateTime? ComplaintResponseDate { get; set; }
         public string? DamageDescription { get; set; }
         public string? Description { get; set; }
+        public string? RegisteredById { get; set; }
+        public string? RegisteredByName { get; set; }
         public DateTime CreatedAt { get; set; }
         public DateTime UpdatedAt { get; set; }
         

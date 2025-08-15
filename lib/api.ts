@@ -24,6 +24,8 @@ export interface EventListItemDto {
   handlerId?: number
   handler?: string
   objectTypeId?: number
+  registeredById?: string
+  registeredByName?: string
 }
 
 export interface EventDto extends EventListItemDto {
@@ -97,6 +99,7 @@ export interface EventUpsertDto {
   riskType?: string
   damageType?: string
   objectTypeId?: number
+  registeredById?: string
   insuranceCompanyId?: number
   insuranceCompany?: string
   leasingCompanyId?: number
@@ -728,10 +731,10 @@ class ApiService {
     this.setToken(null)
   }
 
-  async getCurrentUser(): Promise<{ username: string; email?: string; roles?: string[]; createdAt?: string; lastLogin?: string } | undefined> {
+  async getCurrentUser(): Promise<{ id: string; username: string; email?: string; roles?: string[]; createdAt?: string; lastLogin?: string } | undefined> {
     const data = await this.request<{ id: string; userName: string; email: string; roles: string[]; createdAt: string; lastLogin?: string }>("/auth/me")
     if (!data) return undefined
-    return { username: data.userName, email: data.email, roles: data.roles, createdAt: data.createdAt, lastLogin: data.lastLogin }
+    return { id: data.id, username: data.userName, email: data.email, roles: data.roles, createdAt: data.createdAt, lastLogin: data.lastLogin }
   }
 
 

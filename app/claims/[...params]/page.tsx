@@ -27,6 +27,7 @@ import { ClaimTopHeader } from "@/components/claim-form/claim-top-header"
 import { ClaimMainContent } from "@/components/claim-form/claim-main-content"
 import { useClaimForm } from "@/hooks/use-claim-form"
 import { useClaims, transformApiClaimToFrontend } from "@/hooks/use-claims"
+import { useAuth } from "@/hooks/use-auth"
 import { generateId } from "@/lib/constants"
 import type { Claim, UploadedFile, RequiredDocument } from "@/types"
 
@@ -37,6 +38,7 @@ export default function ClaimPage() {
   const router = useRouter()
   const { toast } = useToast()
   const { createClaim, updateClaim } = useClaims()
+  const { user } = useAuth()
 
   // Determine page mode and ID from params
   const paramsArray = Array.isArray(params.params) ? params.params : [params.params].filter(Boolean)
@@ -137,6 +139,12 @@ export default function ClaimPage() {
     }
   }, [loadClaimData])
 
+  useEffect(() => {
+    if (!claimId && user) {
+      setClaimFormData((prev) => ({ ...prev, registeredById: user.id, registeredByName: user.username }))
+    }
+  }, [claimId, user, setClaimFormData])
+
   const handleSaveClaim = async (exitAfterSave = false) => {
     if (isSaving) return
 
@@ -147,6 +155,7 @@ export default function ClaimPage() {
           ...claimFormData,
           id: generateId(),
           claimNumber: `PL${new Date().getFullYear()}${String(Date.now()).slice(-8)}`,
+          registeredById: user?.id,
         } as Claim
 
         const createdClaim = await createClaim(newClaimData)

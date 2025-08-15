@@ -155,6 +155,7 @@ namespace AutomotiveClaimsApi.DTOs
 
         [StringLength(2000)]
         public string? Description { get; set; }
+        public string? RegisteredById { get; set; }
 
         public ICollection<ParticipantUpsertDto>? Participants { get; set; }
 

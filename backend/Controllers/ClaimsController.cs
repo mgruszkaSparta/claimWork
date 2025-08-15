@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.Authorization;
+using System.Security.Claims;
 
 namespace AutomotiveClaimsApi.Controllers
 {
@@ -107,6 +108,8 @@ namespace AutomotiveClaimsApi.Controllers
                         LeasingCompany = e.LeasingCompany,
                         HandlerId = e.HandlerId,
                         Handler = e.Handler
+                        ,RegisteredById = e.RegisteredById
+                        ,RegisteredByName = e.RegisteredBy != null ? e.RegisteredBy.UserName : null
                     })
                     .ToListAsync();
 
@@ -136,6 +139,7 @@ namespace AutomotiveClaimsApi.Controllers
                     .Include(e => e.Settlements)
                     .Include(e => e.Emails)
                     .Include(e => e.Notes)
+                    .Include(e => e.RegisteredBy)
                     .FirstOrDefaultAsync(e => e.Id == id);
 
                 if (eventEntity == null)
@@ -164,7 +168,8 @@ namespace AutomotiveClaimsApi.Controllers
                     Status = "Nowa",
                     Currency = "PLN",
                     CreatedAt = DateTime.UtcNow,
-                    UpdatedAt = DateTime.UtcNow
+                    UpdatedAt = DateTime.UtcNow,
+                    RegisteredById = User.FindFirstValue(ClaimTypes.NameIdentifier)
                 };
 
                 _context.Events.Add(eventEntity);
@@ -185,6 +190,7 @@ namespace AutomotiveClaimsApi.Controllers
             try
             {
                 Event eventEntity;
+                var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
                 if (eventDto.Id.HasValue)
                 {
@@ -219,6 +225,11 @@ namespace AutomotiveClaimsApi.Controllers
                     _context.Events.Add(eventEntity);
                 }
 
+                if (string.IsNullOrEmpty(eventEntity.RegisteredById))
+                {
+                    eventEntity.RegisteredById = userId;
+                }
+
                 await UpsertClaimAsync(eventEntity, eventDto);
 
                 if (string.IsNullOrEmpty(eventEntity.SpartaNumber))
@@ -240,6 +251,7 @@ namespace AutomotiveClaimsApi.Controllers
                     .Include(e => e.Settlements)
                     .Include(e => e.Emails)
                     .Include(e => e.Notes)
+                    .Include(e => e.RegisteredBy)
                     .FirstOrDefaultAsync(e => e.Id == eventEntity.Id);
 
                 var createdClaimDto = MapEventToDto(createdEvent!);
@@ -1488,6 +1500,8 @@ namespace AutomotiveClaimsApi.Controllers
             ComplaintResponseDate = e.ComplaintResponseDate,
             DamageDescription = e.DamageDescription,
             Description = e.Description,
+            RegisteredById = e.RegisteredById,
+            RegisteredByName = e.RegisteredBy != null ? e.RegisteredBy.UserName : null,
             CreatedAt = e.CreatedAt,
             UpdatedAt = e.UpdatedAt,
             Participants = e.Participants.Select(p => new ParticipantDto

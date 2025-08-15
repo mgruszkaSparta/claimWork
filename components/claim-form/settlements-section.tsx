@@ -212,6 +212,17 @@ export const SettlementsSection: React.FC<SettlementsSectionProps> = ({ eventId 
         }
 
         if (isEditing && editingSettlementId) {
+          if (!selectedFile) {
+            const currentSettlement = settlements.find(
+              (s) => s.id === editingSettlementId,
+            )
+            if (currentSettlement?.documentPath) {
+              body.append("documentPath", currentSettlement.documentPath)
+            }
+            if (currentSettlement?.documentName) {
+              body.append("documentName", currentSettlement.documentName)
+            }
+          }
           await updateSettlement(editingSettlementId, body)
           toast({
             title: "Sukces",
@@ -246,8 +257,17 @@ export const SettlementsSection: React.FC<SettlementsSectionProps> = ({ eventId 
         setIsLoading(false)
       }
     },
-    [formData, selectedFile, isEditing, editingSettlementId, eventId, loadSettlements, toast],
-  )
+      [
+        formData,
+        selectedFile,
+        isEditing,
+        editingSettlementId,
+        settlements,
+        eventId,
+        loadSettlements,
+        toast,
+      ],
+    )
 
   // Edit settlement
   const editSettlement = useCallback((settlement: Settlement) => {

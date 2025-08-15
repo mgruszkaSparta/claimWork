@@ -47,9 +47,14 @@ async function request<T>(url: string, options: RequestInit = {}): Promise<T> {
     ...options,
   });
   const text = await response.text();
-  const data = text ? JSON.parse(text) : undefined;
+  let data: unknown;
+  try {
+    data = text ? JSON.parse(text) : undefined;
+  } catch {
+    data = undefined;
+  }
   if (!response.ok) {
-    const message = (data?.error || data?.message || text || response.statusText) as string;
+    const message = ((data as any)?.error || (data as any)?.message || text || response.statusText) as string;
     throw new Error(message);
   }
   return data as T;

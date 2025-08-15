@@ -265,23 +265,36 @@ namespace AutomotiveClaimsApi.Services
             return true;
         }
 
-        public IEnumerable<string> ExtractClaimNumbers(string message)
+        public string? ExtractEventNumber(string message)
         {
             if (string.IsNullOrWhiteSpace(message))
-                return Enumerable.Empty<string>();
+                return null;
 
-            var matches = Regex.Matches(message, @"\b\w{3}\d{7}\b");
-            return matches.Select(m => m.Value).Distinct();
+            var match = Regex.Match(message, @"\b\w{3}\d{7}\b");
+            return match.Success ? match.Value : null;
         }
 
-        public async Task<List<Guid>> FindClaimIdsFromMessage(string message)
+        private async Task<Guid?> ResolveEventIdFromEventNumberAsync(string? eventNumber)
         {
-            var numbers = ExtractClaimNumbers(message);
+            if (string.IsNullOrWhiteSpace(eventNumber))
+                return null;
 
-            return await _context.ClientClaims
-                .Where(c => c.ClaimNumber != null && numbers.Contains(c.ClaimNumber))
-                .Select(c => c.Id)
-                .ToListAsync();
+            return await _context.Events
+                .Where(e => e.ClaimNumber != null && e.ClaimNumber == eventNumber)
+                .Select(e => (Guid?)e.Id)
+                .FirstOrDefaultAsync();
+        }
+
+        private async Task<Email> CreateEmailEntityAsync(string message)
+        {
+            var email = new Email();
+
+            var eventNumber = ExtractEventNumber(message);
+            var eventId = await ResolveEventIdFromEventNumberAsync(eventNumber);
+            email.EventId = eventId; // null jeśli brak dopasowania
+
+            // Pozostała logika tworzenia i zapisu e‑maila pozostaje bez zmian
+            return email;
         }
 
         public Task FetchEmailsAsync()

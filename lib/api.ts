@@ -111,6 +111,38 @@ export interface ClaimNotificationSettings {
   events: string[]
 }
 
+export interface RuleTemplateDto {
+  id: string
+  name: string
+  content: string
+  type: 'task' | 'notification'
+}
+
+export interface RuleTemplateUpsertDto {
+  name: string
+  content: string
+  type: 'task' | 'notification'
+}
+
+export interface RuleDto {
+  id: string
+  eventType: string
+  taskTemplateId?: string
+  notificationTemplateId?: string
+  recipients: string[]
+  channels: string[]
+  cronExpression?: string
+}
+
+export interface RuleUpsertDto {
+  eventType: string
+  taskTemplateId?: string
+  notificationTemplateId?: string
+  recipients: string[]
+  channels: string[]
+  cronExpression?: string
+}
+
 export interface EventUpsertDto {
   id?: string
   rowVersion?: string
@@ -1073,6 +1105,51 @@ class ApiService {
       method: 'PUT',
       body: JSON.stringify(data),
     })
+  }
+
+  // Rules and templates API
+  async getRuleTemplates(): Promise<RuleTemplateDto[]> {
+    return this.request<RuleTemplateDto[]>('/RuleTemplates')
+  }
+
+  async createRuleTemplate(data: RuleTemplateUpsertDto): Promise<RuleTemplateDto> {
+    return this.request<RuleTemplateDto>('/RuleTemplates', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    })
+  }
+
+  async updateRuleTemplate(id: string, data: RuleTemplateUpsertDto): Promise<void> {
+    await this.request<void>(`/RuleTemplates/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    })
+  }
+
+  async deleteRuleTemplate(id: string): Promise<void> {
+    await this.request<void>(`/RuleTemplates/${id}`, { method: 'DELETE' })
+  }
+
+  async getRules(): Promise<RuleDto[]> {
+    return this.request<RuleDto[]>('/Rules')
+  }
+
+  async createRule(data: RuleUpsertDto): Promise<RuleDto> {
+    return this.request<RuleDto>('/Rules', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    })
+  }
+
+  async updateRule(id: string, data: RuleUpsertDto): Promise<void> {
+    await this.request<void>(`/Rules/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    })
+  }
+
+  async deleteRule(id: string): Promise<void> {
+    await this.request<void>(`/Rules/${id}`, { method: 'DELETE' })
   }
 
   async forgotPassword(email: string): Promise<void> {

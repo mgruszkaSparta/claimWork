@@ -14,6 +14,9 @@ namespace AutomotiveClaimsApi.Services
         Task<DocumentDto> UploadAndCreateDocumentAsync(IFormFile file, CreateDocumentDto createDto);
         Task<bool> DeleteDocumentAsync(Guid id);
         Task<bool> DeleteDocumentAsync(string filePath);
+        Task<IEnumerable<AppealDocumentDto>> GetAppealDocumentsAsync(Guid appealId);
+        Task<AppealDocumentDto> UploadAppealDocumentAsync(Guid appealId, IFormFile file, string? description);
+        Task<bool> DeleteAppealDocumentAsync(Guid documentId);
         /// <summary>
         /// Retrieves a document for download by its identifier.
         /// </summary>

@@ -106,6 +106,14 @@ export interface DocumentDto {
   canPreview?: boolean
 }
 
+export interface AppealDocumentDto {
+  id: string
+  filePath: string
+  fileName: string
+  description?: string | null
+  createdAt?: string
+}
+
 export interface ClaimNotificationSettings {
   recipients: string[]
   events: string[]
@@ -488,12 +496,10 @@ export interface AppealDto {
   appealNumber?: string
   appealAmount?: number
   decisionReason?: string
-  documentPath?: string
-  documentName?: string
-  documentDescription?: string
   createdAt?: string
   updatedAt?: string
   daysSinceSubmission?: number
+  documents?: AppealDocumentDto[]
 }
 
 export interface AppealUpsertDto {
@@ -509,9 +515,7 @@ export interface AppealUpsertDto {
   appealAmount?: number
   decisionDate?: string
   decisionReason?: string
-  documentPath?: string
-  documentName?: string
-  documentDescription?: string
+  documents?: AppealDocumentDto[]
 }
 
 export interface ClientClaimDto {

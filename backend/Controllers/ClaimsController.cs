@@ -140,7 +140,7 @@ namespace AutomotiveClaimsApi.Controllers
                     .Include(e => e.Participants).ThenInclude(p => p.Drivers)
                     .Include(e => e.Documents.Where(d => !d.IsDeleted))
                     .Include(e => e.Damages)
-                    .Include(e => e.Appeals)
+                    .Include(e => e.Appeals).ThenInclude(a => a.Documents)
                     .Include(e => e.ClientClaims)
                     .Include(e => e.Decisions)
                     .Include(e => e.Recourses)
@@ -269,7 +269,7 @@ namespace AutomotiveClaimsApi.Controllers
                     .Include(e => e.Participants).ThenInclude(p => p.Drivers)
                     .Include(e => e.Documents.Where(d => !d.IsDeleted))
                     .Include(e => e.Damages)
-                    .Include(e => e.Appeals)
+                    .Include(e => e.Appeals).ThenInclude(a => a.Documents)
                     .Include(e => e.ClientClaims)
                     .Include(e => e.Decisions)
                     .Include(e => e.Recourses)
@@ -906,9 +906,6 @@ namespace AutomotiveClaimsApi.Controllers
                 existing.AppealAmount = aDto.AppealAmount;
                 existing.DecisionDate = aDto.DecisionDate;
                 existing.DecisionReason = aDto.DecisionReason;
-                existing.DocumentPath = aDto.DocumentPath;
-                existing.DocumentName = aDto.DocumentName;
-                existing.DocumentDescription = aDto.DocumentDescription;
                 existing.UpdatedAt = DateTime.UtcNow;
                 context.Appeals.Update(existing);
             }
@@ -927,9 +924,6 @@ namespace AutomotiveClaimsApi.Controllers
                     AppealAmount = aDto.AppealAmount,
                     DecisionDate = aDto.DecisionDate,
                     DecisionReason = aDto.DecisionReason,
-                    DocumentPath = aDto.DocumentPath,
-                    DocumentName = aDto.DocumentName,
-                    DocumentDescription = aDto.DocumentDescription,
                     CreatedAt = DateTime.UtcNow,
                     UpdatedAt = DateTime.UtcNow
                 };
@@ -1648,7 +1642,15 @@ namespace AutomotiveClaimsApi.Controllers
                 DecisionDate = a.DecisionDate,
                 DecisionReason = a.DecisionReason,
                 CreatedAt = a.CreatedAt,
-                UpdatedAt = a.UpdatedAt
+                UpdatedAt = a.UpdatedAt,
+                Documents = a.Documents.Select(d => new AppealDocumentDto
+                {
+                    Id = d.Id,
+                    FilePath = d.FilePath,
+                    FileName = d.FileName,
+                    Description = d.Description,
+                    CreatedAt = d.CreatedAt
+                }).ToList()
             }).ToList(),
             ClientClaims = e.ClientClaims.Select(c => new ClientClaimDto
             {

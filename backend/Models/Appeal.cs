@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using System.Collections.Generic;
 
 namespace AutomotiveClaimsApi.Models
 {
@@ -30,17 +31,13 @@ namespace AutomotiveClaimsApi.Models
 
         public string? DecisionReason { get; set; }
         
-        public string? DocumentPath { get; set; }
-        
-        public string? DocumentName { get; set; }
-        
-        public string? DocumentDescription { get; set; }
-        
         public DateTime CreatedAt { get; set; }
-        
+
         public DateTime UpdatedAt { get; set; }
-        
-        // Navigation property
+
+        // Navigation properties
         public virtual Event? Event { get; set; }
+
+        public virtual ICollection<AppealDocument> Documents { get; set; } = new List<AppealDocument>();
     }
 }

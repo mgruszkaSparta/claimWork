@@ -35,6 +35,7 @@ export interface HandlerSelectionEvent {
   handlerName: string
   handlerEmail: string
   handlerPhone: string
+  handlerDepartment?: string
 }
 
 // Enum for handler departments

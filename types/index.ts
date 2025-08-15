@@ -1,5 +1,8 @@
 import type React from "react"
 import type { ClaimDto } from "@/lib/api"
+import type { Settlement } from "@/lib/api/settlements"
+
+export type { Settlement } from "@/lib/api/settlements"
 
 export type ClaimStatus =
   | "Złożone"
@@ -247,27 +250,6 @@ export interface Recourse {
   description: string
   amount?: number
   status?: string
-}
-
-export interface Settlement {
-  id?: string
-  eventId?: string
-  externalEntity?: string
-  customExternalEntity?: string
-  transferDate?: string
-  status?: string
-  settlementDate?: string
-  settlementAmount?: number
-  amount?: number
-  currency?: string
-  paymentMethod?: string
-  notes?: string
-  description?: string
-  settlementNumber?: string
-  settlementType?: string
-  documentPath?: string
-  documentName?: string
-  documentDescription?: string
 }
 
 export type Service = "policja" | "pogotowie" | "straz" | "holownik"

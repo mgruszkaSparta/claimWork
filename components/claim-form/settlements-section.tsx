@@ -12,7 +12,7 @@ import { useToast } from "@/hooks/use-toast"
 import { HandHeart, Plus, Minus, Edit, Trash2, Download, Eye, X, Upload, FileText, Info, Loader2 } from "lucide-react"
 import { getSettlements, createSettlement, updateSettlement, deleteSettlement } from "@/lib/api/settlements"
 import { API_BASE_URL } from "@/lib/api"
-import type { Settlement } from "@/types"
+import type { Settlement } from "@/lib/api/settlements"
 
 interface SettlementsSectionProps {
   eventId: string

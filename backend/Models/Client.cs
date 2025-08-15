@@ -20,10 +20,12 @@ namespace AutomotiveClaimsApi.Models
         public string? ShortName { get; set; }
 
         [StringLength(20)]
-        public string? TaxId { get; set; }
+        [Column("TaxId")]
+        public string? Nip { get; set; }
 
         [StringLength(20)]
-        public string? RegistrationNumber { get; set; }
+        [Column("RegistrationNumber")]
+        public string? Regon { get; set; }
 
         [StringLength(20)]
         public string? PhoneNumber { get; set; }

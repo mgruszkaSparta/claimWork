@@ -5,7 +5,7 @@ import { createPortal } from "react-dom"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
-import { ChevronDown, Phone, Mail, MapPin, Check, Plus } from "lucide-react"
+import { ChevronDown, Phone, Mail, MapPin, Check, Plus, FileText, Hash } from "lucide-react"
 import type { Client, ClientSelectionEvent } from "@/types/client"
 import { apiService } from "@/lib/api"
 
@@ -74,7 +74,9 @@ export default function ClientDropdown({
     const filtered = clients.filter(
       (client) =>
         client.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        (client.email ?? "").toLowerCase().includes(searchTerm.toLowerCase()),
+        (client.email ?? "").toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (client.nip ?? "").toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (client.regon ?? "").toLowerCase().includes(searchTerm.toLowerCase()),
     )
     setFilteredClients(filtered)
   }, [searchTerm, clients])
@@ -204,7 +206,13 @@ export default function ClientDropdown({
                 {selectedClient?.id === client.id && <Check className="h-4 w-4 mr-2 text-blue-600" />}
                 <div className="flex flex-col">
                   <span className="font-medium">{client.name}</span>
-                  <span className="text-xs text-gray-500">{client.email}</span>
+                  <span className="text-xs text-gray-500">
+                    {client.nip
+                      ? `NIP: ${client.nip}`
+                      : client.regon
+                        ? `REGON: ${client.regon}`
+                        : client.email}
+                  </span>
                 </div>
               </div>
             ))
@@ -265,6 +273,32 @@ export default function ClientDropdown({
                   </a>
                 ) : (
                   <p className="text-gray-500 italic text-sm">Brak adresu e-mail</p>
+                )}
+              </div>
+
+              {/* NIP */}
+              <div>
+                <h3 className="flex items-center text-sm font-medium mb-2 text-gray-700">
+                  <FileText className="h-4 w-4 mr-2 text-blue-600" />
+                  NIP
+                </h3>
+                {hasContactInfo(selectedClient.nip ?? "") ? (
+                  <p className="text-gray-900 text-sm">{selectedClient.nip}</p>
+                ) : (
+                  <p className="text-gray-500 italic text-sm">Brak NIP</p>
+                )}
+              </div>
+
+              {/* REGON */}
+              <div>
+                <h3 className="flex items-center text-sm font-medium mb-2 text-gray-700">
+                  <Hash className="h-4 w-4 mr-2 text-blue-600" />
+                  REGON
+                </h3>
+                {hasContactInfo(selectedClient.regon ?? "") ? (
+                  <p className="text-gray-900 text-sm">{selectedClient.regon}</p>
+                ) : (
+                  <p className="text-gray-500 italic text-sm">Brak REGON</p>
                 )}
               </div>
             </div>

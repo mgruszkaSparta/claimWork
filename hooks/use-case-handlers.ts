@@ -1,3 +1,4 @@
+
 'use client'
 
 import useSWR from 'swr'
@@ -25,21 +26,26 @@ async function fetchCaseHandlers(): Promise<Handler[]> {
     name,
     code,
     isActive,
+
   }))
 }
 
 export function useCaseHandlers() {
+
   const { data, error, isLoading, mutate } = useSWR(
     'case-handlers',
     fetchCaseHandlers,
     {
       dedupingInterval: 5 * 60_000,
+
       revalidateOnFocus: false,
       revalidateIfStale: true,
       revalidateOnReconnect: true,
     },
   )
 
+
   return { handlers: data ?? [], loading: isLoading, error, refresh: mutate }
 }
+
 

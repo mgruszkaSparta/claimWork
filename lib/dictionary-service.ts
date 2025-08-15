@@ -8,6 +8,7 @@ interface DictionaryItemDto {
   phone?: string
   email?: string
   address?: string
+  department?: string
   sortOrder?: number
   isActive: boolean
   createdAt: string

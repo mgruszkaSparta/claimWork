@@ -46,10 +46,11 @@ namespace AutomotiveClaimsApi.Controllers
                 var appeals = await _context.Appeals
                     .Where(a => a.EventId == eventId)
                     .OrderByDescending(a => a.SubmissionDate)
-                    .Select(a => MapToDto(a))
                     .ToListAsync();
 
-                return Ok(appeals);
+                var dtos = appeals.Select(a => MapToDto(a)).ToList();
+
+                return Ok(dtos);
             }
             catch (Exception ex)
             {
@@ -63,17 +64,13 @@ namespace AutomotiveClaimsApi.Controllers
         {
             try
             {
-                var appeal = await _context.Appeals
-                    .Where(a => a.Id == id)
-                    .Select(a => MapToDto(a))
-                    .FirstOrDefaultAsync();
-
-                if (appeal == null)
+                var appealEntity = await _context.Appeals.FindAsync(id);
+                if (appealEntity == null)
                 {
                     return NotFound();
                 }
 
-                return Ok(appeal);
+                return Ok(MapToDto(appealEntity));
             }
             catch (Exception ex)
             {
@@ -283,8 +280,71 @@ namespace AutomotiveClaimsApi.Controllers
             }
         }
 
-        private static AppealDto MapToDto(Appeal a)
+        [HttpGet("{appealId}/documents/{docId}/download")]
+        public async Task<IActionResult> DownloadAppealDocument(Guid appealId, Guid docId)
         {
+            try
+            {
+                var document = await _context.Documents
+                    .Where(d => d.Id == docId && d.RelatedEntityType == "Appeal" && d.RelatedEntityId == appealId && !d.IsDeleted)
+                    .FirstOrDefaultAsync();
+
+                if (document == null)
+                {
+                    return NotFound();
+                }
+
+                var result = await _documentService.DownloadDocumentAsync(docId);
+                if (result == null)
+                {
+                    return NotFound();
+                }
+
+                return File(result.FileStream, result.ContentType, result.FileName);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error downloading document {DocId} for appeal {AppealId}", docId, appealId);
+                return StatusCode(500, new { error = "Failed to download document" });
+            }
+        }
+
+        [HttpGet("{appealId}/documents/{docId}/preview")]
+        public async Task<IActionResult> PreviewAppealDocument(Guid appealId, Guid docId)
+        {
+            try
+            {
+                var document = await _context.Documents
+                    .Where(d => d.Id == docId && d.RelatedEntityType == "Appeal" && d.RelatedEntityId == appealId && !d.IsDeleted)
+                    .FirstOrDefaultAsync();
+
+                if (document == null)
+                {
+                    return NotFound();
+                }
+
+                var result = await _documentService.DownloadDocumentAsync(docId);
+                if (result == null)
+                {
+                    return NotFound();
+                }
+
+                return File(result.FileStream, result.ContentType);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error previewing document {DocId} for appeal {AppealId}", docId, appealId);
+                return StatusCode(500, new { error = "Failed to preview document" });
+            }
+        }
+
+        private AppealDto MapToDto(Appeal a)
+        {
+            var documentId = _context.Documents
+                .Where(d => d.FilePath == a.DocumentPath && d.RelatedEntityType == "Appeal" && d.RelatedEntityId == a.Id && !d.IsDeleted)
+                .Select(d => d.Id.ToString())
+                .FirstOrDefault();
+
             return new AppealDto
             {
                 Id = a.Id.ToString(),
@@ -303,6 +363,7 @@ namespace AutomotiveClaimsApi.Controllers
                 DocumentPath = a.DocumentPath,
                 DocumentName = a.DocumentName,
                 DocumentDescription = a.DocumentDescription,
+                DocumentId = documentId,
                 CreatedAt = a.CreatedAt,
                 UpdatedAt = a.UpdatedAt
             };

@@ -491,6 +491,7 @@ export interface AppealDto {
   documentPath?: string
   documentName?: string
   documentDescription?: string
+  documentId?: string
   createdAt?: string
   updatedAt?: string
   daysSinceSubmission?: number

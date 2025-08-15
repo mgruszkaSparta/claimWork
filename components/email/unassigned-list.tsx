@@ -66,9 +66,6 @@ export function UnassignedEmailList() {
               </div>
             </li>
           ))}
-          {emails.length === 0 && !loading && (
-            <li className="text-gray-500">Brak e-maili do przypisania</li>
-          )}
         </ul>
       )}
 

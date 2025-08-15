@@ -320,6 +320,47 @@ namespace AutomotiveClaimsApi.Controllers
             }
         }
 
+        [HttpGet("risk-types")]
+        public async Task<ActionResult<DictionaryResponseDto>> GetRiskTypes([FromQuery] int? claimObjectTypeId)
+        {
+            try
+            {
+                var query = _context.RiskTypes
+                    .Where(r => r.IsActive);
+
+                if (claimObjectTypeId.HasValue)
+                {
+                    query = query.Where(r => r.ClaimObjectTypeId == claimObjectTypeId.Value);
+                }
+
+                var riskTypes = await query
+                    .OrderBy(r => r.Name)
+                    .Select(r => new DictionaryItemDto
+                    {
+                        Id = r.Id.ToString(),
+                        Name = r.Name,
+                        Code = r.Code,
+                        Description = r.Description,
+                        IsActive = r.IsActive
+                    })
+                    .ToListAsync();
+
+                var response = new DictionaryResponseDto
+                {
+                    Items = riskTypes,
+                    TotalCount = riskTypes.Count,
+                    Category = "RiskTypes"
+                };
+
+                return Ok(response);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error retrieving risk types");
+                return StatusCode(500, new { error = "Failed to retrieve risk types" });
+            }
+        }
+
         [HttpGet("document-statuses")]
         public async Task<ActionResult<DictionaryResponseDto>> GetDocumentStatuses()
         {

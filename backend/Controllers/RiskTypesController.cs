@@ -9,6 +9,12 @@ using System.Threading.Tasks;
 
 namespace AutomotiveClaimsApi.Controllers
 {
+    /// <summary>
+    /// Handles create, read, update and delete operations for risk types at `/api/RiskTypes`.
+    /// </summary>
+    /// <remarks>
+    /// The read-only dictionary endpoint is exposed separately at `/api/dictionaries/risk-types`.
+    /// </remarks>
     [ApiController]
     [Route("api/[controller]")]
     public class RiskTypesController : ControllerBase

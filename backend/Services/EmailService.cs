@@ -2,6 +2,10 @@ using Microsoft.EntityFrameworkCore;
 using MailKit.Net.Smtp;
 using MailKit.Security;
 using MimeKit;
+using MailKit.Net.Imap;
+using MailKit;
+using MailKit.Search;
+using AutomotiveClaimsApi.Common;
 using AutomotiveClaimsApi.Data;
 using AutomotiveClaimsApi.DTOs;
 using AutomotiveClaimsApi.Models;
@@ -285,21 +289,132 @@ namespace AutomotiveClaimsApi.Services
                 .FirstOrDefaultAsync();
         }
 
-        private async Task<Email> CreateEmailEntityAsync(string message)
+        private async Task<bool> EmailExistsAsync(string messageId)
         {
-            var email = new Email();
+            if (string.IsNullOrWhiteSpace(messageId))
+                return false;
 
-            var eventNumber = ExtractEventNumber(message);
+            return await _context.Emails.AnyAsync(e => e.MessageId == messageId);
+        }
+
+        private async Task<Email> CreateEmailEntityAsync(MimeMessage message, EmailFolder folder)
+        {
+            var email = new Email
+            {
+                Id = Guid.NewGuid(),
+                Subject = message.Subject ?? string.Empty,
+                Body = message.TextBody ?? string.Empty,
+                BodyHtml = message.HtmlBody,
+                From = message.From.ToString(),
+                To = string.Join(";", message.To.Select(r => r.ToString())),
+                Cc = message.Cc?.Any() == true ? string.Join(";", message.Cc.Select(r => r.ToString())) : null,
+                Bcc = message.Bcc?.Any() == true ? string.Join(";", message.Bcc.Select(r => r.ToString())) : null,
+                IsHtml = !string.IsNullOrEmpty(message.HtmlBody),
+                ReceivedAt = message.Date.UtcDateTime,
+                Direction = folder == EmailFolder.Inbox ? "Inbound" : "Outbound",
+                Status = folder == EmailFolder.Inbox ? "Received" : "Sent",
+                MessageId = message.MessageId,
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow
+            };
+
+            var eventNumber = ExtractEventNumber(message.Subject + " " + (message.TextBody ?? string.Empty));
             var eventId = await ResolveEventIdFromEventNumberAsync(eventNumber);
-            email.EventId = eventId; // null jeśli brak dopasowania
+            email.EventId = eventId;
 
-            // Pozostała logika tworzenia i zapisu e‑maila pozostaje bez zmian
+            foreach (var attachment in message.Attachments)
+            {
+                if (attachment is MimePart part)
+                {
+                    var attachmentEntity = new EmailAttachment
+                    {
+                        Id = Guid.NewGuid(),
+                        EmailId = email.Id,
+                        FileName = part.FileName,
+                        ContentType = part.ContentType.MimeType,
+                        FileSize = part.ContentDisposition?.Size ?? 0,
+                        CreatedAt = DateTime.UtcNow,
+                        UpdatedAt = DateTime.UtcNow
+                    };
+                    email.Attachments.Add(attachmentEntity);
+                }
+            }
+
             return email;
         }
 
-        public Task FetchEmailsAsync()
+        private async Task ProcessFolderAsync(IMailFolder folder, EmailFolder folderEnum)
         {
-            throw new NotImplementedException();
+            _logger.LogInformation("Processing {FolderName} folder...", folder.Name);
+
+            var searchQuery = folderEnum == EmailFolder.Inbox
+                ? SearchQuery.NotSeen
+                : SearchQuery.SentAfter(DateTime.UtcNow.AddDays(-7));
+
+            await folder.OpenAsync(folderEnum == EmailFolder.Inbox ? FolderAccess.ReadWrite : FolderAccess.ReadOnly);
+            var uids = await folder.SearchAsync(searchQuery);
+
+            if (uids.Count == 0)
+            {
+                await folder.CloseAsync();
+                return;
+            }
+
+            const int batchSize = 20;
+            int processedCount = 0;
+
+            foreach (var uid in uids)
+            {
+                try
+                {
+                    var message = await folder.GetMessageAsync(uid);
+                    if (!await EmailExistsAsync(message.MessageId))
+                    {
+                        var emailEntity = await CreateEmailEntityAsync(message, folderEnum);
+                        await _context.Emails.AddAsync(emailEntity);
+                    }
+
+                    if (folderEnum == EmailFolder.Inbox)
+                    {
+                        folder.AddFlags(uid, MessageFlags.Seen, true);
+                    }
+
+                    processedCount++;
+                    if (processedCount % batchSize == 0)
+                    {
+                        await _context.SaveChangesAsync();
+                        _logger.LogInformation("Saved a batch of emails from {FolderName}.", folder.Name);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Error processing message UID {UID} from {FolderName}.", uid, folder.Name);
+                }
+            }
+
+            await _context.SaveChangesAsync();
+            await folder.CloseAsync();
+        }
+
+        public async Task FetchEmailsAsync()
+        {
+            try
+            {
+                using var client = new ImapClient();
+                await client.ConnectAsync(_smtpSettings.ImapServer, _smtpSettings.ImapPort, SecureSocketOptions.SslOnConnect);
+                await client.AuthenticateAsync(_smtpSettings.Username, _smtpSettings.Password);
+
+                await ProcessFolderAsync(client.Inbox, EmailFolder.Inbox);
+                var sentFolder = client.GetFolder(SpecialFolder.Sent);
+                await ProcessFolderAsync(sentFolder, EmailFolder.Sent);
+
+                await client.DisconnectAsync(true);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error fetching emails");
+                throw;
+            }
         }
     }
 }

@@ -1,7 +1,11 @@
 -- Create dictionary tables for dropdown values
 
+-- Ensure dictionary schema exists
+IF NOT EXISTS (SELECT * FROM sys.schemas WHERE name = 'dict')
+    EXEC('CREATE SCHEMA dict');
+
 -- Countries table
-CREATE TABLE Countries (
+CREATE TABLE dict.Countries (
     Id UNIQUEIDENTIFIER PRIMARY KEY DEFAULT NEWID(),
     Code NVARCHAR(10) NOT NULL UNIQUE,
     Name NVARCHAR(255) NOT NULL,
@@ -11,7 +15,7 @@ CREATE TABLE Countries (
 );
 
 -- Currencies table
-CREATE TABLE Currencies (
+CREATE TABLE dict.Currencies (
     Id UNIQUEIDENTIFIER PRIMARY KEY DEFAULT NEWID(),
     Code NVARCHAR(10) NOT NULL UNIQUE,
     Name NVARCHAR(255) NOT NULL,
@@ -22,7 +26,7 @@ CREATE TABLE Currencies (
 );
 
 -- Insurance Companies table
-CREATE TABLE InsuranceCompanies (
+CREATE TABLE dict.InsuranceCompanies (
     Id UNIQUEIDENTIFIER PRIMARY KEY DEFAULT NEWID(),
     Code NVARCHAR(50),
     Name NVARCHAR(500) NOT NULL,
@@ -35,7 +39,7 @@ CREATE TABLE InsuranceCompanies (
 );
 
 -- Leasing Companies table
-CREATE TABLE LeasingCompanies (
+CREATE TABLE dict.LeasingCompanies (
     Id UNIQUEIDENTIFIER PRIMARY KEY DEFAULT NEWID(),
     Code NVARCHAR(50),
     Name NVARCHAR(500) NOT NULL,
@@ -48,7 +52,7 @@ CREATE TABLE LeasingCompanies (
 );
 
 -- Document Statuses table
-CREATE TABLE DocumentStatuses (
+CREATE TABLE dict.DocumentStatuses (
     Id UNIQUEIDENTIFIER PRIMARY KEY DEFAULT NEWID(),
     Code NVARCHAR(50) NOT NULL UNIQUE,
     Name NVARCHAR(255) NOT NULL,
@@ -60,7 +64,7 @@ CREATE TABLE DocumentStatuses (
 );
 
 -- Contract Types table
-CREATE TABLE ContractTypes (
+CREATE TABLE dict.ContractTypes (
     Id UNIQUEIDENTIFIER PRIMARY KEY DEFAULT NEWID(),
     Code NVARCHAR(50) NOT NULL UNIQUE,
     Name NVARCHAR(255) NOT NULL,
@@ -71,7 +75,7 @@ CREATE TABLE ContractTypes (
 );
 
 -- Payment Methods table
-CREATE TABLE PaymentMethods (
+CREATE TABLE dict.PaymentMethods (
     Id UNIQUEIDENTIFIER PRIMARY KEY DEFAULT NEWID(),
     Code NVARCHAR(50) NOT NULL UNIQUE,
     Name NVARCHAR(255) NOT NULL,
@@ -82,7 +86,7 @@ CREATE TABLE PaymentMethods (
 );
 
 -- Claim Statuses table
-CREATE TABLE ClaimStatuses (
+CREATE TABLE dict.ClaimStatuses (
     Id UNIQUEIDENTIFIER PRIMARY KEY DEFAULT NEWID(),
     Code NVARCHAR(50) NOT NULL UNIQUE,
     Name NVARCHAR(255) NOT NULL,
@@ -94,7 +98,7 @@ CREATE TABLE ClaimStatuses (
 );
 
 -- Vehicle Types table
-CREATE TABLE VehicleTypes (
+CREATE TABLE dict.VehicleTypes (
     Id UNIQUEIDENTIFIER PRIMARY KEY DEFAULT NEWID(),
     Code NVARCHAR(50) NOT NULL UNIQUE,
     Name NVARCHAR(255) NOT NULL,
@@ -105,7 +109,7 @@ CREATE TABLE VehicleTypes (
 );
 
 -- Priorities table
-CREATE TABLE Priorities (
+CREATE TABLE dict.Priorities (
     Id UNIQUEIDENTIFIER PRIMARY KEY DEFAULT NEWID(),
     Code NVARCHAR(50) NOT NULL UNIQUE,
     Name NVARCHAR(255) NOT NULL,
@@ -118,7 +122,7 @@ CREATE TABLE Priorities (
 );
 
 -- Event Statuses table
-CREATE TABLE EventStatuses (
+CREATE TABLE dict.EventStatuses (
     Id UNIQUEIDENTIFIER PRIMARY KEY DEFAULT NEWID(),
     Code NVARCHAR(50) NOT NULL UNIQUE,
     Name NVARCHAR(255) NOT NULL,
@@ -130,36 +134,36 @@ CREATE TABLE EventStatuses (
 );
 
 -- Create indexes for better performance
-CREATE INDEX IX_Countries_Code ON Countries(Code);
-CREATE INDEX IX_Countries_IsActive ON Countries(IsActive);
+CREATE INDEX IX_Countries_Code ON dict.Countries(Code);
+CREATE INDEX IX_Countries_IsActive ON dict.Countries(IsActive);
 
-CREATE INDEX IX_Currencies_Code ON Currencies(Code);
-CREATE INDEX IX_Currencies_IsActive ON Currencies(IsActive);
+CREATE INDEX IX_Currencies_Code ON dict.Currencies(Code);
+CREATE INDEX IX_Currencies_IsActive ON dict.Currencies(IsActive);
 
-CREATE INDEX IX_InsuranceCompanies_IsActive ON InsuranceCompanies(IsActive);
-CREATE INDEX IX_InsuranceCompanies_Name ON InsuranceCompanies(Name);
+CREATE INDEX IX_InsuranceCompanies_IsActive ON dict.InsuranceCompanies(IsActive);
+CREATE INDEX IX_InsuranceCompanies_Name ON dict.InsuranceCompanies(Name);
 
-CREATE INDEX IX_LeasingCompanies_IsActive ON LeasingCompanies(IsActive);
-CREATE INDEX IX_LeasingCompanies_Name ON LeasingCompanies(Name);
+CREATE INDEX IX_LeasingCompanies_IsActive ON dict.LeasingCompanies(IsActive);
+CREATE INDEX IX_LeasingCompanies_Name ON dict.LeasingCompanies(Name);
 
-CREATE INDEX IX_DocumentStatuses_Code ON DocumentStatuses(Code);
-CREATE INDEX IX_DocumentStatuses_IsActive ON DocumentStatuses(IsActive);
+CREATE INDEX IX_DocumentStatuses_Code ON dict.DocumentStatuses(Code);
+CREATE INDEX IX_DocumentStatuses_IsActive ON dict.DocumentStatuses(IsActive);
 
-CREATE INDEX IX_ContractTypes_Code ON ContractTypes(Code);
-CREATE INDEX IX_ContractTypes_IsActive ON ContractTypes(IsActive);
+CREATE INDEX IX_ContractTypes_Code ON dict.ContractTypes(Code);
+CREATE INDEX IX_ContractTypes_IsActive ON dict.ContractTypes(IsActive);
 
-CREATE INDEX IX_PaymentMethods_Code ON PaymentMethods(Code);
-CREATE INDEX IX_PaymentMethods_IsActive ON PaymentMethods(IsActive);
+CREATE INDEX IX_PaymentMethods_Code ON dict.PaymentMethods(Code);
+CREATE INDEX IX_PaymentMethods_IsActive ON dict.PaymentMethods(IsActive);
 
-CREATE INDEX IX_ClaimStatuses_Code ON ClaimStatuses(Code);
-CREATE INDEX IX_ClaimStatuses_IsActive ON ClaimStatuses(IsActive);
+CREATE INDEX IX_ClaimStatuses_Code ON dict.ClaimStatuses(Code);
+CREATE INDEX IX_ClaimStatuses_IsActive ON dict.ClaimStatuses(IsActive);
 
-CREATE INDEX IX_VehicleTypes_Code ON VehicleTypes(Code);
-CREATE INDEX IX_VehicleTypes_IsActive ON VehicleTypes(IsActive);
+CREATE INDEX IX_VehicleTypes_Code ON dict.VehicleTypes(Code);
+CREATE INDEX IX_VehicleTypes_IsActive ON dict.VehicleTypes(IsActive);
 
-CREATE INDEX IX_Priorities_Code ON Priorities(Code);
-CREATE INDEX IX_Priorities_IsActive ON Priorities(IsActive);
-CREATE INDEX IX_Priorities_SortOrder ON Priorities(SortOrder);
+CREATE INDEX IX_Priorities_Code ON dict.Priorities(Code);
+CREATE INDEX IX_Priorities_IsActive ON dict.Priorities(IsActive);
+CREATE INDEX IX_Priorities_SortOrder ON dict.Priorities(SortOrder);
 
-CREATE INDEX IX_EventStatuses_Code ON EventStatuses(Code);
-CREATE INDEX IX_EventStatuses_IsActive ON EventStatuses(IsActive);
+CREATE INDEX IX_EventStatuses_Code ON dict.EventStatuses(Code);
+CREATE INDEX IX_EventStatuses_IsActive ON dict.EventStatuses(IsActive);

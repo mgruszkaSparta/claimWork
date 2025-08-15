@@ -56,6 +56,29 @@ namespace AutomotiveClaimsApi.Services
                 };
 
                 _context.Emails.Add(email);
+
+                if (createEmailDto.ClaimIds != null)
+                {
+                    foreach (var claimIdStr in createEmailDto.ClaimIds)
+                    {
+                        if (Guid.TryParse(claimIdStr, out var claimId))
+                        {
+                            var claim = await _context.ClientClaims.FindAsync(claimId);
+                            if (claim != null)
+                            {
+                                var emailClaim = new EmailClaim
+                                {
+                                    EmailId = email.Id,
+                                    Email = email,
+                                    ClaimId = claim.Id,
+                                    Claim = claim
+                                };
+                                email.EmailClaims.Add(emailClaim);
+                            }
+                        }
+                    }
+                }
+
                 await _context.SaveChangesAsync();
 
                 return MapEmailToDto(email);

@@ -71,6 +71,7 @@ interface ClaimMainContentProps {
   setUploadedFiles: React.Dispatch<React.SetStateAction<UploadedFile[]>>
   requiredDocuments: RequiredDocument[]
   setRequiredDocuments: React.Dispatch<React.SetStateAction<RequiredDocument[]>>
+  initialClaimObjectType?: string
 }
 
 const formatDateForInput = (dateString: string | undefined): string => {
@@ -177,6 +178,7 @@ export const ClaimMainContent = ({
   setUploadedFiles,
   requiredDocuments = [],
   setRequiredDocuments,
+  initialClaimObjectType = "1",
 }: ClaimMainContentProps) => {
   const { toast } = useToast()
 
@@ -226,7 +228,7 @@ export const ClaimMainContent = ({
   // State for dropdown data
   const [riskTypes, setRiskTypes] = useState<RiskType[]>([])
   const [loadingRiskTypes, setLoadingRiskTypes] = useState(false)
-  const [claimObjectType, setClaimObjectType] = useState<string>("1") // Default to communication claims
+  const [claimObjectType, setClaimObjectType] = useState<string>(initialClaimObjectType) // Default to communication claims
 
   // Add to the state declarations at the top of the component (around line 80)
   const [caseHandlers, setCaseHandlers] = useState<any[]>([])

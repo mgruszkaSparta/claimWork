@@ -3,7 +3,7 @@ import type { Handler } from "@/types/handler"
 export class HandlersService {
   private static handlers: Handler[] = [
     {
-      id: 1,
+      id: "1",
       name: "Małgorzata Roczniak",
       email: "malgorzata.roczniak@sparta.pl",
       phone: "+48 22 123 45 67",
@@ -11,7 +11,7 @@ export class HandlersService {
       position: "Starszy likwidator",
     },
     {
-      id: 2,
+      id: "2",
       name: "Anna Kowalska",
       email: "anna.kowalska@sparta.pl",
       phone: "+48 22 234 56 78",
@@ -19,7 +19,7 @@ export class HandlersService {
       position: "Likwidator",
     },
     {
-      id: 3,
+      id: "3",
       name: "Piotr Nowak",
       email: "piotr.nowak@sparta.pl",
       phone: "+48 22 345 67 89",
@@ -27,7 +27,7 @@ export class HandlersService {
       position: "Likwidator senior",
     },
     {
-      id: 4,
+      id: "4",
       name: "Katarzyna Wiśniewska",
       email: "katarzyna.wisniewska@sparta.pl",
       phone: "+48 22 456 78 90",
@@ -35,7 +35,7 @@ export class HandlersService {
       position: "Radca prawny",
     },
     {
-      id: 5,
+      id: "5",
       name: "Tomasz Wójcik",
       email: "tomasz.wojcik@sparta.pl",
       phone: "+48 22 567 89 01",
@@ -43,7 +43,7 @@ export class HandlersService {
       position: "Rzeczoznawca",
     },
     {
-      id: 6,
+      id: "6",
       name: "Magdalena Kaczmarek",
       email: "magdalena.kaczmarek@sparta.pl",
       phone: "+48 22 678 90 12",
@@ -51,7 +51,7 @@ export class HandlersService {
       position: "Specjalista ds. klienta",
     },
     {
-      id: 7,
+      id: "7",
       name: "Marcin Zieliński",
       email: "marcin.zielinski@sparta.pl",
       phone: "+48 22 789 01 23",
@@ -59,7 +59,7 @@ export class HandlersService {
       position: "Kierownik działu",
     },
     {
-      id: 8,
+      id: "8",
       name: "Agnieszka Szymańska",
       email: "agnieszka.szymanska@sparta.pl",
       phone: "+48 22 890 12 34",
@@ -67,7 +67,7 @@ export class HandlersService {
       position: "Specjalista ds. regresu",
     },
     {
-      id: 9,
+      id: "9",
       name: "Paweł Dąbrowski",
       email: "pawel.dabrowski@sparta.pl",
       phone: "+48 22 901 23 45",
@@ -75,7 +75,7 @@ export class HandlersService {
       position: "Likwidator",
     },
     {
-      id: 10,
+      id: "10",
       name: "Joanna Lewandowska",
       email: "joanna.lewandowska@sparta.pl",
       phone: "+48 22 012 34 56",
@@ -88,7 +88,7 @@ export class HandlersService {
     return this.handlers
   }
 
-  static getHandlerById(id: number): Handler | undefined {
+  static getHandlerById(id: string): Handler | undefined {
     return this.handlers.find((handler) => handler.id === id)
   }
 

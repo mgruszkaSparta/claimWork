@@ -46,7 +46,7 @@ export const transformApiClaimToFrontend = (apiClaim: ClaimDto): Claim => {
     rowVersion: apiClaim.rowVersion,
     insuranceCompanyId: apiClaim.insuranceCompanyId?.toString(),
     leasingCompanyId: apiClaim.leasingCompanyId?.toString(),
-    handlerId: apiClaim.handlerId?.toString(),
+    handlerId: apiClaim.handlerId,
     clientId: apiClaim.clientId?.toString(),
     totalClaim: apiClaim.totalClaim ?? 0,
     payout: apiClaim.payout ?? 0,
@@ -227,7 +227,7 @@ export const transformFrontendClaimToApiPayload = (
     insuranceCompanyId: insuranceCompanyId ? parseInt(insuranceCompanyId, 10) : undefined,
     leasingCompanyId: leasingCompanyId ? parseInt(leasingCompanyId, 10) : undefined,
     clientId: clientId ? parseInt(clientId, 10) : undefined,
-    handlerId: handlerId ? parseInt(handlerId, 10) : undefined,
+    handlerId: handlerId || undefined,
     riskType,
     ...(damageTypeValue ? { damageType: damageTypeValue } : {}),
     damageDate: toIso(rest.damageDate, "damageDate"),
@@ -361,7 +361,7 @@ export function useClaims() {
           clientId: claim.clientId?.toString(),
           insuranceCompanyId: claim.insuranceCompanyId?.toString(),
           leasingCompanyId: claim.leasingCompanyId?.toString(),
-          handlerId: claim.handlerId?.toString(),
+          handlerId: claim.handlerId,
         })) as Claim[]
 
         setClaims((prev) =>

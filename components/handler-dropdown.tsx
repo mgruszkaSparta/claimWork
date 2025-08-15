@@ -10,7 +10,7 @@ import type { Handler, HandlerSelectionEvent } from "@/types/handler"
 import { HandlersService } from "@/lib/handlers"
 
 interface HandlerDropdownProps {
-  selectedHandlerId?: number
+  selectedHandlerId?: string
   onHandlerSelected?: (event: HandlerSelectionEvent) => void
   className?: string
 }
@@ -53,10 +53,11 @@ export default function HandlerDropdown({
   }, [selectedHandlerId])
 
   useEffect(() => {
+    const lower = searchTerm.toLowerCase()
     const filtered = handlers.filter(
       (handler) =>
-        handler.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        handler.email.toLowerCase().includes(searchTerm.toLowerCase()),
+        handler.name.toLowerCase().includes(lower) ||
+        (handler.email?.toLowerCase().includes(lower) ?? false),
     )
     setFilteredHandlers(filtered)
   }, [searchTerm, handlers])
@@ -121,16 +122,11 @@ export default function HandlerDropdown({
     setIsDropdownOpen(false)
     setSearchTerm("")
 
-    if (onHandlerSelected) {
-      onHandlerSelected({
-        handlerId: handler.id,
-        handlerName: handler.name,
-      })
-    }
+    onHandlerSelected?.({ handlerId: handler.id, handlerName: handler.name })
   }
 
-  const hasContactInfo = (info: string): boolean => {
-    return info && info !== "brak" && info.trim() !== ""
+  const hasContactInfo = (info?: string): boolean => {
+    return !!info && info !== "brak" && info.trim() !== ""
   }
 
   const renderDropdownPortal = () => {

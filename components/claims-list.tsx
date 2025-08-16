@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
 import { Alert, AlertDescription } from "@/components/ui/alert"
-import { Search, Plus, Filter, Eye, Edit, Trash2, RefreshCw, AlertCircle, Loader2, X } from "lucide-react"
+import { Search, Plus, Filter, Eye, Edit, Trash2, RefreshCw, AlertCircle, Loader2, X, ChevronUp, ChevronDown } from "lucide-react"
 import { useClaims } from "@/hooks/use-claims"
 import { useToast } from "@/hooks/use-toast"
 import type { Claim } from "@/types"
@@ -60,6 +60,10 @@ export function ClaimsList({
   const [showFilters, setShowFilters] = useState(false)
   const [isRefreshing, setIsRefreshing] = useState(false)
   const [page, setPage] = useState(1)
+  const [sortConfig, setSortConfig] = useState<{
+    field: string
+    direction: "asc" | "desc"
+  } | null>(null)
   const pageSize = 30
   const loaderRef = useRef<HTMLDivElement | null>(null)
   const containerRef = useRef<HTMLDivElement | null>(null)
@@ -168,6 +172,18 @@ export function ClaimsList({
     ],
   )
 
+  const sortedClaims = useMemo(() => {
+    if (!sortConfig) return filteredClaims
+    const { field, direction } = sortConfig
+    return [...filteredClaims].sort((a: any, b: any) => {
+      const aVal = a?.[field] ?? 0
+      const bVal = b?.[field] ?? 0
+      if (aVal < bVal) return direction === "asc" ? -1 : 1
+      if (aVal > bVal) return direction === "asc" ? 1 : -1
+      return 0
+    })
+  }, [filteredClaims, sortConfig])
+
   useEffect(() => {
 
     if (initialClaims?.length) return
@@ -212,6 +228,18 @@ export function ClaimsList({
       default:
         return "bg-gray-100 text-gray-800 border-gray-200"
     }
+  }
+
+  const handleSort = (field: string) => {
+    setSortConfig((prev) => {
+      if (prev?.field === field) {
+        return {
+          field,
+          direction: prev.direction === "asc" ? "desc" : "asc",
+        }
+      }
+      return { field, direction: "asc" }
+    })
   }
 
   const handleDeleteClaim = async (claimId: string | undefined, claimNumber: string | undefined) => {
@@ -419,26 +447,42 @@ export function ClaimsList({
             <table className="min-w-full divide-y divide-gray-200">
               <thead className="bg-gray-50 sticky top-0 z-10">
                 <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th
+                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer"
+                    onClick={() => handleSort("objectTypeId")}
+                  >
                     Typ
+                    {sortConfig?.field === "objectTypeId" && (
+                      sortConfig.direction === "asc" ? (
+                        <ChevronUp className="inline h-3 w-3 ml-1" />
+                      ) : (
+                        <ChevronDown className="inline h-3 w-3 ml-1" />
+                      )
+                    )}
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Pojazd
+                    Nr szkody TU
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Numer Szkody
+                    Nr szkody Sparta
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Nr rejestracyjny
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Likwidator
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Klient
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Data zdarzenia
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Ryzyko
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Status
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Data Szkody
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Wartość
                   </th>
                   <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Akcje
@@ -446,7 +490,7 @@ export function ClaimsList({
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200">
-                {filteredClaims.map((claim) => (
+                {sortedClaims.map((claim) => (
                   <tr
                     key={claim.id}
                     className="odd:bg-white even:bg-gray-50 hover:bg-gray-100 transition-colors"
@@ -459,42 +503,37 @@ export function ClaimsList({
                         {typeIconMap[claim.objectTypeId ?? 0] || "help_outline"}
                       </mat-icon>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div>
-                        <div className="text-sm font-medium text-gray-900">{claim.vehicleNumber || "-"}</div>
-                        <div className="text-sm text-gray-500">{claim.brand || "-"}</div>
-                      </div>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      {claim.insurerClaimNumber || claim.claimNumber || "-"}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div>
-                        <div className="text-sm font-medium text-gray-900">{claim.spartaNumber || "-"}</div>
-                        <div className="text-sm text-gray-500">{claim.claimNumber || "-"}</div>
-                      </div>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      {claim.spartaNumber || "-"}
                     </td>
-                    <td className="px-6 py-4">
-                      <div className="text-sm text-gray-900 max-w-xs truncate" title={claim.client}>
-                        {claim.client || "-"}
-                      </div>
-                      <div className="text-sm text-gray-500">{claim.liquidator || "-"}</div>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      {claim.vehicleNumber || "-"}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      {claim.liquidator || "-"}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      {claim.client || "-"}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      {claim.damageDate
+                        ? new Date(claim.damageDate).toLocaleDateString("pl-PL", {
+                            day: "2-digit",
+                            month: "2-digit",
+                            year: "numeric",
+                          })
+                        : "-"}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      {claim.riskType || "-"}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <Badge className={`text-xs border ${getStatusColor(claim.status ?? "")}`}>
                         {claim.status || "-"}
                       </Badge>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {claim.damageDate ? new Date(claim.damageDate).toLocaleDateString("pl-PL") : "-"}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm font-medium text-gray-900">
-                        {claim.totalClaim
-                          ? `${claim.totalClaim.toLocaleString("pl-PL")} ${claim.currency || "PLN"}`
-                          : "0 PLN"}
-                      </div>
-                      <div className="text-sm text-gray-500">
-                        Wypłata:{" "}
-                        {claim.payout ? `${claim.payout.toLocaleString("pl-PL")} ${claim.currency || "PLN"}` : "0 PLN"}
-                      </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                       <div className="flex items-center justify-end space-x-2">
@@ -542,7 +581,7 @@ export function ClaimsList({
           </div>
 
           {/* Empty State */}
-          {filteredClaims.length === 0 && !loading && (
+          {sortedClaims.length === 0 && !loading && (
             <div className="flex-1 flex items-center justify-center">
               <div className="text-center py-12">
                 <div className="mx-auto w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mb-4">
@@ -569,16 +608,16 @@ export function ClaimsList({
       </div>
 
       {/* Summary */}
-      {filteredClaims.length > 0 && (
+      {sortedClaims.length > 0 && (
         <div className="px-6 pb-6 flex-shrink-0">
           <div className="flex justify-between items-center text-sm text-gray-500 bg-gray-50 px-4 py-2 rounded-lg">
             <span>
-              Wyświetlono {filteredClaims.length} z {totalCount} szkód
+              Wyświetlono {sortedClaims.length} z {totalCount} szkód
               {error && " (sprawdź połączenie z API)"}
             </span>
             <span>
               Łączna wartość:{" "}
-              {filteredClaims.reduce((sum, claim) => sum + (claim.totalClaim || 0), 0).toLocaleString("pl-PL")} PLN
+              {sortedClaims.reduce((sum, claim) => sum + (claim.totalClaim || 0), 0).toLocaleString("pl-PL")} PLN
             </span>
           </div>
         </div>

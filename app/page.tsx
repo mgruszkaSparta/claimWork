@@ -1,14 +1,14 @@
-"use client"
+'use client';
 
-import { useEffect, useState } from "react"
+import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation"
 import { Header } from "@/components/header"
 import { Sidebar } from "@/components/sidebar"
 import { AuthWrapper } from '@/components/auth-wrapper'
 import { ProtectedRoute } from '@/components/protected-route'
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { FileText, Clock, Calendar, DollarSign, TrendingUp, Users, Search, Filter, CheckSquare } from 'lucide-react'
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { FileText, Clock, Calendar, DollarSign, TrendingUp, Users, Search, Filter, CheckSquare } from 'lucide-react';
 
 interface User {
   username: string
@@ -88,14 +88,14 @@ function HomePage({ user, onLogout }: PageProps) {
       icon: DollarSign,
       color: "red",
     },
-  ]
+  ];
 
   const statusOverview = [
     { status: "Nowe", count: 45, percentage: 36, color: "bg-blue-500" },
     { status: "W trakcie", count: 89, percentage: 28, color: "bg-yellow-500" },
     { status: "Zakończone", count: 1113, percentage: 89, color: "bg-green-500" },
     { status: "Odrzucone", count: 23, percentage: 2, color: "bg-red-500" },
-  ]
+  ];
 
   const recentClaims = [
     {
@@ -122,13 +122,13 @@ function HomePage({ user, onLogout }: PageProps) {
       status: "Zakończona",
       date: "2025-01-06",
     },
-  ]
+  ];
 
   const quickActions = [
     { title: "Wyszukaj szkodę", icon: Search, color: "bg-gray-600 hover:bg-gray-700" },
     { title: "Raporty", icon: TrendingUp, color: "bg-green-600 hover:bg-green-700" },
     { title: "Filtry", icon: Filter, color: "bg-purple-600 hover:bg-purple-700" },
-  ]
+  ];
 
   return (
     <div className="min-h-screen bg-gray-50">

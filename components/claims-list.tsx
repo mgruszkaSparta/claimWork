@@ -6,7 +6,21 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
 import { Alert, AlertDescription } from "@/components/ui/alert"
-import { Search, Plus, Filter, Eye, Edit, Trash2, RefreshCw, AlertCircle, Loader2, X } from "lucide-react"
+import {
+  Search,
+  Plus,
+  Filter,
+  Eye,
+  Edit,
+  Trash2,
+  RefreshCw,
+  AlertCircle,
+  Loader2,
+  X,
+  ArrowUp,
+  ArrowDown,
+  ArrowUpDown,
+} from "lucide-react"
 import { useClaims } from "@/hooks/use-claims"
 import { useToast } from "@/hooks/use-toast"
 import type { Claim } from "@/types"
@@ -49,6 +63,8 @@ export function ClaimsList({
   const [isRefreshing, setIsRefreshing] = useState(false)
   const [page, setPage] = useState(1)
   const pageSize = 30
+  const [sortBy, setSortBy] = useState<string>("reportDate")
+  const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc")
   const loaderRef = useRef<HTMLDivElement | null>(null)
   const containerRef = useRef<HTMLDivElement | null>(null)
 
@@ -80,6 +96,8 @@ export function ClaimsList({
             brand: filterBrand || undefined,
             handler: filterHandler || undefined,
             claimObjectTypeId,
+            sortBy,
+            sortOrder,
           },
           { append: page > 1 },
         )
@@ -102,6 +120,8 @@ export function ClaimsList({
     filterBrand,
     filterHandler,
     claimObjectTypeId,
+    sortBy,
+    sortOrder,
     initialClaims,
 
   ])
@@ -121,18 +141,19 @@ export function ClaimsList({
         .filter((claim) => {
           const lowerCaseSearchTerm = searchTerm.toLowerCase()
           const matchesSearch =
-            claim.vehicleNumber?.toLowerCase().includes(lowerCaseSearchTerm) ||
+            claim.damageType?.toLowerCase().includes(lowerCaseSearchTerm) ||
+            claim.insurerClaimNumber?.toLowerCase().includes(lowerCaseSearchTerm) ||
             claim.claimNumber?.toLowerCase().includes(lowerCaseSearchTerm) ||
-            claim.spartaNumber?.toLowerCase().includes(lowerCaseSearchTerm) ||
+            claim.vehicleNumber?.toLowerCase().includes(lowerCaseSearchTerm) ||
+            claim.handler?.toLowerCase().includes(lowerCaseSearchTerm) ||
             claim.client?.toLowerCase().includes(lowerCaseSearchTerm) ||
-            claim.liquidator?.toLowerCase().includes(lowerCaseSearchTerm) ||
-            claim.brand?.toLowerCase().includes(lowerCaseSearchTerm)
+            claim.riskType?.toLowerCase().includes(lowerCaseSearchTerm)
 
           const matchesFilter = filterStatus === "all" || claim.status === filterStatus
           const matchesBrand =
-            !filterBrand || claim.brand?.toLowerCase().includes(filterBrand.toLowerCase())
+            !filterBrand || claim.vehicleNumber?.toLowerCase().includes(filterBrand.toLowerCase())
           const matchesHandler =
-            !filterHandler || claim.liquidator?.toLowerCase().includes(filterHandler.toLowerCase())
+            !filterHandler || claim.handler?.toLowerCase().includes(filterHandler.toLowerCase())
           const matchesClaimType =
             !allowedRiskTypes ||
             !claim.riskType ||
@@ -202,6 +223,27 @@ export function ClaimsList({
     }
   }
 
+  const handleSort = (field: string) => {
+    setPage(1)
+    if (sortBy === field) {
+      setSortOrder(sortOrder === "asc" ? "desc" : "asc")
+    } else {
+      setSortBy(field)
+      setSortOrder("asc")
+    }
+  }
+
+  const renderSortIcon = (field: string) => {
+    if (sortBy !== field) {
+      return <ArrowUpDown className="ml-2 h-4 w-4 text-gray-400" />
+    }
+    return sortOrder === "asc" ? (
+      <ArrowUp className="ml-2 h-4 w-4 text-gray-400" />
+    ) : (
+      <ArrowDown className="ml-2 h-4 w-4 text-gray-400" />
+    )
+  }
+
   const handleDeleteClaim = async (claimId: string | undefined, claimNumber: string | undefined) => {
     if (!claimId) return
 
@@ -243,6 +285,8 @@ export function ClaimsList({
           brand: filterBrand || undefined,
           handler: filterHandler || undefined,
           claimObjectTypeId,
+          sortBy,
+          sortOrder,
         },
         { append: false },
       )
@@ -385,13 +429,13 @@ export function ClaimsList({
         {showFilters && (
           <div className="mt-3 flex flex-col sm:flex-row gap-3">
             <Input
-              placeholder="Filtruj po marce..."
+              placeholder="Filtruj po numerze rejestracyjnym..."
               value={filterBrand}
               onChange={(e) => setFilterBrand(e.target.value)}
               className="h-9 text-sm"
             />
             <Input
-              placeholder="Filtruj po likwidatorze..."
+              placeholder="Filtruj po opiekunie..."
               value={filterHandler}
               onChange={(e) => setFilterHandler(e.target.value)}
               className="h-9 text-sm"
@@ -408,22 +452,58 @@ export function ClaimsList({
               <thead className="bg-gray-50 sticky top-0 z-10">
                 <tr>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Pojazd
+                    <div className="flex items-center cursor-pointer" onClick={() => handleSort("damageType")}>
+                      Typ
+                      {renderSortIcon("damageType")}
+                    </div>
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Numer Szkody
+                    <div className="flex items-center cursor-pointer" onClick={() => handleSort("insurerClaimNumber")}>
+                      Nr ubezpieczyciela
+                      {renderSortIcon("insurerClaimNumber")}
+                    </div>
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Klient
+                    <div className="flex items-center cursor-pointer" onClick={() => handleSort("claimNumber")}>
+                      Nr szkody
+                      {renderSortIcon("claimNumber")}
+                    </div>
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Status
+                    <div className="flex items-center cursor-pointer" onClick={() => handleSort("vehicleNumber")}>
+                      Nr rejestracyjny
+                      {renderSortIcon("vehicleNumber")}
+                    </div>
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Data Szkody
+                    <div className="flex items-center cursor-pointer" onClick={() => handleSort("handler")}>
+                      Opiekun szkody
+                      {renderSortIcon("handler")}
+                    </div>
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Wartość
+                    <div className="flex items-center cursor-pointer" onClick={() => handleSort("client")}>
+                      Grupa klienta
+                      {renderSortIcon("client")}
+                    </div>
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <div className="flex items-center cursor-pointer" onClick={() => handleSort("reportDate")}>
+                      Data rejestracji
+                      {renderSortIcon("reportDate")}
+                    </div>
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <div className="flex items-center cursor-pointer" onClick={() => handleSort("riskType")}>
+                      Ryzyko
+                      {renderSortIcon("riskType")}
+                    </div>
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <div className="flex items-center cursor-pointer" onClick={() => handleSort("status")}>
+                      Status
+                      {renderSortIcon("status")}
+                    </div>
                   </th>
                   <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Akcje
@@ -436,42 +516,20 @@ export function ClaimsList({
                     key={claim.id}
                     className="odd:bg-white even:bg-gray-50 hover:bg-gray-100 transition-colors"
                   >
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div>
-                        <div className="text-sm font-medium text-gray-900">{claim.vehicleNumber || "-"}</div>
-                        <div className="text-sm text-gray-500">{claim.brand || "-"}</div>
-                      </div>
+                    <td className="px-6 py-4 whitespace-nowrap">{claim.damageType || "-"}</td>
+                    <td className="px-6 py-4 whitespace-nowrap">{claim.insurerClaimNumber || "-"}</td>
+                    <td className="px-6 py-4 whitespace-nowrap">{claim.claimNumber || "-"}</td>
+                    <td className="px-6 py-4 whitespace-nowrap">{claim.vehicleNumber || "-"}</td>
+                    <td className="px-6 py-4 whitespace-nowrap">{claim.handler || "-"}</td>
+                    <td className="px-6 py-4 whitespace-nowrap">{claim.client || "-"}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      {claim.reportDate ? new Date(claim.reportDate).toLocaleDateString("pl-PL") : "-"}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div>
-                        <div className="text-sm font-medium text-gray-900">{claim.spartaNumber || "-"}</div>
-                        <div className="text-sm text-gray-500">{claim.claimNumber || "-"}</div>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4">
-                      <div className="text-sm text-gray-900 max-w-xs truncate" title={claim.client}>
-                        {claim.client || "-"}
-                      </div>
-                      <div className="text-sm text-gray-500">{claim.liquidator || "-"}</div>
-                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">{claim.riskType || "-"}</td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <Badge className={`text-xs border ${getStatusColor(claim.status ?? "")}`}>
                         {claim.status || "-"}
                       </Badge>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {claim.damageDate ? new Date(claim.damageDate).toLocaleDateString("pl-PL") : "-"}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm font-medium text-gray-900">
-                        {claim.totalClaim
-                          ? `${claim.totalClaim.toLocaleString("pl-PL")} ${claim.currency || "PLN"}`
-                          : "0 PLN"}
-                      </div>
-                      <div className="text-sm text-gray-500">
-                        Wypłata:{" "}
-                        {claim.payout ? `${claim.payout.toLocaleString("pl-PL")} ${claim.currency || "PLN"}` : "0 PLN"}
-                      </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                       <div className="flex items-center justify-end space-x-2">
@@ -499,7 +557,7 @@ export function ClaimsList({
                           variant="ghost"
                           size="sm"
                           className="h-8 w-8 p-0 hover:bg-red-50"
-                          onClick={() => handleDeleteClaim(claim.id, claim.spartaNumber)}
+                          onClick={() => handleDeleteClaim(claim.id, claim.claimNumber)}
                           title="Usuń"
                         >
                           <Trash2 className="h-4 w-4 text-red-600" />

@@ -40,6 +40,10 @@ export interface EventListItemDto {
   currency?: string
   insuranceCompanyId?: number
   insuranceCompany?: string
+  insurerClaimNumber?: string
+  reportDate?: string
+  riskType?: string
+  damageType?: string
   leasingCompanyId?: number
   leasingCompany?: string
   handlerId?: string
@@ -50,7 +54,6 @@ export interface EventListItemDto {
 }
 
 export interface EventDto extends EventListItemDto {
-  reportDate?: string
   reportDateToInsurer?: string
   eventTime?: string
   location?: string

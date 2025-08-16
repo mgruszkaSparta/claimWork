@@ -44,7 +44,9 @@ namespace AutomotiveClaimsApi.Controllers
             [FromQuery] string? policyNumber = null,
             [FromQuery] DateTime? damageDate = null,
             [FromQuery] int page = 1,
-            [FromQuery] int pageSize = 50)
+            [FromQuery] int pageSize = 50,
+            [FromQuery] string? sortBy = null,
+            [FromQuery] string? sortOrder = "asc")
         {
             try
             {
@@ -84,8 +86,29 @@ namespace AutomotiveClaimsApi.Controllers
 
                 var totalCount = await query.CountAsync();
 
+                if (!string.IsNullOrEmpty(sortBy))
+                {
+                    bool desc = sortOrder != null && sortOrder.ToLower() == "desc";
+                    query = sortBy switch
+                    {
+                        "damageType" => desc ? query.OrderByDescending(e => e.DamageType) : query.OrderBy(e => e.DamageType),
+                        "insurerClaimNumber" => desc ? query.OrderByDescending(e => e.InsurerClaimNumber) : query.OrderBy(e => e.InsurerClaimNumber),
+                        "claimNumber" => desc ? query.OrderByDescending(e => e.ClaimNumber) : query.OrderBy(e => e.ClaimNumber),
+                        "vehicleNumber" => desc ? query.OrderByDescending(e => e.VehicleNumber) : query.OrderBy(e => e.VehicleNumber),
+                        "handler" => desc ? query.OrderByDescending(e => e.Handler) : query.OrderBy(e => e.Handler),
+                        "client" => desc ? query.OrderByDescending(e => e.Client) : query.OrderBy(e => e.Client),
+                        "reportDate" => desc ? query.OrderByDescending(e => e.ReportDate) : query.OrderBy(e => e.ReportDate),
+                        "riskType" => desc ? query.OrderByDescending(e => e.RiskType) : query.OrderBy(e => e.RiskType),
+                        "status" => desc ? query.OrderByDescending(e => e.Status) : query.OrderBy(e => e.Status),
+                        _ => desc ? query.OrderByDescending(e => e.CreatedAt) : query.OrderBy(e => e.CreatedAt),
+                    };
+                }
+                else
+                {
+                    query = query.OrderByDescending(e => e.CreatedAt);
+                }
+
                 var events = await query
-                    .OrderByDescending(e => e.CreatedAt)
                     .Skip((page - 1) * pageSize)
                     .Take(pageSize)
                     .Select(e => new ClaimListItemDto
@@ -109,15 +132,17 @@ namespace AutomotiveClaimsApi.Controllers
                         PolicyNumber = e.PolicyNumber,
                         InsuranceCompanyId = e.InsuranceCompanyId,
                         InsuranceCompany = e.InsuranceCompany,
+                        InsurerClaimNumber = e.InsurerClaimNumber,
+                        ReportDate = e.ReportDate,
                         RiskType = e.RiskType,
                         DamageType = e.DamageType,
                         ObjectTypeId = e.ObjectTypeId,
                         LeasingCompanyId = e.LeasingCompanyId,
                         LeasingCompany = e.LeasingCompany,
                         HandlerId = e.HandlerId,
-                        Handler = e.Handler
-                        ,RegisteredById = e.RegisteredById
-                        ,RegisteredByName = e.RegisteredBy != null ? e.RegisteredBy.UserName : null
+                        Handler = e.Handler,
+                        RegisteredById = e.RegisteredById,
+                        RegisteredByName = e.RegisteredBy != null ? e.RegisteredBy.UserName : null
                     })
                     .ToListAsync();
 

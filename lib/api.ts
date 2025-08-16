@@ -92,6 +92,7 @@ export interface DocumentDto {
   fileName: string
   originalFileName?: string
   filePath: string
+  cloudUrl?: string
   fileSize: number
   contentType: string
   category?: string

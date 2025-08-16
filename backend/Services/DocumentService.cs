@@ -5,6 +5,8 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
+using Microsoft.Extensions.Configuration;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -18,12 +20,24 @@ namespace AutomotiveClaimsApi.Services
         private readonly ApplicationDbContext _context;
         private readonly ILogger<DocumentService> _logger;
         private readonly string _uploadsPath;
+        private readonly IGoogleCloudStorageService? _cloudStorage;
+        private readonly bool _cloudEnabled;
+        private readonly IConfiguration _config;
 
-        public DocumentService(ApplicationDbContext context, ILogger<DocumentService> logger, IWebHostEnvironment environment)
+        public DocumentService(
+            ApplicationDbContext context,
+            ILogger<DocumentService> logger,
+            IWebHostEnvironment environment,
+            IConfiguration config,
+            IGoogleCloudStorageService? cloudStorage = null,
+            IOptions<GoogleCloudStorageSettings>? cloudSettings = null)
         {
             _context = context;
             _logger = logger;
             _uploadsPath = Path.Combine(environment.ContentRootPath, "uploads");
+            _cloudStorage = cloudStorage;
+            _cloudEnabled = cloudSettings?.Value.Enabled ?? false;
+            _config = config;
 
             if (!Directory.Exists(_uploadsPath))
             {
@@ -75,6 +89,13 @@ namespace AutomotiveClaimsApi.Services
                 await file.CopyToAsync(stream);
             }
 
+            string? cloudUrl = null;
+            if (_cloudEnabled && _cloudStorage != null)
+            {
+                await using var uploadStream = new FileStream(filePath, FileMode.Open, FileAccess.Read);
+                cloudUrl = await _cloudStorage.UploadFileAsync(uploadStream, uniqueFileName, file.ContentType);
+            }
+
             var document = new Document
             {
                 Id = Guid.NewGuid(),
@@ -86,6 +107,7 @@ namespace AutomotiveClaimsApi.Services
                 OriginalFileName = file.FileName,
                 FilePath = Path.Combine("uploads", createDto.Category ?? "other", uniqueFileName)
                     .Replace("\\", "/"),
+                CloudUrl = cloudUrl,
                 FileSize = file.Length,
                 ContentType = file.ContentType,
                 DocumentType = createDto.Category ?? "other",
@@ -125,6 +147,11 @@ namespace AutomotiveClaimsApi.Services
                         "File deletion failed for Document ID {DocumentId} at {FilePath}",
                         id, document.FilePath);
                 }
+
+                if (_cloudEnabled && _cloudStorage != null && !string.IsNullOrEmpty(document.CloudUrl))
+                {
+                    await _cloudStorage.DeleteFileAsync(document.CloudUrl);
+                }
             }
             catch (Exception ex)
             {
@@ -145,6 +172,17 @@ namespace AutomotiveClaimsApi.Services
             if (document == null)
             {
                 return null;
+            }
+
+            if (_cloudEnabled && _cloudStorage != null && !string.IsNullOrEmpty(document.CloudUrl))
+            {
+                var stream = await _cloudStorage.GetFileStreamAsync(document.CloudUrl);
+                return new DocumentDownloadResult
+                {
+                    FileStream = stream,
+                    ContentType = document.ContentType,
+                    FileName = document.OriginalFileName ?? document.FileName
+                };
             }
 
             var fullPath = Path.Combine(_uploadsPath, document.FilePath.Replace("uploads/", ""));
@@ -175,9 +213,15 @@ namespace AutomotiveClaimsApi.Services
 
         public async Task<bool> DeleteDocumentAsync(string filePath)
         {
-            var fullPath = Path.Combine(_uploadsPath, NormalizePath(filePath));
             try
             {
+                if (_cloudEnabled && _cloudStorage != null && Uri.IsWellFormedUriString(filePath, UriKind.Absolute))
+                {
+                    await _cloudStorage.DeleteFileAsync(filePath);
+                    return true;
+                }
+
+                var fullPath = Path.Combine(_uploadsPath, NormalizePath(filePath));
                 if (File.Exists(fullPath))
                 {
                     await Task.Run(() => File.Delete(fullPath));
@@ -193,6 +237,17 @@ namespace AutomotiveClaimsApi.Services
 
         public async Task<DocumentDownloadResult?> GetDocumentAsync(string filePath)
         {
+            if (_cloudEnabled && _cloudStorage != null && Uri.IsWellFormedUriString(filePath, UriKind.Absolute))
+            {
+                var stream = await _cloudStorage.GetFileStreamAsync(filePath);
+                return new DocumentDownloadResult
+                {
+                    FileStream = stream,
+                    ContentType = GetContentType(filePath),
+                    FileName = Path.GetFileName(filePath)
+                };
+            }
+
             var fullPath = Path.Combine(_uploadsPath, NormalizePath(filePath));
             if (!File.Exists(fullPath)) return null;
 
@@ -207,6 +262,11 @@ namespace AutomotiveClaimsApi.Services
 
         public async Task<Stream> GetDocumentStreamAsync(string filePath)
         {
+            if (_cloudEnabled && _cloudStorage != null && Uri.IsWellFormedUriString(filePath, UriKind.Absolute))
+            {
+                return await _cloudStorage.GetFileStreamAsync(filePath);
+            }
+
             var fullPath = Path.Combine(_uploadsPath, NormalizePath(filePath));
             if (!File.Exists(fullPath)) throw new FileNotFoundException("Document not found", filePath);
             return new MemoryStream(await File.ReadAllBytesAsync(fullPath));
@@ -229,8 +289,9 @@ namespace AutomotiveClaimsApi.Services
             return contentType;
         }
 
-        private static DocumentDto MapToDto(Document doc)
+        private DocumentDto MapToDto(Document doc)
         {
+            var baseUrl = _config["App:BaseUrl"] ?? string.Empty;
             return new DocumentDto
             {
                 Id = doc.Id,
@@ -238,6 +299,7 @@ namespace AutomotiveClaimsApi.Services
                 FileName = doc.FileName,
                 OriginalFileName = doc.OriginalFileName,
                 FilePath = doc.FilePath,
+                CloudUrl = doc.CloudUrl,
                 FileSize = doc.FileSize,
                 ContentType = doc.ContentType,
                 Category = doc.DocumentType,
@@ -247,8 +309,8 @@ namespace AutomotiveClaimsApi.Services
                 Status = doc.Status,
                 CreatedAt = doc.CreatedAt,
                 UpdatedAt = doc.UpdatedAt,
-                DownloadUrl = $"/api/documents/{doc.Id}/download",
-                PreviewUrl = $"/api/documents/{doc.Id}/preview",
+                DownloadUrl = $"{baseUrl}/api/documents/{doc.Id}/download",
+                PreviewUrl = $"{baseUrl}/api/documents/{doc.Id}/preview",
                 CanPreview = true
             };
         }

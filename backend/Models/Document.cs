@@ -27,6 +27,9 @@ namespace AutomotiveClaimsApi.Models
         [MaxLength(1000)]
         public string FilePath { get; set; } = string.Empty;
 
+        [MaxLength(1000)]
+        public string? CloudUrl { get; set; }
+
         public long FileSize { get; set; }
 
         [MaxLength(100)]

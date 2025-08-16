@@ -75,12 +75,10 @@ export function ClaimsList({
   } = useClaims()
   const { toast } = useToast()
 
-  const claims = initialClaims?.length ? initialClaims : fetchedClaims
-  const totalRecords = initialClaims?.length ? initialClaims.length : totalCount
+  const claims = fetchedClaims.length > 0 ? fetchedClaims : initialClaims || []
+  const totalRecords = totalCount || claims.length
 
   useEffect(() => {
-    if (initialClaims?.length) return
-
     const loadClaims = async () => {
       try {
         await fetchClaims(
@@ -114,8 +112,6 @@ export function ClaimsList({
     filterBrand,
     filterHandler,
     claimObjectTypeId,
-    initialClaims,
-
   ])
 
   // TODO: consider moving this filtering to use-claims or the API to reduce client workload
@@ -169,10 +165,8 @@ export function ClaimsList({
   )
 
   useEffect(() => {
-
-    if (initialClaims?.length) return
-
     const node = loaderRef.current
+    if (!node) return
     const observer = new IntersectionObserver(
       (entries) => {
         if (
@@ -185,16 +179,11 @@ export function ClaimsList({
       },
       { root: containerRef.current || undefined },
     )
-    if (node) {
-      observer.observe(node)
-    }
+    observer.observe(node)
     return () => {
-      if (node) {
-        observer.unobserve(node)
-      }
+      observer.unobserve(node)
     }
-
-  }, [loading, claims.length, totalRecords, initialClaims])
+  }, [loading, claims.length, totalRecords])
 
 
   const getStatusColor = (status: string) => {
@@ -324,9 +313,9 @@ export function ClaimsList({
           >
             <RefreshCw className={`h-3 w-3 ${isRefreshing ? "animate-spin" : ""}`} />
           </Button>
-          {totalCount > 0 && (
+          {totalRecords > 0 && (
             <Badge variant="secondary" className="text-xs">
-              {totalCount} szkód
+              {totalRecords} szkód
             </Badge>
           )}
         </div>
@@ -573,7 +562,7 @@ export function ClaimsList({
         <div className="px-6 pb-6 flex-shrink-0">
           <div className="flex justify-between items-center text-sm text-gray-500 bg-gray-50 px-4 py-2 rounded-lg">
             <span>
-              Wyświetlono {filteredClaims.length} z {totalCount} szkód
+              Wyświetlono {filteredClaims.length} z {totalRecords} szkód
               {error && " (sprawdź połączenie z API)"}
             </span>
             <span>

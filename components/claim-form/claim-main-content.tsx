@@ -43,6 +43,8 @@ import { TransportDamageSection } from "./transport-damage-section"
 import { PropertyParticipantsSection } from "./property-participants-section"
 import InjuredPartySection from "./injured-party-section"
 import SubcontractorSection from "./subcontractor-section"
+import { PropertyClaimSummary } from "./property-claim-summary"
+import { TransportClaimSummary } from "./transport-claim-summary"
 
 interface RiskType {
   value: string
@@ -2293,8 +2295,34 @@ const renderParticipantDetails = (participant: ParticipantInfo | undefined, titl
       )
 
     case "teczka-szkodowa": {
-    const visibleNotes = notes.filter((note) => !note.type || note.type === "note")
-    return (
+    switch (claimObjectType) {
+      case "2":
+        return (
+          <PropertyClaimSummary
+            claimFormData={claimFormData}
+            notes={notes}
+            uploadedFiles={uploadedFiles}
+            setUploadedFiles={setUploadedFiles}
+            eventId={eventId}
+            claimStatuses={claimStatuses}
+            riskTypes={riskTypes}
+          />
+        )
+      case "3":
+        return (
+          <TransportClaimSummary
+            claimFormData={claimFormData}
+            notes={notes}
+            uploadedFiles={uploadedFiles}
+            setUploadedFiles={setUploadedFiles}
+            eventId={eventId}
+            claimStatuses={claimStatuses}
+            riskTypes={riskTypes}
+          />
+        )
+      default: {
+        const visibleNotes = notes.filter((note) => !note.type || note.type === "note")
+        return (
       <div className="space-y-4">
         <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
           {/* Left Column - DANE SZKODY I ZDARZENIA */}
@@ -2825,6 +2853,8 @@ const renderParticipantDetails = (participant: ParticipantInfo | undefined, titl
         </div>
       </div>
     )
+      }
+    }
     }
 
     default:

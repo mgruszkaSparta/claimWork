@@ -544,6 +544,37 @@ namespace AutomotiveClaimsApi.Migrations
                     b.ToTable("Documents");
                 });
 
+            modelBuilder.Entity("AutomotiveClaimsApi.Models.AppealDocument", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasDefaultValueSql("gen_random_uuid()");
+
+                    b.Property<Guid>("AppealId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasDefaultValueSql("NOW()");
+
+                    b.Property<string>("Description")
+                        .HasColumnType("text");
+
+                    b.Property<string>("FileName")
+                        .HasColumnType("text");
+
+                    b.Property<string>("FilePath")
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AppealId");
+
+                    b.ToTable("AppealDocuments");
+                });
+
             modelBuilder.Entity("AutomotiveClaimsApi.Models.RiskType", b =>
                 {
                     b.Property<Guid>("Id")
@@ -1335,6 +1366,18 @@ namespace AutomotiveClaimsApi.Migrations
                         .IsRequired();
 
                     b.Navigation("Event");
+                    b.Navigation("Documents");
+                });
+
+            modelBuilder.Entity("AutomotiveClaimsApi.Models.AppealDocument", b =>
+                {
+                    b.HasOne("AutomotiveClaimsApi.Models.Appeal", "Appeal")
+                        .WithMany("Documents")
+                        .HasForeignKey("AppealId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Appeal");
                 });
 
             modelBuilder.Entity("AutomotiveClaimsApi.Models.ClientClaim", b =>

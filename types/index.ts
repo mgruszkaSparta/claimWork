@@ -219,6 +219,15 @@ export interface Appeal {
   documentPath?: string
   documentName?: string
   documentDescription?: string
+  documents?: AppealDocument[]
+}
+
+export interface AppealDocument {
+  id: string
+  filePath: string
+  fileName: string
+  description?: string
+  createdAt?: string
 }
 
 export interface ClientClaim {

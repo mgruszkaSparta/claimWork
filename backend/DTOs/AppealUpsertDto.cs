@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 
 namespace AutomotiveClaimsApi.DTOs
 {
@@ -16,8 +17,6 @@ namespace AutomotiveClaimsApi.DTOs
         public decimal? AppealAmount { get; set; }
         public DateTime? DecisionDate { get; set; }
         public string? DecisionReason { get; set; }
-        public string? DocumentPath { get; set; }
-        public string? DocumentName { get; set; }
-        public string? DocumentDescription { get; set; }
+        public List<AppealDocumentDto>? Documents { get; set; }
     }
 }

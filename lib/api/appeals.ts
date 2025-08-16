@@ -1,4 +1,4 @@
-import { AppealDto, API_BASE_URL } from "../api";
+import { AppealDto, API_BASE_URL, AppealDocumentDto } from "../api";
 
 export interface Appeal {
   id: string;
@@ -7,10 +7,8 @@ export interface Appeal {
   responseDate?: string;
   decisionDate?: string;
   status?: string;
-  documentPath?: string;
-  documentName?: string;
-  documentDescription?: string;
   alertDays?: number;
+  documents?: AppealDocumentDto[];
 }
 
 function formatDate(date?: string | null): string | undefined {
@@ -24,10 +22,8 @@ function mapDtoToAppeal(dto: AppealDto): Appeal {
     extensionDate: formatDate(dto.extensionDate),
     responseDate: formatDate(dto.decisionDate),
     status: dto.status,
-    documentPath: dto.documentPath,
-    documentName: dto.documentName,
-    documentDescription: dto.documentDescription,
     alertDays: dto.daysSinceSubmission,
+    documents: dto.documents,
   };
 }
 

@@ -103,6 +103,48 @@ namespace AutomotiveClaimsApi.Services
             return MapToDto(document);
         }
 
+        public async Task<IEnumerable<AppealDocumentDto>> GetAppealDocumentsAsync(Guid appealId)
+        {
+            return await _context.AppealDocuments
+                .Where(d => d.AppealId == appealId)
+                .Select(d => MapAppealDocumentToDto(d))
+                .ToListAsync();
+        }
+
+        public async Task<AppealDocumentDto> UploadAppealDocumentAsync(Guid appealId, IFormFile file, string? description)
+        {
+            var result = await SaveDocumentAsync(file, "appeals", description);
+            var document = new AppealDocument
+            {
+                Id = Guid.NewGuid(),
+                AppealId = appealId,
+                FilePath = result.FilePath,
+                FileName = result.OriginalFileName ?? file.FileName,
+                Description = description,
+                CreatedAt = DateTime.UtcNow
+            };
+
+            _context.AppealDocuments.Add(document);
+            await _context.SaveChangesAsync();
+
+            return MapAppealDocumentToDto(document);
+        }
+
+        public async Task<bool> DeleteAppealDocumentAsync(Guid documentId)
+        {
+            var document = await _context.AppealDocuments.FindAsync(documentId);
+            if (document == null)
+            {
+                _logger.LogWarning("Appeal document {DocumentId} not found", documentId);
+                return false;
+            }
+
+            await DeleteDocumentAsync(document.FilePath);
+            _context.AppealDocuments.Remove(document);
+            await _context.SaveChangesAsync();
+            return true;
+        }
+
         public async Task<bool> DeleteDocumentAsync(Guid id)
         {
             var document = await _context.Documents.FindAsync(id);
@@ -250,6 +292,18 @@ namespace AutomotiveClaimsApi.Services
                 DownloadUrl = $"/api/documents/{doc.Id}/download",
                 PreviewUrl = $"/api/documents/{doc.Id}/preview",
                 CanPreview = true
+            };
+        }
+
+        private static AppealDocumentDto MapAppealDocumentToDto(AppealDocument doc)
+        {
+            return new AppealDocumentDto
+            {
+                Id = doc.Id,
+                FilePath = doc.FilePath,
+                FileName = doc.FileName,
+                Description = doc.Description,
+                CreatedAt = doc.CreatedAt
             };
         }
     }

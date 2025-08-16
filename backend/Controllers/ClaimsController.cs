@@ -42,6 +42,18 @@ namespace AutomotiveClaimsApi.Controllers
             {
                 var query = _context.Events.AsQueryable();
 
+                var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                var hasFullAccess = await _context.Users
+                    .Where(u => u.Id == userId)
+                    .Select(u => u.IsFullAccess)
+                    .FirstOrDefaultAsync();
+
+                if (!hasFullAccess)
+                {
+                    query = query.Where(e => e.ClientId.HasValue &&
+                        _context.DataRanges.Any(dr => dr.UserId == userId && dr.ClientId == e.ClientId.Value));
+                }
+
                 // Apply filters
                 if (!string.IsNullOrEmpty(search))
                 {

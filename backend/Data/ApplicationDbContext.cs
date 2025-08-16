@@ -28,6 +28,7 @@ namespace AutomotiveClaimsApi.Data
         public DbSet<Client> Clients { get; set; }
         public DbSet<RiskType> RiskTypes { get; set; }
         public DbSet<DamageType> DamageTypes { get; set; }
+        public DbSet<DataRange> DataRanges { get; set; }
 
         // Dictionary entities
         public DbSet<CaseHandler> CaseHandlers { get; set; }
@@ -107,6 +108,21 @@ namespace AutomotiveClaimsApi.Data
                 entity.HasOne(ec => ec.Claim)
                       .WithMany(c => c.EmailClaims)
                       .HasForeignKey(ec => ec.ClaimId);
+            });
+
+            modelBuilder.Entity<DataRange>(entity =>
+            {
+                entity.HasKey(dr => dr.Id);
+
+                entity.HasOne<ApplicationUser>()
+                      .WithMany()
+                      .HasForeignKey(dr => dr.UserId)
+                      .OnDelete(DeleteBehavior.Cascade);
+
+                entity.HasOne<Client>()
+                      .WithMany()
+                      .HasForeignKey(dr => dr.ClientId)
+                      .OnDelete(DeleteBehavior.Cascade);
             });
         }
     }

@@ -227,6 +227,17 @@ export interface DamageTypeDto {
   updatedAt?: string
 }
 
+export interface DataRangeDto {
+  id: number
+  userId: string
+  clientId: number
+}
+
+export interface CreateDataRangeDto {
+  userId: string
+  clientId: number
+}
+
 export interface CreateRiskTypeDto {
   code: string
   name: string
@@ -955,6 +966,24 @@ class ApiService {
 
   async deleteClient(id: number): Promise<void> {
     await this.request<void>(`/clients/${id}`, {
+      method: 'DELETE',
+    })
+  }
+
+  // DataRanges API
+  async getDataRanges(): Promise<DataRangeDto[]> {
+    return this.request<DataRangeDto[]>('/dataranges')
+  }
+
+  async createDataRange(data: CreateDataRangeDto): Promise<DataRangeDto> {
+    return this.request<DataRangeDto>('/dataranges', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    })
+  }
+
+  async deleteDataRange(id: number): Promise<void> {
+    await this.request<void>(`/dataranges/${id}`, {
       method: 'DELETE',
     })
   }

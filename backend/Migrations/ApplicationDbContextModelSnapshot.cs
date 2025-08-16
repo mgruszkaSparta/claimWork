@@ -76,6 +76,9 @@ namespace AutomotiveClaimsApi.Migrations
                     b.Property<bool>("MustChangePassword")
                         .HasColumnType("bit");
 
+                    b.Property<bool>("IsFullAccess")
+                        .HasColumnType("bit");
+
                     b.Property<string>("NormalizedEmail")
                         .HasMaxLength(256)
                         .HasColumnType("nvarchar(256)");
@@ -399,6 +402,28 @@ namespace AutomotiveClaimsApi.Migrations
                     b.HasIndex("EventId");
 
                     b.ToTable("Damages");
+                });
+
+            modelBuilder.Entity("AutomotiveClaimsApi.Models.DataRange", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasAnnotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn);
+
+                    b.Property<int>("ClientId")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("UserId")
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ClientId");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("DataRanges");
                 });
 
             modelBuilder.Entity("AutomotiveClaimsApi.Models.Decision", b =>
@@ -1319,6 +1344,21 @@ namespace AutomotiveClaimsApi.Migrations
                         .IsRequired();
 
                     b.Navigation("Event");
+                });
+
+            modelBuilder.Entity("AutomotiveClaimsApi.Models.DataRange", b =>
+                {
+                    b.HasOne("AutomotiveClaimsApi.Models.Client", null)
+                        .WithMany()
+                        .HasForeignKey("ClientId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("AutomotiveClaimsApi.Models.ApplicationUser", null)
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("AutomotiveClaimsApi.Models.Decision", b =>

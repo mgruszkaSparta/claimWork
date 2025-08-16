@@ -18,6 +18,7 @@ export default function SettingsLayout({ children }: { children: ReactNode }) {
     { href: '/settings/users', label: 'Użytkownicy' },
     { href: '/settings/risk-types', label: 'Typy ryzyka' },
     { href: '/settings/damage-types', label: 'Typy szkód' },
+    { href: '/settings/data-ranges', label: 'Zakres danych' },
   ]
 
   return (

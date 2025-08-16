@@ -7,6 +7,8 @@ namespace AutomotiveClaimsApi.Models
 
         public bool MustChangePassword { get; set; } = false;
 
+        public bool IsFullAccess { get; set; } = false;
+
         public DateTime CreatedAt { get; set; }
         public DateTime? LastLogin { get; set; }
     }

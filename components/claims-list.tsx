@@ -27,6 +27,18 @@ const RISK_TYPE_GROUPS: Record<string, string[]> = {
   "3": ["OCPD", "CARGO"],
 }
 
+const typeLabelMap: Record<number, string> = {
+  1: "Komunikacyjna",
+  2: "Majątkowa",
+  3: "Transportowa",
+}
+
+const typeIconMap: Record<number, string> = {
+  1: "directions_car",
+  2: "home",
+  3: "local_shipping",
+}
+
 interface ClaimsListProps {
   claims?: Claim[]
   onEditClaim?: (claimId: string) => void
@@ -408,6 +420,9 @@ export function ClaimsList({
               <thead className="bg-gray-50 sticky top-0 z-10">
                 <tr>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Typ
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Pojazd
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -436,6 +451,14 @@ export function ClaimsList({
                     key={claim.id}
                     className="odd:bg-white even:bg-gray-50 hover:bg-gray-100 transition-colors"
                   >
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <mat-icon
+                        matTooltip={typeLabelMap[claim.objectTypeId ?? 0] || "Nieznany typ"}
+                        aria-label={typeLabelMap[claim.objectTypeId ?? 0] || "Nieznany typ"}
+                      >
+                        {typeIconMap[claim.objectTypeId ?? 0] || "help_outline"}
+                      </mat-icon>
+                    </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div>
                         <div className="text-sm font-medium text-gray-900">{claim.vehicleNumber || "-"}</div>

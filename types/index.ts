@@ -291,5 +291,10 @@ export interface DocumentsSectionProps {
   pendingFiles?: UploadedFile[]
   setPendingFiles?: React.Dispatch<React.SetStateAction<UploadedFile[]>>
 
-
+  /**
+   * Optional key used to persist user preferences (e.g. view mode) for each
+   * section separately. When provided, UI state is stored in localStorage under
+   * this key so changing the view in one section doesn't affect others.
+   */
+  storageKey?: string
 }

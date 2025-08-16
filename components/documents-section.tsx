@@ -44,9 +44,18 @@ export const DocumentsSection = ({
   pendingFiles = [],
   setPendingFiles,
   hideRequiredDocuments = false,
+  storageKey,
 }: DocumentsSectionProps & { hideRequiredDocuments?: boolean }) => {
   const { toast } = useToast()
-  const [viewMode, setViewMode] = useState<"list" | "grid">("list")
+  const [viewMode, setViewMode] = useState<"list" | "grid">(() => {
+    if (storageKey && typeof window !== "undefined") {
+      const stored = localStorage.getItem(`documents-view-${storageKey}`)
+      if (stored === "list" || stored === "grid") {
+        return stored
+      }
+    }
+    return "list"
+  })
   const fileInputRef = React.useRef<HTMLInputElement>(null)
   const [openCategories, setOpenCategories] = useState<Record<string, boolean>>({ "Inne dokumenty": true })
   const [uploadingForCategory, setUploadingForCategory] = useState<string | null>(null)
@@ -61,6 +70,7 @@ export const DocumentsSection = ({
   const [dragActive, setDragActive] = useState(false)
   const [dragCategory, setDragCategory] = useState<string | null>(null)
   const [selectedDocumentIds, setSelectedDocumentIds] = useState<string[]>([])
+  const [searchQuery, setSearchQuery] = useState("")
 
   // Preview modal states
   const [previewZoom, setPreviewZoom] = useState(1)
@@ -70,6 +80,13 @@ export const DocumentsSection = ({
   const [previewDocuments, setPreviewDocuments] = useState<Document[]>([])
 
   const previewContainerRef = React.useRef<HTMLDivElement>(null)
+
+  // Persist view mode per section when storageKey provided
+  useEffect(() => {
+    if (storageKey) {
+      localStorage.setItem(`documents-view-${storageKey}`, viewMode)
+    }
+  }, [viewMode, storageKey])
 
   const closePreview = useCallback(() => {
     if (document.fullscreenElement) {
@@ -138,10 +155,13 @@ export const DocumentsSection = ({
 
   // Load documents from API
   useEffect(() => {
-    if (eventId && isGuid(eventId)) {
+    if (!eventId || !isGuid(eventId)) return
+
+    const handler = setTimeout(() => {
       loadDocuments()
-    }
-  }, [eventId])
+    }, 300)
+    return () => clearTimeout(handler)
+  }, [eventId, searchQuery])
 
   const mapCategoryCodeToName = (code?: string) =>
     requiredDocuments.find((d) => d.category === code)?.name || code || "Inne dokumenty"
@@ -154,8 +174,12 @@ export const DocumentsSection = ({
 
     setLoading(true)
     try {
-      console.log("Loading documents for eventId:", eventId)
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/documents?eventId=${eventId}`, {
+      const params = new URLSearchParams({ eventId })
+      if (searchQuery) {
+        params.append("search", searchQuery)
+      }
+      console.log("Loading documents for eventId:", eventId, "params:", params.toString())
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/documents?${params.toString()}`, {
         method: "GET",
         credentials: "include",
       })
@@ -718,6 +742,8 @@ export const DocumentsSection = ({
     e.stopPropagation()
     setDragActive(false)
     setDragCategory(null)
+    // If the section was collapsed open it so user sees upload progress
+    setOpenCategories((prev) => ({ ...prev, [category]: true }))
 
     console.log("Files dropped:", e.dataTransfer.files.length, "files for category:", category)
     if (e.dataTransfer.files && e.dataTransfer.files[0]) {
@@ -928,7 +954,12 @@ export const DocumentsSection = ({
             <div className="flex items-center justify-between">
               <div className="relative w-full max-w-md">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-                <Input placeholder="Wyszukaj dokumenty (nazwa typu, nazwa pliku, opis)..." className="pl-10" />
+                <Input
+                  placeholder="Wyszukaj dokumenty (nazwa typu, nazwa pliku, opis)..."
+                  className="pl-10"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                />
               </div>
               <Button variant="outline">
                 <Filter className="mr-2 h-4 w-4" />
@@ -983,7 +1014,18 @@ export const DocumentsSection = ({
           )
 
           return (
-            <Card key={category}>
+            <Card
+              key={category}
+              onDragEnter={(e) => {
+                handleDrag(e)
+                setDragCategory(category)
+              }}
+              onDragOver={(e) => {
+                handleDrag(e)
+                setDragCategory(category)
+              }}
+              onDrop={(e) => handleDrop(e, category)}
+            >
               <CardHeader
                 className="flex flex-row items-center justify-between p-4 cursor-pointer"
                 onClick={() => setOpenCategories((prev) => ({ ...prev, [category]: !isCategoryOpen }))}

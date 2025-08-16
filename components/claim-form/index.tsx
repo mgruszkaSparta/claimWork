@@ -391,6 +391,7 @@ export function ClaimForm({ initialData, mode }: ClaimFormProps) {
               requiredDocuments={requiredDocuments}
               setRequiredDocuments={setRequiredDocuments}
               eventId={formData.id}
+              storageKey={`claim-form-${formData.id || 'new'}`}
             />
 
           </CardContent>

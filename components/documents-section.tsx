@@ -21,6 +21,7 @@ interface Document {
   contentType: string
   fileSize: number
   filePath: string
+  cloudUrl?: string
   description?: string
   status: string
   uploadedBy: string
@@ -194,10 +195,13 @@ export const DocumentsSection = ({
       } else if (response.ok) {
         const data: Document[] = await response.json()
         console.log("Loaded documents:", data)
+        const apiUrl = process.env.NEXT_PUBLIC_API_URL || ""
         const mappedDocs: Document[] = data.map((d: any) => ({
           ...d,
           documentType: mapCategoryCodeToName(d.documentType || d.category),
           categoryCode: d.documentType || d.category,
+          previewUrl: d.cloudUrl || `${apiUrl}/documents/${d.id}/preview`,
+          downloadUrl: `${apiUrl}/documents/${d.id}/download`,
         }))
         setDocuments(mappedDocs)
       } else {

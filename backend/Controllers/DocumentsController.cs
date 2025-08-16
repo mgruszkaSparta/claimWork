@@ -11,6 +11,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Identity;
 using System.Security.Claims;
+using Microsoft.Extensions.Configuration;
 
 namespace AutomotiveClaimsApi.Controllers
 {
@@ -23,17 +24,20 @@ namespace AutomotiveClaimsApi.Controllers
         private readonly ILogger<DocumentsController> _logger;
         private readonly UserManager<ApplicationUser>? _userManager;
         private readonly INotificationService? _notificationService;
+        private readonly IConfiguration _config;
 
         public DocumentsController(
             ApplicationDbContext context,
             IDocumentService documentService,
             ILogger<DocumentsController> logger,
+            IConfiguration config,
             UserManager<ApplicationUser>? userManager = null,
             INotificationService? notificationService = null)
         {
             _context = context;
             _documentService = documentService;
             _logger = logger;
+            _config = config;
             _userManager = userManager;
             _notificationService = notificationService;
         }
@@ -63,11 +67,13 @@ namespace AutomotiveClaimsApi.Controllers
                 .OrderByDescending(d => d.CreatedAt)
                 .Skip((page - 1) * pageSize)
                 .Take(pageSize)
-                .Select(d => MapToDto(d))
                 .ToListAsync();
 
+            var baseUrl = _config["App:BaseUrl"];
+            var documentDtos = documents.Select(d => MapToDto(d, baseUrl)).ToList();
+
             Response.Headers.Append("X-Total-Count", totalCount.ToString());
-            return Ok(documents);
+            return Ok(documentDtos);
         }
 
         [HttpGet("{id}")]
@@ -75,13 +81,13 @@ namespace AutomotiveClaimsApi.Controllers
         {
             var document = await _context.Documents
                 .Where(d => d.Id == id && !d.IsDeleted)
-                .Select(d => MapToDto(d))
                 .FirstOrDefaultAsync();
 
             if (document == null)
                 return NotFound();
 
-            return Ok(document);
+            var baseUrl = _config["App:BaseUrl"];
+            return Ok(MapToDto(document, baseUrl));
         }
 
         [HttpPost("upload")]
@@ -175,7 +181,7 @@ namespace AutomotiveClaimsApi.Controllers
             return NoContent();
         }
 
-        private static DocumentDto MapToDto(Document doc)
+        private static DocumentDto MapToDto(Document doc, string baseUrl)
         {
             return new DocumentDto
             {
@@ -193,8 +199,8 @@ namespace AutomotiveClaimsApi.Controllers
                 Status = doc.Status,
                 CreatedAt = doc.CreatedAt,
                 UpdatedAt = doc.UpdatedAt,
-                DownloadUrl = $"/api/documents/{doc.Id}/download",
-                PreviewUrl = $"/api/documents/{doc.Id}/preview",
+                DownloadUrl = $"{baseUrl}/api/documents/{doc.Id}/download",
+                PreviewUrl = $"{baseUrl}/api/documents/{doc.Id}/preview",
                 CanPreview = true // Simplified
             };
         }

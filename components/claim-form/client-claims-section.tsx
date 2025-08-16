@@ -67,7 +67,7 @@ export function ClientClaimsSection({ clientClaims, onClientClaimsChange, claimI
   const [isEditing, setIsEditing] = useState(false)
   const [editingClaim, setEditingClaim] = useState<ClientClaim | null>(null)
   const [isLoading, setIsLoading] = useState(false)
-  const [selectedFile, setSelectedFile] = useState<File | null>(null)
+  const [selectedFiles, setSelectedFiles] = useState<File[]>([])
   const [dragActive, setDragActive] = useState(false)
   const [outlookDragActive, setOutlookDragActive] = useState(false)
   const [previewModal, setPreviewModal] = useState<{
@@ -134,7 +134,7 @@ export function ClientClaimsSection({ clientClaims, onClientClaimsChange, claimI
       documentDescription: "",
     })
     setEditingClaim(null)
-    setSelectedFile(null)
+    setSelectedFiles([])
     setIsEditing(false)
     if (fileInputRef.current) {
       fileInputRef.current.value = ""
@@ -198,21 +198,33 @@ export function ClientClaimsSection({ clientClaims, onClientClaimsChange, claimI
         description: formData.description,
         claimNotes: formData.claimNotes || undefined,
         documentDescription: formData.documentDescription,
-        ...(selectedFile
-          ? {}
-          : {
+        ...(selectedFiles.length === 0
+          ? {
               documentPath: editingClaim?.documentPath,
               documentName: editingClaim?.documentName,
-            }),
-        document: selectedFile
-          ? {
-              id: crypto.randomUUID(),
-              name: selectedFile.name,
-              size: selectedFile.size,
-              type: selectedFile.type,
-              uploadedAt: new Date().toISOString(),
             }
-          : editingClaim?.document,
+          : {}),
+        document:
+          selectedFiles.length > 0
+            ? {
+                id: crypto.randomUUID(),
+                name: selectedFiles[0].name,
+                size: selectedFiles[0].size,
+                type: selectedFiles[0].type,
+                uploadedAt: new Date().toISOString(),
+              }
+            : editingClaim?.document,
+        documents:
+          selectedFiles.length > 0
+            ? selectedFiles.map((file) => ({
+                id: crypto.randomUUID(),
+                name: file.name,
+                size: file.size,
+                type: file.type,
+                uploadedAt: new Date().toISOString(),
+                file,
+              }))
+            : editingClaim?.documents,
         claimId,
         createdAt: editingClaim?.createdAt || new Date().toISOString(),
         updatedAt: new Date().toISOString(),
@@ -259,7 +271,7 @@ export function ClientClaimsSection({ clientClaims, onClientClaimsChange, claimI
       claimNotes: claim.claimNotes || "",
       documentDescription: claim.documentDescription || "",
     })
-    setSelectedFile(null)
+    setSelectedFiles([])
     setIsFormVisible(true)
   }
 
@@ -272,9 +284,9 @@ export function ClientClaimsSection({ clientClaims, onClientClaimsChange, claimI
   }
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    if (file) {
-      setSelectedFile(file)
+    const files = e.target.files
+    if (files && files.length > 0) {
+      setSelectedFiles((prev) => [...prev, ...Array.from(files)])
     }
   }
 
@@ -305,7 +317,7 @@ export function ClientClaimsSection({ clientClaims, onClientClaimsChange, claimI
 
     const files = e.dataTransfer?.files
     if (files && files.length > 0) {
-      setSelectedFile(files[0])
+      setSelectedFiles((prev) => [...prev, ...Array.from(files)])
     }
   }
 
@@ -317,7 +329,7 @@ export function ClientClaimsSection({ clientClaims, onClientClaimsChange, claimI
           const file = items[i].getAsFile()
           if (file) {
             e.preventDefault()
-            setSelectedFile(file)
+            setSelectedFiles((prev) => [...prev, file])
             return
           }
         }
@@ -325,11 +337,14 @@ export function ClientClaimsSection({ clientClaims, onClientClaimsChange, claimI
     }
   }
 
-  const removeSelectedFile = () => {
-    setSelectedFile(null)
-    if (fileInputRef.current) {
-      fileInputRef.current.value = ""
-    }
+  const removeSelectedFile = (index: number) => {
+    setSelectedFiles((prev) => {
+      const updated = prev.filter((_, i) => i !== index)
+      if (fileInputRef.current && updated.length === 0) {
+        fileInputRef.current.value = ""
+      }
+      return updated
+    })
   }
 
   const getStatusBadge = (status: ClaimStatus) => {
@@ -673,6 +688,7 @@ export function ClientClaimsSection({ clientClaims, onClientClaimsChange, claimI
                   <input
                     ref={fileInputRef}
                     type="file"
+                    multiple
                     accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
                     onChange={handleFileSelect}
                     className="hidden"
@@ -682,28 +698,45 @@ export function ClientClaimsSection({ clientClaims, onClientClaimsChange, claimI
                   </Button>
                 </div>
 
-                {selectedFile && (
-                  <div className="mt-4 p-3 bg-gray-50 rounded border">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center space-x-2">
-                        <FileText className="h-4 w-4 text-gray-500" />
-                        <span className="text-sm">{selectedFile.name}</span>
-                        <span className="text-xs text-gray-500">({(selectedFile.size / 1024).toFixed(1)} KB)</span>
+                {selectedFiles.length > 0 && (
+                  <div className="mt-4 space-y-2">
+                    {selectedFiles.map((file, index) => (
+                      <div
+                        key={index}
+                        className="p-3 bg-gray-50 rounded border flex items-center justify-between"
+                      >
+                        <div className="flex items-center space-x-2">
+                          <FileText className="h-4 w-4 text-gray-500" />
+                          <span className="text-sm">{file.name}</span>
+                          <span className="text-xs text-gray-500">
+                            ({(file.size / 1024).toFixed(1)} KB)
+                          </span>
+                        </div>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => removeSelectedFile(index)}
+                        >
+                          <X className="h-4 w-4" />
+                        </Button>
                       </div>
-                      <Button type="button" variant="ghost" size="sm" onClick={removeSelectedFile}>
-                        <X className="h-4 w-4" />
-                      </Button>
-                    </div>
+                    ))}
 
                     <div className="mt-2">
-                      <Label htmlFor="documentDescription" className="text-sm font-medium text-gray-700">
+                      <Label
+                        htmlFor="documentDescription"
+                        className="text-sm font-medium text-gray-700"
+                      >
                         Opis dokumentu
                       </Label>
                       <Input
                         id="documentDescription"
                         placeholder="Dodaj opis dokumentu..."
                         value={formData.documentDescription}
-                        onChange={(e) => setFormData((prev) => ({ ...prev, documentDescription: e.target.value }))}
+                        onChange={(e) =>
+                          setFormData((prev) => ({ ...prev, documentDescription: e.target.value }))
+                        }
                         className="mt-1"
                       />
                     </div>

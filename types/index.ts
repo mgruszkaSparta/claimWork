@@ -219,6 +219,7 @@ export interface Appeal {
   documentPath?: string
   documentName?: string
   documentDescription?: string
+  documents?: UploadedFile[]
 }
 
 export interface ClientClaim {
@@ -241,6 +242,7 @@ export interface ClientClaim {
    * Local-only fields for client-side handling
    */
   document?: UploadedFile
+  documents?: UploadedFile[]
   claimId?: string
 }
 

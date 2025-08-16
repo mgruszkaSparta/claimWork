@@ -95,21 +95,32 @@ namespace AutomotiveClaimsApi.Controllers
                     UpdatedAt = DateTime.UtcNow
                 };
 
-                if (createDto.Document != null)
-                {
-                    var documentResult = await _documentService.SaveDocumentAsync(
-                        createDto.Document,
-                        "client-claims",
-                        createDto.DocumentDescription
-                    );
-
-                    clientClaim.DocumentPath = documentResult.FilePath;
-                    clientClaim.DocumentName = documentResult.OriginalFileName;
-                    clientClaim.DocumentDescription = createDto.DocumentDescription;
-                }
-
                 _context.ClientClaims.Add(clientClaim);
                 await _context.SaveChangesAsync();
+
+                if (createDto.Documents != null && createDto.Documents.Any())
+                {
+                    foreach (var file in createDto.Documents)
+                    {
+                        var docDto = await _documentService.UploadAndCreateDocumentAsync(file, new CreateDocumentDto
+                        {
+                            File = file,
+                            Category = "client-claims",
+                            Description = createDto.DocumentDescription,
+                            EventId = createDto.EventId,
+                            RelatedEntityId = clientClaim.Id,
+                            RelatedEntityType = "ClientClaim"
+                        });
+
+                        if (string.IsNullOrEmpty(clientClaim.DocumentPath))
+                        {
+                            clientClaim.DocumentPath = docDto.FilePath;
+                            clientClaim.DocumentName = docDto.OriginalFileName;
+                            clientClaim.DocumentDescription = createDto.DocumentDescription;
+                        }
+                    }
+                    await _context.SaveChangesAsync();
+                }
 
                 return CreatedAtAction(nameof(GetClientClaim), new { id = clientClaim.Id }, MapToDto(clientClaim));
             }
@@ -141,22 +152,35 @@ namespace AutomotiveClaimsApi.Controllers
                 clientClaim.ClaimNumber = updateDto.ClaimNumber;
                 clientClaim.UpdatedAt = DateTime.UtcNow;
 
-                if (updateDto.Document != null)
+                if (updateDto.Documents != null && updateDto.Documents.Any())
                 {
                     if (!string.IsNullOrEmpty(clientClaim.DocumentPath))
                     {
                         await _documentService.DeleteDocumentAsync(clientClaim.DocumentPath);
+                        clientClaim.DocumentPath = null;
+                        clientClaim.DocumentName = null;
+                        clientClaim.DocumentDescription = null;
                     }
 
-                    var documentResult = await _documentService.SaveDocumentAsync(
-                        updateDto.Document,
-                        "client-claims",
-                        updateDto.DocumentDescription
-                    );
+                    foreach (var file in updateDto.Documents)
+                    {
+                        var docDto = await _documentService.UploadAndCreateDocumentAsync(file, new CreateDocumentDto
+                        {
+                            File = file,
+                            Category = "client-claims",
+                            Description = updateDto.DocumentDescription,
+                            EventId = clientClaim.EventId,
+                            RelatedEntityId = clientClaim.Id,
+                            RelatedEntityType = "ClientClaim"
+                        });
 
-                    clientClaim.DocumentPath = documentResult.FilePath;
-                    clientClaim.DocumentName = documentResult.OriginalFileName;
-                    clientClaim.DocumentDescription = updateDto.DocumentDescription;
+                        if (string.IsNullOrEmpty(clientClaim.DocumentPath))
+                        {
+                            clientClaim.DocumentPath = docDto.FilePath;
+                            clientClaim.DocumentName = docDto.OriginalFileName;
+                            clientClaim.DocumentDescription = updateDto.DocumentDescription;
+                        }
+                    }
                 }
                 else if (!string.IsNullOrEmpty(updateDto.DocumentDescription))
                 {
@@ -248,8 +272,92 @@ namespace AutomotiveClaimsApi.Controllers
             }
         }
 
-        private static ClientClaimDto MapToDto(ClientClaim c)
+        [HttpGet("{claimId}/documents/{docId}/download")]
+        public async Task<IActionResult> DownloadClaimDocument(Guid claimId, Guid docId)
         {
+            try
+            {
+                var document = await _context.Documents
+                    .Where(d => d.Id == docId && d.RelatedEntityType == "ClientClaim" && d.RelatedEntityId == claimId && !d.IsDeleted)
+                    .FirstOrDefaultAsync();
+
+                if (document == null)
+                {
+                    return NotFound();
+                }
+
+                var result = await _documentService.DownloadDocumentAsync(docId);
+                if (result == null)
+                {
+                    return NotFound();
+                }
+
+                return File(result.FileStream, result.ContentType, result.FileName);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error downloading document {DocId} for client claim {ClaimId}", docId, claimId);
+                return StatusCode(500, new { error = "Failed to download document" });
+            }
+        }
+
+        [HttpGet("{claimId}/documents/{docId}/preview")]
+        public async Task<IActionResult> PreviewClaimDocument(Guid claimId, Guid docId)
+        {
+            try
+            {
+                var document = await _context.Documents
+                    .Where(d => d.Id == docId && d.RelatedEntityType == "ClientClaim" && d.RelatedEntityId == claimId && !d.IsDeleted)
+                    .FirstOrDefaultAsync();
+
+                if (document == null)
+                {
+                    return NotFound();
+                }
+
+                var result = await _documentService.DownloadDocumentAsync(docId);
+                if (result == null)
+                {
+                    return NotFound();
+                }
+
+                return File(result.FileStream, result.ContentType);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error previewing document {DocId} for client claim {ClaimId}", docId, claimId);
+                return StatusCode(500, new { error = "Failed to preview document" });
+            }
+        }
+
+        private ClientClaimDto MapToDto(ClientClaim c)
+        {
+            var documents = _context.Documents
+                .Where(d => d.RelatedEntityType == "ClientClaim" && d.RelatedEntityId == c.Id && !d.IsDeleted)
+                .Select(d => new DocumentDto
+                {
+                    Id = d.Id,
+                    EventId = d.EventId,
+                    FileName = d.FileName,
+                    OriginalFileName = d.OriginalFileName,
+                    FilePath = d.FilePath,
+                    FileSize = d.FileSize,
+                    ContentType = d.ContentType,
+                    Category = d.DocumentType,
+                    Description = d.Description,
+                    UploadedBy = d.UploadedBy,
+                    IsActive = !d.IsDeleted,
+                    Status = d.Status,
+                    CreatedAt = d.CreatedAt,
+                    UpdatedAt = d.UpdatedAt,
+                    DownloadUrl = $"/api/client-claims/{c.Id}/documents/{d.Id}/download",
+                    PreviewUrl = $"/api/client-claims/{c.Id}/documents/{d.Id}/preview",
+                    CanPreview = true
+                })
+                .ToList();
+
+        var documentId = documents.FirstOrDefault()?.Id.ToString();
+
             return new ClientClaimDto
             {
                 Id = c.Id.ToString(),
@@ -264,6 +372,8 @@ namespace AutomotiveClaimsApi.Controllers
                 DocumentPath = c.DocumentPath,
                 DocumentName = c.DocumentName,
                 DocumentDescription = c.DocumentDescription,
+                DocumentId = documentId,
+                Documents = documents,
                 ClaimNotes = c.ClaimNotes,
                 CreatedAt = c.CreatedAt,
                 UpdatedAt = c.UpdatedAt

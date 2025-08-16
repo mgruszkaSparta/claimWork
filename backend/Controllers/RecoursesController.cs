@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Identity;
 using System.Security.Claims;
+using System.Linq;
 
 namespace AutomotiveClaimsApi.Controllers
 {
@@ -81,15 +82,31 @@ namespace AutomotiveClaimsApi.Controllers
                     UpdatedAt = DateTime.UtcNow
                 };
 
-                if (dto.Document != null)
-                {
-                    var doc = await _documentService.SaveDocumentAsync(dto.Document, "recourses", dto.DocumentDescription);
-                    recourse.DocumentPath = doc.FilePath;
-                    recourse.DocumentName = doc.OriginalFileName;
-                }
-
                 _context.Recourses.Add(recourse);
                 await _context.SaveChangesAsync();
+
+                if (dto.Documents != null && dto.Documents.Any())
+                {
+                    foreach (var file in dto.Documents)
+                    {
+                        var docDto = await _documentService.UploadAndCreateDocumentAsync(file, new CreateDocumentDto
+                        {
+                            File = file,
+                            Category = "recourses",
+                            Description = dto.DocumentDescription,
+                            EventId = dto.EventId,
+                            RelatedEntityId = recourse.Id,
+                            RelatedEntityType = "Recourse"
+                        });
+
+                        if (string.IsNullOrEmpty(recourse.DocumentPath))
+                        {
+                            recourse.DocumentPath = docDto.FilePath;
+                            recourse.DocumentName = docDto.OriginalFileName;
+                        }
+                    }
+                    await _context.SaveChangesAsync();
+                }
 
                 if (_notificationService != null)
                 {
@@ -143,15 +160,26 @@ namespace AutomotiveClaimsApi.Controllers
                 recourse.DocumentDescription = dto.DocumentDescription;
                 recourse.UpdatedAt = DateTime.UtcNow;
 
-                if (dto.Document != null)
+                if (dto.Documents != null && dto.Documents.Any())
                 {
-                    if (!string.IsNullOrEmpty(recourse.DocumentPath))
+                    foreach (var file in dto.Documents)
                     {
-                        await _documentService.DeleteDocumentAsync(recourse.DocumentPath);
+                        var docDto = await _documentService.UploadAndCreateDocumentAsync(file, new CreateDocumentDto
+                        {
+                            File = file,
+                            Category = "recourses",
+                            Description = dto.DocumentDescription,
+                            EventId = recourse.EventId,
+                            RelatedEntityId = recourse.Id,
+                            RelatedEntityType = "Recourse"
+                        });
+
+                        if (string.IsNullOrEmpty(recourse.DocumentPath))
+                        {
+                            recourse.DocumentPath = docDto.FilePath;
+                            recourse.DocumentName = docDto.OriginalFileName;
+                        }
                     }
-                    var doc = await _documentService.SaveDocumentAsync(dto.Document, "recourses", dto.DocumentDescription);
-                    recourse.DocumentPath = doc.FilePath;
-                    recourse.DocumentName = doc.OriginalFileName;
                 }
 
                 await _context.SaveChangesAsync();

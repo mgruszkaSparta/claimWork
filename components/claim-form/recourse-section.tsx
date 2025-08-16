@@ -62,7 +62,7 @@ export function RecourseSection({ eventId }: RecourseSectionProps) {
   const [isFormVisible, setIsFormVisible] = useState(false)
   const [isEditing, setIsEditing] = useState(false)
   const [editingRecourseId, setEditingRecourseId] = useState<string | null>(null)
-  const [selectedFile, setSelectedFile] = useState<File | null>(null)
+  const [selectedFiles, setSelectedFiles] = useState<File[]>([])
   const [showFileDescription, setShowFileDescription] = useState(false)
   const [totalRecourseAmounts, setTotalRecourseAmounts] = useState<Record<string, number>>({})
 
@@ -87,8 +87,7 @@ export function RecourseSection({ eventId }: RecourseSectionProps) {
   // Move this function before the useDragDrop hook
   function handleFilesDropped(files: FileList) {
     if (files.length > 0) {
-      const file = files[0]
-      processOutlookAttachment(file)
+      Array.from(files).forEach((file) => processOutlookAttachment(file))
     }
   }
 
@@ -137,7 +136,7 @@ export function RecourseSection({ eventId }: RecourseSectionProps) {
     setFormLoading(true)
     try {
       // Process the file (in a real implementation, you might need special handling for Outlook files)
-      setSelectedFile(file)
+      setSelectedFiles((prev) => [...prev, file])
       setShowFileDescription(true)
 
       const isLikelyOutlook = isOutlookAttachment(file)
@@ -187,7 +186,7 @@ export function RecourseSection({ eventId }: RecourseSectionProps) {
       currency: "PLN",
       documentDescription: "",
     })
-    setSelectedFile(null)
+    setSelectedFiles([])
     setShowFileDescription(false)
     setIsEditing(false)
     setEditingRecourseId(null)
@@ -235,8 +234,8 @@ export function RecourseSection({ eventId }: RecourseSectionProps) {
       }
 
       const result = isEditing
-        ? await updateRecourseApi(editingRecourseId!, payload, selectedFile || undefined)
-        : await createRecourseApi(payload, selectedFile || undefined)
+        ? await updateRecourseApi(editingRecourseId!, payload, selectedFiles)
+        : await createRecourseApi(payload, selectedFiles)
 
       console.log("Recourse saved successfully:", result)
       toast({
@@ -389,14 +388,19 @@ export function RecourseSection({ eventId }: RecourseSectionProps) {
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
-      setSelectedFile(e.target.files[0])
+      setSelectedFiles((prev) => [...prev, ...Array.from(e.target.files!)])
       setShowFileDescription(true)
     }
   }
 
-  const removeSelectedFile = () => {
-    setSelectedFile(null)
-    setShowFileDescription(false)
+  const removeSelectedFile = (index: number) => {
+    setSelectedFiles((prev) => {
+      const updated = prev.filter((_, i) => i !== index)
+      if (updated.length === 0) {
+        setShowFileDescription(false)
+      }
+      return updated
+    })
     setFormData({ ...formData, documentDescription: "" })
     if (fileInputRef.current) {
       fileInputRef.current.value = ""
@@ -405,7 +409,7 @@ export function RecourseSection({ eventId }: RecourseSectionProps) {
 
   const handlePaste = (e: ClipboardEvent) => {
     if (isFormVisible && e.clipboardData?.files && e.clipboardData.files.length > 0) {
-      processOutlookAttachment(e.clipboardData.files[0])
+      Array.from(e.clipboardData.files).forEach((file) => processOutlookAttachment(file))
     }
   }
 
@@ -599,6 +603,7 @@ export function RecourseSection({ eventId }: RecourseSectionProps) {
                     <input
                       ref={fileInputRef}
                       type="file"
+                      multiple
                       className="hidden"
                       accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
                       onChange={handleFileSelect}
@@ -614,20 +619,32 @@ export function RecourseSection({ eventId }: RecourseSectionProps) {
                   </div>
                 </div>
 
-                {/* Selected file display with description field */}
-                {selectedFile && (
+                {/* Selected files display with description field */}
+                {selectedFiles.length > 0 && (
                   <div className="mt-2">
-                    <div className="p-3 bg-muted rounded-t-lg border flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <FileText className="h-4 w-4 text-primary" />
-                        <span className="text-sm font-medium">{selectedFile.name}</span>
-                        <span className="text-xs text-muted-foreground">
-                          {(selectedFile.size / 1024).toFixed(1)} KB
-                        </span>
-                      </div>
-                      <Button type="button" variant="ghost" size="sm" onClick={removeSelectedFile}>
-                        <X className="h-4 w-4" />
-                      </Button>
+                    <div className="space-y-2">
+                      {selectedFiles.map((file, index) => (
+                        <div
+                          key={index}
+                          className="p-3 bg-muted rounded-t-lg border flex items-center justify-between"
+                        >
+                          <div className="flex items-center gap-2">
+                            <FileText className="h-4 w-4 text-primary" />
+                            <span className="text-sm font-medium">{file.name}</span>
+                            <span className="text-xs text-muted-foreground">
+                              {(file.size / 1024).toFixed(1)} KB
+                            </span>
+                          </div>
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => removeSelectedFile(index)}
+                          >
+                            <X className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      ))}
                     </div>
 
                     {showFileDescription && (
@@ -638,7 +655,9 @@ export function RecourseSection({ eventId }: RecourseSectionProps) {
                         <Textarea
                           id="documentDescription"
                           value={formData.documentDescription}
-                          onChange={(e) => setFormData({ ...formData, documentDescription: e.target.value })}
+                          onChange={(e) =>
+                            setFormData({ ...formData, documentDescription: e.target.value })
+                          }
                           placeholder="Dodaj opis dokumentu (np. 'Pismo w sprawie regresu', 'Potwierdzenie wpłaty', itp.)"
                           rows={2}
                           className="mt-1"

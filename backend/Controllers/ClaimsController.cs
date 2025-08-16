@@ -13,6 +13,7 @@ using Microsoft.AspNetCore.Authorization;
 using System.Security.Claims;
 using Microsoft.AspNetCore.Identity;
 using AutomotiveClaimsApi.Services;
+using Microsoft.Extensions.Configuration;
 
 namespace AutomotiveClaimsApi.Controllers
 {
@@ -25,8 +26,10 @@ namespace AutomotiveClaimsApi.Controllers
         private readonly ILogger<ClaimsController> _logger;
         private readonly UserManager<ApplicationUser>? _userManager;
         private readonly INotificationService? _notificationService;
+        private readonly IConfiguration _config;
 
         public ClaimsController(ApplicationDbContext context, ILogger<ClaimsController> logger,
+            IConfiguration config,
             UserManager<ApplicationUser>? userManager = null,
             INotificationService? notificationService = null)
         {
@@ -34,6 +37,7 @@ namespace AutomotiveClaimsApi.Controllers
             _logger = logger;
             _userManager = userManager;
             _notificationService = notificationService;
+            _config = config;
         }
 
         [HttpGet]
@@ -1598,6 +1602,7 @@ namespace AutomotiveClaimsApi.Controllers
                     IsMainDriver = d.IsMainDriver
                 }).ToList()
             }).ToList(),
+
             Documents = e.Documents.Select(d => new DocumentDto
             {
                 Id = d.Id,
@@ -1617,6 +1622,7 @@ namespace AutomotiveClaimsApi.Controllers
                 DownloadUrl = $"/api/documents/{d.Id}/download",
                 PreviewUrl = $"/api/documents/{d.Id}/preview",
                 CanPreview = true
+
             }).ToList(),
             Damages = e.Damages.Select(d => new DamageDto
             {

@@ -11,6 +11,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Identity;
 using System.Security.Claims;
+using Microsoft.Extensions.Configuration;
 
 namespace AutomotiveClaimsApi.Controllers
 {
@@ -23,11 +24,13 @@ namespace AutomotiveClaimsApi.Controllers
         private readonly ILogger<DocumentsController> _logger;
         private readonly UserManager<ApplicationUser>? _userManager;
         private readonly INotificationService? _notificationService;
+        private readonly IConfiguration _config;
 
         public DocumentsController(
             ApplicationDbContext context,
             IDocumentService documentService,
             ILogger<DocumentsController> logger,
+            IConfiguration config,
             UserManager<ApplicationUser>? userManager = null,
             INotificationService? notificationService = null)
         {
@@ -36,6 +39,7 @@ namespace AutomotiveClaimsApi.Controllers
             _logger = logger;
             _userManager = userManager;
             _notificationService = notificationService;
+            _config = config;
         }
 
         [HttpGet]
@@ -182,8 +186,9 @@ namespace AutomotiveClaimsApi.Controllers
             return NoContent();
         }
 
-        private static DocumentDto MapToDto(Document doc)
+        private DocumentDto MapToDto(Document doc)
         {
+            var baseUrl = _config["App:BaseUrl"] ?? string.Empty;
             return new DocumentDto
             {
                 Id = doc.Id,
@@ -201,8 +206,8 @@ namespace AutomotiveClaimsApi.Controllers
                 Status = doc.Status,
                 CreatedAt = doc.CreatedAt,
                 UpdatedAt = doc.UpdatedAt,
-                DownloadUrl = $"/api/documents/{doc.Id}/download",
-                PreviewUrl = $"/api/documents/{doc.Id}/preview",
+                DownloadUrl = $"{baseUrl}/api/documents/{doc.Id}/download",
+                PreviewUrl = $"{baseUrl}/api/documents/{doc.Id}/preview",
                 CanPreview = true // Simplified
             };
         }

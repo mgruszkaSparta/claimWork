@@ -6,6 +6,9 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+
+using Microsoft.Extensions.Configuration;
+
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -22,10 +25,14 @@ namespace AutomotiveClaimsApi.Services
         private readonly IGoogleCloudStorageService? _cloudStorage;
         private readonly bool _cloudEnabled;
 
+        private readonly IConfiguration _config;
+
+
         public DocumentService(
             ApplicationDbContext context,
             ILogger<DocumentService> logger,
             IWebHostEnvironment environment,
+            IConfiguration config,
             IGoogleCloudStorageService? cloudStorage = null,
             IOptions<GoogleCloudStorageSettings>? cloudSettings = null)
         {
@@ -34,6 +41,9 @@ namespace AutomotiveClaimsApi.Services
             _uploadsPath = Path.Combine(environment.ContentRootPath, "uploads");
             _cloudStorage = cloudStorage;
             _cloudEnabled = cloudSettings?.Value.Enabled ?? false;
+
+            _config = config;
+
 
             if (!Directory.Exists(_uploadsPath))
             {
@@ -285,8 +295,9 @@ namespace AutomotiveClaimsApi.Services
             return contentType;
         }
 
-        private static DocumentDto MapToDto(Document doc)
+        private DocumentDto MapToDto(Document doc)
         {
+            var baseUrl = _config["App:BaseUrl"] ?? string.Empty;
             return new DocumentDto
             {
                 Id = doc.Id,
@@ -304,8 +315,8 @@ namespace AutomotiveClaimsApi.Services
                 Status = doc.Status,
                 CreatedAt = doc.CreatedAt,
                 UpdatedAt = doc.UpdatedAt,
-                DownloadUrl = $"/api/documents/{doc.Id}/download",
-                PreviewUrl = $"/api/documents/{doc.Id}/preview",
+                DownloadUrl = $"{baseUrl}/api/documents/{doc.Id}/download",
+                PreviewUrl = $"{baseUrl}/api/documents/{doc.Id}/preview",
                 CanPreview = true
             };
         }

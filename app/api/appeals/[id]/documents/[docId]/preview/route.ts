@@ -4,11 +4,11 @@ const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5200/a
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { appealId: string; docId: string } },
+  { params }: { params: { id: string; docId: string } },
 ) {
   try {
     const response = await fetch(
-      `${API_BASE_URL}/appeals/${params.appealId}/documents/${params.docId}/download`,
+      `${API_BASE_URL}/appeals/${params.id}/documents/${params.docId}/preview`,
       {
         method: "GET",
       },
@@ -24,21 +24,17 @@ export async function GET(
 
     const fileData = await response.arrayBuffer()
     const contentType = response.headers.get("content-type") || "application/octet-stream"
-    const contentDisposition = response.headers.get("content-disposition")
 
     const fileResponse = new NextResponse(fileData)
     fileResponse.headers.set("Content-Type", contentType)
-
-    if (contentDisposition) {
-      fileResponse.headers.set("Content-Disposition", contentDisposition)
-    }
+    fileResponse.headers.set("Content-Disposition", "inline")
 
     return fileResponse
   } catch (error) {
-    console.error("Error downloading appeal document:", error)
+    console.error("Error previewing appeal document:", error)
     return NextResponse.json(
       {
-        error: "Failed to download document",
+        error: "Failed to preview document",
         details: error instanceof Error ? error.message : "Unknown error",
       },
       { status: 500 },

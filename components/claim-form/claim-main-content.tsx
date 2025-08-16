@@ -680,6 +680,61 @@ export const ClaimMainContent = ({
   }
 
   // Helper function to render participant details
+  const renderParticipantDetails = (
+    participant: ParticipantInfo | undefined,
+    title: string,
+    icon: React.ReactNode,
+    bgColor: string,
+  ) => {
+    if (!participant) {
+      return (
+        <div className="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden">
+          <div className={`px-4 py-3 ${bgColor} border-b border-gray-200`}>
+            <div className="flex items-center space-x-2">
+              {icon}
+              <h3 className="text-sm font-semibold text-gray-900">{title}</h3>
+            </div>
+          </div>
+          <div className="p-4">
+            <div className="text-center py-8 text-gray-500">
+              <p>Brak danych {title.toLowerCase()}</p>
+            </div>
+          </div>
+        </div>
+      )
+    }
+
+    return (
+      <div className="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden">
+        <div className={`px-4 py-3 ${bgColor} border-b border-gray-200`}>
+          <div className="flex items-center space-x-2">
+            {icon}
+            <h3 className="text-sm font-semibold text-gray-900">{title}</h3>
+          </div>
+        </div>
+        <div className="p-4 space-y-3">
+          <InfoCard label="Imię i nazwisko" value={participant.name} />
+          <InfoCard label="Adres" value={participant.address} />
+          <InfoCard label="Miasto" value={participant.city} />
+          <InfoCard label="Kod pocztowy" value={participant.postalCode} />
+          <InfoCard label="Kraj" value={participant.country} />
+          <InfoCard label="Telefon" value={participant.phone} />
+          <InfoCard label="E-mail" value={participant.email} />
+          <InfoCard label="Rejestracja" value={participant.vehicleRegistration} />
+          <InfoCard label="VIN" value={participant.vehicleVin} />
+          <InfoCard label="Typ pojazdu" value={participant.vehicleType} />
+          <InfoCard label="Marka" value={participant.vehicleBrand} />
+          <InfoCard label="Model" value={participant.vehicleModel} />
+          {participant.vehicleYear && (
+            <InfoCard label="Rok" value={participant.vehicleYear.toString()} />
+          )}
+          <InfoCard label="Ubezpieczyciel" value={participant.insuranceCompany} />
+          <InfoCard label="Nr polisy" value={participant.policyNumber} />
+        </div>
+      </div>
+    )
+  }
+
   switch (activeClaimSection) {
     case "harmonogram":
       return (

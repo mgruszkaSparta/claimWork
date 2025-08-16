@@ -14,6 +14,7 @@ import { useClaims } from '@/hooks/use-claims'
 import { useDamages } from '@/hooks/use-damages'
 import { useRouter } from 'next/navigation'
 import { useToast } from '@/hooks/use-toast'
+import { useUnsavedChangesWarning, UNSAVED_CHANGES_MESSAGE } from '@/hooks/use-unsaved-changes-warning'
 import type { Claim, ParticipantInfo, UploadedFile, RequiredDocument } from '@/types'
 
 interface ClaimFormProps {
@@ -25,6 +26,7 @@ export function ClaimForm({ initialData, mode }: ClaimFormProps) {
   const router = useRouter()
   const { createClaim, updateClaim, initializeClaim, loading, error } = useClaims()
   const { toast } = useToast()
+  useUnsavedChangesWarning(mode !== 'view')
   const initialized = useRef(false)
   const [formData, setFormData] = useState<Claim>({
     spartaNumber: '',
@@ -403,7 +405,11 @@ export function ClaimForm({ initialData, mode }: ClaimFormProps) {
             <Button
               type="button"
               variant="outline"
-              onClick={() => router.back()}
+              onClick={() => {
+                if (confirm(UNSAVED_CHANGES_MESSAGE)) {
+                  router.back()
+                }
+              }}
             >
               Anuluj
             </Button>

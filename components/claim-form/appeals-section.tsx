@@ -733,7 +733,8 @@ export const AppealsSection = ({ claimId }: AppealsSectionProps) => {
                     </td>
                   </tr>
                 )}
-                {appeals.map((appeal) => (
+                {appeals.map((appeal) => {
+                  return (
                   <tr key={appeal.id} className="hover:bg-gray-50 text-sm border-b">
                     <td className="py-3 px-4 text-gray-700">
                       {new Date(appeal.filingDate).toLocaleDateString("pl-PL")}
@@ -746,44 +747,44 @@ export const AppealsSection = ({ claimId }: AppealsSectionProps) => {
                     </td>
                     <td className="py-3 px-4">{getStatusBadge(appeal.status)}</td>
                     <td className="py-3 px-4">
-                      {appeal.documents && appeal.documents.length > 0 ? (
-                        <div className="flex flex-col gap-1">
-                          {appeal.documents.map((doc) => (
-                            <div key={doc.id} className="flex items-center gap-2">
-                              <span
-                                className="text-gray-700 truncate max-w-32"
-                                title={doc.originalFileName || doc.fileName}
-                              >
-                                {doc.originalFileName || doc.fileName}
-                              </span>
-                              <div className="flex gap-1">
-                                {isPreviewable(doc.originalFileName || doc.fileName) && (
-                                  <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    onClick={() => previewFile(appeal, doc)}
-                                    className="h-6 w-6 p-0 text-blue-600 hover:text-blue-800 hover:bg-blue-50"
-                                    title="Podgląd"
-                                  >
-                                    <Eye className="h-3 w-3" />
-                                  </Button>
-                                )}
+                      {(() => {
+                        const doc = appeal.documents?.[0]
+                        if (!doc) {
+                          return <span className="text-gray-500">Brak dokumentu</span>
+                        }
+                        return (
+                          <div className="flex items-center gap-2">
+                            <span
+                              className="text-gray-700 truncate max-w-32"
+                              title={doc.originalFileName || doc.fileName}
+                            >
+                              {doc.originalFileName || doc.fileName}
+                            </span>
+                            <div className="flex gap-1">
+                              {isPreviewable(doc.originalFileName || doc.fileName) && (
                                 <Button
                                   variant="ghost"
                                   size="sm"
-                                  onClick={() => downloadFile(appeal, doc)}
-                                  className="h-6 w-6 p-0 text-green-600 hover:text-green-800 hover:bg-green-50"
-                                  title="Pobierz"
+                                  onClick={() => previewFile(appeal, doc)}
+                                  className="h-6 w-6 p-0 text-blue-600 hover:text-blue-800 hover:bg-blue-50"
+                                  title="Podgląd"
                                 >
-                                  <Download className="h-3 w-3" />
+                                  <Eye className="h-3 w-3" />
                                 </Button>
-                              </div>
+                              )}
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => downloadFile(appeal, doc)}
+                                className="h-6 w-6 p-0 text-green-600 hover:text-green-800 hover:bg-green-50"
+                                title="Pobierz"
+                              >
+                                <Download className="h-3 w-3" />
+                              </Button>
                             </div>
-                          ))}
-                        </div>
-                      ) : (
-                        <span className="text-gray-500">Brak dokumentu</span>
-                      )}
+                          </div>
+                        )
+                      })()}
                     </td>
                     <td className="py-3 px-4 text-gray-700 max-w-48">
                       <span className="truncate block" title={appeal.documentDescription}>
@@ -834,7 +835,8 @@ export const AppealsSection = ({ claimId }: AppealsSectionProps) => {
                       </div>
                     </td>
                   </tr>
-                ))}
+                  )
+                })}
               </tbody>
             </table>
           </div>

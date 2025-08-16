@@ -6,7 +6,9 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+
 using Microsoft.Extensions.Configuration;
+
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -22,7 +24,9 @@ namespace AutomotiveClaimsApi.Services
         private readonly string _uploadsPath;
         private readonly IGoogleCloudStorageService? _cloudStorage;
         private readonly bool _cloudEnabled;
+
         private readonly IConfiguration _config;
+
 
         public DocumentService(
             ApplicationDbContext context,
@@ -37,7 +41,9 @@ namespace AutomotiveClaimsApi.Services
             _uploadsPath = Path.Combine(environment.ContentRootPath, "uploads");
             _cloudStorage = cloudStorage;
             _cloudEnabled = cloudSettings?.Value.Enabled ?? false;
+
             _config = config;
+
 
             if (!Directory.Exists(_uploadsPath))
             {

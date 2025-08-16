@@ -1602,29 +1602,27 @@ namespace AutomotiveClaimsApi.Controllers
                     IsMainDriver = d.IsMainDriver
                 }).ToList()
             }).ToList(),
-            Documents = e.Documents.Select(d =>
+
+            Documents = e.Documents.Select(d => new DocumentDto
             {
-                var baseUrl = _config["App:BaseUrl"] ?? string.Empty;
-                return new DocumentDto
-                {
-                    Id = d.Id,
-                    EventId = d.EventId,
-                    FileName = d.FileName,
-                    OriginalFileName = d.OriginalFileName,
-                    FilePath = d.FilePath,
-                    CloudUrl = d.CloudUrl,
-                    FileSize = d.FileSize,
-                    ContentType = d.ContentType,
-                    Category = d.DocumentType,
-                    Description = d.Description,
-                    UploadedBy = d.UploadedBy,
-                    IsActive = !d.IsDeleted,
-                    CreatedAt = d.CreatedAt,
-                    UpdatedAt = d.UpdatedAt,
-                    DownloadUrl = $"{baseUrl}/api/documents/{d.Id}/download",
-                    PreviewUrl = $"{baseUrl}/api/documents/{d.Id}/preview",
-                    CanPreview = true
-                };
+                Id = d.Id,
+                EventId = d.EventId,
+                FileName = d.FileName,
+                OriginalFileName = d.OriginalFileName,
+                FilePath = d.FilePath,
+                CloudUrl = d.CloudUrl,
+                FileSize = d.FileSize,
+                ContentType = d.ContentType,
+                Category = d.DocumentType,
+                Description = d.Description,
+                UploadedBy = d.UploadedBy,
+                IsActive = !d.IsDeleted,
+                CreatedAt = d.CreatedAt,
+                UpdatedAt = d.UpdatedAt,
+                DownloadUrl = $"/api/documents/{d.Id}/download",
+                PreviewUrl = $"/api/documents/{d.Id}/preview",
+                CanPreview = true
+
             }).ToList(),
             Damages = e.Damages.Select(d => new DamageDto
             {

@@ -37,23 +37,19 @@ namespace AutomotiveClaimsApi.Controllers
         [HttpPost]
         public ActionResult<RepairScheduleDto> CreateSchedule([FromBody] CreateRepairScheduleDto createDto)
         {
-            if (string.IsNullOrWhiteSpace(createDto.VehicleFleetNumber) ||
-                string.IsNullOrWhiteSpace(createDto.VehicleRegistration) ||
-                string.IsNullOrWhiteSpace(createDto.DamageDate))
+            if (string.IsNullOrWhiteSpace(createDto.VehicleFleetNumber))
             {
-                return BadRequest("VehicleFleetNumber, VehicleRegistration, and DamageDate are required.");
+                return BadRequest("VehicleFleetNumber is required.");
             }
 
             var schedule = new RepairSchedule
             {
                 Id = Guid.NewGuid(),
                 EventId = createDto.EventId,
+                BranchId = createDto.BranchId,
                 CompanyName = createDto.CompanyName,
-                DamageNumber = createDto.DamageNumber,
                 VehicleFleetNumber = createDto.VehicleFleetNumber,
                 VehicleRegistration = createDto.VehicleRegistration,
-                DamageDate = createDto.DamageDate,
-                DamageTime = createDto.DamageTime,
                 ExpertWaitingDate = createDto.ExpertWaitingDate,
                 AdditionalInspections = createDto.AdditionalInspections,
                 RepairStartDate = createDto.RepairStartDate,
@@ -81,17 +77,11 @@ namespace AutomotiveClaimsApi.Controllers
 
             if (updateDto.VehicleFleetNumber != null && string.IsNullOrWhiteSpace(updateDto.VehicleFleetNumber))
                 return BadRequest("VehicleFleetNumber is required.");
-            if (updateDto.VehicleRegistration != null && string.IsNullOrWhiteSpace(updateDto.VehicleRegistration))
-                return BadRequest("VehicleRegistration is required.");
-            if (updateDto.DamageDate != null && string.IsNullOrWhiteSpace(updateDto.DamageDate))
-                return BadRequest("DamageDate is required.");
 
             if (updateDto.CompanyName != null) schedule.CompanyName = updateDto.CompanyName;
-            if (updateDto.DamageNumber != null) schedule.DamageNumber = updateDto.DamageNumber;
+            if (updateDto.BranchId != null) schedule.BranchId = updateDto.BranchId;
             if (updateDto.VehicleFleetNumber != null) schedule.VehicleFleetNumber = updateDto.VehicleFleetNumber;
             if (updateDto.VehicleRegistration != null) schedule.VehicleRegistration = updateDto.VehicleRegistration;
-            if (updateDto.DamageDate != null) schedule.DamageDate = updateDto.DamageDate;
-            if (updateDto.DamageTime != null) schedule.DamageTime = updateDto.DamageTime;
             if (updateDto.ExpertWaitingDate != null) schedule.ExpertWaitingDate = updateDto.ExpertWaitingDate;
             if (updateDto.AdditionalInspections != null) schedule.AdditionalInspections = updateDto.AdditionalInspections;
             if (updateDto.RepairStartDate != null) schedule.RepairStartDate = updateDto.RepairStartDate;

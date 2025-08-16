@@ -51,7 +51,7 @@ export const SettlementsSection: React.FC<SettlementsSectionProps> = ({ eventId 
   const [isEditing, setIsEditing] = useState(false)
   const [editingSettlementId, setEditingSettlementId] = useState<string | null>(null)
   const [formData, setFormData] = useState<SettlementFormData>(initialFormData)
-  const [selectedFile, setSelectedFile] = useState<File | null>(null)
+  const [selectedFiles, setSelectedFiles] = useState<File[]>([])
   const [isLoading, setIsLoading] = useState(false)
   const [showCustomEntityInput, setShowCustomEntityInput] = useState(false)
   const [showFileDescription, setShowFileDescription] = useState(false)
@@ -131,16 +131,16 @@ export const SettlementsSection: React.FC<SettlementsSectionProps> = ({ eventId 
 
   // File handling
   const onFileSelected = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0]
-    if (file) {
-      setSelectedFile(file)
+    const files = event.target.files
+    if (files && files.length > 0) {
+      setSelectedFiles((prev) => [...prev, ...Array.from(files)])
       setShowFileDescription(true)
     }
   }, [])
 
   const onFilesDropped = useCallback((files: FileList) => {
     if (files.length > 0) {
-      setSelectedFile(files[0])
+      setSelectedFiles((prev) => [...prev, ...Array.from(files)])
       setShowFileDescription(true)
     }
     setDropZoneActive(false)
@@ -170,16 +170,24 @@ export const SettlementsSection: React.FC<SettlementsSectionProps> = ({ eventId 
     setOutlookDragActive(true)
   }, [])
 
-  const removeSelectedFile = useCallback(() => {
-    setSelectedFile(null)
-    setShowFileDescription(false)
-    handleFormChange("documentDescription", "")
-  }, [handleFormChange])
+  const removeSelectedFile = useCallback(
+    (index: number) => {
+      setSelectedFiles((prev) => {
+        const updated = prev.filter((_, i) => i !== index)
+        if (updated.length === 0) {
+          setShowFileDescription(false)
+          handleFormChange("documentDescription", "")
+        }
+        return updated
+      })
+    },
+    [handleFormChange],
+  )
 
   // Cancel edit
   const cancelEdit = useCallback(() => {
     setFormData(initialFormData)
-    setSelectedFile(null)
+    setSelectedFiles([])
     setShowFileDescription(false)
     setShowCustomEntityInput(false)
     setIsEditing(false)
@@ -193,43 +201,26 @@ export const SettlementsSection: React.FC<SettlementsSectionProps> = ({ eventId 
       setIsLoading(true)
 
       try {
-        const body = new FormData()
-        body.append("eventId", eventId)
-        body.append("externalEntity", formData.externalEntity)
-        if (formData.customExternalEntity) {
-          body.append("customExternalEntity", formData.customExternalEntity)
-        }
-        if (formData.transferDate) body.append("transferDate", formData.transferDate)
-        if (formData.settlementDate) body.append("settlementDate", formData.settlementDate)
-        if (formData.settlementAmount)
-          body.append("settlementAmount", formData.settlementAmount.toString())
-        if (formData.currency) body.append("currency", formData.currency)
-        if (formData.status) body.append("status", formData.status)
-        if (formData.documentDescription)
-          body.append("documentDescription", formData.documentDescription)
-        if (selectedFile) {
-          body.append("document", selectedFile)
+        const payload = {
+          eventId,
+          externalEntity: formData.externalEntity,
+          customExternalEntity: formData.customExternalEntity || undefined,
+          transferDate: formData.transferDate || undefined,
+          settlementDate: formData.settlementDate || undefined,
+          settlementAmount: formData.settlementAmount || undefined,
+          currency: formData.currency || undefined,
+          status: formData.status,
+          documentDescription: formData.documentDescription || undefined,
         }
 
         if (isEditing && editingSettlementId) {
-          if (!selectedFile) {
-            const currentSettlement = settlements.find(
-              (s) => s.id === editingSettlementId,
-            )
-            if (currentSettlement?.documentPath) {
-              body.append("documentPath", currentSettlement.documentPath)
-            }
-            if (currentSettlement?.documentName) {
-              body.append("documentName", currentSettlement.documentName)
-            }
-          }
-          await updateSettlement(editingSettlementId, body)
+          await updateSettlement(editingSettlementId, payload, selectedFiles)
           toast({
             title: "Sukces",
             description: "Ugoda została zaktualizowana pomyślnie.",
           })
         } else {
-          await createSettlement(body)
+          await createSettlement(payload, selectedFiles)
           toast({
             title: "Sukces",
             description: "Ugoda została dodana pomyślnie.",
@@ -240,7 +231,7 @@ export const SettlementsSection: React.FC<SettlementsSectionProps> = ({ eventId 
 
         // Reset form
         setFormData(initialFormData)
-        setSelectedFile(null)
+        setSelectedFiles([])
         setShowFileDescription(false)
         setShowCustomEntityInput(false)
         setIsFormVisible(false)
@@ -259,10 +250,9 @@ export const SettlementsSection: React.FC<SettlementsSectionProps> = ({ eventId 
     },
       [
         formData,
-        selectedFile,
+        selectedFiles,
         isEditing,
         editingSettlementId,
-        settlements,
         eventId,
         loadSettlements,
         toast,
@@ -613,31 +603,38 @@ export const SettlementsSection: React.FC<SettlementsSectionProps> = ({ eventId 
                     </div>
                   </div>
 
-                  {/* Selected file display with description field */}
-                  {selectedFile && (
-                    <div className="mt-2">
-                      {/* File info */}
-                      <div className="p-3 bg-gray-50 rounded-t-lg border border-[#d1d9e6] flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                          <FileText className="text-[#1a3a6c] h-4 w-4" />
-                          <span className="text-sm font-medium">{selectedFile.name}</span>
-                          <span className="text-xs text-gray-500">{(selectedFile.size / 1024).toFixed(1)} KB</span>
-                        </div>
-                        <Button
-                          type="button"
-                          onClick={removeSelectedFile}
-                          variant="ghost"
-                          size="sm"
-                          className="p-1 text-gray-500 hover:text-red-500"
+                  {/* Selected files display with description field */}
+                  {selectedFiles.length > 0 && (
+                    <div className="mt-2 space-y-2">
+                      {selectedFiles.map((file, index) => (
+                        <div
+                          key={index}
+                          className="p-3 bg-gray-50 rounded-t-lg border border-[#d1d9e6] flex items-center justify-between"
                         >
-                          <X className="h-4 w-4" />
-                        </Button>
-                      </div>
+                          <div className="flex items-center gap-2">
+                            <FileText className="text-[#1a3a6c] h-4 w-4" />
+                            <span className="text-sm font-medium">{file.name}</span>
+                            <span className="text-xs text-gray-500">
+                              {(file.size / 1024).toFixed(1)} KB
+                            </span>
+                          </div>
+                          <Button
+                            type="button"
+                            onClick={() => removeSelectedFile(index)}
+                            variant="ghost"
+                            size="sm"
+                            className="p-1 text-gray-500 hover:text-red-500"
+                          >
+                            <X className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      ))}
 
-                      {/* File description field */}
                       {showFileDescription && (
                         <div className="p-3 bg-white rounded-b-lg border-x border-b border-[#d1d9e6]">
-                          <Label className="block text-[#1a3a6c] text-sm font-medium mb-1">Opis dokumentu:</Label>
+                          <Label className="block text-[#1a3a6c] text-sm font-medium mb-1">
+                            Opis dokumentu:
+                          </Label>
                           <Textarea
                             value={formData.documentDescription}
                             onChange={(e) => handleFormChange("documentDescription", e.target.value)}

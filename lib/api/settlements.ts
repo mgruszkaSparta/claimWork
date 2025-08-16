@@ -35,6 +35,7 @@ const settlementUpsertSchema = z.object({
   paymentMethod: z.string().optional(),
   notes: z.string().optional(),
   description: z.string().optional(),
+  documentDescription: z.string().optional(),
   status: z.string().min(1),
 });
 
@@ -65,24 +66,41 @@ export async function getSettlements(eventId: string): Promise<Settlement[]> {
   return z.array(settlementSchema).parse(data);
 }
 
-export async function createSettlement(form: FormData): Promise<Settlement> {
-  const data = await request<unknown>(`/settlements`, {
-    method: "POST",
-    body: form,
-
-
-  });
-  return settlementSchema.parse(data);
+function buildFormData(data: SettlementUpsert, files: File[] = []) {
+  const parsed = settlementUpsertSchema.parse(data)
+  const form = new FormData()
+  Object.entries(parsed).forEach(([key, value]) => {
+    if (value !== undefined && value !== null) {
+      form.append(key, value.toString())
+    }
+  })
+  files.forEach((f) => form.append("documents", f))
+  return form
 }
 
+export async function createSettlement(
+  data: SettlementUpsert,
+  files: File[] = [],
+): Promise<Settlement> {
+  const body = buildFormData(data, files)
+  const result = await request<unknown>(`/settlements`, {
+    method: "POST",
+    body,
+  })
+  return settlementSchema.parse(result)
+}
 
-export async function updateSettlement(id: string, body: FormData): Promise<Settlement> {
-  const data = await request<unknown>(`/settlements/${id}`, {
+export async function updateSettlement(
+  id: string,
+  data: SettlementUpsert,
+  files: File[] = [],
+): Promise<Settlement> {
+  const body = buildFormData(data, files)
+  const result = await request<unknown>(`/settlements/${id}`, {
     method: "PUT",
     body,
-
-  });
-  return settlementSchema.parse(data);
+  })
+  return settlementSchema.parse(result)
 }
 
 export async function deleteSettlement(id: string): Promise<void> {

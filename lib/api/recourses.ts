@@ -47,7 +47,7 @@ export async function getRecourses(eventId: string): Promise<Recourse[]> {
   return z.array(recourseSchema).parse(data)
 }
 
-function buildFormData(data: RecourseUpsert, file?: File) {
+function buildFormData(data: RecourseUpsert, files: File[] = []) {
   const parsed = recourseUpsertSchema.parse(data)
   const formData = new FormData()
   Object.entries(parsed).forEach(([key, value]) => {
@@ -55,20 +55,25 @@ function buildFormData(data: RecourseUpsert, file?: File) {
       formData.append(key, value.toString())
     }
   })
-  if (file) {
-    formData.append("document", file)
-  }
+  files.forEach((file) => formData.append("documents", file))
   return formData
 }
 
-export async function createRecourse(data: RecourseUpsert, file?: File): Promise<Recourse> {
-  const body = buildFormData(data, file)
+export async function createRecourse(
+  data: RecourseUpsert,
+  files: File[] = [],
+): Promise<Recourse> {
+  const body = buildFormData(data, files)
   const result = await request<unknown>(`/recourses`, { method: "POST", body })
   return recourseSchema.parse(result)
 }
 
-export async function updateRecourse(id: string, data: RecourseUpsert, file?: File): Promise<Recourse> {
-  const body = buildFormData(data, file)
+export async function updateRecourse(
+  id: string,
+  data: RecourseUpsert,
+  files: File[] = [],
+): Promise<Recourse> {
+  const body = buildFormData(data, files)
   const result = await request<unknown>(`/recourses/${id}`, { method: "PUT", body })
   return recourseSchema.parse(result)
 }

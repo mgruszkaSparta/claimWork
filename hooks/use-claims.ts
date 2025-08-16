@@ -281,7 +281,7 @@ export const transformFrontendClaimToApiPayload = (
       : {}),
 
     clientClaims: clientClaims?.map((c) => {
-      const { id, claimDate, document, claimId, createdAt, updatedAt, ...rest } = c
+      const { id, claimDate, document, documents, claimId, createdAt, updatedAt, ...rest } = c
       return {
         ...rest,
         ...(id && isGuid(id) ? { id } : {}),

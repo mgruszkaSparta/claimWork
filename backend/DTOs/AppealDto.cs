@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 
 namespace AutomotiveClaimsApi.DTOs
 {
@@ -23,5 +24,6 @@ namespace AutomotiveClaimsApi.DTOs
         public string? DocumentName { get; set; }
         public string? DocumentDescription { get; set; }
         public string? DocumentId { get; set; }
+        public List<DocumentDto> Documents { get; set; } = new();
     }
 }

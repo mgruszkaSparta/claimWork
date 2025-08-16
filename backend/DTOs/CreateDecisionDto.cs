@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Http;
 
@@ -21,7 +22,7 @@ namespace AutomotiveClaimsApi.DTOs
         [StringLength(200)]
         public string? CompensationTitle { get; set; }
 
-        public IFormFile? Document { get; set; }
+        public List<IFormFile>? Documents { get; set; }
 
         [StringLength(500)]
         public string? DocumentDescription { get; set; }

@@ -13,6 +13,7 @@ using Microsoft.AspNetCore.Authorization;
 using System.Security.Claims;
 using Microsoft.AspNetCore.Identity;
 using AutomotiveClaimsApi.Services;
+using Microsoft.AspNetCore.Http;
 
 namespace AutomotiveClaimsApi.Controllers
 {
@@ -25,15 +26,18 @@ namespace AutomotiveClaimsApi.Controllers
         private readonly ILogger<ClaimsController> _logger;
         private readonly UserManager<ApplicationUser>? _userManager;
         private readonly INotificationService? _notificationService;
+        private readonly IDocumentService _documentService;
 
         public ClaimsController(ApplicationDbContext context, ILogger<ClaimsController> logger,
             UserManager<ApplicationUser>? userManager = null,
-            INotificationService? notificationService = null)
+            INotificationService? notificationService = null,
+            IDocumentService? documentService = null)
         {
             _context = context;
             _logger = logger;
             _userManager = userManager;
             _notificationService = notificationService;
+            _documentService = documentService ?? throw new ArgumentNullException(nameof(documentService));
         }
 
         [HttpGet]
@@ -500,6 +504,40 @@ namespace AutomotiveClaimsApi.Controllers
             {
                 _logger.LogError(ex, "Error deleting event {EventId}", id);
                 return StatusCode(500, new { error = "An error occurred while deleting the event" });
+            }
+        }
+
+        [HttpPost("{id}/attachments")]
+        public async Task<ActionResult<IEnumerable<DocumentDto>>> UploadClaimAttachments(Guid id, [FromForm] List<IFormFile> files, [FromForm] string? description)
+        {
+            try
+            {
+                if (files == null || files.Count == 0)
+                {
+                    return BadRequest(new { error = "No files provided" });
+                }
+
+                var results = new List<DocumentDto>();
+                foreach (var file in files)
+                {
+                    var docDto = await _documentService.UploadAndCreateDocumentAsync(file, new CreateDocumentDto
+                    {
+                        File = file,
+                        Category = "claims",
+                        Description = description,
+                        EventId = id,
+                        RelatedEntityId = id,
+                        RelatedEntityType = "Claim"
+                    });
+                    results.Add(docDto);
+                }
+
+                return Ok(results);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error uploading attachments for claim {ClaimId}", id);
+                return StatusCode(500, new { error = "Failed to upload attachments" });
             }
         }
 

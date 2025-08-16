@@ -67,6 +67,7 @@ builder.Services.AddScoped<IDocumentService, DocumentService>();
 builder.Services.AddScoped<IGoogleCloudStorageService, GoogleCloudStorageService>();
 builder.Services.AddScoped<IRiskTypeService, RiskTypeService>();
 builder.Services.AddScoped<IDamageTypeService, DamageTypeService>();
+builder.Services.AddScoped<IRuleService, RuleService>();
 
 // Add background services
 builder.Services.AddHostedService<EmailBackgroundService>();

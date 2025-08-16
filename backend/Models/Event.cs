@@ -175,5 +175,7 @@ namespace AutomotiveClaimsApi.Models
         public virtual ICollection<Settlement> Settlements { get; set; } = new List<Settlement>();
         public virtual ICollection<Email> Emails { get; set; } = new List<Email>();
         public virtual ICollection<Note> Notes { get; set; } = new List<Note>();
+        public virtual ICollection<TaskHistory> TaskHistories { get; set; } = new List<TaskHistory>();
+        public virtual ICollection<NotificationHistory> NotificationHistories { get; set; } = new List<NotificationHistory>();
     }
 }

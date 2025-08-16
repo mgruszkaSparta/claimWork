@@ -24,16 +24,19 @@ namespace AutomotiveClaimsApi.Controllers
         private readonly ILogger<SettlementsController> _logger;
         private readonly UserManager<ApplicationUser>? _userManager;
         private readonly INotificationService? _notificationService;
+        private readonly IRuleService? _ruleService;
 
         public SettlementsController(ApplicationDbContext context, IDocumentService documentService, ILogger<SettlementsController> logger,
             UserManager<ApplicationUser>? userManager = null,
-            INotificationService? notificationService = null)
+            INotificationService? notificationService = null,
+            IRuleService? ruleService = null)
         {
             _context = context;
             _documentService = documentService;
             _logger = logger;
             _userManager = userManager;
             _notificationService = notificationService;
+            _ruleService = ruleService;
         }
 
         [HttpGet("event/{eventId}")]
@@ -105,7 +108,11 @@ namespace AutomotiveClaimsApi.Controllers
             _context.Settlements.Add(settlement);
             await _context.SaveChangesAsync();
 
-            if (_notificationService != null)
+            if (_ruleService != null)
+            {
+                await _ruleService.ProcessAsync(ClaimNotificationEvent.SettlementAdded, settlement.Id);
+            }
+            else if (_notificationService != null)
             {
                 ApplicationUser? currentUser = null;
                 bool isHandler = false;

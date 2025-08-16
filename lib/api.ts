@@ -569,6 +569,8 @@ export interface RecourseDto {
   documentPath?: string
   documentName?: string
   documentDescription?: string
+  documentId?: string
+  documents?: DocumentDto[]
   createdAt?: string
   updatedAt?: string
 }
@@ -613,6 +615,8 @@ export interface SettlementDto {
   documentPath?: string
   documentName?: string
   documentDescription?: string
+  documentId?: string
+  documents?: DocumentDto[]
 }
 
 export interface SettlementUpsertDto {

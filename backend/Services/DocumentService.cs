@@ -180,14 +180,18 @@ namespace AutomotiveClaimsApi.Services
                 return null;
             }
 
-            if (_cloudEnabled && _cloudStorage != null && !string.IsNullOrEmpty(document.CloudUrl))
+            var cloudPath = !string.IsNullOrEmpty(document.CloudUrl) ? document.CloudUrl : document.FilePath;
+            if (_cloudStorage != null && !string.IsNullOrEmpty(cloudPath) &&
+                Uri.TryCreate(cloudPath, UriKind.Absolute, out var uri) &&
+                (uri.Scheme == Uri.UriSchemeHttp || uri.Scheme == Uri.UriSchemeHttps))
             {
-                var stream = await _cloudStorage.GetFileStreamAsync(document.CloudUrl);
+                var stream = await _cloudStorage.GetFileStreamAsync(cloudPath);
+                var fileName = document.OriginalFileName ?? Path.GetFileName(uri.LocalPath);
                 return new DocumentDownloadResult
                 {
                     FileStream = stream,
-                    ContentType = document.ContentType,
-                    FileName = document.OriginalFileName ?? document.FileName
+                    ContentType = GetContentType(fileName),
+                    FileName = fileName
                 };
             }
 

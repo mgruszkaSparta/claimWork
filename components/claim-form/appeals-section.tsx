@@ -363,7 +363,7 @@ export const AppealsSection = ({ claimId }: AppealsSectionProps) => {
   }
 
   const downloadFile = async (appeal: Appeal) => {
-    if (!appeal.documentPath) {
+    if (!appeal.documentId) {
       toast({
         title: "Błąd",
         description: "Brak dokumentu do pobrania",
@@ -373,10 +373,13 @@ export const AppealsSection = ({ claimId }: AppealsSectionProps) => {
     }
 
     try {
-      const response = await fetch(`${API_BASE_URL}/appeals/${appeal.id}/download`, {
-        method: "GET",
-        credentials: "include",
-      })
+      const response = await fetch(
+        `${API_BASE_URL}/appeals/${appeal.id}/documents/${appeal.documentId}/download`,
+        {
+          method: "GET",
+          credentials: "include",
+        },
+      )
       if (!response.ok) {
         throw new Error("Failed to download file")
       }
@@ -384,7 +387,9 @@ export const AppealsSection = ({ claimId }: AppealsSectionProps) => {
       const url = window.URL.createObjectURL(blob)
       const a = document.createElement("a")
       a.href = url
-      const fileName = appeal.documentName || getFileNameFromPath(appeal.documentPath)
+      const fileName =
+        appeal.documentName ||
+        (appeal.documentPath ? getFileNameFromPath(appeal.documentPath) : "document")
       a.download = fileName
       document.body.appendChild(a)
       a.click()
@@ -401,7 +406,7 @@ export const AppealsSection = ({ claimId }: AppealsSectionProps) => {
   }
 
   const previewFile = async (appeal: Appeal) => {
-    if (!appeal.documentPath) {
+    if (!appeal.documentId) {
       toast({
         title: "Błąd",
         description: "Brak dokumentu do podglądu",
@@ -411,17 +416,25 @@ export const AppealsSection = ({ claimId }: AppealsSectionProps) => {
     }
 
     try {
-      const response = await fetch(`${API_BASE_URL}/appeals/${appeal.id}/preview`, {
-        method: "GET",
-        credentials: "include",
-      })
+      const response = await fetch(
+        `${API_BASE_URL}/appeals/${appeal.id}/documents/${appeal.documentId}/preview`,
+        {
+          method: "GET",
+          credentials: "include",
+        },
+      )
       if (!response.ok) {
         throw new Error("Failed to preview file")
       }
       const blob = await response.blob()
       const url = window.URL.createObjectURL(blob)
       setPreviewUrl(url)
-      setPreviewFileType(getFileType(appeal.documentName || getFileNameFromPath(appeal.documentPath)))
+      setPreviewFileType(
+        getFileType(
+          appeal.documentName ||
+            (appeal.documentPath ? getFileNameFromPath(appeal.documentPath) : ""),
+        ),
+      )
       setPreviewAppeal(appeal)
       setIsPreviewOpen(true)
     } catch (error) {
@@ -762,7 +775,7 @@ export const AppealsSection = ({ claimId }: AppealsSectionProps) => {
                     </td>
                     <td className="py-3 px-4">{getStatusBadge(appeal.status)}</td>
                     <td className="py-3 px-4">
-                      {appeal.documentPath ? (
+                      {appeal.documentId ? (
                         <div className="flex items-center gap-2">
                           <span className="text-gray-700 truncate max-w-32" title={appeal.documentName}>
                             {appeal.documentName}

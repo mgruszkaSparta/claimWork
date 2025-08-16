@@ -11,6 +11,7 @@ export interface Appeal {
   documentName?: string;
   documentDescription?: string;
   alertDays?: number;
+  documentId?: string;
 }
 
 function formatDate(date?: string | null): string | undefined {
@@ -28,6 +29,7 @@ function mapDtoToAppeal(dto: AppealDto): Appeal {
     documentName: dto.documentName,
     documentDescription: dto.documentDescription,
     alertDays: dto.daysSinceSubmission,
+    documentId: dto.documentId,
   };
 }
 

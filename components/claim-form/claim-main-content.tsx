@@ -43,8 +43,12 @@ import { TransportDamageSection } from "./transport-damage-section"
 import { PropertyParticipantsSection } from "./property-participants-section"
 import InjuredPartySection from "./injured-party-section"
 import SubcontractorSection from "./subcontractor-section"
+
 import { PropertyClaimSummary } from "./property-claim-summary"
 import { TransportClaimSummary } from "./transport-claim-summary"
+
+import CommunicationClaimSummary from "./communication-claim-summary"
+
 
 interface RiskType {
   value: string
@@ -676,366 +680,6 @@ export const ClaimMainContent = ({
   }
 
   // Helper function to render participant details
-const renderParticipantDetails = (participant: ParticipantInfo | undefined, title: string, icon: React.ReactNode, bgColor: string) => {
-  if (!participant) {
-    return (
-      <div className="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden">
-        <div className={`px-4 py-3 ${bgColor} border-b border-gray-200`}>
-          <div className="flex items-center space-x-2">
-            {icon}
-            <h3 className="text-sm font-semibold text-gray-900">{title}</h3>
-          </div>
-        </div>
-        <div className="p-4">
-          <div className="text-center py-8 text-gray-500">
-            <p>Brak danych {title.toLowerCase()}</p>
-          </div>
-        </div>
-      </div>
-    )
-  }
-
-  return (
-    <div className="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden">
-      <div className={`px-4 py-3 ${bgColor} border-b border-gray-200`}>
-        <div className="flex items-center space-x-2">
-          {icon}
-          <h3 className="text-sm font-semibold text-gray-900">{title}</h3>
-        </div>
-      </div>
-      <div className="p-4 space-y-6">
-        {/* Dane pojazdu */}
-        <div className="space-y-4">
-          <h4 className="text-sm font-semibold text-gray-800 border-b border-gray-200 pb-2 flex items-center">
-            <Car className="h-4 w-4 mr-2 text-blue-600" />
-            Dane pojazdu
-          </h4>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="text-xs font-medium text-gray-500 uppercase tracking-wide block mb-1">
-                Numer rejestracyjny:
-              </label>
-              <p className="text-sm font-medium text-gray-900">{participant.vehicleRegistration || "Nie określono"}</p>
-            </div>
-            <div>
-              <label className="text-xs font-medium text-gray-500 uppercase tracking-wide block mb-1">
-                VIN:
-              </label>
-              <p className="text-sm font-medium text-gray-900">{participant.vehicleVin || "Nie określono"}</p>
-            </div>
-            <div>
-              <label className="text-xs font-medium text-gray-500 uppercase tracking-wide block mb-1">
-                Typ pojazdu:
-              </label>
-              <p className="text-sm font-medium text-gray-900">{participant.vehicleType || "Samochód osobowy"}</p>
-            </div>
-            <div>
-              <label className="text-xs font-medium text-gray-500 uppercase tracking-wide block mb-1">
-                Marka:
-              </label>
-              <p className="text-sm font-medium text-gray-900">{participant.vehicleBrand || "Nie określono"}</p>
-            </div>
-            <div>
-              <label className="text-xs font-medium text-gray-500 uppercase tracking-wide block mb-1">
-                Model:
-              </label>
-              <p className="text-sm font-medium text-gray-900">{participant.vehicleModel || "Nie określono"}</p>
-            </div>
-            <div>
-              <label className="text-xs font-medium text-gray-500 uppercase tracking-wide block mb-1">
-                Kraj rejestracji:
-              </label>
-              <p className="text-sm font-medium text-gray-900">{participant.country === "PL" ? "Polska" : participant.country || "Polska"}</p>
-            </div>
-          </div>
-        </div>
-
-        {/* Polisa */}
-        <div className="space-y-4">
-          <h4 className="text-sm font-semibold text-gray-800 border-b border-gray-200 pb-2 flex items-center">
-            <Shield className="h-4 w-4 mr-2 text-green-600" />
-            Polisa
-          </h4>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="text-xs font-medium text-gray-500 uppercase tracking-wide block mb-1">
-                Numer polisy:
-              </label>
-              <p className="text-sm font-medium text-gray-900">{participant.policyNumber || "Nie określono"}</p>
-            </div>
-            <div>
-              <label className="text-xs font-medium text-gray-500 uppercase tracking-wide block mb-1">
-                Data rozpoczęcia:
-              </label>
-              <p className="text-sm font-medium text-gray-900">{participant.policyStartDate || "Nie określono"}</p>
-            </div>
-            <div>
-              <label className="text-xs font-medium text-gray-500 uppercase tracking-wide block mb-1">
-                Data zakończenia:
-              </label>
-              <p className="text-sm font-medium text-gray-900">{participant.policyEndDate || "Nie określono"}</p>
-            </div>
-            <div>
-              <label className="text-xs font-medium text-gray-500 uppercase tracking-wide block mb-1">
-                Data zawarcia umowy:
-              </label>
-              <p className="text-sm font-medium text-gray-900">{participant.policyDealDate || "Nie określono"}</p>
-            </div>
-            <div>
-              <label className="text-xs font-medium text-gray-500 uppercase tracking-wide block mb-1">
-                Zakład ubezpieczeń:
-              </label>
-              <p className="text-sm font-medium text-gray-900">{participant.insuranceCompany || "Nie określono"}</p>
-            </div>
-            <div>
-              <label className="text-xs font-medium text-gray-500 uppercase tracking-wide block mb-1">
-                Suma ubezpieczenia:
-              </label>
-              <p className="text-sm font-medium text-gray-900">
-                {participant.policySumAmount
-                  ? `${participant.policySumAmount.toLocaleString('pl-PL')} PLN`
-                  : "Nie określono"}
-              </p>
-            </div>
-          </div>
-        </div>
-
-        {/* Dane osobowe uczestnika */}
-        <div className="space-y-4">
-          <div className="flex items-center justify-between">
-            <h4 className="text-sm font-semibold text-gray-800 border-b border-gray-200 pb-2 flex items-center">
-              <Users className="h-4 w-4 mr-2 text-purple-600" />
-              Dane osobowe uczestnika
-            </h4>
-          </div>
-
-          {/* Sprawdź czy są dane w drivers lub w głównym participant */}
-          {participant.drivers && participant.drivers.length > 0 && participant.drivers.some(d => d.firstName || d.lastName || d.phone || d.email || d.licenseNumber) ? (
-            <div className="space-y-4">
-              {participant.drivers.map((driver, index) => (
-                <div
-                  key={
-                    driver.id ||
-                    `${driver.firstName}-${driver.lastName}-${driver.licenseNumber}`
-                  }
-                  className="bg-gray-50 rounded-lg p-4 border border-gray-200"
-                >
-                  <div className="flex items-center justify-between mb-3">
-                    <h5 className="font-medium text-gray-900 flex items-center">
-                      <UserCheck className="h-4 w-4 mr-2 text-blue-600" />
-                      Osoba {index + 1}
-                    </h5>
-                    {driver.role && (
-                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                        driver.role === 'kierowca' ? 'bg-blue-100 text-blue-800' :
-                        driver.role === 'wlasciciel' ? 'bg-green-100 text-green-800' :
-                        'bg-purple-100 text-purple-800'
-                      }`}>
-                        Rola: {driver.role === 'kierowca' ? 'Kierowca' :
-                               driver.role === 'wlasciciel' ? 'Właściciel' :
-                               driver.role === 'wspol_wlasciciel' ? 'Współwłaściciel' :
-                               driver.role}
-                      </span>
-                    )}
-                  </div>
-
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <label className="text-xs font-medium text-gray-500 uppercase tracking-wide block mb-1">
-                        Imię:
-                      </label>
-                      <p className="text-sm font-medium text-gray-900">{driver.firstName || participant.firstName || "Nie określono"}</p>
-                    </div>
-                    <div>
-                      <label className="text-xs font-medium text-gray-500 uppercase tracking-wide block mb-1">
-                        Nazwisko:
-                      </label>
-                      <p className="text-sm font-medium text-gray-900">{driver.lastName || participant.lastName || "Nie określono"}</p>
-                    </div>
-                    <div>
-                      <label className="text-xs font-medium text-gray-500 uppercase tracking-wide block mb-1">
-                        Numer identyfikacyjny:
-                      </label>
-                      <p className="text-sm font-medium text-gray-900">{driver.personalId || participant.personalId || "Nie określono"}</p>
-                    </div>
-                    <div>
-                      <label className="text-xs font-medium text-gray-500 uppercase tracking-wide block mb-1">
-                        Numer prawa jazdy:
-                      </label>
-                      <p className="text-sm font-medium text-gray-900">{driver.licenseNumber || "Nie określono"}</p>
-                    </div>
-                    <div>
-                      <label className="text-xs font-medium text-gray-500 uppercase tracking-wide block mb-1">
-                        Telefon:
-                      </label>
-                      <p className="text-sm font-medium text-gray-900 flex items-center">
-                        {(driver.phone || participant.phone) && <Phone className="h-3 w-3 mr-1 text-gray-400" />}
-                        {driver.phone || participant.phone || "Nie określono"}
-                      </p>
-                    </div>
-                    <div>
-                      <label className="text-xs font-medium text-gray-500 uppercase tracking-wide block mb-1">
-                        E-mail:
-                      </label>
-                      <p className="text-sm font-medium text-gray-900 flex items-center">
-                        {(driver.email || participant.email) && <Mail className="h-3 w-3 mr-1 text-gray-400" />}
-                        {driver.email || participant.email || "Nie określono"}
-                      </p>
-                    </div>
-                    <div>
-                      <label className="text-xs font-medium text-gray-500 uppercase tracking-wide block mb-1">
-                        Adres:
-                      </label>
-                      <p className="text-sm font-medium text-gray-900 flex items-center">
-                        {(driver.address || participant.address) && <MapPin className="h-3 w-3 mr-1 text-gray-400" />}
-                        {driver.address || participant.address || "Nie określono"}
-                      </p>
-                    </div>
-                    <div>
-                      <label className="text-xs font-medium text-gray-500 uppercase tracking-wide block mb-1">
-                        Miasto:
-                      </label>
-                      <p className="text-sm font-medium text-gray-900">
-                        {(driver.city || participant.city) ?
-                          `${driver.postalCode || participant.postalCode || ''} ${driver.city || participant.city}`.trim() :
-                          "Nie określono"}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          ) : (
-            // Wyświetl dane głównego uczestnika jeśli brak danych w drivers
-            <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
-              <div className="flex items-center justify-between mb-3">
-                <h5 className="font-medium text-gray-900 flex items-center">
-                  <UserCheck className="h-4 w-4 mr-2 text-blue-600" />
-                  Osoba 1
-                </h5>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="text-xs font-medium text-gray-500 uppercase tracking-wide block mb-1">
-                    Imię:
-                  </label>
-                  <p className="text-sm font-medium text-gray-900">{participant.firstName || "Nie określono"}</p>
-                </div>
-                <div>
-                  <label className="text-xs font-medium text-gray-500 uppercase tracking-wide block mb-1">
-                    Nazwisko:
-                  </label>
-                  <p className="text-sm font-medium text-gray-900">{participant.lastName || "Nie określono"}</p>
-                </div>
-                <div>
-                  <label className="text-xs font-medium text-gray-500 uppercase tracking-wide block mb-1">
-                    Numer identyfikacyjny:
-                  </label>
-                  <p className="text-sm font-medium text-gray-900">{participant.personalId || "Nie określono"}</p>
-                </div>
-                <div>
-                  <label className="text-xs font-medium text-gray-500 uppercase tracking-wide block mb-1">
-                    Numer prawa jazdy:
-                  </label>
-                  <p className="text-sm font-medium text-gray-900">{"Nie określono"}</p>
-                </div>
-                <div>
-                  <label className="text-xs font-medium text-gray-500 uppercase tracking-wide block mb-1">
-                    Telefon:
-                  </label>
-                  <p className="text-sm font-medium text-gray-900 flex items-center">
-                    {participant.phone && <Phone className="h-3 w-3 mr-1 text-gray-400" />}
-                    {participant.phone || "Nie określono"}
-                  </p>
-                </div>
-                <div>
-                  <label className="text-xs font-medium text-gray-500 uppercase tracking-wide block mb-1">
-                    E-mail:
-                  </label>
-                  <p className="text-sm font-medium text-gray-900 flex items-center">
-                    {participant.email && <Mail className="h-3 w-3 mr-1 text-gray-400" />}
-                    {participant.email || "Nie określono"}
-                  </p>
-                </div>
-                <div>
-                  <label className="text-xs font-medium text-gray-500 uppercase tracking-wide block mb-1">
-                    Adres:
-                  </label>
-                  <p className="text-sm font-medium text-gray-900 flex items-center">
-                    {participant.address && <MapPin className="h-3 w-3 mr-1 text-gray-400" />}
-                    {participant.address || "Nie określono"}
-                  </p>
-                </div>
-                <div>
-                  <label className="text-xs font-medium text-gray-500 uppercase tracking-wide block mb-1">
-                    Miasto:
-                  </label>
-                  <p className="text-sm font-medium text-gray-900">
-                    {participant.city ?
-                      `${participant.postalCode || ''} ${participant.city}`.trim() :
-                      "Nie określono"}
-                  </p>
-                </div>
-              </div>
-            </div>
-          )}
-        </div>
-
-        {/* Inspection Contact - only for injured party */}
-        {title === "Poszkodowany" && (participant.inspectionContactName || participant.inspectionContactPhone || participant.inspectionContactEmail || participant.inspectionNotes) && (
-          <div className="space-y-4">
-            <h4 className="text-sm font-semibold text-gray-800 border-b border-gray-200 pb-2 flex items-center">
-              <Phone className="h-4 w-4 mr-2 text-orange-600" />
-              Kontakt do oględzin
-            </h4>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {participant.inspectionContactName && (
-                <div>
-                  <label className="text-xs font-medium text-gray-500 uppercase tracking-wide block mb-1">
-                    Osoba kontaktowa:
-                  </label>
-                  <p className="text-sm font-medium text-gray-900">{participant.inspectionContactName}</p>
-                </div>
-              )}
-              {participant.inspectionContactPhone && (
-                <div>
-                  <label className="text-xs font-medium text-gray-500 uppercase tracking-wide block mb-1">
-                    Telefon:
-                  </label>
-                  <p className="text-sm font-medium text-gray-900 flex items-center">
-                    <Phone className="h-3 w-3 mr-1 text-gray-400" />
-                    {participant.inspectionContactPhone}
-                  </p>
-                </div>
-              )}
-              {participant.inspectionContactEmail && (
-                <div className="md:col-span-2">
-                  <label className="text-xs font-medium text-gray-500 uppercase tracking-wide block mb-1">
-                    Email:
-                  </label>
-                  <p className="text-sm font-medium text-gray-900 flex items-center">
-                    <Mail className="h-3 w-3 mr-1 text-gray-400" />
-                    {participant.inspectionContactEmail}
-                  </p>
-                </div>
-              )}
-            </div>
-            {participant.inspectionNotes && (
-              <div className="bg-blue-50 rounded-lg p-3 border border-blue-200">
-                <label className="text-xs font-medium text-blue-700 uppercase tracking-wide block mb-1">
-                  Uwagi do oględzin:
-                </label>
-                <p className="text-sm text-blue-900 leading-relaxed">{participant.inspectionNotes}</p>
-              </div>
-            )}
-          </div>
-        )}
-      </div>
-    </div>
-  )
-}
-
   switch (activeClaimSection) {
     case "harmonogram":
       return (
@@ -2295,6 +1939,7 @@ const renderParticipantDetails = (participant: ParticipantInfo | undefined, titl
       )
 
     case "teczka-szkodowa": {
+
     switch (claimObjectType) {
       case "2":
         return (
@@ -2419,204 +2064,17 @@ const renderParticipantDetails = (participant: ParticipantInfo | undefined, titl
         </div>
 
         {/* Full Width Sections */}
+
         <div className="space-y-4">
-          {/* Uszkodzenia samochodu */}
-          <div className="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden">
-            <div className="px-4 py-3 bg-gradient-to-r from-blue-50 to-blue-100 border-b border-gray-200">
-              <div className="flex items-center space-x-2">
-                <Car className="h-4 w-4 text-blue-600" />
-                <h3 className="text-sm font-semibold text-gray-900">Uszkodzenia samochodu</h3>
-              </div>
-            </div>
-            <div className="p-4 grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <div className="space-y-3">
-                <InfoCard label="Rodzaj pojazdu" value={claimFormData.vehicleType} />
-
-                {claimFormData.damageDescription && (
-                  <div className="bg-gray-50 rounded-lg p-3">
-                    <span className="text-xs font-medium text-gray-500 uppercase tracking-wide block mb-1">
-                      Opis uszkodzeń
-                    </span>
-                    <p className="text-sm text-gray-900 leading-relaxed">{claimFormData.damageDescription}</p>
-                  </div>
-                )}
-
-                <div className="bg-gray-50 rounded-lg p-3">
-                  <span className="text-xs font-medium text-gray-500 uppercase tracking-wide block mb-2">
-                    Lista uszkodzeń
-                  </span>
-                  <div className="space-y-1 max-h-32 overflow-y-auto">
-                    {claimFormData.damages && claimFormData.damages.length > 0 ? (
-                      claimFormData.damages.map((damage, index) => (
-                        <div
-                          key={damage.id || `${damage.description}-${damage.detail}`}
-                          className="text-sm text-gray-900 p-2 bg-white rounded border"
-                        >
-                          <span className="font-medium">{damage.description}</span>
-                          <span className="text-gray-600 ml-2">- {damage.detail}</span>
-                        </div>
-                      ))
-                    ) : (
-                      <p className="text-sm text-gray-500">Brak zdefiniowanych uszkodzeń</p>
-                    )}
-                  </div>
-                </div>
-              </div>
-              <div>
-                <DamageDiagram
-                  damagedParts={(claimFormData.damages || []).map((d) => d.description)}
-                  onPartClick={() => {}} // Read-only in summary view
-                />
-              </div>
-            </div>
-          </div>
-
-          {/* Służby */}
-          {claimFormData.servicesCalled && claimFormData.servicesCalled.length > 0 && (
-            <div className="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden">
-              <div className="px-4 py-3 bg-gradient-to-r from-blue-50 to-blue-100 border-b border-gray-200">
-                <div className="flex items-center space-x-2">
-                  <Users className="h-4 w-4 text-blue-600" />
-                  <h3 className="text-sm font-semibold text-gray-900">Wezwane służby</h3>
-                </div>
-              </div>
-              <div className="p-4">
-                <div className="flex flex-wrap gap-2 mb-4">
-                  {claimFormData.servicesCalled.map((service) => (
-                    <span
-                      key={service}
-                      className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm font-medium capitalize"
-                    >
-                      {service}
-                    </span>
-                  ))}
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {claimFormData.policeDescription && (
-                    <div className="bg-gray-50 rounded-lg p-3">
-                      <span className="text-xs font-medium text-gray-500 uppercase tracking-wide block mb-1">
-                        Policja - Opis
-                      </span>
-                      <p className="text-sm text-gray-900">{claimFormData.policeDescription}</p>
-                    </div>
-                  )}
-                  {claimFormData.ambulanceDescription && (
-                    <div className="bg-gray-50 rounded-lg p-3">
-                      <span className="text-xs font-medium text-gray-500 uppercase tracking-wide block mb-1">
-                        Pogotowie - Opis
-                      </span>
-                      <p className="text-sm text-gray-900">{claimFormData.ambulanceDescription}</p>
-                    </div>
-                  )}
-                  {claimFormData.fireDescription && (
-                    <div className="bg-gray-50 rounded-lg p-3">
-                      <span className="text-xs font-medium text-gray-500 uppercase tracking-wide block mb-1">
-                        Straż pożarna - Opis
-                      </span>
-                      <p className="text-sm text-gray-900">{claimFormData.fireDescription}</p>
-                    </div>
-                  )}
-                  {claimFormData.towDescription && (
-                    <div className="bg-gray-50 rounded-lg p-3">
-                      <span className="text-xs font-medium text-gray-500 uppercase tracking-wide block mb-1">
-                        Holownik - Opis
-                      </span>
-                      <p className="text-sm text-gray-900">{claimFormData.towDescription}</p>
-                    </div>
-                  )}
-                </div>
-
-                {claimFormData.policeUnitDetails && (
-                  <div className="mt-4 bg-gray-50 rounded-lg p-3">
-                    <span className="text-xs font-medium text-gray-500 uppercase tracking-wide block mb-1">
-                      Dane jednostki policji
-                    </span>
-                    <p className="text-sm text-gray-900">{claimFormData.policeUnitDetails}</p>
-                  </div>
-                )}
-              </div>
-            </div>
-          )}
-
-          {/* Dokumenty - simplified version */}
-          <div className="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden">
-            <div className="px-4 py-3 bg-gradient-to-r from-blue-50 to-blue-100 border-b border-gray-200">
-              <div className="flex items-center space-x-2">
-                <FileText className="h-4 w-4 text-blue-600" />
-                <h3 className="text-sm font-semibold text-gray-900">Dokumenty</h3>
-              </div>
-            </div>
-            <div className="p-4">
-              {eventId && (
-                <DocumentsSection
-                  uploadedFiles={uploadedFiles}
-                  setUploadedFiles={setUploadedFiles}
-                  requiredDocuments={[]}
-                  setRequiredDocuments={() => {}}
-                  eventId={eventId}
-                  hideRequiredDocuments={true}
-                  storageKey={`summary-documents-${eventId}`}
-                />
-              )}
-            </div>
-          </div>
-
-          {/* Notatki */}
-          <div className="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden">
-            <div className="px-4 py-3 bg-gradient-to-r from-blue-50 to-blue-100 border-b border-gray-200">
-              <div className="flex items-center space-x-2">
-                <MessageSquare className="h-4 w-4 text-blue-600" />
-                <h3 className="text-sm font-semibold text-gray-900">Notatki</h3>
-              </div>
-            </div>
-            <div className="p-4">
-              {visibleNotes.length > 0 ? (
-                <div className="space-y-3">
-                  {visibleNotes.map((note) => (
-                    <div key={note.id} className="border-l-4 border-blue-500 pl-4 py-2 bg-gray-50 rounded-r-lg">
-                      <div className="flex items-start justify-between">
-                        <div className="flex-1">
-                          <div className="flex items-center space-x-2 mb-1">
-                            <span
-                              className={`px-2 py-1 rounded-full text-xs font-medium ${getTypeColor(note.type)}`}
-                            >
-                              {getTypeLabel(note.type)}
-                            </span>
-                            {note.type === "task" && note.priority && (
-                              <span className={`text-xs font-medium ${getPriorityColor(note.priority)}`}>
-                                {note.priority === "high"
-                                  ? "Wysoki"
-                                  : note.priority === "medium"
-                                    ? "Średni"
-                                    : "Niski"}
-                              </span>
-                            )}
-                            {note.type === "task" && note.status && getStatusIcon(note.status)}
-                          </div>
-                          <h4 className="font-medium text-gray-900 text-sm">{note.title}</h4>
-                          <p className="text-sm text-gray-600 mt-1">{note.description}</p>
-                          <div className="flex items-center space-x-4 text-xs text-gray-500 mt-2">
-                            <span>{note.user}</span>
-                            <span>{new Date(note.createdAt).toLocaleDateString("pl-PL")}</span>
-                            {note.dueDate && (
-                              <span>Termin: {new Date(note.dueDate).toLocaleDateString("pl-PL")}</span>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="text-center py-8">
-                  <MessageSquare className="h-12 w-12 text-gray-300 mx-auto mb-4" />
-                  <p className="text-gray-500">Brak notatek</p>
-                </div>
-              )}
-            </div>
-          </div>
-
+          <CommunicationClaimSummary
+            claimFormData={claimFormData}
+            notes={notes}
+            uploadedFiles={uploadedFiles}
+            setUploadedFiles={setUploadedFiles}
+            eventId={eventId}
+            claimStatuses={claimStatuses}
+            riskTypes={riskTypes}
+          />
           {/* Harmonogram naprawy - expandable section */}
           <div className="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden">
             <div className="px-4 py-3 bg-gradient-to-r from-blue-50 to-blue-100 border-b border-gray-200">
@@ -2640,7 +2098,7 @@ const renderParticipantDetails = (participant: ParticipantInfo | undefined, titl
             <div className="p-4">
               {expandedSections.harmonogram && eventId ? (
                 <div className="border rounded-lg overflow-hidden">
-                <RepairScheduleSection eventId={eventId} />
+                  <RepairScheduleSection eventId={eventId} />
                 </div>
               ) : (
                 <div className="space-y-4">
@@ -2656,7 +2114,6 @@ const renderParticipantDetails = (participant: ParticipantInfo | undefined, titl
                       value="W trakcie"
                     />
                   </div>
-
                   <div className="space-y-2">
                     <div className="bg-gray-50 rounded-lg p-3 border border-gray-200">
                       <div className="flex items-center justify-between mb-2">
@@ -2680,7 +2137,6 @@ const renderParticipantDetails = (participant: ParticipantInfo | undefined, titl
                         </div>
                       </div>
                     </div>
-
                     <div className="bg-gray-50 rounded-lg p-3 border border-gray-200">
                       <div className="flex items-center justify-between mb-2">
                         <h4 className="font-medium text-gray-900 text-sm">Harmonogram #2</h4>
@@ -2704,55 +2160,53 @@ const renderParticipantDetails = (participant: ParticipantInfo | undefined, titl
                       </div>
                     </div>
                   </div>
-
                   <div className="text-center pt-2">
-                    <p className="text-xs text-gray-400">Kliknij "Rozwiń" aby zobaczyć pełne szczegóły harmonogramu</p>
+                    <p className="text-xs text-gray-400">Kliknij \"Rozwiń\" aby zobaczyć pełne szczegóły harmonogramu</p>
                   </div>
                 </div>
               )}
             </div>
           </div>
-
           {/* Szczegóły naprawy - expandable section */}
           <div className="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden">
             <div className="px-4 py-3 bg-gradient-to-r from-blue-50 to-blue-100 border-b border-gray-200">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-2">
-                    <Wrench className="h-4 w-4 text-blue-600" />
-                    <h3 className="text-sm font-semibold text-gray-900">Szczegóły naprawy</h3>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <Button
-                      size="sm"
-                      onClick={() => {
-                        if (!expandedSections.naprawa) toggleSection('naprawa')
-                        setAutoShowRepairForm(true)
-                      }}
-                      className="text-xs bg-[#1a3a6c] hover:bg-[#15305a] text-white"
-                    >
-                      Dodaj opis naprawy
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => toggleSection('naprawa')}
-                      className="text-xs"
-                    >
-                      {expandedSections.naprawa ? 'Zwiń' : 'Rozwiń'}
-                    </Button>
-                  </div>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-2">
+                  <Wrench className="h-4 w-4 text-blue-600" />
+                  <h3 className="text-sm font-semibold text-gray-900">Szczegóły naprawy</h3>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <Button
+                    size="sm"
+                    onClick={() => {
+                      if (!expandedSections.naprawa) toggleSection('naprawa')
+                      setAutoShowRepairForm(true)
+                    }}
+                    className="text-xs bg-[#1a3a6c] hover:bg-[#15305a] text-white"
+                  >
+                    Dodaj opis naprawy
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => toggleSection('naprawa')}
+                    className="text-xs"
+                  >
+                    {expandedSections.naprawa ? 'Zwiń' : 'Rozwiń'}
+                  </Button>
                 </div>
               </div>
-              <div className="p-4">
-                {expandedSections.naprawa && eventId ? (
-                  <div className="border rounded-lg overflow-hidden">
-                <RepairDetailsSection
-                  eventId={eventId}
-                  autoShowForm={autoShowRepairForm}
-                  onAutoShowFormHandled={() => setAutoShowRepairForm(false)}
-                />
-                  </div>
-                ) : (
+            </div>
+            <div className="p-4">
+              {expandedSections.naprawa && eventId ? (
+                <div className="border rounded-lg overflow-hidden">
+                  <RepairDetailsSection
+                    eventId={eventId}
+                    autoShowForm={autoShowRepairForm}
+                    onAutoShowFormHandled={() => setAutoShowRepairForm(false)}
+                  />
+                </div>
+              ) : (
                 <div className="space-y-4">
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <InfoCard
@@ -2771,7 +2225,6 @@ const renderParticipantDetails = (participant: ParticipantInfo | undefined, titl
                       value="W realizacji"
                     />
                   </div>
-
                   <div className="space-y-2">
                     <div className="bg-gray-50 rounded-lg p-3 border border-gray-200">
                       <div className="flex items-center justify-between mb-2">
@@ -2795,7 +2248,6 @@ const renderParticipantDetails = (participant: ParticipantInfo | undefined, titl
                         </div>
                       </div>
                     </div>
-
                     <div className="bg-gray-50 rounded-lg p-3 border border-gray-200">
                       <div className="flex items-center justify-between mb-2">
                         <h4 className="font-medium text-gray-900 text-sm">Wymiana reflektora</h4>
@@ -2818,7 +2270,6 @@ const renderParticipantDetails = (participant: ParticipantInfo | undefined, titl
                         </div>
                       </div>
                     </div>
-
                     <div className="bg-gray-50 rounded-lg p-3 border border-gray-200">
                       <div className="flex items-center justify-between mb-2">
                         <h4 className="font-medium text-gray-900 text-sm">Lakierowanie maski</h4>
@@ -2842,20 +2293,21 @@ const renderParticipantDetails = (participant: ParticipantInfo | undefined, titl
                       </div>
                     </div>
                   </div>
-
                   <div className="text-center pt-2">
-                    <p className="text-xs text-gray-400">Kliknij "Rozwiń" aby zobaczyć pełne szczegóły naprawy</p>
+                    <p className="text-xs text-gray-400">Kliknij \"Rozwiń\" aby zobaczyć pełne szczegóły naprawy</p>
                   </div>
                 </div>
               )}
             </div>
           </div>
         </div>
+
       </div>
     )
       }
     }
     }
+
 
     default:
       return (

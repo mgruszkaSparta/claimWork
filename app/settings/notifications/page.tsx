@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
 import { Checkbox } from "@/components/ui/checkbox"
-import { apiService, ClaimNotificationSettings } from "@/lib/api"
+import { apiService, ClaimNotificationSettings, MAX_NOTIFICATION_RECIPIENTS } from "@/lib/api"
 
 const eventOptions = [
   "ClaimCreated",
@@ -22,15 +22,22 @@ const eventOptions = [
 ]
 
 export default function NotificationSettingsPage() {
-  const [settings, setSettings] = useState<ClaimNotificationSettings>({ recipients: ["", "", ""], events: [] })
+  const [settings, setSettings] = useState<ClaimNotificationSettings>({
+    recipients: ["", "", ""],
+    events: [],
+  })
+  const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
     const load = async () => {
       const data = await apiService.getNotificationSettings()
       setSettings({
-        recipients: [0,1,2].map(i => data.recipients[i] || ""),
+        recipients: [0, 1, 2].map(i => data.recipients[i] || ""),
         events: data.events || [],
       })
+      if ((data.recipients?.length || 0) > MAX_NOTIFICATION_RECIPIENTS) {
+        setError(`Można podać maksymalnie ${MAX_NOTIFICATION_RECIPIENTS} adresy e-mail`)
+      }
     }
     load()
   }, [])
@@ -52,8 +59,14 @@ export default function NotificationSettingsPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    const recipients = settings.recipients.filter(r => r)
+    if (recipients.length > MAX_NOTIFICATION_RECIPIENTS) {
+      setError(`Można podać maksymalnie ${MAX_NOTIFICATION_RECIPIENTS} adresy e-mail`)
+      return
+    }
+    setError(null)
     await apiService.updateNotificationSettings({
-      recipients: settings.recipients.filter(r => r),
+      recipients,
       events: settings.events,
     })
   }
@@ -64,9 +77,10 @@ export default function NotificationSettingsPage() {
       <form onSubmit={handleSubmit} className="space-y-6 max-w-xl">
         <div className="space-y-4">
           <h2 className="text-xl font-medium">Adresaci powiadomień</h2>
-          {[0,1,2].map(i => (
+          {error && <p className="text-sm text-red-500">{error}</p>}
+          {[0, 1, 2].map(i => (
             <div key={i}>
-              <Label htmlFor={`recipient-${i}`}>Email {i+1}</Label>
+              <Label htmlFor={`recipient-${i}`}>Email {i + 1}</Label>
               <Input
                 id={`recipient-${i}`}
                 type="email"

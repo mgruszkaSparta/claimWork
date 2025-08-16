@@ -111,6 +111,8 @@ export interface ClaimNotificationSettings {
   events: string[]
 }
 
+export const MAX_NOTIFICATION_RECIPIENTS = 3
+
 export interface EventUpsertDto {
   id?: string
   rowVersion?: string
@@ -1065,13 +1067,21 @@ class ApiService {
 
   // Notification settings API
   async getNotificationSettings(): Promise<ClaimNotificationSettings> {
-    return this.request<ClaimNotificationSettings>('/ClaimNotifications')
+    const data = await this.request<ClaimNotificationSettings>('/ClaimNotifications')
+    return {
+      recipients: data.recipients.slice(0, MAX_NOTIFICATION_RECIPIENTS),
+      events: data.events,
+    }
   }
 
   async updateNotificationSettings(data: ClaimNotificationSettings): Promise<void> {
+    const payload: ClaimNotificationSettings = {
+      recipients: data.recipients.slice(0, MAX_NOTIFICATION_RECIPIENTS),
+      events: data.events,
+    }
     await this.request<void>('/ClaimNotifications', {
       method: 'PUT',
-      body: JSON.stringify(data),
+      body: JSON.stringify(payload),
     })
   }
 

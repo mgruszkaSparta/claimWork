@@ -14,6 +14,10 @@ using System.Security.Claims;
 using Microsoft.AspNetCore.Identity;
 using AutomotiveClaimsApi.Services;
 
+using Microsoft.AspNetCore.Http;
+
+using Microsoft.Extensions.Configuration;
+
 namespace AutomotiveClaimsApi.Controllers
 {
     [ApiController]
@@ -26,14 +30,32 @@ namespace AutomotiveClaimsApi.Controllers
         private readonly UserManager<ApplicationUser>? _userManager;
         private readonly INotificationService? _notificationService;
 
+        private readonly IDocumentService _documentService;
+        private readonly IConfiguration _config;
+
+        public ClaimsController(
+            ApplicationDbContext context,
+            ILogger<ClaimsController> logger,
+
+
+
         public ClaimsController(ApplicationDbContext context, ILogger<ClaimsController> logger,
+
+            IConfiguration config,
             UserManager<ApplicationUser>? userManager = null,
-            INotificationService? notificationService = null)
+            INotificationService? notificationService = null,
+            IDocumentService? documentService = null)
         {
             _context = context;
             _logger = logger;
+            _config = config;
             _userManager = userManager;
             _notificationService = notificationService;
+
+            _documentService = documentService ?? throw new ArgumentNullException(nameof(documentService));
+
+            _config = config;
+
         }
 
         [HttpGet]
@@ -525,6 +547,40 @@ namespace AutomotiveClaimsApi.Controllers
             {
                 _logger.LogError(ex, "Error deleting event {EventId}", id);
                 return StatusCode(500, new { error = "An error occurred while deleting the event" });
+            }
+        }
+
+        [HttpPost("{id}/attachments")]
+        public async Task<ActionResult<IEnumerable<DocumentDto>>> UploadClaimAttachments(Guid id, [FromForm] List<IFormFile> files, [FromForm] string? description)
+        {
+            try
+            {
+                if (files == null || files.Count == 0)
+                {
+                    return BadRequest(new { error = "No files provided" });
+                }
+
+                var results = new List<DocumentDto>();
+                foreach (var file in files)
+                {
+                    var docDto = await _documentService.UploadAndCreateDocumentAsync(file, new CreateDocumentDto
+                    {
+                        File = file,
+                        Category = "claims",
+                        Description = description,
+                        EventId = id,
+                        RelatedEntityId = id,
+                        RelatedEntityType = "Claim"
+                    });
+                    results.Add(docDto);
+                }
+
+                return Ok(results);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error uploading attachments for claim {ClaimId}", id);
+                return StatusCode(500, new { error = "Failed to upload attachments" });
             }
         }
 
@@ -1210,6 +1266,12 @@ namespace AutomotiveClaimsApi.Controllers
                         FirstName = dDto.FirstName,
                         LastName = dDto.LastName,
                         Phone = dDto.Phone,
+                        Email = dDto.Email,
+                        Address = dDto.Address,
+                        City = dDto.City,
+                        PostalCode = dDto.PostalCode,
+                        Country = dDto.Country,
+                        PersonalId = dDto.PersonalId,
                         LicenseNumber = dDto.LicenseNumber,
                         LicenseState = dDto.LicenseState,
                         LicenseExpirationDate = dDto.LicenseExpirationDate,
@@ -1234,6 +1296,12 @@ namespace AutomotiveClaimsApi.Controllers
                 driver.FirstName = dDto.FirstName;
                 driver.LastName = dDto.LastName;
                 driver.Phone = dDto.Phone;
+                driver.Email = dDto.Email;
+                driver.Address = dDto.Address;
+                driver.City = dDto.City;
+                driver.PostalCode = dDto.PostalCode;
+                driver.Country = dDto.Country;
+                driver.PersonalId = dDto.PersonalId;
                 driver.LicenseNumber = dDto.LicenseNumber;
                 driver.LicenseState = dDto.LicenseState;
                 driver.LicenseExpirationDate = dDto.LicenseExpirationDate;
@@ -1251,6 +1319,12 @@ namespace AutomotiveClaimsApi.Controllers
                     FirstName = dDto.FirstName,
                     LastName = dDto.LastName,
                     Phone = dDto.Phone,
+                    Email = dDto.Email,
+                    Address = dDto.Address,
+                    City = dDto.City,
+                    PostalCode = dDto.PostalCode,
+                    Country = dDto.Country,
+                    PersonalId = dDto.PersonalId,
                     LicenseNumber = dDto.LicenseNumber,
                     LicenseState = dDto.LicenseState,
                     LicenseExpirationDate = dDto.LicenseExpirationDate,
@@ -1317,6 +1391,12 @@ namespace AutomotiveClaimsApi.Controllers
                 FirstName = dto.FirstName,
                 LastName = dto.LastName,
                 Phone = dto.Phone,
+                Email = dto.Email,
+                Address = dto.Address,
+                City = dto.City,
+                PostalCode = dto.PostalCode,
+                Country = dto.Country,
+                PersonalId = dto.PersonalId,
                 LicenseNumber = dto.LicenseNumber,
                 LicenseState = dto.LicenseState,
                 LicenseExpirationDate = dto.LicenseExpirationDate,
@@ -1518,8 +1598,11 @@ namespace AutomotiveClaimsApi.Controllers
             };
         }
 
-        private static ClaimDto MapEventToDto(Event e) => new ClaimDto
+        private ClaimDto MapEventToDto(Event e)
         {
+            var baseUrl = _config["App:BaseUrl"];
+            return new ClaimDto
+            {
             Id = e.Id.ToString(),
             ClaimNumber = e.ClaimNumber,
             SpartaNumber = e.SpartaNumber,
@@ -1617,12 +1700,19 @@ namespace AutomotiveClaimsApi.Controllers
                     FirstName = d.FirstName,
                     LastName = d.LastName,
                     Phone = d.Phone,
+                    Email = d.Email,
+                    Address = d.Address,
+                    City = d.City,
+                    PostalCode = d.PostalCode,
+                    Country = d.Country,
+                    PersonalId = d.PersonalId,
                     LicenseNumber = d.LicenseNumber,
                     LicenseState = d.LicenseState,
                     LicenseExpirationDate = d.LicenseExpirationDate,
                     IsMainDriver = d.IsMainDriver
                 }).ToList()
             }).ToList(),
+
             Documents = e.Documents.Select(d => new DocumentDto
             {
                 Id = d.Id,
@@ -1630,6 +1720,7 @@ namespace AutomotiveClaimsApi.Controllers
                 FileName = d.FileName,
                 OriginalFileName = d.OriginalFileName,
                 FilePath = d.FilePath,
+                CloudUrl = d.CloudUrl,
                 FileSize = d.FileSize,
                 ContentType = d.ContentType,
                 Category = d.DocumentType,
@@ -1638,9 +1729,10 @@ namespace AutomotiveClaimsApi.Controllers
                 IsActive = !d.IsDeleted,
                 CreatedAt = d.CreatedAt,
                 UpdatedAt = d.UpdatedAt,
-                DownloadUrl = $"/api/documents/{d.Id}/download",
-                PreviewUrl = $"/api/documents/{d.Id}/preview",
+                DownloadUrl = $"{baseUrl}/api/documents/{d.Id}/download",
+                PreviewUrl = $"{baseUrl}/api/documents/{d.Id}/preview",
                 CanPreview = true
+
             }).ToList(),
             Damages = e.Damages.Select(d => new DamageDto
             {

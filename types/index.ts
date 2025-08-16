@@ -219,6 +219,7 @@ export interface Appeal {
   documentPath?: string
   documentName?: string
   documentDescription?: string
+  documents?: UploadedFile[]
 }
 
 export interface ClientClaim {
@@ -241,6 +242,7 @@ export interface ClientClaim {
    * Local-only fields for client-side handling
    */
   document?: UploadedFile
+  documents?: UploadedFile[]
   claimId?: string
 }
 
@@ -263,6 +265,7 @@ export interface UploadedFile {
   type: "image" | "pdf" | "doc" | "video" | "other"
   uploadedAt: string // ISO timestamp when the file was uploaded
   url: string
+  cloudUrl?: string
   /** Human readable category name for UI display */
   category?: string
   /** Machine readable category code for API communication */
@@ -291,5 +294,10 @@ export interface DocumentsSectionProps {
   pendingFiles?: UploadedFile[]
   setPendingFiles?: React.Dispatch<React.SetStateAction<UploadedFile[]>>
 
-
+  /**
+   * Optional key used to persist user preferences (e.g. view mode) for each
+   * section separately. When provided, UI state is stored in localStorage under
+   * this key so changing the view in one section doesn't affect others.
+   */
+  storageKey?: string
 }

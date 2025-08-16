@@ -42,10 +42,11 @@ namespace AutomotiveClaimsApi.Controllers
             var settlements = await _context.Settlements
                 .Where(s => s.EventId == eventId)
                 .OrderByDescending(s => s.CreatedAt)
-                .Select(s => MapToDto(s))
                 .ToListAsync();
 
-            return Ok(settlements);
+            var dtos = settlements.Select(s => MapToDto(s)).ToList();
+
+            return Ok(dtos);
         }
 
         [HttpGet("{id}")]
@@ -86,24 +87,40 @@ namespace AutomotiveClaimsApi.Controllers
                 UpdatedAt = DateTime.UtcNow
             };
 
-            if (createDto.Document != null)
-            {
-                try
-                {
-                    var docResult = await _documentService.SaveDocumentAsync(createDto.Document, "settlements", createDto.DocumentDescription);
-                    settlement.DocumentPath = docResult.FilePath;
-                    settlement.DocumentName = docResult.OriginalFileName;
-                    settlement.DocumentDescription = createDto.DocumentDescription;
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogError(ex, "Error saving document for settlement {SettlementId}", settlement.Id);
-                    return StatusCode(500, new { error = "Failed to save document" });
-                }
-            }
-
             _context.Settlements.Add(settlement);
             await _context.SaveChangesAsync();
+
+            if (createDto.Documents != null && createDto.Documents.Any())
+            {
+                foreach (var file in createDto.Documents)
+                {
+                    try
+                    {
+                        var docDto = await _documentService.UploadAndCreateDocumentAsync(file, new CreateDocumentDto
+                        {
+                            File = file,
+                            Category = "settlements",
+                            Description = createDto.DocumentDescription,
+                            EventId = createDto.EventId,
+                            RelatedEntityId = settlement.Id,
+                            RelatedEntityType = "Settlement"
+                        });
+
+                        if (string.IsNullOrEmpty(settlement.DocumentPath))
+                        {
+                            settlement.DocumentPath = docDto.FilePath;
+                            settlement.DocumentName = docDto.OriginalFileName;
+                            settlement.DocumentDescription = createDto.DocumentDescription;
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError(ex, "Error saving document for settlement {SettlementId}", settlement.Id);
+                        return StatusCode(500, new { error = "Failed to save document" });
+                    }
+                }
+                await _context.SaveChangesAsync();
+            }
 
             if (_notificationService != null)
             {
@@ -155,31 +172,34 @@ namespace AutomotiveClaimsApi.Controllers
             settlement.Description = updateDto.Description;
             settlement.UpdatedAt = DateTime.UtcNow;
 
-            if (updateDto.Document != null)
+            if (updateDto.Documents != null && updateDto.Documents.Any())
             {
-                if (!string.IsNullOrEmpty(settlement.DocumentPath))
+                foreach (var file in updateDto.Documents)
                 {
                     try
                     {
-                        await _documentService.DeleteDocumentAsync(settlement.DocumentPath);
+                        var docDto = await _documentService.UploadAndCreateDocumentAsync(file, new CreateDocumentDto
+                        {
+                            File = file,
+                            Category = "settlements",
+                            Description = updateDto.DocumentDescription,
+                            EventId = settlement.EventId,
+                            RelatedEntityId = settlement.Id,
+                            RelatedEntityType = "Settlement"
+                        });
+
+                        if (string.IsNullOrEmpty(settlement.DocumentPath))
+                        {
+                            settlement.DocumentPath = docDto.FilePath;
+                            settlement.DocumentName = docDto.OriginalFileName;
+                            settlement.DocumentDescription = updateDto.DocumentDescription;
+                        }
                     }
                     catch (Exception ex)
                     {
-                        _logger.LogError(ex, "Error deleting document for settlement {SettlementId}", id);
-                        return StatusCode(500, new { error = "Failed to delete existing document" });
+                        _logger.LogError(ex, "Error saving document for settlement {SettlementId}", id);
+                        return StatusCode(500, new { error = "Failed to save document" });
                     }
-                }
-                try
-                {
-                    var docResult = await _documentService.SaveDocumentAsync(updateDto.Document, "settlements", updateDto.DocumentDescription);
-                    settlement.DocumentPath = docResult.FilePath;
-                    settlement.DocumentName = docResult.OriginalFileName;
-                    settlement.DocumentDescription = updateDto.DocumentDescription;
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogError(ex, "Error saving document for settlement {SettlementId}", id);
-                    return StatusCode(500, new { error = "Failed to save document" });
                 }
             }
             else if (updateDto.DocumentDescription != null)
@@ -250,6 +270,64 @@ namespace AutomotiveClaimsApi.Controllers
             return File(fileStream, contentType);
         }
 
+        [HttpGet("{settlementId}/documents/{docId}/download")]
+        public async Task<IActionResult> DownloadSettlementDocument(Guid settlementId, Guid docId)
+        {
+            try
+            {
+                var document = await _context.Documents
+                    .Where(d => d.Id == docId && d.RelatedEntityType == "Settlement" && d.RelatedEntityId == settlementId && !d.IsDeleted)
+                    .FirstOrDefaultAsync();
+
+                if (document == null)
+                {
+                    return NotFound();
+                }
+
+                var result = await _documentService.DownloadDocumentAsync(docId);
+                if (result == null)
+                {
+                    return NotFound();
+                }
+
+                return File(result.FileStream, result.ContentType, result.FileName);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error downloading document {DocId} for settlement {SettlementId}", docId, settlementId);
+                return StatusCode(500, new { error = "Failed to download document" });
+            }
+        }
+
+        [HttpGet("{settlementId}/documents/{docId}/preview")]
+        public async Task<IActionResult> PreviewSettlementDocument(Guid settlementId, Guid docId)
+        {
+            try
+            {
+                var document = await _context.Documents
+                    .Where(d => d.Id == docId && d.RelatedEntityType == "Settlement" && d.RelatedEntityId == settlementId && !d.IsDeleted)
+                    .FirstOrDefaultAsync();
+
+                if (document == null)
+                {
+                    return NotFound();
+                }
+
+                var result = await _documentService.DownloadDocumentAsync(docId);
+                if (result == null)
+                {
+                    return NotFound();
+                }
+
+                return File(result.FileStream, result.ContentType);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error previewing document {DocId} for settlement {SettlementId}", docId, settlementId);
+                return StatusCode(500, new { error = "Failed to preview document" });
+            }
+        }
+
         [HttpGet("event/{eventId}/summary")]
         public async Task<ActionResult<object>> GetSettlementsSummary(Guid eventId)
         {
@@ -274,8 +352,33 @@ namespace AutomotiveClaimsApi.Controllers
             });
         }
 
-        private static SettlementDto MapToDto(Settlement s)
+        private SettlementDto MapToDto(Settlement s)
         {
+            var documents = _context.Documents
+                .Where(d => d.RelatedEntityType == "Settlement" && d.RelatedEntityId == s.Id && !d.IsDeleted)
+                .Select(d => new DocumentDto
+                {
+                    Id = d.Id,
+                    EventId = d.EventId,
+                    FileName = d.FileName,
+                    OriginalFileName = d.OriginalFileName,
+                    FilePath = d.FilePath,
+                    FileSize = d.FileSize,
+                    ContentType = d.ContentType,
+                    Category = d.DocumentType,
+                    Description = d.Description,
+                    UploadedBy = d.UploadedBy,
+                    IsActive = !d.IsDeleted,
+                    CreatedAt = d.CreatedAt,
+                    UpdatedAt = d.UpdatedAt,
+                    DownloadUrl = $"/api/settlements/{s.Id}/documents/{d.Id}/download",
+                    PreviewUrl = $"/api/settlements/{s.Id}/documents/{d.Id}/preview",
+                    CanPreview = true
+                })
+                .ToList();
+
+            var documentId = documents.FirstOrDefault()?.Id.ToString();
+
             return new SettlementDto
             {
                 Id = s.Id.ToString(),
@@ -294,6 +397,8 @@ namespace AutomotiveClaimsApi.Controllers
                 DocumentPath = s.DocumentPath,
                 DocumentName = s.DocumentName,
                 DocumentDescription = s.DocumentDescription,
+                DocumentId = documentId,
+                Documents = documents,
                 SettlementNumber = s.SettlementNumber,
                 SettlementType = s.SettlementType,
                 SettlementAmount = s.SettlementAmount,

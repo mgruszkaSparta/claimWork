@@ -46,7 +46,7 @@ export interface EventListItemDto {
   damageType?: string
   leasingCompanyId?: number
   leasingCompany?: string
-  handlerId?: string
+  handlerId?: number
   handler?: string
   objectTypeId?: number
   registeredById?: string
@@ -67,7 +67,7 @@ export interface EventDto extends EventListItemDto {
   servicesCalled?: string
 
   insuranceCompanyId?: number
-  handlerId?: string
+  handlerId?: number
   riskType?: string
   damageType?: string
   subcontractorName?: string
@@ -95,6 +95,7 @@ export interface DocumentDto {
   fileName: string
   originalFileName?: string
   filePath: string
+  cloudUrl?: string
   fileSize: number
   contentType: string
   category?: string
@@ -133,7 +134,7 @@ export interface EventUpsertDto {
   insuranceCompany?: string
   leasingCompanyId?: number
   leasingCompany?: string
-  handlerId?: string
+  handlerId?: number
   handler?: string
   damageDate?: string
   reportDate?: string
@@ -495,6 +496,7 @@ export interface AppealDto {
   documentName?: string
   documentDescription?: string
   documentId?: string
+  documents?: DocumentDto[]
   createdAt?: string
   updatedAt?: string
   daysSinceSubmission?: number
@@ -570,6 +572,8 @@ export interface RecourseDto {
   documentPath?: string
   documentName?: string
   documentDescription?: string
+  documentId?: string
+  documents?: DocumentDto[]
   createdAt?: string
   updatedAt?: string
 }
@@ -614,6 +618,8 @@ export interface SettlementDto {
   documentPath?: string
   documentName?: string
   documentDescription?: string
+  documentId?: string
+  documents?: DocumentDto[]
 }
 
 export interface SettlementUpsertDto {

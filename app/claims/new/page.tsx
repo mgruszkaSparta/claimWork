@@ -18,6 +18,8 @@ import { Save, ArrowLeft, Plus, Calendar, Wrench, X } from 'lucide-react'
 import { ClaimFormSidebar } from "@/components/claim-form/claim-form-sidebar"
 import { ClaimTopHeader } from "@/components/claim-form/claim-top-header"
 import { ClaimMainContent } from "@/components/claim-form/claim-main-content"
+import { PropertyClaimForm } from "@/components/claim-form/property-claim-form"
+import { TransportClaimForm } from "@/components/claim-form/transport-claim-form"
 import { useClaimForm } from "@/hooks/use-claim-form"
 import { useClaims } from "@/hooks/use-claims"
 import { useAuth } from "@/hooks/use-auth"
@@ -50,10 +52,22 @@ interface RepairSchedule {
   updatedAt?: string
 }
 
+interface RiskType {
+  value: string
+  label: string
+}
+
+interface ClaimStatus {
+  id: number
+  name: string
+  description: string
+}
+
 export default function NewClaimPage() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const claimObjectTypeParam = searchParams.get("claimObjectType") || "1"
+  const [claimObjectType, setClaimObjectType] = useState(claimObjectTypeParam)
   const { toast } = useToast()
   const { createClaim, deleteClaim, initializeClaim } = useClaims()
   const { user } = useAuth()
@@ -69,6 +83,11 @@ export default function NewClaimPage() {
   const [scheduleFormData, setScheduleFormData] = useState<Partial<RepairSchedule>>({})
   const [repairDetailFormData, setRepairDetailFormData] = useState<Partial<RepairDetail>>({})
   const [employeesForSelectedBranch, setEmployeesForSelectedBranch] = useState<Employee[]>([])
+
+  const [riskTypes, setRiskTypes] = useState<RiskType[]>([])
+  const [loadingRiskTypes, setLoadingRiskTypes] = useState(false)
+  const [claimStatuses, setClaimStatuses] = useState<ClaimStatus[]>([])
+  const [loadingStatuses, setLoadingStatuses] = useState(false)
 
   const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([
     {
@@ -151,6 +170,57 @@ export default function NewClaimPage() {
         .catch((e) => console.error(e))
     }
   }, [searchParams, setClaimFormData])
+
+  useEffect(() => {
+    loadRiskTypes()
+    loadClaimStatuses()
+  }, [claimObjectType])
+
+  const loadRiskTypes = async () => {
+    setLoadingRiskTypes(true)
+    try {
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/dictionaries/risk-types?claimObjectTypeId=${claimObjectType}`,
+        {
+          method: "GET",
+          credentials: "include",
+        },
+      )
+      if (response.ok) {
+        const data = await response.json()
+        const riskTypeOptions = (data.items || []).map((item: any) => ({
+          value: String(item.id),
+          label: item.name,
+        }))
+        setRiskTypes(riskTypeOptions)
+      }
+    } catch (error) {
+      console.error("Error loading risk types:", error)
+    } finally {
+      setLoadingRiskTypes(false)
+    }
+  }
+
+  const loadClaimStatuses = async () => {
+    setLoadingStatuses(true)
+    try {
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/dictionaries/claim-statuses`,
+        {
+          method: "GET",
+          credentials: "include",
+        },
+      )
+      if (response.ok) {
+        const data = await response.json()
+        setClaimStatuses(data.items ?? [])
+      }
+    } catch (error) {
+      console.error("Error loading claim statuses:", error)
+    } finally {
+      setLoadingStatuses(false)
+    }
+  }
 
   const getInitialScheduleData = (): Partial<RepairSchedule> => ({
     eventId: "new",
@@ -412,25 +482,67 @@ export default function NewClaimPage() {
         <ClaimFormSidebar
           activeClaimSection={activeClaimSection}
           setActiveClaimSection={setActiveClaimSection}
-          claimObjectType={claimObjectTypeParam}
+          claimObjectType={claimObjectType}
         />
-        
+
         <div className="flex-1 overflow-y-auto bg-gray-50">
           <div className="p-6 min-h-full">
-            <ClaimMainContent
-              activeClaimSection={activeClaimSection}
-              claimFormData={claimFormData}
-              handleFormChange={handleFormChange}
-              handleParticipantChange={handleParticipantChange}
-              handleDriverChange={handleDriverChange}
-              handleAddDriver={handleAddDriver}
-              handleRemoveDriver={handleRemoveDriver}
-              uploadedFiles={uploadedFiles}
-              setUploadedFiles={setUploadedFiles}
-              requiredDocuments={requiredDocuments}
-              setRequiredDocuments={setRequiredDocuments}
-              initialClaimObjectType={claimObjectTypeParam}
-            />
+            {claimObjectType === "1" && (
+              <ClaimMainContent
+                activeClaimSection={activeClaimSection}
+                claimFormData={claimFormData}
+                handleFormChange={handleFormChange}
+                handleParticipantChange={handleParticipantChange}
+                handleDriverChange={handleDriverChange}
+                handleAddDriver={handleAddDriver}
+                handleRemoveDriver={handleRemoveDriver}
+                uploadedFiles={uploadedFiles}
+                setUploadedFiles={setUploadedFiles}
+                requiredDocuments={requiredDocuments}
+                setRequiredDocuments={setRequiredDocuments}
+                initialClaimObjectType={claimObjectType}
+              />
+            )}
+            {claimObjectType === "2" && (
+              <PropertyClaimForm
+                claimFormData={claimFormData}
+                handleFormChange={handleFormChange}
+                handleParticipantChange={handleParticipantChange}
+                handleDriverChange={handleDriverChange}
+                handleAddDriver={handleAddDriver}
+                handleRemoveDriver={handleRemoveDriver}
+                uploadedFiles={uploadedFiles}
+                setUploadedFiles={setUploadedFiles}
+                requiredDocuments={requiredDocuments}
+                setRequiredDocuments={setRequiredDocuments}
+                claimObjectType={claimObjectType}
+                setClaimObjectType={setClaimObjectType}
+                riskTypes={riskTypes}
+                loadingRiskTypes={loadingRiskTypes}
+                claimStatuses={claimStatuses}
+                loadingStatuses={loadingStatuses}
+              />
+            )}
+            {claimObjectType === "3" && (
+              <TransportClaimForm
+                claimFormData={claimFormData}
+                handleFormChange={handleFormChange}
+                handleParticipantChange={handleParticipantChange}
+                handleDriverChange={handleDriverChange}
+                handleAddDriver={handleAddDriver}
+                handleRemoveDriver={handleRemoveDriver}
+                uploadedFiles={uploadedFiles}
+                setUploadedFiles={setUploadedFiles}
+                requiredDocuments={requiredDocuments}
+                setRequiredDocuments={setRequiredDocuments}
+                claimObjectType={claimObjectType}
+                setClaimObjectType={setClaimObjectType}
+                riskTypes={riskTypes}
+                loadingRiskTypes={loadingRiskTypes}
+                claimStatuses={claimStatuses}
+                loadingStatuses={loadingStatuses}
+              />
+            )}
 
             {/* Repair Schedules and Details Section */}
             {activeClaimSection === "harmonogram-naprawy" && (

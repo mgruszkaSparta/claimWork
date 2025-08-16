@@ -44,6 +44,7 @@ import {
   updateAppeal,
   deleteAppeal as apiDeleteAppeal,
   Appeal,
+  AppealUpsert,
 } from "@/lib/api/appeals"
 import { API_BASE_URL } from "@/lib/api"
 
@@ -283,34 +284,26 @@ export const AppealsSection = ({ claimId }: AppealsSectionProps) => {
 
     setIsLoading(true)
     try {
-      const payload = new FormData()
-      if (!isEditing) {
-        payload.append("EventId", claimId)
-      }
-      payload.append("FilingDate", formData.filingDate)
-      if (formData.extensionDate) {
-        payload.append("ExtensionDate", formData.extensionDate)
-      }
-      if (formData.responseDate) {
-        payload.append("DecisionDate", formData.responseDate)
-      }
       const status = formData.responseDate ? "Zamknięte" : formData.status
-      if (status) {
-        payload.append("Status", status)
+      const payload: AppealUpsert = {
+        filingDate: formData.filingDate,
+        extensionDate: formData.extensionDate || undefined,
+        decisionDate: formData.responseDate || undefined,
+        status,
+        documentDescription: formData.documentDescription || undefined,
       }
-      if (formData.documentDescription) {
-        payload.append("DocumentDescription", formData.documentDescription)
+      if (!isEditing) {
+        payload.eventId = claimId
       }
-      selectedFiles.forEach((file) => payload.append("Document", file))
 
       if (isEditing && editingId) {
-        await updateAppeal(editingId, payload)
+        await updateAppeal(editingId, payload, selectedFiles)
         toast({
           title: "Sukces",
           description: "Odwołanie zostało zaktualizowane",
         })
       } else {
-        await createAppeal(payload)
+        await createAppeal(payload, selectedFiles)
         toast({
           title: "Sukces",
           description: "Odwołanie zostało dodane",

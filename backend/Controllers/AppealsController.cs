@@ -98,19 +98,32 @@ namespace AutomotiveClaimsApi.Controllers
                     UpdatedAt = DateTime.UtcNow
                 };
 
-                if (createDto.Document != null && createDto.Document.Length > 0)
+                if (createDto.Documents != null && createDto.Documents.Any())
                 {
-                    var documentResult = await _documentService.SaveDocumentAsync(
-                        createDto.Document,
-                        "appeals",
-                        createDto.DocumentDescription
-                    );
+                    foreach (var doc in createDto.Documents)
+                    {
+                        if (doc.Length > 0)
+                        {
+                            var documentResult = await _documentService.SaveDocumentAsync(
+                                doc,
+                                "appeals",
+                                createDto.DocumentDescription
+                            );
 
-                    appeal.DocumentPath = documentResult.FilePath;
-                    appeal.DocumentName = documentResult.OriginalFileName;
-                    appeal.DocumentDescription = createDto.DocumentDescription;
+                            if (string.IsNullOrEmpty(appeal.DocumentPath))
+                            {
+                                appeal.DocumentPath = documentResult.FilePath;
+                                appeal.DocumentName = documentResult.OriginalFileName;
+                                appeal.DocumentDescription = createDto.DocumentDescription;
+                            }
+                        }
+                        else
+                        {
+                            return BadRequest(new { error = "Document file is empty" });
+                        }
+                    }
                 }
-                else if (createDto.Document != null)
+                else if (createDto.Documents != null)
                 {
                     return BadRequest(new { error = "Document file is empty" });
                 }
@@ -169,24 +182,37 @@ namespace AutomotiveClaimsApi.Controllers
                 appeal.DecisionDate = updateDto.DecisionDate;
                 appeal.UpdatedAt = DateTime.UtcNow;
 
-                if (updateDto.Document != null && updateDto.Document.Length > 0)
+                if (updateDto.Documents != null && updateDto.Documents.Any())
                 {
                     if (!string.IsNullOrEmpty(appeal.DocumentPath))
                     {
                         await _documentService.DeleteDocumentAsync(appeal.DocumentPath);
                     }
 
-                    var documentResult = await _documentService.SaveDocumentAsync(
-                        updateDto.Document,
-                        "appeals",
-                        updateDto.DocumentDescription
-                    );
+                    foreach (var doc in updateDto.Documents)
+                    {
+                        if (doc.Length > 0)
+                        {
+                            var documentResult = await _documentService.SaveDocumentAsync(
+                                doc,
+                                "appeals",
+                                updateDto.DocumentDescription
+                            );
 
-                    appeal.DocumentPath = documentResult.FilePath;
-                    appeal.DocumentName = documentResult.OriginalFileName;
-                    appeal.DocumentDescription = updateDto.DocumentDescription;
+                            if (string.IsNullOrEmpty(appeal.DocumentPath))
+                            {
+                                appeal.DocumentPath = documentResult.FilePath;
+                                appeal.DocumentName = documentResult.OriginalFileName;
+                                appeal.DocumentDescription = updateDto.DocumentDescription;
+                            }
+                        }
+                        else
+                        {
+                            return BadRequest(new { error = "Document file is empty" });
+                        }
+                    }
                 }
-                else if (updateDto.Document != null)
+                else if (updateDto.Documents != null)
                 {
                     return BadRequest(new { error = "Document file is empty" });
                 }

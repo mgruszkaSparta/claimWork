@@ -161,6 +161,75 @@ namespace AutomotiveClaimsApi.Tests
         }
 
         [Fact]
+        public async Task UpdateClaim_UpdatesDriverPersonalData_WhenModified()
+        {
+            var options = new DbContextOptionsBuilder<ApplicationDbContext>()
+                .UseInMemoryDatabase(Guid.NewGuid().ToString())
+                .Options;
+
+            await using var context = new ApplicationDbContext(options);
+            var ev = new Event { Id = Guid.NewGuid(), CreatedAt = DateTime.UtcNow, UpdatedAt = DateTime.UtcNow };
+            var participant = new Participant { Id = Guid.NewGuid(), EventId = ev.Id, Name = "p" };
+            var driver = new Driver
+            {
+                Id = Guid.NewGuid(),
+                EventId = ev.Id,
+                ParticipantId = participant.Id,
+                FirstName = "Old",
+                LastName = "Driver",
+                Email = "old@example.com",
+                Address = "Old St",
+                City = "Oldtown",
+                PostalCode = "00-000",
+                PersonalId = "OLDID",
+                IsMainDriver = true,
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow
+            };
+            participant.Drivers.Add(driver);
+            ev.Participants.Add(participant);
+            context.Events.Add(ev);
+            await context.SaveChangesAsync();
+
+            var controller = new ClaimsController(context, NullLogger<ClaimsController>.Instance);
+            var dto = new ClaimUpsertDto
+            {
+                Id = ev.Id,
+                Participants = new[]
+                {
+                    new ParticipantUpsertDto
+                    {
+                        Id = participant.Id.ToString(),
+                        Drivers = new[]
+                        {
+                            new DriverUpsertDto
+                            {
+                                Id = driver.Id.ToString(),
+                                FirstName = "New",
+                                LastName = "Driver",
+                                Email = "new@example.com",
+                                Address = "New St",
+                                City = "New City",
+                                PostalCode = "11-111",
+                                PersonalId = "NEWID",
+                                IsMainDriver = true
+                            }
+                        }
+                    }
+                }
+            };
+
+            await controller.UpdateClaim(ev.Id, dto);
+
+            var updated = await context.Drivers.FirstAsync(d => d.Id == driver.Id);
+            Assert.Equal("new@example.com", updated.Email);
+            Assert.Equal("New St", updated.Address);
+            Assert.Equal("New City", updated.City);
+            Assert.Equal("11-111", updated.PostalCode);
+            Assert.Equal("NEWID", updated.PersonalId);
+        }
+
+        [Fact]
         public async Task UpdateClaim_UpdatesDecision_WhenModified()
         {
             var options = new DbContextOptionsBuilder<ApplicationDbContext>()

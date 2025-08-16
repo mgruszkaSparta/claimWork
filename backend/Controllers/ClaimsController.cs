@@ -1605,6 +1605,7 @@ namespace AutomotiveClaimsApi.Controllers
                 FileName = d.FileName,
                 OriginalFileName = d.OriginalFileName,
                 FilePath = d.FilePath,
+                CloudUrl = d.CloudUrl,
                 FileSize = d.FileSize,
                 ContentType = d.ContentType,
                 Category = d.DocumentType,

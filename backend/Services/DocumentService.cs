@@ -25,6 +25,7 @@ namespace AutomotiveClaimsApi.Services
         private readonly string _uploadsPath;
 
         private readonly IGoogleCloudStorageService? _cloudStorage;
+        private readonly IGoogleCloudStorageService? _cloudStorageService;
         private readonly bool _cloudEnabled;
 
         private readonly IConfiguration _config;
@@ -45,6 +46,7 @@ namespace AutomotiveClaimsApi.Services
             _uploadsPath = Path.Combine(environment.ContentRootPath, "uploads");
 
             _cloudStorage = cloudStorage;
+            _cloudStorageService = cloudStorage;
             _cloudEnabled = cloudSettings?.Value.Enabled ?? false;
 
             _config = config;
@@ -197,13 +199,15 @@ namespace AutomotiveClaimsApi.Services
                 return null;
             }
 
-            var cloudPath = !string.IsNullOrEmpty(document.CloudUrl) ? document.CloudUrl : document.FilePath;
-            if (_cloudStorage != null && !string.IsNullOrEmpty(cloudPath) &&
-                Uri.TryCreate(cloudPath, UriKind.Absolute, out var uri) &&
+            var path = !string.IsNullOrEmpty(document.CloudUrl) ? document.CloudUrl : document.FilePath;
+
+            if (_cloudStorageService != null &&
+                Uri.TryCreate(path, UriKind.Absolute, out var uri) &&
                 (uri.Scheme == Uri.UriSchemeHttp || uri.Scheme == Uri.UriSchemeHttps))
             {
-                var stream = await _cloudStorage.GetFileStreamAsync(cloudPath);
+                var stream = await _cloudStorageService.GetFileStreamAsync(path);
                 var fileName = document.OriginalFileName ?? Path.GetFileName(uri.LocalPath);
+
                 return new DocumentDownloadResult
                 {
                     FileStream = stream,

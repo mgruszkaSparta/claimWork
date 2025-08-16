@@ -98,17 +98,24 @@ namespace AutomotiveClaimsApi.Controllers
                     UpdatedAt = DateTime.UtcNow
                 };
 
+                _context.Appeals.Add(appeal);
+                await _context.SaveChangesAsync();
+
                 if (createDto.Documents != null && createDto.Documents.Any())
                 {
                     foreach (var doc in createDto.Documents)
                     {
                         if (doc.Length > 0)
                         {
-                            var documentResult = await _documentService.SaveDocumentAsync(
-                                doc,
-                                "appeals",
-                                createDto.DocumentDescription
-                            );
+                            var documentResult = await _documentService.UploadAndCreateDocumentAsync(doc, new CreateDocumentDto
+                            {
+                                File = doc,
+                                Category = "appeals",
+                                Description = createDto.DocumentDescription,
+                                EventId = createDto.EventId,
+                                RelatedEntityId = appeal.Id,
+                                RelatedEntityType = "Appeal"
+                            });
 
                             if (string.IsNullOrEmpty(appeal.DocumentPath))
                             {
@@ -122,14 +129,12 @@ namespace AutomotiveClaimsApi.Controllers
                             return BadRequest(new { error = "Document file is empty" });
                         }
                     }
+                    await _context.SaveChangesAsync();
                 }
                 else if (createDto.Documents != null)
                 {
                     return BadRequest(new { error = "Document file is empty" });
                 }
-
-                _context.Appeals.Add(appeal);
-                await _context.SaveChangesAsync();
 
                 if (_notificationService != null)
                 {
@@ -184,20 +189,19 @@ namespace AutomotiveClaimsApi.Controllers
 
                 if (updateDto.Documents != null && updateDto.Documents.Any())
                 {
-                    if (!string.IsNullOrEmpty(appeal.DocumentPath))
-                    {
-                        await _documentService.DeleteDocumentAsync(appeal.DocumentPath);
-                    }
-
                     foreach (var doc in updateDto.Documents)
                     {
                         if (doc.Length > 0)
                         {
-                            var documentResult = await _documentService.SaveDocumentAsync(
-                                doc,
-                                "appeals",
-                                updateDto.DocumentDescription
-                            );
+                            var documentResult = await _documentService.UploadAndCreateDocumentAsync(doc, new CreateDocumentDto
+                            {
+                                File = doc,
+                                Category = "appeals",
+                                Description = updateDto.DocumentDescription,
+                                EventId = appeal.EventId,
+                                RelatedEntityId = appeal.Id,
+                                RelatedEntityType = "Appeal"
+                            });
 
                             if (string.IsNullOrEmpty(appeal.DocumentPath))
                             {
@@ -366,10 +370,30 @@ namespace AutomotiveClaimsApi.Controllers
 
         private AppealDto MapToDto(Appeal a)
         {
-            var documentId = _context.Documents
-                .Where(d => d.FilePath == a.DocumentPath && d.RelatedEntityType == "Appeal" && d.RelatedEntityId == a.Id && !d.IsDeleted)
-                .Select(d => d.Id.ToString())
-                .FirstOrDefault();
+            var documents = _context.Documents
+                .Where(d => d.RelatedEntityType == "Appeal" && d.RelatedEntityId == a.Id && !d.IsDeleted)
+                .Select(d => new DocumentDto
+                {
+                    Id = d.Id,
+                    EventId = d.EventId,
+                    FileName = d.FileName,
+                    OriginalFileName = d.OriginalFileName,
+                    FilePath = d.FilePath,
+                    FileSize = d.FileSize,
+                    ContentType = d.ContentType,
+                    Category = d.DocumentType,
+                    Description = d.Description,
+                    UploadedBy = d.UploadedBy,
+                    IsActive = !d.IsDeleted,
+                    CreatedAt = d.CreatedAt,
+                    UpdatedAt = d.UpdatedAt,
+                    DownloadUrl = $"/api/appeals/{a.Id}/documents/{d.Id}/download",
+                    PreviewUrl = $"/api/appeals/{a.Id}/documents/{d.Id}/preview",
+                    CanPreview = true
+                })
+                .ToList();
+
+            var documentId = documents.FirstOrDefault()?.Id.ToString();
 
             return new AppealDto
             {
@@ -390,6 +414,7 @@ namespace AutomotiveClaimsApi.Controllers
                 DocumentName = a.DocumentName,
                 DocumentDescription = a.DocumentDescription,
                 DocumentId = documentId,
+                Documents = documents,
                 CreatedAt = a.CreatedAt,
                 UpdatedAt = a.UpdatedAt
             };

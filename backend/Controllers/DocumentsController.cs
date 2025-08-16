@@ -37,6 +37,7 @@ namespace AutomotiveClaimsApi.Controllers
             _context = context;
             _documentService = documentService;
             _logger = logger;
+            _config = config;
             _userManager = userManager;
             _notificationService = notificationService;
             _config = config;
@@ -74,11 +75,13 @@ namespace AutomotiveClaimsApi.Controllers
                 .OrderByDescending(d => d.CreatedAt)
                 .Skip((page - 1) * pageSize)
                 .Take(pageSize)
-                .Select(d => MapToDto(d))
                 .ToListAsync();
 
+            var baseUrl = _config["App:BaseUrl"];
+            var documentDtos = documents.Select(d => MapToDto(d, baseUrl)).ToList();
+
             Response.Headers.Append("X-Total-Count", totalCount.ToString());
-            return Ok(documents);
+            return Ok(documentDtos);
         }
 
         [HttpGet("{id}")]
@@ -86,13 +89,13 @@ namespace AutomotiveClaimsApi.Controllers
         {
             var document = await _context.Documents
                 .Where(d => d.Id == id && !d.IsDeleted)
-                .Select(d => MapToDto(d))
                 .FirstOrDefaultAsync();
 
             if (document == null)
                 return NotFound();
 
-            return Ok(document);
+            var baseUrl = _config["App:BaseUrl"];
+            return Ok(MapToDto(document, baseUrl));
         }
 
         [HttpPost("upload")]
@@ -186,7 +189,9 @@ namespace AutomotiveClaimsApi.Controllers
             return NoContent();
         }
 
+
         private DocumentDto MapToDto(Document doc)
+
         {
             var baseUrl = _config["App:BaseUrl"] ?? string.Empty;
             return new DocumentDto

@@ -4,6 +4,7 @@ using AutomotiveClaimsApi.Models;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
@@ -22,6 +23,7 @@ namespace AutomotiveClaimsApi.Services
         private readonly ApplicationDbContext _context;
         private readonly ILogger<DocumentService> _logger;
         private readonly string _uploadsPath;
+
         private readonly IGoogleCloudStorageService? _cloudStorage;
         private readonly bool _cloudEnabled;
 
@@ -33,16 +35,20 @@ namespace AutomotiveClaimsApi.Services
             ILogger<DocumentService> logger,
             IWebHostEnvironment environment,
             IConfiguration config,
+
             IGoogleCloudStorageService? cloudStorage = null,
             IOptions<GoogleCloudStorageSettings>? cloudSettings = null)
+
         {
             _context = context;
             _logger = logger;
             _uploadsPath = Path.Combine(environment.ContentRootPath, "uploads");
+
             _cloudStorage = cloudStorage;
             _cloudEnabled = cloudSettings?.Value.Enabled ?? false;
 
             _config = config;
+
 
 
             if (!Directory.Exists(_uploadsPath))
@@ -53,16 +59,20 @@ namespace AutomotiveClaimsApi.Services
 
         public async Task<IEnumerable<DocumentDto>> GetDocumentsByEventIdAsync(Guid eventId)
         {
-            return await _context.Documents
+            var documents = await _context.Documents
                 .Where(d => d.EventId == eventId && !d.IsDeleted)
-                .Select(d => MapToDto(d))
                 .ToListAsync();
+
+            var baseUrl = _config["App:BaseUrl"];
+            return documents.Select(d => MapToDto(d, baseUrl));
         }
 
         public async Task<DocumentDto?> GetDocumentByIdAsync(Guid id)
         {
             var document = await _context.Documents.FindAsync(id);
-            return document != null ? MapToDto(document) : null;
+            if (document == null) return null;
+            var baseUrl = _config["App:BaseUrl"];
+            return MapToDto(document, baseUrl);
         }
 
         public async Task<DocumentDto> UploadDocumentAsync(IFormFile file, string category, string entityId)
@@ -81,18 +91,31 @@ namespace AutomotiveClaimsApi.Services
             if (file == null || file.Length == 0)
                 throw new ArgumentException("File is required.", nameof(file));
 
-            var categoryPath = Path.Combine(_uploadsPath, createDto.Category ?? "other");
-            if (!Directory.Exists(categoryPath))
-            {
-                Directory.CreateDirectory(categoryPath);
-            }
-
             var uniqueFileName = $"{Guid.NewGuid()}{Path.GetExtension(file.FileName)}";
-            var filePath = Path.Combine(categoryPath, uniqueFileName);
+            string filePath;
 
-            await using (var stream = new FileStream(filePath, FileMode.Create))
+            if (_cloudStorageService != null)
             {
-                await file.CopyToAsync(stream);
+                await using var stream = file.OpenReadStream();
+                filePath = await _cloudStorageService.UploadFileAsync(stream, uniqueFileName, file.ContentType);
+            }
+            else
+            {
+                var categoryPath = Path.Combine(_uploadsPath, createDto.Category ?? "other");
+                if (!Directory.Exists(categoryPath))
+                {
+                    Directory.CreateDirectory(categoryPath);
+                }
+
+                var localPath = Path.Combine(categoryPath, uniqueFileName);
+
+                await using (var stream = new FileStream(localPath, FileMode.Create))
+                {
+                    await file.CopyToAsync(stream);
+                }
+
+                filePath = Path.Combine("uploads", createDto.Category ?? "other", uniqueFileName)
+                    .Replace("\\", "/");
             }
 
             string? cloudUrl = null;
@@ -111,6 +134,7 @@ namespace AutomotiveClaimsApi.Services
                 RelatedEntityType = createDto.RelatedEntityType,
                 FileName = uniqueFileName,
                 OriginalFileName = file.FileName,
+
                 FilePath = Path.Combine("uploads", createDto.Category ?? "other", uniqueFileName)
                     .Replace("\\", "/"),
                 CloudUrl = cloudUrl,
@@ -128,7 +152,8 @@ namespace AutomotiveClaimsApi.Services
             await _context.SaveChangesAsync();
 
             _logger.LogInformation("Document uploaded and created with ID {DocumentId}", document.Id);
-            return MapToDto(document);
+            var baseUrl = _config["App:BaseUrl"];
+            return MapToDto(document, baseUrl);
         }
 
         public async Task<bool> DeleteDocumentAsync(Guid id)
@@ -219,6 +244,7 @@ namespace AutomotiveClaimsApi.Services
 
         public async Task<bool> DeleteDocumentAsync(string filePath)
         {
+
             try
             {
                 if (_cloudEnabled && _cloudStorage != null && Uri.IsWellFormedUriString(filePath, UriKind.Absolute))
@@ -243,9 +269,11 @@ namespace AutomotiveClaimsApi.Services
 
         public async Task<DocumentDownloadResult?> GetDocumentAsync(string filePath)
         {
+
             if (_cloudEnabled && _cloudStorage != null && Uri.IsWellFormedUriString(filePath, UriKind.Absolute))
             {
                 var stream = await _cloudStorage.GetFileStreamAsync(filePath);
+
                 return new DocumentDownloadResult
                 {
                     FileStream = stream,
@@ -268,9 +296,12 @@ namespace AutomotiveClaimsApi.Services
 
         public async Task<Stream> GetDocumentStreamAsync(string filePath)
         {
+        return await _cloudStorageService.GetFileStreamAsync(filePath);
+
             if (_cloudEnabled && _cloudStorage != null && Uri.IsWellFormedUriString(filePath, UriKind.Absolute))
             {
                 return await _cloudStorage.GetFileStreamAsync(filePath);
+
             }
 
             var fullPath = Path.Combine(_uploadsPath, NormalizePath(filePath));
@@ -295,7 +326,9 @@ namespace AutomotiveClaimsApi.Services
             return contentType;
         }
 
+
         private DocumentDto MapToDto(Document doc)
+
         {
             var baseUrl = _config["App:BaseUrl"] ?? string.Empty;
             return new DocumentDto

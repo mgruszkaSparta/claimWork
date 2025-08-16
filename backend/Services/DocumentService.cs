@@ -92,38 +92,31 @@ namespace AutomotiveClaimsApi.Services
                 throw new ArgumentException("File is required.", nameof(file));
 
             var uniqueFileName = $"{Guid.NewGuid()}{Path.GetExtension(file.FileName)}";
-            string filePath;
 
-            if (_cloudStorageService != null)
+            // Ensure the upload directory exists
+            var categoryPath = Path.Combine(_uploadsPath, createDto.Category ?? "other");
+            if (!Directory.Exists(categoryPath))
             {
-                await using var stream = file.OpenReadStream();
-                filePath = await _cloudStorageService.UploadFileAsync(stream, uniqueFileName, file.ContentType);
+                Directory.CreateDirectory(categoryPath);
             }
-            else
+
+            var localPath = Path.Combine(categoryPath, uniqueFileName);
+
+            // Save locally first
+            await using (var stream = new FileStream(localPath, FileMode.Create))
             {
-                var categoryPath = Path.Combine(_uploadsPath, createDto.Category ?? "other");
-                if (!Directory.Exists(categoryPath))
-                {
-                    Directory.CreateDirectory(categoryPath);
-                }
-
-                var localPath = Path.Combine(categoryPath, uniqueFileName);
-
-                await using (var stream = new FileStream(localPath, FileMode.Create))
-                {
-                    await file.CopyToAsync(stream);
-                }
-
-                filePath = Path.Combine("uploads", createDto.Category ?? "other", uniqueFileName)
-                    .Replace("\\", "/");
+                await file.CopyToAsync(stream);
             }
 
             string? cloudUrl = null;
             if (_cloudEnabled && _cloudStorage != null)
             {
-                await using var uploadStream = new FileStream(filePath, FileMode.Open, FileAccess.Read);
+                await using var uploadStream = new FileStream(localPath, FileMode.Open, FileAccess.Read);
                 cloudUrl = await _cloudStorage.UploadFileAsync(uploadStream, uniqueFileName, file.ContentType);
             }
+
+            var relativePath = Path.Combine("uploads", createDto.Category ?? "other", uniqueFileName)
+                .Replace("\\", "/");
 
             var document = new Document
             {
@@ -135,8 +128,7 @@ namespace AutomotiveClaimsApi.Services
                 FileName = uniqueFileName,
                 OriginalFileName = file.FileName,
 
-                FilePath = Path.Combine("uploads", createDto.Category ?? "other", uniqueFileName)
-                    .Replace("\\", "/"),
+                FilePath = relativePath,
                 CloudUrl = cloudUrl,
                 FileSize = file.Length,
                 ContentType = file.ContentType,
@@ -300,12 +292,9 @@ namespace AutomotiveClaimsApi.Services
 
         public async Task<Stream> GetDocumentStreamAsync(string filePath)
         {
-        return await _cloudStorageService.GetFileStreamAsync(filePath);
-
             if (_cloudEnabled && _cloudStorage != null && Uri.IsWellFormedUriString(filePath, UriKind.Absolute))
             {
                 return await _cloudStorage.GetFileStreamAsync(filePath);
-
             }
 
             var fullPath = Path.Combine(_uploadsPath, NormalizePath(filePath));

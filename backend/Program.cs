@@ -57,6 +57,15 @@ builder.Services.Configure<SmtpSettings>(
 builder.Services.Configure<GoogleCloudStorageSettings>(
     builder.Configuration.GetSection("GoogleCloudStorage"));
 
+// Conditionally register Google Cloud Storage service
+var cloudSettings = builder.Configuration
+    .GetSection("GoogleCloudStorage")
+    .Get<GoogleCloudStorageSettings>() ?? new GoogleCloudStorageSettings();
+if (cloudSettings.Enabled)
+{
+    builder.Services.AddScoped<IGoogleCloudStorageService, GoogleCloudStorageService>();
+}
+
 // Add services
 var notificationSettings = builder.Configuration.GetSection("ClaimNotifications").Get<ClaimNotificationSettings>() ?? new ClaimNotificationSettings();
 builder.Services.AddSingleton(notificationSettings);
@@ -64,7 +73,6 @@ builder.Services.AddScoped<IEmailService, EmailService>();
 builder.Services.AddScoped<IEmailSender, SmtpEmailSender>();
 builder.Services.AddScoped<INotificationService, NotificationService>();
 builder.Services.AddScoped<IDocumentService, DocumentService>();
-builder.Services.AddScoped<IGoogleCloudStorageService, GoogleCloudStorageService>();
 builder.Services.AddScoped<IRiskTypeService, RiskTypeService>();
 builder.Services.AddScoped<IDamageTypeService, DamageTypeService>();
 

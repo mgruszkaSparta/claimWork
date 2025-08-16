@@ -71,6 +71,7 @@ builder.Services.AddScoped<IDamageTypeService, DamageTypeService>();
 // Add background services
 builder.Services.AddHostedService<EmailBackgroundService>();
 builder.Services.AddHostedService<AppealReminderService>();
+builder.Services.AddHostedService<EventRuleScheduler>();
 
 // Add CORS
 builder.Services.AddCors(options =>

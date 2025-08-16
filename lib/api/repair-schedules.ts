@@ -1,14 +1,23 @@
 export interface RepairSchedulePayload {
   eventId: string
+  branchId?: string
+  companyName: string
   vehicleFleetNumber: string
-  vehicleRegistration: string
-  damageDate: string
-  [key: string]: any
+  expertWaitingDate?: string
+  additionalInspections?: string
+  repairStartDate?: string
+  repairEndDate?: string
+  whyNotOperational?: string
+  alternativeVehiclesAvailable?: boolean
+  alternativeVehiclesDescription?: string
+  contactDispatcher?: string
+  contactManager?: string
+  status: "draft" | "submitted" | "approved" | "completed"
 }
 
-function ensureRequired(data: { vehicleFleetNumber?: string; vehicleRegistration?: string; damageDate?: string }) {
-  if (!data.vehicleFleetNumber || !data.vehicleRegistration || !data.damageDate) {
-    throw new Error('vehicleFleetNumber, vehicleRegistration and damageDate are required')
+function ensureRequired(data: { vehicleFleetNumber?: string }) {
+  if (!data.vehicleFleetNumber) {
+    throw new Error('vehicleFleetNumber is required')
   }
 }
 
@@ -48,12 +57,6 @@ export async function createRepairSchedule(data: RepairSchedulePayload) {
 export async function updateRepairSchedule(id: string, data: Partial<RepairSchedulePayload>) {
   if ('vehicleFleetNumber' in data && !data.vehicleFleetNumber) {
     throw new Error('vehicleFleetNumber is required')
-  }
-  if ('vehicleRegistration' in data && !data.vehicleRegistration) {
-    throw new Error('vehicleRegistration is required')
-  }
-  if ('damageDate' in data && !data.damageDate) {
-    throw new Error('damageDate is required')
   }
   const response = await fetch(`${REPAIR_SCHEDULES_URL}/${id}`, {
     method: 'PUT',

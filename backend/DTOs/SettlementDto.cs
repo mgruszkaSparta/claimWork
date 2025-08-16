@@ -18,6 +18,8 @@ namespace AutomotiveClaimsApi.DTOs
         public string? DocumentPath { get; set; }
         public string? DocumentName { get; set; }
         public string? DocumentDescription { get; set; }
+        public string? DocumentId { get; set; }
+        public List<DocumentDto> Documents { get; set; } = new();
         public string? SettlementNumber { get; set; }
         public string? SettlementType { get; set; }
         public decimal? SettlementAmount { get; set; }

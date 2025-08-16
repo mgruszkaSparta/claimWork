@@ -6,7 +6,11 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
 import { Alert, AlertDescription } from "@/components/ui/alert"
+
 import { Search, Plus, Filter, Eye, Edit, Trash2, RefreshCw, AlertCircle, Loader2, X, ChevronUp, ChevronDown } from "lucide-react"
+
+
+
 import { useClaims } from "@/hooks/use-claims"
 import { useToast } from "@/hooks/use-toast"
 import type { Claim } from "@/types"
@@ -65,6 +69,8 @@ export function ClaimsList({
     direction: "asc" | "desc"
   } | null>(null)
   const pageSize = 30
+  const [sortBy, setSortBy] = useState<string>("reportDate")
+  const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc")
   const loaderRef = useRef<HTMLDivElement | null>(null)
   const containerRef = useRef<HTMLDivElement | null>(null)
 
@@ -96,6 +102,8 @@ export function ClaimsList({
             brand: filterBrand || undefined,
             handler: filterHandler || undefined,
             claimObjectTypeId,
+            sortBy,
+            sortOrder,
           },
           { append: page > 1 },
         )
@@ -118,6 +126,8 @@ export function ClaimsList({
     filterBrand,
     filterHandler,
     claimObjectTypeId,
+    sortBy,
+    sortOrder,
     initialClaims,
 
   ])
@@ -137,18 +147,19 @@ export function ClaimsList({
         .filter((claim) => {
           const lowerCaseSearchTerm = searchTerm.toLowerCase()
           const matchesSearch =
-            claim.vehicleNumber?.toLowerCase().includes(lowerCaseSearchTerm) ||
+            claim.damageType?.toLowerCase().includes(lowerCaseSearchTerm) ||
+            claim.insurerClaimNumber?.toLowerCase().includes(lowerCaseSearchTerm) ||
             claim.claimNumber?.toLowerCase().includes(lowerCaseSearchTerm) ||
-            claim.spartaNumber?.toLowerCase().includes(lowerCaseSearchTerm) ||
+            claim.vehicleNumber?.toLowerCase().includes(lowerCaseSearchTerm) ||
+            claim.handler?.toLowerCase().includes(lowerCaseSearchTerm) ||
             claim.client?.toLowerCase().includes(lowerCaseSearchTerm) ||
-            claim.liquidator?.toLowerCase().includes(lowerCaseSearchTerm) ||
-            claim.brand?.toLowerCase().includes(lowerCaseSearchTerm)
+            claim.riskType?.toLowerCase().includes(lowerCaseSearchTerm)
 
           const matchesFilter = filterStatus === "all" || claim.status === filterStatus
           const matchesBrand =
-            !filterBrand || claim.brand?.toLowerCase().includes(filterBrand.toLowerCase())
+            !filterBrand || claim.vehicleNumber?.toLowerCase().includes(filterBrand.toLowerCase())
           const matchesHandler =
-            !filterHandler || claim.liquidator?.toLowerCase().includes(filterHandler.toLowerCase())
+            !filterHandler || claim.handler?.toLowerCase().includes(filterHandler.toLowerCase())
           const matchesClaimType =
             !allowedRiskTypes ||
             !claim.riskType ||
@@ -231,6 +242,7 @@ export function ClaimsList({
   }
 
   const handleSort = (field: string) => {
+
     setSortConfig((prev) => {
       if (prev?.field === field) {
         return {
@@ -240,6 +252,7 @@ export function ClaimsList({
       }
       return { field, direction: "asc" }
     })
+
   }
 
   const handleDeleteClaim = async (claimId: string | undefined, claimNumber: string | undefined) => {
@@ -283,6 +296,8 @@ export function ClaimsList({
           brand: filterBrand || undefined,
           handler: filterHandler || undefined,
           claimObjectTypeId,
+          sortBy,
+          sortOrder,
         },
         { append: false },
       )
@@ -425,13 +440,13 @@ export function ClaimsList({
         {showFilters && (
           <div className="mt-3 flex flex-col sm:flex-row gap-3">
             <Input
-              placeholder="Filtruj po marce..."
+              placeholder="Filtruj po numerze rejestracyjnym..."
               value={filterBrand}
               onChange={(e) => setFilterBrand(e.target.value)}
               className="h-9 text-sm"
             />
             <Input
-              placeholder="Filtruj po likwidatorze..."
+              placeholder="Filtruj po opiekunie..."
               value={filterHandler}
               onChange={(e) => setFilterHandler(e.target.value)}
               className="h-9 text-sm"
@@ -447,6 +462,7 @@ export function ClaimsList({
             <table className="min-w-full divide-y divide-gray-200">
               <thead className="bg-gray-50 sticky top-0 z-10">
                 <tr>
+
                   <th
                     className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer"
                     onClick={() => handleSort("objectTypeId")}
@@ -471,18 +487,33 @@ export function ClaimsList({
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Likwidator
+
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Klient
+                    <div className="flex items-center cursor-pointer" onClick={() => handleSort("client")}>
+                      Grupa klienta
+                      {renderSortIcon("client")}
+                    </div>
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Data zdarzenia
+
+                    <div className="flex items-center cursor-pointer" onClick={() => handleSort("reportDate")}>
+                      Data rejestracji
+                      {renderSortIcon("reportDate")}
+                    </div>
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Ryzyko
+                    <div className="flex items-center cursor-pointer" onClick={() => handleSort("riskType")}>
+                      Ryzyko
+                      {renderSortIcon("riskType")}
+                    </div>
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Status
+                    <div className="flex items-center cursor-pointer" onClick={() => handleSort("status")}>
+                      Status
+                      {renderSortIcon("status")}
+                    </div>
+
                   </th>
                   <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Akcje
@@ -495,41 +526,19 @@ export function ClaimsList({
                     key={claim.id}
                     className="odd:bg-white even:bg-gray-50 hover:bg-gray-100 transition-colors"
                   >
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <mat-icon
-                        matTooltip={typeLabelMap[claim.objectTypeId ?? 0] || "Nieznany typ"}
-                        aria-label={typeLabelMap[claim.objectTypeId ?? 0] || "Nieznany typ"}
-                      >
-                        {typeIconMap[claim.objectTypeId ?? 0] || "help_outline"}
-                      </mat-icon>
-                    </td>
+
+
+                    <td className="px-6 py-4 whitespace-nowrap">{claim.damageType || "-"}</td>
+                    <td className="px-6 py-4 whitespace-nowrap">{claim.insurerClaimNumber || "-"}</td>
+                    <td className="px-6 py-4 whitespace-nowrap">{claim.claimNumber || "-"}</td>
+                    <td className="px-6 py-4 whitespace-nowrap">{claim.vehicleNumber || "-"}</td>
+                    <td className="px-6 py-4 whitespace-nowrap">{claim.handler || "-"}</td>
+                    <td className="px-6 py-4 whitespace-nowrap">{claim.client || "-"}</td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {claim.insurerClaimNumber || claim.claimNumber || "-"}
+                      {claim.reportDate ? new Date(claim.reportDate).toLocaleDateString("pl-PL") : "-"}
+
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {claim.spartaNumber || "-"}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {claim.vehicleNumber || "-"}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {claim.liquidator || "-"}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {claim.client || "-"}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {claim.damageDate
-                        ? new Date(claim.damageDate).toLocaleDateString("pl-PL", {
-                            day: "2-digit",
-                            month: "2-digit",
-                            year: "numeric",
-                          })
-                        : "-"}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {claim.riskType || "-"}
-                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">{claim.riskType || "-"}</td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <Badge className={`text-xs border ${getStatusColor(claim.status ?? "")}`}>
                         {claim.status || "-"}
@@ -561,7 +570,7 @@ export function ClaimsList({
                           variant="ghost"
                           size="sm"
                           className="h-8 w-8 p-0 hover:bg-red-50"
-                          onClick={() => handleDeleteClaim(claim.id, claim.spartaNumber)}
+                          onClick={() => handleDeleteClaim(claim.id, claim.claimNumber)}
                           title="Usuń"
                         >
                           <Trash2 className="h-4 w-4 text-red-600" />

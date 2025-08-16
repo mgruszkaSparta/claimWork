@@ -43,7 +43,12 @@ import { TransportDamageSection } from "./transport-damage-section"
 import { PropertyParticipantsSection } from "./property-participants-section"
 import InjuredPartySection from "./injured-party-section"
 import SubcontractorSection from "./subcontractor-section"
+
+import { PropertyClaimSummary } from "./property-claim-summary"
+import { TransportClaimSummary } from "./transport-claim-summary"
+
 import CommunicationClaimSummary from "./communication-claim-summary"
+
 
 interface RiskType {
   value: string
@@ -1934,9 +1939,132 @@ export const ClaimMainContent = ({
       )
 
     case "teczka-szkodowa": {
-  switch (claimObjectType) {
-    case "1":
-      return (
+
+    switch (claimObjectType) {
+      case "2":
+        return (
+          <PropertyClaimSummary
+            claimFormData={claimFormData}
+            notes={notes}
+            uploadedFiles={uploadedFiles}
+            setUploadedFiles={setUploadedFiles}
+            eventId={eventId}
+            claimStatuses={claimStatuses}
+            riskTypes={riskTypes}
+          />
+        )
+      case "3":
+        return (
+          <TransportClaimSummary
+            claimFormData={claimFormData}
+            notes={notes}
+            uploadedFiles={uploadedFiles}
+            setUploadedFiles={setUploadedFiles}
+            eventId={eventId}
+            claimStatuses={claimStatuses}
+            riskTypes={riskTypes}
+          />
+        )
+      default: {
+        const visibleNotes = notes.filter((note) => !note.type || note.type === "note")
+        return (
+      <div className="space-y-4">
+        <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
+          {/* Left Column - DANE SZKODY I ZDARZENIA */}
+          <div className="space-y-4">
+            <div className="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden">
+              <div className="px-4 py-3 bg-gradient-to-r from-blue-50 to-blue-100 border-b border-gray-200">
+                <div className="flex items-center space-x-2">
+                  <FileText className="h-4 w-4 text-blue-600" />
+                  <h3 className="text-sm font-semibold text-gray-900">Dane szkody i zdarzenia</h3>
+                </div>
+              </div>
+              <div className="p-4 space-y-3">
+                <div className="grid grid-cols-2 gap-3">
+                  <InfoCard label="Nr szkody Sparta" value={claimFormData.spartaNumber} />
+                  <InfoCard label="Nr szkody TU" value={claimFormData.insurerClaimNumber} />
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <InfoCard label="Status" value={getStatusLabel(claimFormData.status)} />
+                  <InfoCard label="Szkodę zarejestrował" value={claimFormData.handler} />
+                </div>
+
+                <InfoCard label="Rodzaj szkody" value={claimFormData.damageType} />
+                <InfoCard label="Ryzyko szkody" value={getRiskTypeLabel(claimFormData.riskType)} />
+
+                <div className="grid grid-cols-2 gap-3">
+                  <InfoCard label="Data zdarzenia" value={claimFormData.damageDate} />
+                  <InfoCard label="Godzina zdarzenia" value={claimFormData.eventTime} />
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <InfoCard label="Data zgłoszenia" value={claimFormData.reportDate} />
+                  <InfoCard label="Data zgłoszenia do TU" value={claimFormData.reportDateToInsurer} />
+                </div>
+
+                <InfoCard
+                  icon={<MapPin className="h-4 w-4" />}
+                  label="Miejsce zdarzenia"
+                  value={claimFormData.eventLocation}
+                />
+
+                {claimFormData.eventDescription && (
+                  <div className="bg-gray-50 rounded-lg p-3">
+                    <span className="text-xs font-medium text-gray-500 uppercase tracking-wide block mb-1">
+                      Opis zdarzenia
+                    </span>
+                    <p className="text-sm text-gray-900 leading-relaxed">{claimFormData.eventDescription}</p>
+                  </div>
+                )}
+
+                <div className="grid grid-cols-2 gap-3">
+                  <InfoCard label="Klient" value={claimFormData.client} />
+                  <InfoCard label="TU" value={claimFormData.insuranceCompany} />
+                </div>
+
+                {claimFormData.leasingCompany && (
+                  <InfoCard label="Firma leasingowa" value={claimFormData.leasingCompany} />
+                )}
+
+                <div className="grid grid-cols-2 gap-3">
+                  <InfoCard label="Obszar" value={claimFormData.area} />
+                  <InfoCard label="Kanał zgłoszenia" value={claimFormData.reportingChannel} />
+                </div>
+
+                {claimFormData.comments && (
+                  <div className="bg-gray-50 rounded-lg p-3">
+                    <span className="text-xs font-medium text-gray-500 uppercase tracking-wide block mb-1">
+                      Uwagi
+                    </span>
+                    <p className="text-sm text-gray-900 leading-relaxed">{claimFormData.comments}</p>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* POSZKODOWANY Section */}
+            {renderParticipantDetails(
+              claimFormData.injuredParty,
+              "Poszkodowany",
+              <User className="h-4 w-4 text-blue-600" />,
+              "bg-gradient-to-r from-blue-50 to-blue-100"
+            )}
+          </div>
+
+          {/* Right Column - SPRAWCA */}
+          <div className="space-y-4">
+            {renderParticipantDetails(
+              claimFormData.perpetrator,
+              "Sprawca",
+              <AlertTriangle className="h-4 w-4 text-red-600" />,
+              "bg-gradient-to-r from-red-50 to-red-100"
+            )}
+          </div>
+        </div>
+
+        {/* Full Width Sections */}
+
         <div className="space-y-4">
           <CommunicationClaimSummary
             claimFormData={claimFormData}
@@ -2173,22 +2301,14 @@ export const ClaimMainContent = ({
             </div>
           </div>
         </div>
-      )
-    default:
-      return (
-        <div className="space-y-4">
-          <Card className="overflow-hidden shadow-sm border-gray-200 rounded-xl">
-            <CardContent>
-              <div className="text-center py-8">
-                <p className="text-gray-500 text-lg">Sekcja w przygotowaniu</p>
-                <p className="text-gray-400 text-sm mt-2">Funkcjonalność zarządzania podsumowaniem będzie dostępna wkrótce</p>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-      )
-  }
-}
+
+      </div>
+    )
+      }
+    }
+    }
+
+
     default:
       return (
         <div className="space-y-4">

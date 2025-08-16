@@ -95,6 +95,7 @@ export function DamageDataSection({
                 <SelectContent>
                   <SelectItem value="1">Szkody komunikacyjne</SelectItem>
                   <SelectItem value="2">Szkody mienia</SelectItem>
+                  <SelectItem value="3">Szkody transportowe</SelectItem>
                 </SelectContent>
               </Select>
             </div>

@@ -44,6 +44,7 @@ namespace AutomotiveClaimsApi.Controllers
             [FromQuery] Guid? damageId,
             [FromQuery] string? documentType,
             [FromQuery] string? status,
+            [FromQuery] string? search,
             [FromQuery] int page = 1,
             [FromQuery] int pageSize = 50)
         {
@@ -57,6 +58,12 @@ namespace AutomotiveClaimsApi.Controllers
                 query = query.Where(d => d.DocumentType == documentType);
             if (!string.IsNullOrEmpty(status))
                 query = query.Where(d => d.Status == status);
+            if (!string.IsNullOrEmpty(search))
+                query = query.Where(d =>
+                    d.FileName.Contains(search) ||
+                    d.OriginalFileName.Contains(search) ||
+                    (d.Description ?? "").Contains(search) ||
+                    (d.DocumentType ?? "").Contains(search));
 
             var totalCount = await query.CountAsync();
             var documents = await query

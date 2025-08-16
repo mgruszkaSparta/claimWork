@@ -1729,6 +1729,7 @@ const renderParticipantDetails = (participant: ParticipantInfo | undefined, titl
                   requiredDocuments={requiredDocuments}
                   setRequiredDocuments={setRequiredDocuments}
                   eventId={eventId}
+                  storageKey={`main-documents-${eventId}`}
                 />
               )}
             </CardContent>
@@ -2495,6 +2496,7 @@ const renderParticipantDetails = (participant: ParticipantInfo | undefined, titl
                   setRequiredDocuments={() => {}}
                   eventId={eventId}
                   hideRequiredDocuments={true}
+                  storageKey={`summary-documents-${eventId}`}
                 />
               )}
             </div>

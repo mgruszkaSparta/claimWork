@@ -21,12 +21,38 @@ interface PageProps {
   onLogout?: () => void
 }
 
+interface Task {
+  title: string
+  due: string
+}
+
 function HomePage({ user, onLogout }: PageProps) {
   const router = useRouter()
   const [activeTab, setActiveTab] = useState("dashboard")
+  const [tasks, setTasks] = useState<Task[]>([])
 
   useEffect(() => {
     // additional effects can go here
+  }, [])
+
+  useEffect(() => {
+    async function loadTasks() {
+      try {
+        const res = await fetch("/api/notes?category=task")
+        if (!res.ok) throw new Error("Failed to fetch tasks")
+        const data = await res.json()
+        const mapped = data.map((note: any) => ({
+          title: note.title || note.content,
+          due: note.createdAt
+            ? new Date(note.createdAt).toISOString().split("T")[0]
+            : "",
+        }))
+        setTasks(mapped)
+      } catch (err) {
+        console.error("Error fetching tasks:", err)
+      }
+    }
+    loadTasks()
   }, [])
 
   const stats = [
@@ -102,12 +128,6 @@ function HomePage({ user, onLogout }: PageProps) {
     { title: "Wyszukaj szkodę", icon: Search, color: "bg-gray-600 hover:bg-gray-700" },
     { title: "Raporty", icon: TrendingUp, color: "bg-green-600 hover:bg-green-700" },
     { title: "Filtry", icon: Filter, color: "bg-purple-600 hover:bg-purple-700" },
-  ]
-
-  const tasks = [
-    { title: 'Przypomnij klientowi o dokumentach', due: '2025-01-10' },
-    { title: 'Zaplanuj oględziny pojazdu', due: '2025-01-12' },
-    { title: 'Przygotuj raport dla zarządu', due: '2025-01-15' },
   ]
 
   return (

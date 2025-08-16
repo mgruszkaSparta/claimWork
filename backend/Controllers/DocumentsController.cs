@@ -40,6 +40,7 @@ namespace AutomotiveClaimsApi.Controllers
             _config = config;
             _userManager = userManager;
             _notificationService = notificationService;
+            _config = config;
         }
 
         [HttpGet]
@@ -48,6 +49,7 @@ namespace AutomotiveClaimsApi.Controllers
             [FromQuery] Guid? damageId,
             [FromQuery] string? documentType,
             [FromQuery] string? status,
+            [FromQuery] string? search,
             [FromQuery] int page = 1,
             [FromQuery] int pageSize = 50)
         {
@@ -61,6 +63,12 @@ namespace AutomotiveClaimsApi.Controllers
                 query = query.Where(d => d.DocumentType == documentType);
             if (!string.IsNullOrEmpty(status))
                 query = query.Where(d => d.Status == status);
+            if (!string.IsNullOrEmpty(search))
+                query = query.Where(d =>
+                    d.FileName.Contains(search) ||
+                    d.OriginalFileName.Contains(search) ||
+                    (d.Description ?? "").Contains(search) ||
+                    (d.DocumentType ?? "").Contains(search));
 
             var totalCount = await query.CountAsync();
             var documents = await query
@@ -181,8 +189,11 @@ namespace AutomotiveClaimsApi.Controllers
             return NoContent();
         }
 
-        private static DocumentDto MapToDto(Document doc, string baseUrl)
+
+        private DocumentDto MapToDto(Document doc)
+
         {
+            var baseUrl = _config["App:BaseUrl"] ?? string.Empty;
             return new DocumentDto
             {
                 Id = doc.Id,
@@ -190,6 +201,7 @@ namespace AutomotiveClaimsApi.Controllers
                 FileName = doc.FileName,
                 OriginalFileName = doc.OriginalFileName,
                 FilePath = doc.FilePath,
+                CloudUrl = doc.CloudUrl,
                 FileSize = doc.FileSize,
                 ContentType = doc.ContentType,
                 Category = doc.DocumentType,

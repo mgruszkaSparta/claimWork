@@ -2,7 +2,23 @@
 
 import { Button } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
-import { FileText, AlertTriangle, Users, File, MessageSquare, FileCheck, Mail, Calendar, Wrench, Gavel, Shield, DollarSign, HandHeart, FileSignature } from 'lucide-react'
+import {
+  FileText,
+  AlertTriangle,
+  Users,
+  File,
+  MessageSquare,
+  FileCheck,
+  Mail,
+  Calendar,
+  Wrench,
+  Gavel,
+  Shield,
+  DollarSign,
+  HandHeart,
+  FileSignature,
+  UserCheck,
+} from 'lucide-react'
 
 interface ClaimFormSidebarProps {
   activeClaimSection: string
@@ -29,6 +45,11 @@ const sidebarSections = [
         id: "uczestnicy",
         label: "Uczestnicy zdarzenia",
         icon: Users,
+      },
+      {
+        id: "podwykonawca",
+        label: "Podwykonawca",
+        icon: UserCheck,
       },
       {
         id: "dokumenty",
@@ -102,12 +123,15 @@ const sidebarSections = [
 ]
 
 function ClaimFormSidebar({ activeClaimSection, setActiveClaimSection, claimObjectType }: ClaimFormSidebarProps) {
-  const sections = sidebarSections.map((section) => ({
-    ...section,
-    items: section.items.filter(
-      (item) => !(item.id === "uczestnicy" && claimObjectType === "3")
-    ),
-  }))
+  const sections = sidebarSections.map((section) => {
+    let items = section.items
+    if (claimObjectType === "3") {
+      items = items.filter((item) => item.id !== "uczestnicy")
+    } else {
+      items = items.filter((item) => item.id !== "podwykonawca")
+    }
+    return { ...section, items }
+  })
   return (
     <div className="w-64 bg-white border-r border-gray-200 h-full overflow-y-auto">
       <div className="p-3">

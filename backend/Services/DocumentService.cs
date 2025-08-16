@@ -6,6 +6,10 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
+
+using Microsoft.Extensions.Configuration;
+
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -19,21 +23,33 @@ namespace AutomotiveClaimsApi.Services
         private readonly ApplicationDbContext _context;
         private readonly ILogger<DocumentService> _logger;
         private readonly string _uploadsPath;
-        private readonly IGoogleCloudStorageService? _cloudStorageService;
+
+        private readonly IGoogleCloudStorageService? _cloudStorage;
+        private readonly bool _cloudEnabled;
+
         private readonly IConfiguration _config;
+
 
         public DocumentService(
             ApplicationDbContext context,
             ILogger<DocumentService> logger,
             IWebHostEnvironment environment,
             IConfiguration config,
-            IGoogleCloudStorageService? cloudStorageService = null)
+
+            IGoogleCloudStorageService? cloudStorage = null,
+            IOptions<GoogleCloudStorageSettings>? cloudSettings = null)
+
         {
             _context = context;
             _logger = logger;
             _uploadsPath = Path.Combine(environment.ContentRootPath, "uploads");
-            _cloudStorageService = cloudStorageService;
+
+            _cloudStorage = cloudStorage;
+            _cloudEnabled = cloudSettings?.Value.Enabled ?? false;
+
             _config = config;
+
+
 
             if (!Directory.Exists(_uploadsPath))
             {
@@ -102,6 +118,13 @@ namespace AutomotiveClaimsApi.Services
                     .Replace("\\", "/");
             }
 
+            string? cloudUrl = null;
+            if (_cloudEnabled && _cloudStorage != null)
+            {
+                await using var uploadStream = new FileStream(filePath, FileMode.Open, FileAccess.Read);
+                cloudUrl = await _cloudStorage.UploadFileAsync(uploadStream, uniqueFileName, file.ContentType);
+            }
+
             var document = new Document
             {
                 Id = Guid.NewGuid(),
@@ -111,7 +134,10 @@ namespace AutomotiveClaimsApi.Services
                 RelatedEntityType = createDto.RelatedEntityType,
                 FileName = uniqueFileName,
                 OriginalFileName = file.FileName,
-                FilePath = filePath,
+
+                FilePath = Path.Combine("uploads", createDto.Category ?? "other", uniqueFileName)
+                    .Replace("\\", "/"),
+                CloudUrl = cloudUrl,
                 FileSize = file.Length,
                 ContentType = file.ContentType,
                 DocumentType = createDto.Category ?? "other",
@@ -152,6 +178,11 @@ namespace AutomotiveClaimsApi.Services
                         "File deletion failed for Document ID {DocumentId} at {FilePath}",
                         id, document.FilePath);
                 }
+
+                if (_cloudEnabled && _cloudStorage != null && !string.IsNullOrEmpty(document.CloudUrl))
+                {
+                    await _cloudStorage.DeleteFileAsync(document.CloudUrl);
+                }
             }
             catch (Exception ex)
             {
@@ -172,6 +203,17 @@ namespace AutomotiveClaimsApi.Services
             if (document == null)
             {
                 return null;
+            }
+
+            if (_cloudEnabled && _cloudStorage != null && !string.IsNullOrEmpty(document.CloudUrl))
+            {
+                var stream = await _cloudStorage.GetFileStreamAsync(document.CloudUrl);
+                return new DocumentDownloadResult
+                {
+                    FileStream = stream,
+                    ContentType = document.ContentType,
+                    FileName = document.OriginalFileName ?? document.FileName
+                };
             }
 
             var fullPath = Path.Combine(_uploadsPath, document.FilePath.Replace("uploads/", ""));
@@ -202,15 +244,16 @@ namespace AutomotiveClaimsApi.Services
 
         public async Task<bool> DeleteDocumentAsync(string filePath)
         {
-            if (_cloudStorageService != null && filePath.StartsWith("http", StringComparison.OrdinalIgnoreCase))
-            {
-                await _cloudStorageService.DeleteFileAsync(filePath);
-                return true;
-            }
 
-            var fullPath = Path.Combine(_uploadsPath, NormalizePath(filePath));
             try
             {
+                if (_cloudEnabled && _cloudStorage != null && Uri.IsWellFormedUriString(filePath, UriKind.Absolute))
+                {
+                    await _cloudStorage.DeleteFileAsync(filePath);
+                    return true;
+                }
+
+                var fullPath = Path.Combine(_uploadsPath, NormalizePath(filePath));
                 if (File.Exists(fullPath))
                 {
                     await Task.Run(() => File.Delete(fullPath));
@@ -226,9 +269,11 @@ namespace AutomotiveClaimsApi.Services
 
         public async Task<DocumentDownloadResult?> GetDocumentAsync(string filePath)
         {
-            if (_cloudStorageService != null && filePath.StartsWith("http", StringComparison.OrdinalIgnoreCase))
+
+            if (_cloudEnabled && _cloudStorage != null && Uri.IsWellFormedUriString(filePath, UriKind.Absolute))
             {
-                var stream = await _cloudStorageService.GetFileStreamAsync(filePath);
+                var stream = await _cloudStorage.GetFileStreamAsync(filePath);
+
                 return new DocumentDownloadResult
                 {
                     FileStream = stream,
@@ -251,9 +296,12 @@ namespace AutomotiveClaimsApi.Services
 
         public async Task<Stream> GetDocumentStreamAsync(string filePath)
         {
-            if (_cloudStorageService != null && filePath.StartsWith("http", StringComparison.OrdinalIgnoreCase))
+        return await _cloudStorageService.GetFileStreamAsync(filePath);
+
+            if (_cloudEnabled && _cloudStorage != null && Uri.IsWellFormedUriString(filePath, UriKind.Absolute))
             {
-                return await _cloudStorageService.GetFileStreamAsync(filePath);
+                return await _cloudStorage.GetFileStreamAsync(filePath);
+
             }
 
             var fullPath = Path.Combine(_uploadsPath, NormalizePath(filePath));
@@ -278,8 +326,11 @@ namespace AutomotiveClaimsApi.Services
             return contentType;
         }
 
-        private static DocumentDto MapToDto(Document doc, string baseUrl)
+
+        private DocumentDto MapToDto(Document doc)
+
         {
+            var baseUrl = _config["App:BaseUrl"] ?? string.Empty;
             return new DocumentDto
             {
                 Id = doc.Id,
@@ -287,6 +338,7 @@ namespace AutomotiveClaimsApi.Services
                 FileName = doc.FileName,
                 OriginalFileName = doc.OriginalFileName,
                 FilePath = doc.FilePath,
+                CloudUrl = doc.CloudUrl,
                 FileSize = doc.FileSize,
                 ContentType = doc.ContentType,
                 Category = doc.DocumentType,

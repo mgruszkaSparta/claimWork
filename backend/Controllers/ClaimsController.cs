@@ -13,7 +13,9 @@ using Microsoft.AspNetCore.Authorization;
 using System.Security.Claims;
 using Microsoft.AspNetCore.Identity;
 using AutomotiveClaimsApi.Services;
+
 using Microsoft.AspNetCore.Http;
+
 using Microsoft.Extensions.Configuration;
 
 namespace AutomotiveClaimsApi.Controllers
@@ -27,12 +29,18 @@ namespace AutomotiveClaimsApi.Controllers
         private readonly ILogger<ClaimsController> _logger;
         private readonly UserManager<ApplicationUser>? _userManager;
         private readonly INotificationService? _notificationService;
+
         private readonly IDocumentService _documentService;
         private readonly IConfiguration _config;
 
         public ClaimsController(
             ApplicationDbContext context,
             ILogger<ClaimsController> logger,
+
+
+
+        public ClaimsController(ApplicationDbContext context, ILogger<ClaimsController> logger,
+
             IConfiguration config,
             UserManager<ApplicationUser>? userManager = null,
             INotificationService? notificationService = null,
@@ -43,7 +51,11 @@ namespace AutomotiveClaimsApi.Controllers
             _config = config;
             _userManager = userManager;
             _notificationService = notificationService;
+
             _documentService = documentService ?? throw new ArgumentNullException(nameof(documentService));
+
+            _config = config;
+
         }
 
         [HttpGet]
@@ -1645,6 +1657,7 @@ namespace AutomotiveClaimsApi.Controllers
                     IsMainDriver = d.IsMainDriver
                 }).ToList()
             }).ToList(),
+
             Documents = e.Documents.Select(d => new DocumentDto
             {
                 Id = d.Id,
@@ -1652,6 +1665,7 @@ namespace AutomotiveClaimsApi.Controllers
                 FileName = d.FileName,
                 OriginalFileName = d.OriginalFileName,
                 FilePath = d.FilePath,
+                CloudUrl = d.CloudUrl,
                 FileSize = d.FileSize,
                 ContentType = d.ContentType,
                 Category = d.DocumentType,
@@ -1663,6 +1677,7 @@ namespace AutomotiveClaimsApi.Controllers
                 DownloadUrl = $"{baseUrl}/api/documents/{d.Id}/download",
                 PreviewUrl = $"{baseUrl}/api/documents/{d.Id}/preview",
                 CanPreview = true
+
             }).ToList(),
             Damages = e.Damages.Select(d => new DamageDto
             {

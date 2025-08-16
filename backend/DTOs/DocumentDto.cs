@@ -9,6 +9,7 @@ namespace AutomotiveClaimsApi.DTOs
         public string FileName { get; set; } = string.Empty;
         public string? OriginalFileName { get; set; }
         public string FilePath { get; set; } = string.Empty;
+        public string? CloudUrl { get; set; }
         public long FileSize { get; set; }
         public string ContentType { get; set; } = string.Empty;
         public string? Category { get; set; }

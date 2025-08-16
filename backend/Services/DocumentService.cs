@@ -4,6 +4,7 @@ using AutomotiveClaimsApi.Models;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
@@ -19,13 +20,20 @@ namespace AutomotiveClaimsApi.Services
         private readonly ILogger<DocumentService> _logger;
         private readonly string _uploadsPath;
         private readonly IGoogleCloudStorageService? _cloudStorageService;
+        private readonly IConfiguration _config;
 
-        public DocumentService(ApplicationDbContext context, ILogger<DocumentService> logger, IWebHostEnvironment environment, IGoogleCloudStorageService? cloudStorageService = null)
+        public DocumentService(
+            ApplicationDbContext context,
+            ILogger<DocumentService> logger,
+            IWebHostEnvironment environment,
+            IConfiguration config,
+            IGoogleCloudStorageService? cloudStorageService = null)
         {
             _context = context;
             _logger = logger;
             _uploadsPath = Path.Combine(environment.ContentRootPath, "uploads");
             _cloudStorageService = cloudStorageService;
+            _config = config;
 
             if (!Directory.Exists(_uploadsPath))
             {
@@ -35,16 +43,20 @@ namespace AutomotiveClaimsApi.Services
 
         public async Task<IEnumerable<DocumentDto>> GetDocumentsByEventIdAsync(Guid eventId)
         {
-            return await _context.Documents
+            var documents = await _context.Documents
                 .Where(d => d.EventId == eventId && !d.IsDeleted)
-                .Select(d => MapToDto(d))
                 .ToListAsync();
+
+            var baseUrl = _config["App:BaseUrl"];
+            return documents.Select(d => MapToDto(d, baseUrl));
         }
 
         public async Task<DocumentDto?> GetDocumentByIdAsync(Guid id)
         {
             var document = await _context.Documents.FindAsync(id);
-            return document != null ? MapToDto(document) : null;
+            if (document == null) return null;
+            var baseUrl = _config["App:BaseUrl"];
+            return MapToDto(document, baseUrl);
         }
 
         public async Task<DocumentDto> UploadDocumentAsync(IFormFile file, string category, string entityId)
@@ -114,7 +126,8 @@ namespace AutomotiveClaimsApi.Services
             await _context.SaveChangesAsync();
 
             _logger.LogInformation("Document uploaded and created with ID {DocumentId}", document.Id);
-            return MapToDto(document);
+            var baseUrl = _config["App:BaseUrl"];
+            return MapToDto(document, baseUrl);
         }
 
         public async Task<bool> DeleteDocumentAsync(Guid id)
@@ -265,7 +278,7 @@ namespace AutomotiveClaimsApi.Services
             return contentType;
         }
 
-        private static DocumentDto MapToDto(Document doc)
+        private static DocumentDto MapToDto(Document doc, string baseUrl)
         {
             return new DocumentDto
             {
@@ -283,8 +296,8 @@ namespace AutomotiveClaimsApi.Services
                 Status = doc.Status,
                 CreatedAt = doc.CreatedAt,
                 UpdatedAt = doc.UpdatedAt,
-                DownloadUrl = $"/api/documents/{doc.Id}/download",
-                PreviewUrl = $"/api/documents/{doc.Id}/preview",
+                DownloadUrl = $"{baseUrl}/api/documents/{doc.Id}/download",
+                PreviewUrl = $"{baseUrl}/api/documents/{doc.Id}/preview",
                 CanPreview = true
             };
         }

@@ -14,6 +14,7 @@ using System.Security.Claims;
 using Microsoft.AspNetCore.Identity;
 using AutomotiveClaimsApi.Services;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Configuration;
 
 namespace AutomotiveClaimsApi.Controllers
 {
@@ -27,14 +28,19 @@ namespace AutomotiveClaimsApi.Controllers
         private readonly UserManager<ApplicationUser>? _userManager;
         private readonly INotificationService? _notificationService;
         private readonly IDocumentService _documentService;
+        private readonly IConfiguration _config;
 
-        public ClaimsController(ApplicationDbContext context, ILogger<ClaimsController> logger,
+        public ClaimsController(
+            ApplicationDbContext context,
+            ILogger<ClaimsController> logger,
+            IConfiguration config,
             UserManager<ApplicationUser>? userManager = null,
             INotificationService? notificationService = null,
             IDocumentService? documentService = null)
         {
             _context = context;
             _logger = logger;
+            _config = config;
             _userManager = userManager;
             _notificationService = notificationService;
             _documentService = documentService ?? throw new ArgumentNullException(nameof(documentService));
@@ -1531,8 +1537,11 @@ namespace AutomotiveClaimsApi.Controllers
             };
         }
 
-        private static ClaimDto MapEventToDto(Event e) => new ClaimDto
+        private ClaimDto MapEventToDto(Event e)
         {
+            var baseUrl = _config["App:BaseUrl"];
+            return new ClaimDto
+            {
             Id = e.Id.ToString(),
             ClaimNumber = e.ClaimNumber,
             SpartaNumber = e.SpartaNumber,
@@ -1651,8 +1660,8 @@ namespace AutomotiveClaimsApi.Controllers
                 IsActive = !d.IsDeleted,
                 CreatedAt = d.CreatedAt,
                 UpdatedAt = d.UpdatedAt,
-                DownloadUrl = $"/api/documents/{d.Id}/download",
-                PreviewUrl = $"/api/documents/{d.Id}/preview",
+                DownloadUrl = $"{baseUrl}/api/documents/{d.Id}/download",
+                PreviewUrl = $"{baseUrl}/api/documents/{d.Id}/preview",
                 CanPreview = true
             }).ToList(),
             Damages = e.Damages.Select(d => new DamageDto

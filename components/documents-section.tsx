@@ -81,6 +81,7 @@ export const DocumentsSection = ({
   const [previewDocuments, setPreviewDocuments] = useState<Document[]>([])
 
   const previewContainerRef = React.useRef<HTMLDivElement>(null)
+  const docxPreviewRef = React.useRef<HTMLDivElement>(null)
 
   // Persist view mode per section when storageKey provided
   useEffect(() => {
@@ -122,6 +123,33 @@ export const DocumentsSection = ({
     }
   }, [previewDocument, closePreview])
 
+  useEffect(() => {
+    if (
+      previewDocument &&
+      previewDocument.contentType ===
+        "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+    ) {
+      const load = async () => {
+        try {
+          const response = await fetch(
+            previewDocument.previewUrl || previewDocument.downloadUrl,
+          )
+          const buffer = await response.arrayBuffer()
+          const { renderAsync } = await import("docx-preview")
+          if (docxPreviewRef.current) {
+            docxPreviewRef.current.innerHTML = ""
+            await renderAsync(buffer, docxPreviewRef.current)
+          }
+        } catch (err) {
+          console.error("Error rendering docx preview:", err)
+        }
+      }
+      load()
+    } else if (docxPreviewRef.current) {
+      docxPreviewRef.current.innerHTML = ""
+    }
+  }, [previewDocument])
+
   const isGuid = (value: string) =>
     /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/.test(value)
 
@@ -142,7 +170,8 @@ export const DocumentsSection = ({
     canPreview:
       file.type === "image" ||
       file.type === "pdf" ||
-      file.type === "video",
+      file.type === "video" ||
+      file.type === "doc",
     previewUrl: file.url,
     downloadUrl: file.url,
     documentType: file.category || "Inne dokumenty",
@@ -367,7 +396,10 @@ export const DocumentsSection = ({
               documentDto.canPreview ??
               (documentDto.contentType?.startsWith("image/") ||
                 documentDto.contentType === "application/pdf" ||
-                documentDto.contentType?.startsWith("video/")),
+                documentDto.contentType?.startsWith("video/") ||
+                documentDto.contentType ===
+                  "application/vnd.openxmlformats-officedocument.wordprocessingml.document" ||
+                documentDto.contentType === "application/msword"),
           }
           console.log(`File uploaded successfully:`, doc)
           return doc
@@ -1677,6 +1709,19 @@ export const DocumentsSection = ({
                       title={previewDocument.originalFileName}
                     />
                   </object>
+                ) : previewDocument.contentType === "application/msword" ? (
+                  <iframe
+                    src={`https://view.officeapps.live.com/op/embed.aspx?src=${encodeURIComponent(
+                      previewDocument.previewUrl || previewDocument.downloadUrl,
+                    )}`}
+                    className="w-full h-full"
+                    title={previewDocument.originalFileName}
+                  />
+                ) : previewDocument.contentType ===
+                    "application/vnd.openxmlformats-officedocument.wordprocessingml.document" ? (
+                  <div className="w-full h-full overflow-auto p-4">
+                    <div ref={docxPreviewRef} className="w-full" />
+                  </div>
                 ) : (
                   <div className="text-center py-8">
                     <FileText className="h-16 w-16 text-gray-400 mx-auto mb-4" />

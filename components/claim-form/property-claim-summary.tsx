@@ -56,7 +56,7 @@ export function PropertyClaimSummary({
         <div className="px-4 py-3 bg-gradient-to-r from-blue-50 to-blue-100 border-b border-gray-200">
           <div className="flex items-center space-x-2">
             <FileText className="h-4 w-4 text-blue-600" />
-            <h3 className="text-sm font-semibold text-gray-900">Dane szkody i zdarzenia</h3>
+            <h3 className="text-sm font-semibold text-gray-900">Szkoda w mieniu</h3>
           </div>
         </div>
         <div className="p-4 space-y-3">
@@ -76,6 +76,36 @@ export function PropertyClaimSummary({
           </div>
           {claimFormData.eventLocation && (
             <InfoCard label="Miejsce zdarzenia" value={claimFormData.eventLocation} />
+          )}
+          <div>
+            <span className="text-xs font-medium text-gray-500 uppercase tracking-wide block mb-1">
+              Przedmiot szkody
+            </span>
+            <p className="text-sm text-gray-900 whitespace-pre-line">
+              {claimFormData.propertyDamageSubject || "Brak danych"}
+            </p>
+          </div>
+          <div>
+            <span className="text-xs font-medium text-gray-500 uppercase tracking-wide block mb-1">
+              Wykaz uszkodzeń / strat
+            </span>
+            <p className="text-sm text-gray-900 whitespace-pre-line">
+              {claimFormData.damageListing || "Brak danych"}
+            </p>
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <InfoCard label="Nr polisy" value={claimFormData.policyNumber} />
+            <InfoCard label="Ubezpieczyciel" value={claimFormData.insurer} />
+          </div>
+          {claimFormData.inspectionContact && (
+            <div>
+              <span className="text-xs font-medium text-gray-500 uppercase tracking-wide block mb-1">
+                Dane i kontakt do oględzin
+              </span>
+              <p className="text-sm text-gray-900 whitespace-pre-line">
+                {claimFormData.inspectionContact}
+              </p>
+            </div>
           )}
         </div>
       </div>
@@ -102,33 +132,6 @@ export function PropertyClaimSummary({
             </span>
             <p className="text-sm text-gray-900 whitespace-pre-line">
               {claimFormData.perpetratorData || "Brak danych"}
-            </p>
-          </div>
-        </div>
-      </div>
-
-      <div className="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden">
-        <div className="px-4 py-3 bg-gradient-to-r from-blue-50 to-blue-100 border-b border-gray-200">
-          <div className="flex items-center space-x-2">
-            <FileText className="h-4 w-4 text-blue-600" />
-            <h3 className="text-sm font-semibold text-gray-900">Szkoda w mieniu</h3>
-          </div>
-        </div>
-        <div className="p-4 space-y-4">
-          <div>
-            <span className="text-xs font-medium text-gray-500 uppercase tracking-wide block mb-1">
-              Przedmiot szkody
-            </span>
-            <p className="text-sm text-gray-900 whitespace-pre-line">
-              {claimFormData.propertyDamageSubject || "Brak danych"}
-            </p>
-          </div>
-          <div>
-            <span className="text-xs font-medium text-gray-500 uppercase tracking-wide block mb-1">
-              Wykaz uszkodzeń / strat
-            </span>
-            <p className="text-sm text-gray-900 whitespace-pre-line">
-              {claimFormData.damageListing || "Brak danych"}
             </p>
           </div>
         </div>

@@ -301,3 +301,7 @@ export interface DocumentsSectionProps {
    */
   storageKey?: string
 }
+
+export interface DocumentsSectionRef {
+  downloadAll: (category?: string) => Promise<void>
+}

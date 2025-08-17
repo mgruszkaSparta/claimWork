@@ -1,13 +1,29 @@
 "use client"
 
-import { useState, useEffect, useMemo, useRef } from "react"
+import { useState, useEffect, useMemo, useRef, type ComponentType } from "react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 
-import { Search, Plus, Filter, Eye, Edit, Trash2, RefreshCw, AlertCircle, Loader2, X, ChevronUp, ChevronDown } from "lucide-react"
+import {
+  Search,
+  Plus,
+  Filter,
+  Eye,
+  Edit,
+  Trash2,
+  RefreshCw,
+  AlertCircle,
+  Loader2,
+  X,
+  ChevronUp,
+  ChevronDown,
+  Car,
+  Home,
+  Truck,
+} from "lucide-react"
 
 
 
@@ -37,10 +53,10 @@ const typeLabelMap: Record<number, string> = {
   3: "Transportowa",
 }
 
-const typeIconMap: Record<number, string> = {
-  1: "directions_car",
-  2: "home",
-  3: "local_shipping",
+const typeIconMap: Record<number, ComponentType<{ className?: string }>> = {
+  1: Car,
+  2: Home,
+  3: Truck,
 }
 
 interface ClaimsListProps {
@@ -537,7 +553,19 @@ export function ClaimsList({
                   >
 
 
-                    <td className="px-6 py-4 whitespace-nowrap">{claim.damageType || "-"}</td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      {claim.objectTypeId ? (
+                        <div className="flex items-center gap-2">
+                          {(() => {
+                            const Icon = typeIconMap[claim.objectTypeId as number]
+                            return Icon ? <Icon className="h-4 w-4" /> : null
+                          })()}
+                          <span>{typeLabelMap[claim.objectTypeId as number]}</span>
+                        </div>
+                      ) : (
+                        "-"
+                      )}
+                    </td>
                     <td className="px-6 py-4 whitespace-nowrap">{claim.insurerClaimNumber || "-"}</td>
                     <td className="px-6 py-4 whitespace-nowrap">{claim.claimNumber || "-"}</td>
                     <td className="px-6 py-4 whitespace-nowrap">{claim.vehicleNumber || "-"}</td>

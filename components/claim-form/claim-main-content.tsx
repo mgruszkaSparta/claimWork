@@ -296,12 +296,6 @@ export const ClaimMainContent = ({
 
   // Notes are managed via claimFormData
 
-  // State for expanded sections in teczka-szkodowa
-  const [expandedSections, setExpandedSections] = useState({
-    harmonogram: false,
-    naprawa: true,
-  })
-
   const [autoShowRepairForm, setAutoShowRepairForm] = useState(false)
 
   const [claimStatuses, setClaimStatuses] = useState<ClaimStatus[]>([])
@@ -686,13 +680,7 @@ export const ClaimMainContent = ({
     }
   }
 
-  // Toggle expanded section
-  const toggleSection = (section: 'harmonogram' | 'naprawa') => {
-    setExpandedSections(prev => ({
-      ...prev,
-      [section]: !prev[section]
-    }))
-  }
+
 
 
   switch (activeClaimSection) {
@@ -715,20 +703,10 @@ export const ClaimMainContent = ({
                       <Calendar className="h-4 w-4 text-blue-600" />
                       <h3 className="text-sm font-semibold text-gray-900">Harmonogram naprawy</h3>
                     </div>
-                    <div className="flex items-center space-x-2">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => toggleSection('harmonogram')}
-                        className="text-xs"
-                      >
-                        {expandedSections.harmonogram ? 'Zwiń' : 'Rozwiń'}
-                      </Button>
-                    </div>
                   </div>
                 </div>
                 <div className="p-4">
-                {expandedSections.harmonogram && eventId ? (
+                {eventId ? (
                   <div className="border rounded-lg overflow-hidden">
                     <RepairScheduleSection eventId={eventId} />
                   </div>
@@ -783,9 +761,6 @@ export const ClaimMainContent = ({
                         </div>
                       </div>
 
-                      <div className="text-center pt-2">
-                        <p className="text-xs text-gray-400">Kliknij "Rozwiń" aby zobaczyć pełne szczegóły i dodać nowe harmonogramy</p>
-                      </div>
                     </div>
                   )}
                 </div>
@@ -828,7 +803,7 @@ export const ClaimMainContent = ({
                   </div>
                 </div>
                 <div className="p-4">
-                  {expandedSections.naprawa && eventId ? (
+                  {eventId ? (
                     <div className="border rounded-lg overflow-hidden">
                       <RepairDetailsSection
                         eventId={eventId}
@@ -1992,26 +1967,16 @@ export const ClaimMainContent = ({
             />
             {/* Harmonogram naprawy - expandable section */}
             <div className="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden">
-              <div className="px-4 py-3 bg-gradient-to-r from-blue-50 to-blue-100 border-b border-gray-200">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-2">
-                    <Calendar className="h-4 w-4 text-blue-600" />
-                    <h3 className="text-sm font-semibold text-gray-900">Harmonogram naprawy</h3>
-                  </div>
+                <div className="px-4 py-3 bg-gradient-to-r from-blue-50 to-blue-100 border-b border-gray-200">
+                  <div className="flex items-center justify-between">
                     <div className="flex items-center space-x-2">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => toggleSection('harmonogram')}
-                        className="text-xs"
-                      >
-                        {expandedSections.harmonogram ? 'Zwiń' : 'Rozwiń'}
-                    </Button>
+                      <Calendar className="h-4 w-4 text-blue-600" />
+                      <h3 className="text-sm font-semibold text-gray-900">Harmonogram naprawy</h3>
+                    </div>
                   </div>
-                </div>
                 </div>
                 <div className="p-4">
-                {expandedSections.harmonogram && eventId ? (
+                {eventId ? (
                   <div className="border rounded-lg overflow-hidden">
                     <RepairScheduleSection eventId={eventId} />
                   </div>
@@ -2075,9 +2040,6 @@ export const ClaimMainContent = ({
                       </div>
                     </div>
                   </div>
-                  <div className="text-center pt-2">
-                    <p className="text-xs text-gray-400">Kliknij \"Rozwiń\" aby zobaczyć pełne szczegóły harmonogramu</p>
-                  </div>
                 </div>
               )}
               </div>
@@ -2104,7 +2066,7 @@ export const ClaimMainContent = ({
               </div>
             </div>
             <div className="p-4">
-              {expandedSections.naprawa && eventId ? (
+              {eventId ? (
                 <div className="border rounded-lg overflow-hidden">
                   <RepairDetailsSection
                     eventId={eventId}

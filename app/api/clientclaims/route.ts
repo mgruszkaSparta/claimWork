@@ -11,7 +11,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: "Event ID is required" }, { status: 400 })
     }
 
-    const response = await fetch(`${API_BASE_URL}/client-claims/event/${eventId}`, {
+    const response = await fetch(`${API_BASE_URL}/clientclaims/event/${eventId}`, {
       headers: {
         "Content-Type": "application/json",
       },
@@ -64,7 +64,7 @@ export async function POST(request: NextRequest) {
     if (documentDescription) backendFormData.append("DocumentDescription", documentDescription)
     if (document) backendFormData.append("Document", document)
 
-    const response = await fetch(`${API_BASE_URL}/client-claims`, {
+    const response = await fetch(`${API_BASE_URL}/clientclaims`, {
       method: "POST",
       body: backendFormData,
     })

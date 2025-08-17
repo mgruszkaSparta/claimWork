@@ -6,7 +6,7 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
   try {
     const { id } = params
 
-    const response = await fetch(`${API_BASE_URL}/client-claims/${id}/preview`)
+    const response = await fetch(`${API_BASE_URL}/clientclaims/${id}/preview`)
 
     if (!response.ok) {
       const errorText = await response.text()

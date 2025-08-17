@@ -310,6 +310,15 @@ namespace AutomotiveClaimsApi.Migrations
                         .HasColumnType("text")
                         .HasColumnName("ClaimNotes");
 
+                    b.Property<string>("DocumentPath")
+                        .HasColumnType("text");
+
+                    b.Property<string>("DocumentName")
+                        .HasColumnType("text");
+
+                    b.Property<string>("DocumentDescription")
+                        .HasColumnType("text");
+
                     b.Property<string>("ClaimNumber")
                         .HasMaxLength(100)
                         .HasColumnType("character varying(100)");

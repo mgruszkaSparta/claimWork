@@ -304,4 +304,10 @@ export interface DocumentsSectionProps {
 
 export interface DocumentsSectionRef {
   downloadAll: (category?: string) => Promise<void>
+  downloadSelected: (category?: string) => Promise<void>
+  /**
+   * Set search query for documents in this section.
+   * Used for global document search across sections.
+   */
+  search: (query: string) => void
 }

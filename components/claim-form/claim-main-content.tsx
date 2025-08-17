@@ -10,7 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Textarea } from "@/components/ui/textarea"
 import { Checkbox } from "@/components/ui/checkbox"
-import { AlertTriangle, User, FileSignature, Wrench, Car, X, MessageSquare, Clock, FileCheck, Search, Mail, Plus, CheckCircle, Trash2, Save, Calendar, Phone, Paperclip, DollarSign, Gavel, ArrowUpDown, HandHeart, Users, CreditCard, Shield, UserCheck, Download } from 'lucide-react'
+import { AlertTriangle, User, FileSignature, Wrench, Car, X, MessageSquare, Clock, FileCheck, Search, Mail, Plus, CheckCircle, Trash2, Save, Calendar, Phone, Paperclip, DollarSign, Gavel, ArrowUpDown, HandHeart, Users, CreditCard, Shield, UserCheck } from 'lucide-react'
 import { DamageDiagram } from "@/components/damage-diagram"
 import { ParticipantForm } from "./participant-form"
 import { DocumentsSection } from "../documents-section"
@@ -1387,14 +1387,6 @@ export const ClaimMainContent = ({
                 </div>
                 <CardTitle className="text-lg font-semibold">Dokumenty</CardTitle>
               </div>
-              <Button
-                variant="outline"
-                size="sm"
-                className="text-white border-white hover:bg-blue-600"
-                onClick={() => documentsSectionRef.current?.downloadAll()}
-              >
-                <Download className="mr-2 h-4 w-4" /> Pobierz wszystkie
-              </Button>
             </CardHeader>
             <CardContent className="p-0 bg-white">
               {eventId && (

@@ -715,19 +715,34 @@ export const DocumentsSection = React.forwardRef<DocumentsSectionRef, DocumentsS
     }
   }
 
+  const handlePreviewAll = () => {
+    if (allDocuments.length === 0) {
+      toast({
+        title: "Brak plików",
+        description: "Nie ma plików do podglądu.",
+        variant: "destructive",
+      })
+      return
+    }
+
+    handlePreview(allDocuments[0], allDocuments)
+  }
+
   useImperativeHandle(ref, () => ({
     downloadAll: handleDownloadAll,
   }))
 
-  const handleDownloadSelected = async (category: string) => {
-    const documentsForCategory = allDocuments.filter(
-      (d) => d.documentType === category && selectedDocumentIds.includes(d.id),
+  const handleDownloadSelected = async (category?: string) => {
+    const documentsForCategory = allDocuments.filter((d) =>
+      category ? d.documentType === category && selectedDocumentIds.includes(d.id) : selectedDocumentIds.includes(d.id),
     )
 
     if (documentsForCategory.length === 0) {
       toast({
         title: "Brak plików",
-        description: "Nie wybrano plików do pobrania w tej kategorii.",
+        description: category
+          ? "Nie wybrano plików do pobrania w tej kategorii."
+          : "Nie wybrano plików do pobrania.",
         variant: "destructive",
       })
       return
@@ -735,7 +750,9 @@ export const DocumentsSection = React.forwardRef<DocumentsSectionRef, DocumentsS
 
     toast({
       title: "Pobieranie plików",
-      description: `Rozpoczęto pobieranie ${documentsForCategory.length} zaznaczonych plik(ów).`,
+      description: category
+        ? `Rozpoczęto pobieranie ${documentsForCategory.length} zaznaczonych plik(ów).`
+        : `Rozpoczęto pobieranie ${documentsForCategory.length} zaznaczonych plik(ów).`,
     })
 
     try {
@@ -751,11 +768,13 @@ export const DocumentsSection = React.forwardRef<DocumentsSectionRef, DocumentsS
       }
 
       const content = await zip.generateAsync({ type: "blob" })
-      saveAs(content, `${category}-wybrane.zip`)
+      saveAs(content, category ? `${category}-wybrane.zip` : `dokumenty-wybrane.zip`)
 
       toast({
         title: "Pobieranie zakończone",
-        description: `Zaznaczone pliki z kategorii "${category}" zostały pobrane w archiwum zip.`,
+        description: category
+          ? `Zaznaczone pliki z kategorii "${category}" zostały pobrane w archiwum zip.`
+          : "Zaznaczone pliki zostały pobrane w archiwum zip.",
       })
     } catch (error) {
       console.error("Failed to download selected documents", error)
@@ -1023,6 +1042,32 @@ export const DocumentsSection = React.forwardRef<DocumentsSectionRef, DocumentsS
             </div>
           </CardContent>
         </Card>
+        <div className="flex justify-end gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handlePreviewAll}
+            disabled={allDocuments.length === 0}
+          >
+            <Eye className="mr-2 h-4 w-4" /> Podgląd wszystkich
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => handleDownloadAll()}
+            disabled={allDocuments.length === 0}
+          >
+            <Download className="mr-2 h-4 w-4" /> Pobierz wszystkie
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => handleDownloadSelected()}
+            disabled={selectedDocumentIds.length === 0}
+          >
+            <Download className="mr-2 h-4 w-4" /> Pobierz zaznaczone
+          </Button>
+        </div>
 
         {documentCategories.map((category) => {
           const documentsForCategory = allDocuments.filter((d) => d.documentType === category)

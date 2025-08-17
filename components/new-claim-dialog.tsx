@@ -36,7 +36,7 @@ interface NewClaimDialogProps {
 export function NewClaimDialog({ open, onOpenChange }: NewClaimDialogProps) {
   const router = useRouter()
   const form = useForm<FormValues>({
-    defaultValues: { claimObjectTypeId: "", riskTypeId: "", damageTypeId: "", clientId: undefined },
+    defaultValues: { claimObjectTypeId: "3", riskTypeId: "", damageTypeId: "", clientId: undefined },
   })
 
   const claimObjectTypeId = form.watch("claimObjectTypeId")
@@ -102,6 +102,7 @@ export function NewClaimDialog({ open, onOpenChange }: NewClaimDialogProps) {
             <Select
               value={claimObjectTypeId}
               onValueChange={(val) => form.setValue("claimObjectTypeId", val)}
+              disabled
             >
               <SelectTrigger>
                 <SelectValue placeholder="Wybierz rodzaj szkody" />

@@ -733,6 +733,12 @@ namespace AutomotiveClaimsApi.Controllers
                     doc.UpdatedAt = DateTime.UtcNow;
                 }
             }
+
+            var options = new JsonSerializerOptions
+            {
+                DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
+            };
+            eventEntity.SearchData = JsonSerializer.Serialize(MapEventToDto(eventEntity), options);
         }
 
         private async Task<string> GenerateNextSpartaNumber()

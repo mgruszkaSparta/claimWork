@@ -36,11 +36,6 @@ namespace AutomotiveClaimsApi.Controllers
         public ClaimsController(
             ApplicationDbContext context,
             ILogger<ClaimsController> logger,
-
-
-
-        public ClaimsController(ApplicationDbContext context, ILogger<ClaimsController> logger,
-
             IConfiguration config,
             UserManager<ApplicationUser>? userManager = null,
             INotificationService? notificationService = null,
@@ -51,11 +46,7 @@ namespace AutomotiveClaimsApi.Controllers
             _config = config;
             _userManager = userManager;
             _notificationService = notificationService;
-
             _documentService = documentService ?? throw new ArgumentNullException(nameof(documentService));
-
-            _config = config;
-
         }
 
         [HttpGet]
@@ -73,14 +64,9 @@ namespace AutomotiveClaimsApi.Controllers
                 var query = _context.Events.AsQueryable();
 
                 // Apply filters
-                if (!string.IsNullOrEmpty(search))
+                if (!string.IsNullOrWhiteSpace(search))
                 {
-                    query = query.Where(e => 
-                        (e.ClaimNumber != null && e.ClaimNumber.Contains(search)) ||
-                        (e.SpartaNumber != null && e.SpartaNumber.Contains(search)) ||
-                        (e.VehicleNumber != null && e.VehicleNumber.Contains(search)) ||
-                        (e.Owner != null && e.Owner.Contains(search)) ||
-                        (e.Brand != null && e.Brand.Contains(search)));
+                    query = query.ApplySearch(search);
                 }
 
                 if (!string.IsNullOrEmpty(clientId) && int.TryParse(clientId, out var clientIdValue))

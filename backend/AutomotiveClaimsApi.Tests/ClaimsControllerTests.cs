@@ -8,6 +8,7 @@ using AutomotiveClaimsApi.Controllers;
 using AutomotiveClaimsApi.Data;
 using AutomotiveClaimsApi.Models;
 using AutomotiveClaimsApi.DTOs;
+using Microsoft.AspNetCore.Mvc;
 
 namespace AutomotiveClaimsApi.Tests
 {
@@ -254,6 +255,32 @@ namespace AutomotiveClaimsApi.Tests
 
             var updated = await context.Decisions.FirstAsync(d => d.Id == decision.Id);
             Assert.Equal("new", updated.Status);
+        }
+
+        [Fact]
+        public async Task GetClaims_Searches_All_Text_Fields()
+        {
+            var options = new DbContextOptionsBuilder<ApplicationDbContext>()
+                .UseInMemoryDatabase(Guid.NewGuid().ToString())
+                .Options;
+
+            await using var context = new ApplicationDbContext(options);
+            var ev = new Event
+            {
+                Id = Guid.NewGuid(),
+                InsuranceCompanyEmail = "search@example.com",
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow
+            };
+            context.Events.Add(ev);
+            await context.SaveChangesAsync();
+
+            var controller = new ClaimsController(context, NullLogger<ClaimsController>.Instance);
+            var response = await controller.GetClaims("example", null, null, null, null, 1, 50);
+            var ok = Assert.IsType<OkObjectResult>(response.Result);
+            var items = Assert.IsAssignableFrom<IEnumerable<ClaimListItemDto>>(ok.Value);
+            var item = Assert.Single(items);
+            Assert.Equal(ev.Id.ToString(), item.Id);
         }
 
         [Fact]

@@ -80,6 +80,7 @@ builder.Services.AddScoped<ICaseHandlerService, CaseHandlerService>();
 // Add background services
 builder.Services.AddHostedService<EmailBackgroundService>();
 builder.Services.AddHostedService<AppealReminderService>();
+builder.Services.AddHostedService<EventRuleScheduler>();
 
 // Add CORS
 builder.Services.AddCors(options =>

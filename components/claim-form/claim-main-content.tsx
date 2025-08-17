@@ -241,6 +241,16 @@ export const ClaimMainContent = ({
   const [loadingRiskTypes, setLoadingRiskTypes] = useState(false)
   const [claimObjectType, setClaimObjectType] = useState<string>(initialClaimObjectType) // Default to communication claims
 
+  // Keep local state in sync when initial value changes (e.g. after loading claim)
+  useEffect(() => {
+    setClaimObjectType(initialClaimObjectType)
+  }, [initialClaimObjectType])
+
+  // Persist selected claim type to form data so it gets saved to the API
+  useEffect(() => {
+    handleFormChange("objectTypeId", claimObjectType)
+  }, [claimObjectType, handleFormChange])
+
   // Add to the state declarations at the top of the component (around line 80)
   const [caseHandlers, setCaseHandlers] = useState<any[]>([])
   const [loadingHandlers, setLoadingHandlers] = useState(false)

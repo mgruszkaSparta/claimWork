@@ -6,6 +6,7 @@ export interface Handler {
   phone: string
   department?: string
   position?: string
+  userId?: string
 }
 
 // Model for the dropdown state
@@ -35,6 +36,7 @@ export interface HandlerSelectionEvent {
   handlerName: string
   handlerEmail: string
   handlerPhone: string
+  userId: string
 }
 
 // Enum for handler departments

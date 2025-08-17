@@ -54,6 +54,7 @@ export interface Claim
     | "insuranceCompanyId"
     | "leasingCompanyId"
     | "handlerId"
+    | "handlerUserId"
     | "servicesCalled"
     | "participants"
     | "damages"
@@ -77,6 +78,7 @@ export interface Claim
   insuranceCompanyId?: string
   leasingCompanyId?: string
   handlerId?: string
+  handlerUserId?: string
   /**
    * List of services called.
    * API stores this as a comma-separated string

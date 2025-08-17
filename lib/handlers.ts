@@ -9,6 +9,7 @@ export class HandlersService {
       phone: "+48 22 123 45 67",
       department: "Likwidacja szkód",
       position: "Starszy likwidator",
+      userId: "user-1",
     },
     {
       id: 2,
@@ -17,6 +18,7 @@ export class HandlersService {
       phone: "+48 22 234 56 78",
       department: "Likwidacja szkód",
       position: "Likwidator",
+      userId: "user-2",
     },
     {
       id: 3,
@@ -25,6 +27,7 @@ export class HandlersService {
       phone: "+48 22 345 67 89",
       department: "Likwidacja szkód",
       position: "Likwidator senior",
+      userId: "user-3",
     },
     {
       id: 4,
@@ -33,6 +36,7 @@ export class HandlersService {
       phone: "+48 22 456 78 90",
       department: "Prawny",
       position: "Radca prawny",
+      userId: "user-4",
     },
     {
       id: 5,
@@ -41,6 +45,7 @@ export class HandlersService {
       phone: "+48 22 567 89 01",
       department: "Techniczny",
       position: "Rzeczoznawca",
+      userId: "user-5",
     },
     {
       id: 6,
@@ -49,6 +54,7 @@ export class HandlersService {
       phone: "+48 22 678 90 12",
       department: "Obsługa klienta",
       position: "Specjalista ds. klienta",
+      userId: "user-6",
     },
     {
       id: 7,
@@ -57,6 +63,7 @@ export class HandlersService {
       phone: "+48 22 789 01 23",
       department: "Likwidacja szkód",
       position: "Kierownik działu",
+      userId: "user-7",
     },
     {
       id: 8,
@@ -65,6 +72,7 @@ export class HandlersService {
       phone: "+48 22 890 12 34",
       department: "Regres",
       position: "Specjalista ds. regresu",
+      userId: "user-8",
     },
     {
       id: 9,
@@ -73,6 +81,7 @@ export class HandlersService {
       phone: "+48 22 901 23 45",
       department: "Likwidacja szkód",
       position: "Likwidator",
+      userId: "user-9",
     },
     {
       id: 10,
@@ -81,6 +90,7 @@ export class HandlersService {
       phone: "+48 22 012 34 56",
       department: "Prawny",
       position: "Aplikant radcowski",
+      userId: "user-10",
     },
   ]
 

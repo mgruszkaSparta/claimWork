@@ -79,6 +79,7 @@ export function ClaimsList({
             status: filterStatus !== "all" ? filterStatus : undefined,
             brand: filterBrand || undefined,
             handler: filterHandler || undefined,
+            handlerUserId: filterHandler || undefined,
             claimObjectTypeId,
           },
           { append: page > 1 },
@@ -132,7 +133,9 @@ export function ClaimsList({
           const matchesBrand =
             !filterBrand || claim.brand?.toLowerCase().includes(filterBrand.toLowerCase())
           const matchesHandler =
-            !filterHandler || claim.liquidator?.toLowerCase().includes(filterHandler.toLowerCase())
+            !filterHandler ||
+            claim.liquidator?.toLowerCase().includes(filterHandler.toLowerCase()) ||
+            claim.handlerUserId?.toLowerCase().includes(filterHandler.toLowerCase())
           const matchesClaimType =
             !allowedRiskTypes ||
             !claim.riskType ||
@@ -242,6 +245,7 @@ export function ClaimsList({
           status: filterStatus !== "all" ? filterStatus : undefined,
           brand: filterBrand || undefined,
           handler: filterHandler || undefined,
+          handlerUserId: filterHandler || undefined,
           claimObjectTypeId,
         },
         { append: false },

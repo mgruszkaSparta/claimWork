@@ -53,6 +53,7 @@ export function ClaimForm({ initialData, mode }: ClaimFormProps) {
     clientId: '',
     handler: '',
     handlerId: '',
+    handlerUserId: '',
     handlerEmail: '',
     handlerPhone: '',
     insuranceCompany: '',

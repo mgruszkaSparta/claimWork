@@ -125,6 +125,9 @@ export default function HandlerDropdown({
       onHandlerSelected({
         handlerId: handler.id,
         handlerName: handler.name,
+        handlerEmail: handler.email,
+        handlerPhone: handler.phone,
+        userId: handler.userId ?? "",
       })
     }
   }

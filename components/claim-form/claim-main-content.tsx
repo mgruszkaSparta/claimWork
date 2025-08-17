@@ -1445,6 +1445,7 @@ const renderParticipantDetails = (participant: ParticipantInfo | undefined, titl
                         handleFormChange("handler", event.handlerName)
                         handleFormChange("handlerEmail", event.handlerEmail || "")
                         handleFormChange("handlerPhone", event.handlerPhone || "")
+                        handleFormChange("handlerUserId", event.userId)
                       }}
                       className="mt-1"
                     />

@@ -77,8 +77,8 @@ namespace AutomotiveClaimsApi.Controllers
                 .Take(pageSize)
                 .ToListAsync();
 
-            var baseUrl = _config["App:BaseUrl"];
-            var documentDtos = documents.Select(d => MapToDto(d, baseUrl)).ToList();
+            
+            var documentDtos = documents.Select(d => MapToDto(d)).ToList();
 
             Response.Headers.Append("X-Total-Count", totalCount.ToString());
             return Ok(documentDtos);
@@ -94,8 +94,8 @@ namespace AutomotiveClaimsApi.Controllers
             if (document == null)
                 return NotFound();
 
-            var baseUrl = _config["App:BaseUrl"];
-            return Ok(MapToDto(document, baseUrl));
+            v
+            return Ok(MapToDto(document));
         }
 
         [HttpPost("upload")]

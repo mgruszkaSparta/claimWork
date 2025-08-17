@@ -161,6 +161,10 @@ const CommunicationClaimSummary = ({
       )
     }
 
+    const participantName =
+      participant.name ||
+      [participant.firstName, participant.lastName].filter(Boolean).join(" ")
+
     return (
       <div className="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden">
         <div className={`px-4 py-3 ${bgColor} border-b border-gray-200`}>
@@ -170,13 +174,12 @@ const CommunicationClaimSummary = ({
           </div>
         </div>
         <div className="p-4 space-y-3">
-          <InfoCard label="Imię i nazwisko" value={participant.name} />
+          <InfoCard label="Imię i nazwisko" value={participantName} />
           <InfoCard label="Adres" value={participant.address} />
           <InfoCard label="Miasto" value={participant.city} />
           <InfoCard label="Kod pocztowy" value={participant.postalCode} />
           <InfoCard label="Kraj" value={participant.country} />
           <InfoCard label="Telefon" value={participant.phone} />
-          <InfoCard label="E-mail" value={participant.email} />
           <InfoCard label="Rejestracja" value={participant.vehicleRegistration} />
           <InfoCard label="VIN" value={participant.vehicleVin} />
           <InfoCard label="Typ pojazdu" value={participant.vehicleType} />
@@ -187,6 +190,32 @@ const CommunicationClaimSummary = ({
           )}
           <InfoCard label="Ubezpieczyciel" value={participant.insuranceCompany} />
           <InfoCard label="Nr polisy" value={participant.policyNumber} />
+
+          {participant.drivers && participant.drivers.length > 0 && (
+            <div className="space-y-3 pt-4 border-t border-gray-200">
+              <h4 className="text-sm font-semibold text-gray-900">Kierowcy</h4>
+              {participant.drivers.map((driver, index) => (
+                <div
+                  key={driver.id || index}
+                  className="bg-gray-50 rounded-lg p-3 space-y-2 border border-gray-200"
+                >
+                  <InfoCard
+                    label="Imię i nazwisko"
+                    value=
+                      {driver.name ||
+                        [driver.firstName, driver.lastName]
+                          .filter(Boolean)
+                          .join(" ")}
+                  />
+                  {driver.licenseNumber && (
+                    <InfoCard label="Nr prawa jazdy" value={driver.licenseNumber} />
+                  )}
+                  {driver.phone && <InfoCard label="Telefon" value={driver.phone} />}
+                  {driver.email && <InfoCard label="E-mail" value={driver.email} />}
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       </div>
     )

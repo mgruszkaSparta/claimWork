@@ -259,6 +259,34 @@ export interface DamageTypeDto {
   updatedAt?: string
 }
 
+export interface CaseHandlerDto {
+  id: number
+  name: string
+  code?: string
+  email?: string
+  phone?: string
+  department?: string
+  isActive: boolean
+}
+
+export interface CreateCaseHandlerDto {
+  name: string
+  code?: string
+  email?: string
+  phone?: string
+  department?: string
+  isActive?: boolean
+}
+
+export interface UpdateCaseHandlerDto {
+  name?: string
+  code?: string
+  email?: string
+  phone?: string
+  department?: string
+  isActive?: boolean
+}
+
 export interface CreateRiskTypeDto {
   code: string
   name: string
@@ -1071,6 +1099,31 @@ class ApiService {
 
   async deleteDamageType(id: string): Promise<void> {
     await this.request<void>(`/damage-types/${id}`, {
+      method: 'DELETE',
+    })
+  }
+
+  // Case Handlers API
+  async getCaseHandlers(): Promise<CaseHandlerDto[]> {
+    return this.request<CaseHandlerDto[]>('/case-handlers')
+  }
+
+  async createCaseHandler(data: CreateCaseHandlerDto): Promise<CaseHandlerDto> {
+    return this.request<CaseHandlerDto>('/case-handlers', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    })
+  }
+
+  async updateCaseHandler(id: number, data: UpdateCaseHandlerDto): Promise<void> {
+    await this.request<void>(`/case-handlers/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    })
+  }
+
+  async deleteCaseHandler(id: number): Promise<void> {
+    await this.request<void>(`/case-handlers/${id}`, {
       method: 'DELETE',
     })
   }

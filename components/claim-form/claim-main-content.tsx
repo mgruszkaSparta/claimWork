@@ -873,16 +873,29 @@ export const ClaimMainContent = ({
       return (
         <div className="space-y-4">
 
-          <DamageDataSection
-            claimFormData={claimFormData}
-            handleFormChange={handleFormChange}
-            claimObjectType={claimObjectType}
-            setClaimObjectType={setClaimObjectType}
-            riskTypes={riskTypes}
-            loadingRiskTypes={loadingRiskTypes}
-            claimStatuses={claimStatuses}
-            loadingStatuses={loadingStatuses}
-          />
+          {claimObjectType === "2" ? (
+            <PropertyDamageSection
+              claimFormData={claimFormData}
+              handleFormChange={(field, value) => handleFormChange(field as keyof Claim, value)}
+              claimObjectType={claimObjectType}
+              setClaimObjectType={setClaimObjectType}
+              riskTypes={riskTypes}
+              loadingRiskTypes={loadingRiskTypes}
+              claimStatuses={claimStatuses}
+              loadingStatuses={loadingStatuses}
+            />
+          ) : (
+            <DamageDataSection
+              claimFormData={claimFormData}
+              handleFormChange={handleFormChange}
+              claimObjectType={claimObjectType}
+              setClaimObjectType={setClaimObjectType}
+              riskTypes={riskTypes}
+              loadingRiskTypes={loadingRiskTypes}
+              claimStatuses={claimStatuses}
+              loadingStatuses={loadingStatuses}
+            />
+          )}
 
           {/* Opis zdarzenia Card */}
           <Card className="overflow-hidden shadow-sm border-gray-200 rounded-xl">
@@ -1268,18 +1281,6 @@ export const ClaimMainContent = ({
                 </div>
               </CardContent>
             </Card>
-          )}
-          {claimObjectType === "2" && (
-            <PropertyDamageSection
-              claimFormData={claimFormData}
-              handleFormChange={(field, value) => handleFormChange(field as keyof Claim, value)}
-              claimObjectType={claimObjectType}
-              setClaimObjectType={setClaimObjectType}
-              riskTypes={riskTypes}
-              loadingRiskTypes={loadingRiskTypes}
-              claimStatuses={claimStatuses}
-              loadingStatuses={loadingStatuses}
-            />
           )}
           {claimObjectType === "3" && (
             <TransportDamageSection

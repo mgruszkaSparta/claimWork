@@ -46,6 +46,8 @@ namespace AutomotiveClaimsApi.DTOs
         [StringLength(50)]
         public string? Status { get; set; }
 
+        public Guid? ClaimStatusId { get; set; }
+
         public DateTime? DamageDate { get; set; }
 
         public DateTime? ReportDate { get; set; }

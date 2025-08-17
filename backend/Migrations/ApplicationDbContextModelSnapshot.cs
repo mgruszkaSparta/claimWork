@@ -994,6 +994,9 @@ namespace AutomotiveClaimsApi.Migrations
                         .HasMaxLength(50)
                         .HasColumnType("character varying(50)");
 
+                    b.Property<Guid?>("ClaimStatusId")
+                        .HasColumnType("uuid");
+
                     b.Property<decimal?>("TotalClaim")
                         .HasColumnType("decimal(18,2)");
 
@@ -1046,11 +1049,18 @@ namespace AutomotiveClaimsApi.Migrations
                     b.Property<string>("RegisteredById")
                         .HasColumnType("text");
 
+                    b.HasIndex("ClaimStatusId");
+
                     b.HasIndex("RegisteredById");
 
                     b.HasKey("Id");
 
                     b.ToTable("Events");
+
+                    b.HasOne("AutomotiveClaimsApi.Models.Dictionary.ClaimStatus", "ClaimStatus")
+                        .WithMany()
+                        .HasForeignKey("ClaimStatusId")
+                        .OnDelete(DeleteBehavior.SetNull);
 
                     b.HasOne("AutomotiveClaimsApi.Models.ApplicationUser", "RegisteredBy")
                         .WithMany()
@@ -1503,6 +1513,8 @@ namespace AutomotiveClaimsApi.Migrations
                     b.Navigation("Recourses");
 
                     b.Navigation("Settlements");
+
+                    b.Navigation("ClaimStatus");
 
                     b.Navigation("RegisteredBy");
                 });

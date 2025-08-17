@@ -327,7 +327,6 @@ function HomePage({ user, onLogout }: PageProps) {
                 </Card>
               </div>
             </div>
-          </div>
         </main>
       </div>
     </div>

@@ -888,7 +888,7 @@ namespace AutomotiveClaimsApi.Migrations
                         .HasColumnType("character varying(50)");
 
 
-                    b.Property<int?>("InsuranceCompanyId")
+                    b.Property<int?>("InsuranceCompanyId");
 
                     b.Property<int?>("HandlerId")
           .HasColumnType("integer");

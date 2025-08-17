@@ -577,12 +577,17 @@ export const DocumentsSection = React.forwardRef<DocumentsSectionRef, DocumentsS
   }
 
   const handleDescriptionChange = async (documentId: string | number, description: string) => {
-
     const pendingIndex = pendingFiles.findIndex((f) => f.id === documentId)
+
     if (pendingIndex !== -1) {
       setPendingFiles?.((prev) => prev.map((f) => (f.id === documentId ? { ...f, description } : f)))
+      setPreviewDocument((prev) => (prev?.id === documentId ? { ...prev, description } : prev))
       return
     }
+
+    // Optimistic update to keep document within its category and update preview
+    setDocuments((prev) => prev.map((doc) => (doc.id === documentId ? { ...doc, description } : doc)))
+    setPreviewDocument((prev) => (prev?.id === documentId ? { ...prev, description } : prev))
 
     try {
       const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/documents/${documentId}`, {
@@ -596,7 +601,12 @@ export const DocumentsSection = React.forwardRef<DocumentsSectionRef, DocumentsS
 
       if (response.ok) {
         const updatedDocument = await response.json()
-        setDocuments((prev) => prev.map((doc) => (doc.id === documentId ? updatedDocument : doc)))
+        setDocuments((prev) =>
+          prev.map((doc) => (doc.id === documentId ? { ...doc, ...updatedDocument } : doc)),
+        )
+        setPreviewDocument((prev) =>
+          prev?.id === documentId ? { ...prev, ...updatedDocument } : prev,
+        )
       }
     } catch (error) {
       console.error("Error updating document description:", error)

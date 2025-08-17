@@ -165,6 +165,8 @@ namespace AutomotiveClaimsApi.Models
 
         public ApplicationUser? RegisteredBy { get; set; }
 
+        public string? SearchData { get; set; }
+
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
 

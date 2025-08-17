@@ -87,7 +87,7 @@ export default function HandlerDropdown({
 
     )
     setFilteredHandlers(filtered)
-  }, [searchTerm, sortedHandlers])
+  }, [searchTerm, handlers])
 
   // Close/relayout
   useEffect(() => {

@@ -236,7 +236,7 @@ export function DamageDataSection({
                 Szkodę zarejestrował
               </Label>
               <HandlerDropdown
-                selectedHandlerId={claimFormData.handlerId ? parseInt(claimFormData.handlerId) : undefined}
+                selectedHandlerId={claimFormData.handlerId || undefined}
                 onHandlerSelected={(event: HandlerSelectionEvent) => {
                   handleFormChange("handlerId", event.handlerId.toString())
                   handleFormChange("handler", event.handlerName)

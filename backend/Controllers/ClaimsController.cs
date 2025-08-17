@@ -90,9 +90,9 @@ namespace AutomotiveClaimsApi.Controllers
                     query = query.Where(e => e.ClientId == clientIdValue);
                 }
 
-                if (!string.IsNullOrEmpty(status))
+                if (!string.IsNullOrEmpty(status) && Guid.TryParse(status, out var statusGuid))
                 {
-                    query = query.Where(e => e.Status == status);
+                    query = query.Where(e => e.ClaimStatusId == statusGuid);
                 }
 
                 if (!string.IsNullOrEmpty(policyNumber))
@@ -143,6 +143,7 @@ namespace AutomotiveClaimsApi.Controllers
                         Model = e.Model,
                         Owner = e.Owner,
                         Status = e.Status,
+                        ClaimStatusId = e.ClaimStatusId,
                         DamageDate = e.DamageDate,
                         TotalClaim = e.TotalClaim,
                         Payout = e.Payout,
@@ -813,6 +814,7 @@ namespace AutomotiveClaimsApi.Controllers
             entity.InsuranceCompanyEmail = dto.InsuranceCompanyEmail;
             entity.PolicyNumber = dto.PolicyNumber;
             entity.Status = dto.Status;
+            entity.ClaimStatusId = dto.ClaimStatusId;
             entity.DamageDate = dto.DamageDate;
             entity.ReportDate = dto.ReportDate;
             entity.ReportDateToInsurer = dto.ReportDateToInsurer;
@@ -1617,6 +1619,7 @@ namespace AutomotiveClaimsApi.Controllers
             InsuranceCompanyEmail = e.InsuranceCompanyEmail,
             PolicyNumber = e.PolicyNumber,
             Status = e.Status,
+            ClaimStatusId = e.ClaimStatusId,
             DamageDate = e.DamageDate,
             ReportDate = e.ReportDate,
             ReportDateToInsurer = e.ReportDateToInsurer,

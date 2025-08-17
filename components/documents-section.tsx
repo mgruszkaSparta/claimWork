@@ -735,10 +735,6 @@ export const DocumentsSection = React.forwardRef<DocumentsSectionRef, DocumentsS
     handlePreview(allDocuments[0], allDocuments)
   }
 
-  useImperativeHandle(ref, () => ({
-    downloadAll: handleDownloadAll,
-  }))
-
   const handleDownloadSelected = async (category?: string) => {
     const documentsForCategory = allDocuments.filter((d) =>
       category ? d.documentType === category && selectedDocumentIds.includes(d.id) : selectedDocumentIds.includes(d.id),
@@ -792,6 +788,12 @@ export const DocumentsSection = React.forwardRef<DocumentsSectionRef, DocumentsS
       })
     }
   }
+
+  useImperativeHandle(ref, () => ({
+    downloadAll: handleDownloadAll,
+    downloadSelected: handleDownloadSelected,
+    search: (query: string) => setSearchQuery(query),
+  }))
 
   const handleDrag = (e: React.DragEvent) => {
     e.preventDefault()

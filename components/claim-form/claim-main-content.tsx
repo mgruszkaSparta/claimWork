@@ -10,7 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Textarea } from "@/components/ui/textarea"
 import { Checkbox } from "@/components/ui/checkbox"
-import { AlertTriangle, User, FileSignature, Wrench, Car, X, MessageSquare, Clock, FileCheck, Search, Mail, Plus, CheckCircle, Trash2, Save, Calendar, Phone, Paperclip, DollarSign, Gavel, ArrowUpDown, HandHeart, Users, CreditCard, Shield, UserCheck } from 'lucide-react'
+import { AlertTriangle, User, FileSignature, Wrench, Car, X, MessageSquare, Clock, FileCheck, Search, Mail, Plus, CheckCircle, Trash2, Save, Calendar, Phone, Paperclip, DollarSign, Gavel, ArrowUpDown, HandHeart, Users, CreditCard, Shield, UserCheck, Download } from 'lucide-react'
 import { DamageDiagram } from "@/components/damage-diagram"
 import { ParticipantForm } from "./participant-form"
 import { DocumentsSection } from "../documents-section"
@@ -202,6 +202,8 @@ export const ClaimMainContent = ({
   const eventId = claimFormData.id && isGuid(claimFormData.id) ? claimFormData.id : undefined
 
   const documentsSectionRef = useRef<DocumentsSectionRef>(null)
+
+  const [documentSearch, setDocumentSearch] = useState("")
 
   const [repairDetails, setRepairDetails] = useState<RepairDetail[]>([])
 
@@ -1386,6 +1388,27 @@ export const ClaimMainContent = ({
                   <Paperclip className="h-4 w-4" />
                 </div>
                 <CardTitle className="text-lg font-semibold">Dokumenty</CardTitle>
+              </div>
+              <div className="flex items-center space-x-2">
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                  <Input
+                    placeholder="Wyszukaj..."
+                    className="pl-8 bg-white text-black"
+                    value={documentSearch}
+                    onChange={(e) => {
+                      setDocumentSearch(e.target.value)
+                      documentsSectionRef.current?.search(e.target.value)
+                    }}
+                  />
+                </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => documentsSectionRef.current?.downloadSelected()}
+                >
+                  <Download className="mr-2 h-4 w-4" /> Pobierz zaznaczone
+                </Button>
               </div>
             </CardHeader>
             <CardContent className="p-0 bg-white">

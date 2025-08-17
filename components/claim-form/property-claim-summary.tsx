@@ -2,19 +2,11 @@
 
 import { FileText, MessageSquare } from "lucide-react"
 import { DocumentsSection } from "../documents-section"
-import { PropertyDamageSection } from "./property-damage-section"
-import { PropertyParticipantsSection } from "./property-participants-section"
-import type { Claim, Note, UploadedFile } from "@/types"
+import type { Claim, Note, UploadedFile, ClaimStatus } from "@/types"
 
 interface RiskType {
   value: string
   label: string
-}
-
-interface ClaimStatus {
-  id: number
-  name: string
-  description: string
 }
 
 interface PropertyClaimSummaryProps {
@@ -27,26 +19,120 @@ interface PropertyClaimSummaryProps {
   riskTypes: RiskType[]
 }
 
+const InfoCard = ({ icon, label, value }: { icon?: React.ReactNode; label: string; value?: string }) => (
+  <div className="bg-white border border-gray-200 rounded-lg p-3">
+    <div className="flex items-center space-x-2 mb-1">
+      {icon && <div className="text-gray-400">{icon}</div>}
+      <span className="text-xs font-medium text-gray-500 uppercase tracking-wide">{label}</span>
+    </div>
+    <p className="text-sm font-medium text-gray-900">{value || "Nie określono"}</p>
+  </div>
+)
+
 export function PropertyClaimSummary({
   claimFormData,
   notes,
   uploadedFiles,
   setUploadedFiles,
   eventId,
+  claimStatuses,
+  riskTypes,
 }: PropertyClaimSummaryProps) {
   const visibleNotes = notes.filter((note) => !note.type || note.type === "note")
 
+  const getStatusLabel = (statusId?: string) => {
+    const status = claimStatuses.find((s) => s.id.toString() === statusId)
+    return status ? status.name : statusId || "Nie wybrano"
+  }
+
+  const getRiskTypeLabel = (riskTypeCode?: string) => {
+    const riskType = riskTypes.find((r) => r.value === riskTypeCode)
+    return riskType ? riskType.label : riskTypeCode || "Nie wybrano"
+  }
+
   return (
     <div className="space-y-4">
-      <PropertyParticipantsSection
-        claimFormData={claimFormData}
-        handleFormChange={() => {}}
-      />
+      <div className="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden">
+        <div className="px-4 py-3 bg-gradient-to-r from-blue-50 to-blue-100 border-b border-gray-200">
+          <div className="flex items-center space-x-2">
+            <FileText className="h-4 w-4 text-blue-600" />
+            <h3 className="text-sm font-semibold text-gray-900">Dane szkody i zdarzenia</h3>
+          </div>
+        </div>
+        <div className="p-4 space-y-3">
+          <div className="grid grid-cols-2 gap-3">
+            <InfoCard label="Nr szkody Sparta" value={claimFormData.spartaNumber} />
+            <InfoCard label="Nr szkody TU" value={claimFormData.insurerClaimNumber} />
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <InfoCard label="Status" value={getStatusLabel(claimFormData.status)} />
+            <InfoCard label="Szkodę zarejestrował" value={claimFormData.handler} />
+          </div>
+          <InfoCard label="Rodzaj szkody" value={claimFormData.damageType} />
+          <InfoCard label="Ryzyko szkody" value={getRiskTypeLabel(claimFormData.riskType)} />
+          <div className="grid grid-cols-2 gap-3">
+            <InfoCard label="Data zdarzenia" value={claimFormData.damageDate} />
+            <InfoCard label="Data zgłoszenia" value={claimFormData.reportDate} />
+          </div>
+          {claimFormData.eventLocation && (
+            <InfoCard label="Miejsce zdarzenia" value={claimFormData.eventLocation} />
+          )}
+        </div>
+      </div>
 
-      <PropertyDamageSection
-        claimFormData={claimFormData}
-        handleFormChange={() => {}}
-      />
+      <div className="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden">
+        <div className="px-4 py-3 bg-gradient-to-r from-blue-50 to-blue-100 border-b border-gray-200">
+          <div className="flex items-center space-x-2">
+            <FileText className="h-4 w-4 text-blue-600" />
+            <h3 className="text-sm font-semibold text-gray-900">Uczestnicy</h3>
+          </div>
+        </div>
+        <div className="p-4 space-y-4">
+          <div>
+            <span className="text-xs font-medium text-gray-500 uppercase tracking-wide block mb-1">
+              Dane poszkodowanego
+            </span>
+            <p className="text-sm text-gray-900 whitespace-pre-line">
+              {claimFormData.injuredData || "Brak danych"}
+            </p>
+          </div>
+          <div>
+            <span className="text-xs font-medium text-gray-500 uppercase tracking-wide block mb-1">
+              Dane sprawcy
+            </span>
+            <p className="text-sm text-gray-900 whitespace-pre-line">
+              {claimFormData.perpetratorData || "Brak danych"}
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div className="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden">
+        <div className="px-4 py-3 bg-gradient-to-r from-blue-50 to-blue-100 border-b border-gray-200">
+          <div className="flex items-center space-x-2">
+            <FileText className="h-4 w-4 text-blue-600" />
+            <h3 className="text-sm font-semibold text-gray-900">Szkoda w mieniu</h3>
+          </div>
+        </div>
+        <div className="p-4 space-y-4">
+          <div>
+            <span className="text-xs font-medium text-gray-500 uppercase tracking-wide block mb-1">
+              Przedmiot szkody
+            </span>
+            <p className="text-sm text-gray-900 whitespace-pre-line">
+              {claimFormData.propertyDamageSubject || "Brak danych"}
+            </p>
+          </div>
+          <div>
+            <span className="text-xs font-medium text-gray-500 uppercase tracking-wide block mb-1">
+              Wykaz uszkodzeń / strat
+            </span>
+            <p className="text-sm text-gray-900 whitespace-pre-line">
+              {claimFormData.damageListing || "Brak danych"}
+            </p>
+          </div>
+        </div>
+      </div>
 
       <div className="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden">
         <div className="px-4 py-3 bg-gradient-to-r from-blue-50 to-blue-100 border-b border-gray-200">

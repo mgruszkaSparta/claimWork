@@ -297,7 +297,7 @@ export const ClaimMainContent = ({
   // State for expanded sections in teczka-szkodowa
   const [expandedSections, setExpandedSections] = useState({
     harmonogram: false,
-    naprawa: false,
+    naprawa: true,
   })
 
   const [autoShowRepairForm, setAutoShowRepairForm] = useState(false)
@@ -830,20 +830,11 @@ export const ClaimMainContent = ({
                       <Button
                         size="sm"
                         onClick={() => {
-                          if (!expandedSections.naprawa) toggleSection('naprawa')
                           setAutoShowRepairForm(true)
                         }}
                         className="text-xs bg-[#1a3a6c] hover:bg-[#15305a] text-white"
                       >
                         Dodaj opis naprawy
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => toggleSection('naprawa')}
-                        className="text-xs"
-                      >
-                        {expandedSections.naprawa ? 'Zwiń' : 'Rozwiń'}
                       </Button>
                     </div>
                   </div>
@@ -906,9 +897,6 @@ export const ClaimMainContent = ({
                           </div>
                         )}
 
-                      <div className="text-center pt-2">
-                        <p className="text-xs text-gray-400">Kliknij "Rozwiń" aby zobaczyć pełne szczegóły i dodać nowe pozycje naprawy</p>
-                      </div>
                     </div>
                   )}
                 </div>
@@ -2105,20 +2093,11 @@ export const ClaimMainContent = ({
                   <Button
                     size="sm"
                     onClick={() => {
-                      if (!expandedSections.naprawa) toggleSection('naprawa')
                       setAutoShowRepairForm(true)
                     }}
                     className="text-xs bg-[#1a3a6c] hover:bg-[#15305a] text-white"
                   >
                     Dodaj opis naprawy
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => toggleSection('naprawa')}
-                    className="text-xs"
-                  >
-                    {expandedSections.naprawa ? 'Zwiń' : 'Rozwiń'}
                   </Button>
                 </div>
               </div>
@@ -2218,9 +2197,6 @@ export const ClaimMainContent = ({
                         </div>
                       </div>
                     </div>
-                  </div>
-                  <div className="text-center pt-2">
-                    <p className="text-xs text-gray-400">Kliknij \"Rozwiń\" aby zobaczyć pełne szczegóły naprawy</p>
                   </div>
                 </div>
               )}

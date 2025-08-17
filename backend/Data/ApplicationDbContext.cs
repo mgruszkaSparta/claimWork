@@ -28,6 +28,7 @@ namespace AutomotiveClaimsApi.Data
         public DbSet<Client> Clients { get; set; }
         public DbSet<RiskType> RiskTypes { get; set; }
         public DbSet<DamageType> DamageTypes { get; set; }
+        public DbSet<SmtpSettings> SmtpSettings { get; set; }
 
         // Dictionary entities
         public DbSet<CaseHandler> CaseHandlers { get; set; }

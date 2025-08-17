@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using Microsoft.AspNetCore.Http;
 
 namespace AutomotiveClaimsApi.DTOs
 {
@@ -13,5 +15,6 @@ namespace AutomotiveClaimsApi.DTOs
         public string? ClaimId { get; set; }
         public string? ClaimNumber { get; set; }
         public Guid? EventId { get; set; }
+        public List<IFormFile> Attachments { get; set; } = new();
     }
 }

@@ -101,7 +101,7 @@ namespace AutomotiveClaimsApi.Data
                 entity.HasOne(d => d.Event)
                       .WithMany()
                       .HasForeignKey(d => d.EventId)
-                      .OnDelete(DeleteBehavior.Cascade);
+                      .OnDelete(DeleteBehavior.Restrict);
             });
 
             modelBuilder.Entity<DamageType>(entity =>

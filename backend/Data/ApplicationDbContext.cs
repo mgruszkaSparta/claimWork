@@ -47,6 +47,14 @@ namespace AutomotiveClaimsApi.Data
         {
             base.OnModelCreating(modelBuilder);
 
+            modelBuilder.Entity<ApplicationUser>(entity =>
+            {
+                entity.HasOne(u => u.Client)
+                      .WithMany()
+                      .HasForeignKey(u => u.ClientId)
+                      .OnDelete(DeleteBehavior.SetNull);
+            });
+
             // Event is the central aggregate root
             modelBuilder.Entity<Event>(entity =>
             {

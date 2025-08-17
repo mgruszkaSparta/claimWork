@@ -8,7 +8,7 @@ import { AuthWrapper } from '@/components/auth-wrapper'
 import { ProtectedRoute } from '@/components/protected-route'
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { FileText, Clock, Calendar, DollarSign, TrendingUp, Users, Search, Filter, CheckSquare } from 'lucide-react';
+import { FileText, Clock, TrendingUp, Users, Search, Filter, CheckSquare } from 'lucide-react';
 
 interface User {
   username: string
@@ -55,40 +55,31 @@ function HomePage({ user, onLogout }: PageProps) {
     loadTasks()
   }, [])
 
-  const stats = [
-    {
-      title: "Wszystkie szkody",
-      value: "1,247",
-      change: "+12%",
-      changeType: "positive" as const,
-      icon: FileText,
-      color: "blue",
-    },
-    {
-      title: "W trakcie",
-      value: "89",
-      change: "+5%",
-      changeType: "positive" as const,
-      icon: Clock,
-      color: "yellow",
-    },
-    {
-      title: "Ten miesiąc",
-      value: "156",
-      change: "+23%",
-      changeType: "positive" as const,
-      icon: Calendar,
-      color: "green",
-    },
-    {
-      title: "Wartość szkód",
-      value: "2.4M PLN",
-      change: "-8%",
-      changeType: "negative" as const,
-      icon: DollarSign,
-      color: "red",
-    },
+  const initialStats = [
+    { title: "Zarejestrowane szkody", value: "0", changeType: "positive" as const, icon: FileText, color: "blue" },
+    { title: "Aktywne szkody", value: "0", changeType: "positive" as const, icon: Clock, color: "yellow" },
+    { title: "Zamknięte szkody", value: "0", changeType: "positive" as const, icon: CheckSquare, color: "green" }
   ];
+  const [stats, setStats] = useState(initialStats);
+
+  useEffect(() => {
+    async function loadStats() {
+      try {
+        const res = await fetch("/api/dashboard/client");
+        if (!res.ok) throw new Error("Failed to fetch dashboard stats");
+        const data = await res.json();
+        setStats([
+          { ...initialStats[0], value: data.totalClaims?.toString() },
+          { ...initialStats[1], value: data.activeClaims?.toString() },
+          { ...initialStats[2], value: data.closedClaims?.toString() }
+        ]);
+      } catch (err) {
+        console.error("Error fetching dashboard stats:", err);
+      }
+    }
+    loadStats();
+  }, []);
+
 
   const statusOverview = [
     { status: "Nowe", count: 45, percentage: 36, color: "bg-blue-500" },
@@ -156,7 +147,7 @@ function HomePage({ user, onLogout }: PageProps) {
             <div className="space-y-6">
                
                 {/* Stats Cards */}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                   {stats.map((stat, index) => {
                     const Icon = stat.icon
                     return (
@@ -166,13 +157,15 @@ function HomePage({ user, onLogout }: PageProps) {
                             <div>
                               <p className="text-sm font-medium text-gray-600">{stat.title}</p>
                               <p className="text-2xl font-bold text-gray-900">{stat.value}</p>
-                              <p
-                                className={`text-sm ${
-                                  stat.changeType === "positive" ? "text-green-600" : "text-red-600"
-                                }`}
-                              >
-                                {stat.change} vs poprzedni miesiąc
-                              </p>
+                              {stat.change && (
+                                <p
+                                  className={`text-sm ${
+                                    stat.changeType === "positive" ? "text-green-600" : "text-red-600"
+                                  }`}
+                                >
+                                  {stat.change} vs poprzedni miesiąc
+                                </p>
+                              )}
                             </div>
                             <div
                               className={`p-3 rounded-full ${
@@ -335,7 +328,7 @@ function HomePage({ user, onLogout }: PageProps) {
 
 export default function Page() {
   return (
-    <ProtectedRoute roles={["Admin"]}>
+    <ProtectedRoute roles={["Admin", "User"]}>
       <AuthWrapper>
         <HomePage />
       </AuthWrapper>

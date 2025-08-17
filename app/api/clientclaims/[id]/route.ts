@@ -6,7 +6,7 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
   try {
     const { id } = params
 
-    const response = await fetch(`${API_BASE_URL}/client-claims/${id}`)
+    const response = await fetch(`${API_BASE_URL}/clientclaims/${id}`)
 
     if (!response.ok) {
       const errorText = await response.text()
@@ -54,7 +54,7 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
     if (documentDescription) backendFormData.append("DocumentDescription", documentDescription)
     if (document) backendFormData.append("Document", document)
 
-    const response = await fetch(`${API_BASE_URL}/client-claims/${id}`, {
+    const response = await fetch(`${API_BASE_URL}/clientclaims/${id}`, {
       method: "PUT",
       body: backendFormData,
     })
@@ -80,7 +80,7 @@ export async function DELETE(request: NextRequest, { params }: { params: { id: s
   try {
     const { id } = params
 
-    const response = await fetch(`${API_BASE_URL}/client-claims/${id}`, {
+    const response = await fetch(`${API_BASE_URL}/clientclaims/${id}`, {
       method: "DELETE",
     })
 

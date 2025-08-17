@@ -41,6 +41,14 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
+import {
+  createClientClaim,
+  updateClientClaim,
+  deleteClientClaim as apiDeleteClientClaim,
+  previewClientClaimDocument,
+  downloadClientClaimDocument,
+  type ClientClaimUpsert,
+} from "@/lib/api/clientclaims"
 
 interface ClientClaimsSectionProps {
   clientClaims: ClientClaim[]
@@ -186,9 +194,7 @@ export function ClientClaimsSection({ clientClaims, onClientClaimsChange, claimI
     setIsLoading(true)
 
     try {
-      const claimData: ClientClaim = {
-        id: editingClaim?.id || crypto.randomUUID(),
-        eventId: claimId,
+      const payload: ClientClaimUpsert = {
         claimNumber: formData.claimNumber || undefined,
         claimDate: formData.claimDate,
         claimType: formData.claimType,
@@ -197,47 +203,26 @@ export function ClientClaimsSection({ clientClaims, onClientClaimsChange, claimI
         status: formData.status,
         description: formData.description,
         claimNotes: formData.claimNotes || undefined,
-        documentDescription: formData.documentDescription,
-        ...(selectedFiles.length === 0
-          ? {
-              documentPath: editingClaim?.documentPath,
-              documentName: editingClaim?.documentName,
-            }
-          : {}),
-        document:
-          selectedFiles.length > 0
-            ? {
-                id: crypto.randomUUID(),
-                name: selectedFiles[0].name,
-                size: selectedFiles[0].size,
-                type: selectedFiles[0].type,
-                uploadedAt: new Date().toISOString(),
-              }
-            : editingClaim?.document,
-        documents:
-          selectedFiles.length > 0
-            ? selectedFiles.map((file) => ({
-                id: crypto.randomUUID(),
-                name: file.name,
-                size: file.size,
-                type: file.type,
-                uploadedAt: new Date().toISOString(),
-                file,
-              }))
-            : editingClaim?.documents,
-        claimId,
-        createdAt: editingClaim?.createdAt || new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
+        documentDescription: formData.documentDescription || undefined,
       }
 
+      let savedClaim: ClientClaim
+
       if (editingClaim) {
-        onClientClaimsChange(clientClaims.map((claim) => (claim.id === editingClaim.id ? claimData : claim)))
+        savedClaim = await updateClientClaim(editingClaim.id!, payload, selectedFiles[0])
+        onClientClaimsChange(
+          clientClaims.map((claim) => (claim.id === editingClaim.id ? savedClaim : claim)),
+        )
         toast({
           title: "Sukces",
           description: "Roszczenie zostało zaktualizowane",
         })
       } else {
-        onClientClaimsChange([...clientClaims, claimData])
+        savedClaim = await createClientClaim(
+          { ...payload, eventId: claimId },
+          selectedFiles[0],
+        )
+        onClientClaimsChange([...clientClaims, savedClaim])
         toast({
           title: "Sukces",
           description: "Roszczenie zostało dodane",
@@ -275,12 +260,21 @@ export function ClientClaimsSection({ clientClaims, onClientClaimsChange, claimI
     setIsFormVisible(true)
   }
 
-  const handleDelete = (claimId: string) => {
-    onClientClaimsChange(clientClaims.filter((claim) => claim.id !== claimId))
-    toast({
-      title: "Sukces",
-      description: "Roszczenie zostało usunięte",
-    })
+  const handleDelete = async (claimId: string) => {
+    try {
+      await apiDeleteClientClaim(claimId)
+      onClientClaimsChange(clientClaims.filter((claim) => claim.id !== claimId))
+      toast({
+        title: "Sukces",
+        description: "Roszczenie zostało usunięte",
+      })
+    } catch {
+      toast({
+        title: "Błąd",
+        description: "Nie udało się usunąć roszczenia",
+        variant: "destructive",
+      })
+    }
   }
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -417,14 +411,7 @@ export function ClientClaimsSection({ clientClaims, onClientClaimsChange, claimI
     }
 
     try {
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/client-claims/${claim.id}/preview`,
-        {
-          method: "GET",
-          credentials: "include",
-        }
-      )
-      const blob = await response.blob()
+      const blob = await previewClientClaimDocument(claim.id!)
       const url = URL.createObjectURL(blob)
 
       const extension = fileName.split(".").pop()?.toLowerCase()
@@ -460,14 +447,7 @@ export function ClientClaimsSection({ clientClaims, onClientClaimsChange, claimI
     }
 
     try {
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/client-claims/${claim.id}/download`,
-        {
-          method: "GET",
-          credentials: "include",
-        }
-      )
-      const blob = await response.blob()
+      const blob = await downloadClientClaimDocument(claim.id!)
       const url = URL.createObjectURL(blob)
 
       const a = document.createElement("a")

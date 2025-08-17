@@ -1273,6 +1273,12 @@ export const ClaimMainContent = ({
             <PropertyDamageSection
               claimFormData={claimFormData}
               handleFormChange={(field, value) => handleFormChange(field as keyof Claim, value)}
+              claimObjectType={claimObjectType}
+              setClaimObjectType={setClaimObjectType}
+              riskTypes={riskTypes}
+              loadingRiskTypes={loadingRiskTypes}
+              claimStatuses={claimStatuses}
+              loadingStatuses={loadingStatuses}
             />
           )}
           {claimObjectType === "3" && (

@@ -720,8 +720,9 @@ export const ClaimMainContent = ({
                         {expandedSections.harmonogram ? 'Zwiń' : 'Rozwiń'}
                       </Button>
                     </div>
-              </div>
-              <div className="p-4">
+                  </div>
+                </div>
+                <div className="p-4">
                 {expandedSections.harmonogram && eventId ? (
                   <div className="border rounded-lg overflow-hidden">
                     <RepairScheduleSection eventId={eventId} />
@@ -1994,18 +1995,19 @@ export const ClaimMainContent = ({
                     <Calendar className="h-4 w-4 text-blue-600" />
                     <h3 className="text-sm font-semibold text-gray-900">Harmonogram naprawy</h3>
                   </div>
-                  <div className="flex items-center space-x-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => toggleSection('harmonogram')}
-                      className="text-xs"
-                    >
-                      {expandedSections.harmonogram ? 'Zwiń' : 'Rozwiń'}
-                  </Button>
+                    <div className="flex items-center space-x-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => toggleSection('harmonogram')}
+                        className="text-xs"
+                      >
+                        {expandedSections.harmonogram ? 'Zwiń' : 'Rozwiń'}
+                    </Button>
+                  </div>
                 </div>
-              </div>
-              <div className="p-4">
+                </div>
+                <div className="p-4">
                 {expandedSections.harmonogram && eventId ? (
                   <div className="border rounded-lg overflow-hidden">
                     <RepairScheduleSection eventId={eventId} />

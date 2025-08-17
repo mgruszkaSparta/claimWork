@@ -41,6 +41,7 @@ export function DamageBasicInfoSection({
             handleFormChange("riskType", "")
             handleFormChange("damageType", "")
           }}
+          disabled
         >
           <SelectTrigger className="mt-1">
             <SelectValue placeholder="Wybierz typ szkody..." />
@@ -48,7 +49,7 @@ export function DamageBasicInfoSection({
           <SelectContent>
             <SelectItem value="1">Szkody komunikacyjne</SelectItem>
             <SelectItem value="2">Szkody mienia</SelectItem>
-            <SelectItem value="3">Szkody transportowe</SelectItem>
+            <SelectItem value="3">Szkoda transportowa</SelectItem>
           </SelectContent>
         </Select>
       </div>

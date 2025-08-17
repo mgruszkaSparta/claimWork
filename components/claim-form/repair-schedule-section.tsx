@@ -430,58 +430,14 @@ export const RepairScheduleSection: React.FC<RepairScheduleSectionProps> = ({ ev
 
   return (
     <div className="space-y-8 animate-fade-in">
-      <div className="relative overflow-hidden rounded-2xl bg-card p-8 border border-border shadow-sm">
-        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-8">
-          <div className="space-y-3">
-            <div className="flex items-center gap-3">
-              <div className="p-3 bg-primary/10 rounded-xl border border-primary/20">
-                <Wrench className="h-8 w-8 text-primary" />
-              </div>
-              <div>
-                <h1 className="text-3xl font-bold text-foreground">Harmonogramy napraw</h1>
-                <p className="text-muted-foreground text-lg">Zarządzanie flotą pojazdów</p>
-              </div>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-6">
-            <div className="hidden md:flex items-center gap-6">
-              <div className="rounded-xl p-4 border border-border bg-card text-center min-w-[80px]">
-                <div className="flex items-center justify-center gap-2 mb-1">
-                  <Activity className="h-4 w-4 text-primary" />
-                  <div className="text-2xl font-bold text-primary">{schedules.length}</div>
-                </div>
-                <div className="text-xs text-muted-foreground font-medium">Łącznie</div>
-              </div>
-              <div className="rounded-xl p-4 border border-border bg-card text-center min-w-[80px]">
-                <div className="flex items-center justify-center gap-2 mb-1">
-                  <Timer className="h-4 w-4 text-accent" />
-                  <div className="text-2xl font-bold text-accent">
-                    {schedules.filter((s) => s.status === "submitted").length}
-                  </div>
-                </div>
-                <div className="text-xs text-muted-foreground font-medium">W trakcie</div>
-              </div>
-              <div className="rounded-xl p-4 border border-border bg-card text-center min-w-[80px]">
-                <div className="flex items-center justify-center gap-2 mb-1">
-                  <CheckCircle2 className="h-4 w-4 text-green-500" />
-                  <div className="text-2xl font-bold text-green-500">
-                    {schedules.filter((s) => s.status === "completed").length}
-                  </div>
-                </div>
-                <div className="text-xs text-muted-foreground font-medium">Zakończone</div>
-              </div>
-            </div>
-
-            <Button
-              onClick={() => setShowForm(true)}
-              className="bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg hover:shadow-xl transition-all duration-200 px-6 py-3 rounded-xl font-medium"
-            >
-              <Plus className="h-5 w-5 mr-2" />
-              Nowy harmonogram
-            </Button>
-          </div>
-        </div>
+      <div className="flex justify-end">
+        <Button
+          onClick={() => setShowForm(true)}
+          className="bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg hover:shadow-xl transition-all duration-200 px-6 py-3 rounded-xl font-medium"
+        >
+          <Plus className="h-5 w-5 mr-2" />
+          Nowy harmonogram
+        </Button>
       </div>
 
       {showForm && (

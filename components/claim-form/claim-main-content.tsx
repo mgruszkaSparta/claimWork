@@ -720,14 +720,13 @@ export const ClaimMainContent = ({
                         {expandedSections.harmonogram ? 'Zwiń' : 'Rozwiń'}
                       </Button>
                     </div>
+              </div>
+              <div className="p-4">
+                {expandedSections.harmonogram && eventId ? (
+                  <div className="border rounded-lg overflow-hidden">
+                    <RepairScheduleSection eventId={eventId} />
                   </div>
-                </div>
-                <div className="p-4">
-                  {expandedSections.harmonogram && eventId ? (
-                    <div className="border rounded-lg overflow-hidden">
-                      <RepairScheduleSection eventId={eventId} />
-                    </div>
-                  ) : (
+                ) : (
                     <div className="space-y-4">
                       {/* Preview of repair schedules */}
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -2006,13 +2005,12 @@ export const ClaimMainContent = ({
                   </Button>
                 </div>
               </div>
-            </div>
-            <div className="p-4">
-              {expandedSections.harmonogram && eventId ? (
-                <div className="border rounded-lg overflow-hidden">
-                  <RepairScheduleSection eventId={eventId} />
-                </div>
-              ) : (
+              <div className="p-4">
+                {expandedSections.harmonogram && eventId ? (
+                  <div className="border rounded-lg overflow-hidden">
+                    <RepairScheduleSection eventId={eventId} />
+                  </div>
+                ) : (
                 <div className="space-y-4">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <InfoCard
@@ -2077,10 +2075,10 @@ export const ClaimMainContent = ({
                   </div>
                 </div>
               )}
+              </div>
             </div>
-          </div>
-          {/* Szczegóły naprawy - expandable section */}
-          <div className="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden">
+            {/* Szczegóły naprawy - expandable section */}
+            <div className="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden">
             <div className="px-4 py-3 bg-gradient-to-r from-blue-50 to-blue-100 border-b border-gray-200">
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-2">
@@ -2212,11 +2210,9 @@ export const ClaimMainContent = ({
               )}
             </div>
           </div>
-        </div>
-
-      </div>
-    )
-      }
+          </div>
+      )
+        }
     }
 
 

@@ -325,6 +325,9 @@ export const DocumentsSection = React.forwardRef<DocumentsSectionRef, DocumentsS
           title: "Dodano pliki",
           description: `Dodano ${newFiles.length} plik(ów) do kategorii "${categoryName}".`,
         })
+
+        const newDocs = newFiles.map(uploadedFileToDocument)
+        handlePreview(newDocs[0], [...allDocuments, ...newDocs])
       }
       return
     }
@@ -473,6 +476,10 @@ export const DocumentsSection = React.forwardRef<DocumentsSectionRef, DocumentsS
           title: "Przesłano pliki",
           description: `Pomyślnie dodano ${successfulUploadsWithIds.length} plik(ów) do kategorii "${categoryName}".`,
         })
+        handlePreview(
+          successfulUploadsWithIds[0],
+          [...allDocuments, ...successfulUploadsWithIds],
+        )
         console.log("All successful uploads:", successfulUploadsWithIds)
       }
 

@@ -94,7 +94,7 @@ namespace AutomotiveClaimsApi.Controllers
             if (document == null)
                 return NotFound();
 
-            v
+            
             return Ok(MapToDto(document));
         }
 

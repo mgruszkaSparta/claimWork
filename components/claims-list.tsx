@@ -255,6 +255,15 @@ export function ClaimsList({
 
   }
 
+  const renderSortIcon = (field: string) => {
+    if (sortConfig?.field !== field) return null
+    return sortConfig.direction === "asc" ? (
+      <ChevronUp className="inline h-3 w-3 ml-1" />
+    ) : (
+      <ChevronDown className="inline h-3 w-3 ml-1" />
+    )
+  }
+
   const handleDeleteClaim = async (claimId: string | undefined, claimNumber: string | undefined) => {
     if (!claimId) return
 

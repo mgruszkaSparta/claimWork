@@ -1722,7 +1722,8 @@ export default function ViewClaimPage() {
         </DialogContent>
       </Dialog>
 
-      <Toaster />
+        <Toaster />
+      </div>
     </div>
   )
 }

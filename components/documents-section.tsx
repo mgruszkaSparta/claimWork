@@ -326,8 +326,6 @@ export const DocumentsSection = React.forwardRef<DocumentsSectionRef, DocumentsS
           description: `Dodano ${newFiles.length} plik(ów) do kategorii "${categoryName}".`,
         })
 
-        const newDocs = newFiles.map(uploadedFileToDocument)
-        handlePreview(newDocs[0], [...allDocuments, ...newDocs])
       }
       return
     }
@@ -476,10 +474,6 @@ export const DocumentsSection = React.forwardRef<DocumentsSectionRef, DocumentsS
           title: "Przesłano pliki",
           description: `Pomyślnie dodano ${successfulUploadsWithIds.length} plik(ów) do kategorii "${categoryName}".`,
         })
-        handlePreview(
-          successfulUploadsWithIds[0],
-          [...allDocuments, ...successfulUploadsWithIds],
-        )
         console.log("All successful uploads:", successfulUploadsWithIds)
       }
 
@@ -975,7 +969,18 @@ export const DocumentsSection = React.forwardRef<DocumentsSectionRef, DocumentsS
         <p className="text-xs text-gray-500">{new Date(doc.createdAt).toLocaleDateString()}</p>
         <p className="text-xs text-gray-400">{formatBytes(doc.fileSize)}</p>
       </div>
-      <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
+      <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity flex gap-1">
+        <Button
+          variant="ghost"
+          size="icon"
+          className="h-8 w-8"
+          onClick={(e) => {
+            e.stopPropagation()
+            handlePreview(doc)
+          }}
+        >
+          <Eye className="h-4 w-4" />
+        </Button>
         <Button
           variant="destructive"
           size="icon"

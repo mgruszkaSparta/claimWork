@@ -1974,36 +1974,35 @@ export const ClaimMainContent = ({
             claimStatuses={claimStatuses}
             riskTypes={riskTypes}
           />
-          )
-        default:
-          return (
-        
-        <div className="space-y-4">
-          <CommunicationClaimSummary
-            claimFormData={claimFormData}
-            notes={notes}
-            uploadedFiles={uploadedFiles}
-            setUploadedFiles={setUploadedFiles}
-            eventId={eventId}
-            claimStatuses={claimStatuses}
-            riskTypes={riskTypes}
-          />
-          {/* Harmonogram naprawy - expandable section */}
-          <div className="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden">
-            <div className="px-4 py-3 bg-gradient-to-r from-blue-50 to-blue-100 border-b border-gray-200">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-2">
-                  <Calendar className="h-4 w-4 text-blue-600" />
-                  <h3 className="text-sm font-semibold text-gray-900">Harmonogram naprawy</h3>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => toggleSection('harmonogram')}
-                    className="text-xs"
-                  >
-                    {expandedSections.harmonogram ? 'Zwiń' : 'Rozwiń'}
+        )
+      default:
+        return (
+          <div className="space-y-4">
+            <CommunicationClaimSummary
+              claimFormData={claimFormData}
+              notes={notes}
+              uploadedFiles={uploadedFiles}
+              setUploadedFiles={setUploadedFiles}
+              eventId={eventId}
+              claimStatuses={claimStatuses}
+              riskTypes={riskTypes}
+            />
+            {/* Harmonogram naprawy - expandable section */}
+            <div className="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden">
+              <div className="px-4 py-3 bg-gradient-to-r from-blue-50 to-blue-100 border-b border-gray-200">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-2">
+                    <Calendar className="h-4 w-4 text-blue-600" />
+                    <h3 className="text-sm font-semibold text-gray-900">Harmonogram naprawy</h3>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => toggleSection('harmonogram')}
+                      className="text-xs"
+                    >
+                      {expandedSections.harmonogram ? 'Zwiń' : 'Rozwiń'}
                   </Button>
                 </div>
               </div>

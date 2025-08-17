@@ -105,3 +105,25 @@ test('omits appeals when undefined', () => {
   assert.ok(!('appeals' in payload))
 
 })
+
+test('maps transportDamage fields to flat payload', () => {
+  const payload = transformFrontendClaimToApiPayload({
+    transportDamage: {
+      cargoDescription: 'desc',
+      losses: ['l1', 'l2'],
+      carrier: 'carrier',
+      policyNumber: 'P123',
+      inspectionContactName: 'John',
+      inspectionContactPhone: '555',
+      inspectionContactEmail: 'john@example.com',
+    },
+  } as any)
+
+  assert.equal(payload.cargoDescription, 'desc')
+  assert.equal(payload.losses, 'l1,l2')
+  assert.equal(payload.carrier, 'carrier')
+  assert.equal(payload.carrierPolicyNumber, 'P123')
+  assert.equal(payload.inspectionContactName, 'John')
+  assert.equal(payload.inspectionContactPhone, '555')
+  assert.equal(payload.inspectionContactEmail, 'john@example.com')
+})

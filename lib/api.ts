@@ -67,6 +67,14 @@ export interface EventDto extends EventListItemDto {
    */
   servicesCalled?: string
 
+  cargoDescription?: string
+  losses?: string[]
+  carrier?: string
+  carrierPolicyNumber?: string
+  inspectionContactName?: string
+  inspectionContactPhone?: string
+  inspectionContactEmail?: string
+
   insuranceCompanyId?: number
   handlerId?: number
   riskType?: string
@@ -150,6 +158,14 @@ export interface EventUpsertDto {
    * e.g. "policja,pogotowie,straz".
    */
   servicesCalled?: string
+
+  cargoDescription?: string
+  losses?: string
+  carrier?: string
+  carrierPolicyNumber?: string
+  inspectionContactName?: string
+  inspectionContactPhone?: string
+  inspectionContactEmail?: string
 
   totalClaim?: number
   payout?: number

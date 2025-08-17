@@ -1,7 +1,7 @@
 "use client"
 
 import type React from "react"
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -10,7 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Textarea } from "@/components/ui/textarea"
 import { Checkbox } from "@/components/ui/checkbox"
-import { AlertTriangle, User, FileSignature, Wrench, Car, X, MessageSquare, Clock, FileCheck, Search, Mail, Plus, CheckCircle, Trash2, Save, Calendar, Phone, Paperclip, DollarSign, Gavel, ArrowUpDown, HandHeart, Users, CreditCard, Shield, UserCheck } from 'lucide-react'
+import { AlertTriangle, User, FileSignature, Wrench, Car, X, MessageSquare, Clock, FileCheck, Search, Mail, Plus, CheckCircle, Trash2, Save, Calendar, Phone, Paperclip, DollarSign, Gavel, ArrowUpDown, HandHeart, Users, CreditCard, Shield, UserCheck, Download } from 'lucide-react'
 import { DamageDiagram } from "@/components/damage-diagram"
 import { ParticipantForm } from "./participant-form"
 import { DocumentsSection } from "../documents-section"
@@ -28,6 +28,7 @@ import type {
   RequiredDocument,
   Decision,
   Note,
+  DocumentsSectionRef,
 } from "@/types"
 import { EmailSection } from "../email/email-section-compact"
 import { useToast } from "@/hooks/use-toast"
@@ -199,6 +200,8 @@ export const ClaimMainContent = ({
     /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/.test(value)
 
   const eventId = claimFormData.id && isGuid(claimFormData.id) ? claimFormData.id : undefined
+
+  const documentsSectionRef = useRef<DocumentsSectionRef>(null)
 
   const [repairDetails, setRepairDetails] = useState<RepairDetail[]>([])
 
@@ -1403,11 +1406,21 @@ export const ClaimMainContent = ({
       return (
         <div className="space-y-4">
           <Card className="overflow-hidden shadow-sm border-gray-200 rounded-xl">
-            <CardHeader className="flex flex-row items-center space-x-4 bg-gradient-to-r from-blue-600 to-blue-700 text-white p-4">
-              <div className="w-8 h-8 bg-blue-500 rounded-lg flex items-center justify-center">
-                <Paperclip className="h-4 w-4" />
+            <CardHeader className="flex items-center justify-between space-x-4 bg-gradient-to-r from-blue-600 to-blue-700 text-white p-4">
+              <div className="flex items-center space-x-4">
+                <div className="w-8 h-8 bg-blue-500 rounded-lg flex items-center justify-center">
+                  <Paperclip className="h-4 w-4" />
+                </div>
+                <CardTitle className="text-lg font-semibold">Dokumenty</CardTitle>
               </div>
-              <CardTitle className="text-lg font-semibold">Dokumenty</CardTitle>
+              <Button
+                variant="outline"
+                size="sm"
+                className="text-white border-white hover:bg-blue-600"
+                onClick={() => documentsSectionRef.current?.downloadAll()}
+              >
+                <Download className="mr-2 h-4 w-4" /> Pobierz wszystkie
+              </Button>
             </CardHeader>
             <CardContent className="p-0 bg-white">
               {eventId && (
@@ -1418,6 +1431,7 @@ export const ClaimMainContent = ({
                   setRequiredDocuments={setRequiredDocuments}
                   eventId={eventId}
                   storageKey={`main-documents-${eventId}`}
+                  ref={documentsSectionRef}
                 />
               )}
             </CardContent>

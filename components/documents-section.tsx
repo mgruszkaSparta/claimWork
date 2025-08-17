@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState, useEffect, useCallback } from "react"
+import React, { useState, useEffect, useCallback, useImperativeHandle } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input"
 import { Checkbox } from "@/components/ui/checkbox"
 import { useToast } from "@/hooks/use-toast"
 import { File, Search, Filter, Eye, Download, Upload, X, Trash2, Grid, List, Wand, Plus, FileText, Paperclip, ZoomIn, ZoomOut, ChevronLeft, ChevronRight, RotateCw, Maximize2, Minimize2 } from 'lucide-react'
-import type { DocumentsSectionProps, UploadedFile } from "@/types"
+import type { DocumentsSectionProps, UploadedFile, DocumentsSectionRef } from "@/types"
 import JSZip from "jszip"
 import { saveAs } from "file-saver"
 
@@ -35,8 +35,8 @@ interface Document {
   /** Machine readable category code */
   categoryCode?: string
 }
-
-export const DocumentsSection = ({
+export const DocumentsSection = React.forwardRef<DocumentsSectionRef, DocumentsSectionProps & { hideRequiredDocuments?: boolean }>(
+  ({
   uploadedFiles,
   setUploadedFiles,
   requiredDocuments,
@@ -46,7 +46,9 @@ export const DocumentsSection = ({
   setPendingFiles,
   hideRequiredDocuments = false,
   storageKey,
-}: DocumentsSectionProps & { hideRequiredDocuments?: boolean }) => {
+  }: DocumentsSectionProps & { hideRequiredDocuments?: boolean },
+  ref,
+) => {
   const { toast } = useToast()
   const [viewMode, setViewMode] = useState<"list" | "grid">(() => {
     if (storageKey && typeof window !== "undefined") {
@@ -64,10 +66,6 @@ export const DocumentsSection = ({
   const [loading, setLoading] = useState(false)
   const [uploading, setUploading] = useState(false)
   const [previewDocument, setPreviewDocument] = useState<Document | null>(null)
-  const [groupPreviewOpen, setGroupPreviewOpen] = useState(false)
-  const [groupPreviewCategory, setGroupPreviewCategory] = useState<string>("")
-  const [allPreviewOpen, setAllPreviewOpen] = useState(false)
-  const [allPreviewDocuments, setAllPreviewDocuments] = useState<Document[]>([])
   const [dragActive, setDragActive] = useState(false)
   const [dragCategory, setDragCategory] = useState<string | null>(null)
   const [selectedDocumentIds, setSelectedDocumentIds] = useState<string[]>([])
@@ -717,6 +715,10 @@ export const DocumentsSection = ({
     }
   }
 
+  useImperativeHandle(ref, () => ({
+    downloadAll: handleDownloadAll,
+  }))
+
   const handleDownloadSelected = async (category: string) => {
     const documentsForCategory = allDocuments.filter(
       (d) => d.documentType === category && selectedDocumentIds.includes(d.id),
@@ -1022,28 +1024,6 @@ export const DocumentsSection = ({
           </CardContent>
         </Card>
 
-        <div className="flex gap-2 justify-end">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => {
-              setAllPreviewDocuments(allDocuments)
-              setAllPreviewOpen(true)
-            }}
-          >
-            <Eye className="mr-2 h-4 w-4" />
-            Podgląd wszystkich
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => handleDownloadAll()}
-          >
-            <Download className="mr-2 h-4 w-4" />
-            Pobierz wszystko
-          </Button>
-        </div>
-
         {documentCategories.map((category) => {
           const documentsForCategory = allDocuments.filter((d) => d.documentType === category)
           const isCategoryOpen = openCategories[category] ?? false
@@ -1090,18 +1070,6 @@ export const DocumentsSection = ({
                   )}
                 </div>
                 <div className="flex items-center gap-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={(e) => {
-                      e.stopPropagation()
-                      setGroupPreviewCategory(category)
-                      setGroupPreviewOpen(true)
-                    }}
-                  >
-                    <Eye className="mr-2 h-4 w-4" />
-                    Grupowy podgląd
-                  </Button>
                   <Button
                     variant="outline"
                     size="sm"
@@ -1179,6 +1147,7 @@ export const DocumentsSection = ({
                       <table className="w-full text-sm">
                         <thead className="bg-gray-50">
                           <tr>
+                            <th className="p-3 w-4"></th>
                             <th className="p-3 text-left font-medium text-gray-600 w-2/6">Nazwa pliku</th>
                             <th className="p-3 text-left font-medium text-gray-600 w-2/6">Opis pliku</th>
                             <th className="p-3 text-left font-medium text-gray-600 w-1/6">Rozmiar</th>
@@ -1188,66 +1157,82 @@ export const DocumentsSection = ({
                           </tr>
                         </thead>
                         <tbody>
-                          {documentsForCategory.map((doc, index) => (
-                            <tr
-                              key={doc.id}
-                              className={`border-t ${index % 2 === 0 ? "bg-white" : "bg-gray-50/50"}`}
-                            >
-                              <td className="p-3 font-medium flex items-center gap-2">
-                                {getFileIcon(doc.contentType)}
-                                <span className="truncate">{doc.originalFileName}</span>
-                              </td>
-                              <td className="p-3">
-                                <div className="flex items-center gap-1">
-                                  <Button
-                                    variant="ghost"
-                                    size="icon"
-                                    className="h-7 w-7"
-                                    onClick={() => handleGenerateAIDescription(doc.id)}
-                                  >
-                                    <Wand className="h-4 w-4 text-purple-500" />
-                                  </Button>
-                                  <Input
-                                    value={doc.description || ""}
-                                    onChange={(e) => handleDescriptionChange(doc.id, e.target.value)}
-                                    className="text-sm h-8"
-                                    placeholder="Wprowadź opis pliku..."
+                          {documentsForCategory.map((doc, index) => {
+                            const isSelected = selectedDocumentIds.includes(doc.id)
+                            return (
+                              <tr
+                                key={doc.id}
+                                className={`border-t ${index % 2 === 0 ? "bg-white" : "bg-gray-50/50"}`}
+                              >
+                                <td className="p-3">
+                                  <Checkbox
+                                    checked={isSelected}
+                                    onCheckedChange={(checked) => {
+                                      const value = checked === true
+                                      setSelectedDocumentIds((prev) =>
+                                        value
+                                          ? [...prev, doc.id]
+                                          : prev.filter((id) => id !== doc.id),
+                                      )
+                                    }}
                                   />
-                                </div>
-                              </td>
-                              <td className="p-3 text-gray-600">{formatBytes(doc.fileSize)}</td>
-                              <td className="p-3 text-gray-600">{new Date(doc.createdAt).toLocaleDateString()}</td>
-                              <td className="p-3 text-gray-600 capitalize">{doc.status}</td>
-                              <td className="p-3">
-                                <div className="flex items-center gap-1">
-                                  <Button
-                                    variant="ghost"
-                                    size="icon"
-                                    className="h-7 w-7"
-                                    onClick={() => handleDownload(doc)}
-                                  >
-                                    <Download className="h-4 w-4" />
-                                  </Button>
-                                  <Button
-                                    variant="ghost"
-                                    size="icon"
-                                    className="h-7 w-7"
-                                    onClick={() => handlePreview(doc, documentsForCategory)}
-                                  >
-                                    <Eye className="h-4 w-4" />
-                                  </Button>
-                                  <Button
-                                    variant="ghost"
-                                    size="icon"
-                                    className="h-7 w-7 text-red-500 hover:text-red-600"
-                                    onClick={() => handleFileDelete(doc.id)}
-                                  >
-                                    <Trash2 className="h-4 w-4" />
-                                  </Button>
-                                </div>
-                              </td>
-                            </tr>
-                          ))}
+                                </td>
+                                <td className="p-3 font-medium flex items-center gap-2">
+                                  {getFileIcon(doc.contentType)}
+                                  <span className="truncate">{doc.originalFileName}</span>
+                                </td>
+                                <td className="p-3">
+                                  <div className="flex items-center gap-1">
+                                    <Button
+                                      variant="ghost"
+                                      size="icon"
+                                      className="h-7 w-7"
+                                      onClick={() => handleGenerateAIDescription(doc.id)}
+                                    >
+                                      <Wand className="h-4 w-4 text-purple-500" />
+                                    </Button>
+                                    <Input
+                                      value={doc.description || ""}
+                                      onChange={(e) => handleDescriptionChange(doc.id, e.target.value)}
+                                      className="text-sm h-8"
+                                      placeholder="Wprowadź opis pliku..."
+                                    />
+                                  </div>
+                                </td>
+                                <td className="p-3 text-gray-600">{formatBytes(doc.fileSize)}</td>
+                                <td className="p-3 text-gray-600">{new Date(doc.createdAt).toLocaleDateString()}</td>
+                                <td className="p-3 text-gray-600 capitalize">{doc.status}</td>
+                                <td className="p-3">
+                                  <div className="flex items-center gap-1">
+                                    <Button
+                                      variant="ghost"
+                                      size="icon"
+                                      className="h-7 w-7"
+                                      onClick={() => handleDownload(doc)}
+                                    >
+                                      <Download className="h-4 w-4" />
+                                    </Button>
+                                    <Button
+                                      variant="ghost"
+                                      size="icon"
+                                      className="h-7 w-7"
+                                      onClick={() => handlePreview(doc, documentsForCategory)}
+                                    >
+                                      <Eye className="h-4 w-4" />
+                                    </Button>
+                                    <Button
+                                      variant="ghost"
+                                      size="icon"
+                                      className="h-7 w-7 text-red-500 hover:text-red-600"
+                                      onClick={() => handleFileDelete(doc.id)}
+                                    >
+                                      <Trash2 className="h-4 w-4" />
+                                    </Button>
+                                  </div>
+                                </td>
+                              </tr>
+                            )
+                          })}
                         </tbody>
                       </table>
                       {documentsForCategory.length === 0 && (
@@ -1336,263 +1321,6 @@ export const DocumentsSection = ({
               </div>
             </CardContent>
           </Card>
-        )}
-
-        {/* All Preview Modal */}
-        {allPreviewOpen && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-            <div className="bg-white rounded-lg p-6 max-w-6xl max-h-[90vh] overflow-auto w-full mx-4">
-              <div className="flex justify-between items-center mb-6">
-                <h3 className="text-xl font-semibold">Podgląd wszystkich dokumentów</h3>
-                <Button variant="ghost" onClick={() => setAllPreviewOpen(false)}>
-                  <X className="h-4 w-4" />
-                </Button>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {allPreviewDocuments.map((doc) => (
-                  <Card key={doc.id} className="overflow-hidden">
-                    <div className="aspect-w-16 aspect-h-12 bg-gray-100 flex items-center justify-center min-h-[200px]">
-                      {doc.contentType.startsWith("image/") ? (
-                        <img
-                          src={doc.previewUrl || "/placeholder.svg?height=200&width=300"}
-                          alt={doc.originalFileName}
-                          className="w-full h-full object-cover cursor-pointer"
-                          onClick={() => {
-                            setAllPreviewOpen(false)
-                            handlePreview(doc, allPreviewDocuments)
-                          }}
-                        />
-                      ) : doc.contentType.startsWith("video/") ? (
-                        <video
-                          src={doc.previewUrl || doc.downloadUrl}
-                          className="w-full h-full object-cover cursor-pointer"
-                          onClick={() => {
-                            setAllPreviewOpen(false)
-                            handlePreview(doc, allPreviewDocuments)
-                          }}
-                          muted
-                          preload="metadata"
-                        />
-                      ) : doc.contentType === "application/pdf" ? (
-                        <div className="flex flex-col items-center justify-center text-center p-4">
-                          <FileText className="w-16 h-16 text-red-500 mb-2" />
-                          <p className="text-sm font-medium text-gray-700 mb-2">PDF Document</p>
-                          <Button
-                            size="sm"
-                            onClick={() => {
-                              setAllPreviewOpen(false)
-                              handlePreview(doc, allPreviewDocuments)
-                            }}
-                          >
-                            <Eye className="mr-2 h-4 w-4" />
-                            Podgląd
-                          </Button>
-                        </div>
-                      ) : (
-                        <div className="flex flex-col items-center justify-center text-center p-4">
-                          <FileText className="w-16 h-16 text-gray-400 mb-2" />
-                          <p className="text-sm font-medium text-gray-700">
-                            {doc.contentType.includes("document") || doc.contentType.includes("word")
-                              ? "Dokument Word"
-                              : doc.contentType.startsWith("video/")
-                                ? "Plik wideo"
-                                : "Plik"}
-                          </p>
-                        </div>
-                      )}
-                    </div>
-
-                    <div className="p-4">
-                      <div className="flex items-center justify-between mb-2">
-                        <h4
-                          className="font-medium text-sm text-gray-800 truncate"
-                          title={doc.originalFileName}
-                        >
-                          {doc.originalFileName}
-                        </h4>
-                        <Badge variant="secondary" className="ml-2 capitalize">
-                          {doc.documentType}
-                        </Badge>
-                      </div>
-                      <div className="flex items-center justify-between text-xs text-gray-500 mb-3">
-                        <span>{formatBytes(doc.fileSize)}</span>
-                        <span>{new Date(doc.createdAt).toLocaleDateString()}</span>
-                      </div>
-
-                      {doc.description && (
-                        <p className="text-xs text-gray-600 mb-3 line-clamp-2">{doc.description}</p>
-                      )}
-
-                      <div className="flex items-center gap-2">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className="flex-1 bg-transparent"
-                          onClick={() => handleDownload(doc)}
-                        >
-                          <Download className="mr-1 h-3 w-3" />
-                          Pobierz
-                        </Button>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className="flex-1 bg-transparent"
-                          onClick={() => {
-                            setAllPreviewOpen(false)
-                            handlePreview(doc, allPreviewDocuments)
-                          }}
-                        >
-                          <Eye className="mr-1 h-3 w-3" />
-                          Podgląd
-                        </Button>
-                      </div>
-                    </div>
-                  </Card>
-                ))}
-              </div>
-
-              {allPreviewDocuments.length === 0 && (
-                <div className="text-center py-12">
-                  <FileText className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-                  <p className="text-gray-600">Brak plików</p>
-                </div>
-              )}
-            </div>
-          </div>
-        )}
-
-        {/* Group Preview Modal */}
-        {groupPreviewOpen && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-            <div className="bg-white rounded-lg p-6 max-w-6xl max-h-[90vh] overflow-auto w-full mx-4">
-              <div className="flex justify-between items-center mb-6">
-                <h3 className="text-xl font-semibold">Grupowy podgląd - {groupPreviewCategory}</h3>
-                <Button variant="ghost" onClick={() => setGroupPreviewOpen(false)}>
-                  <X className="h-4 w-4" />
-                </Button>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {allDocuments
-                  .filter((d) => d.documentType === groupPreviewCategory)
-                  .map((doc) => (
-                    <Card key={doc.id} className="overflow-hidden">
-                      <div className="aspect-w-16 aspect-h-12 bg-gray-100 flex items-center justify-center min-h-[200px]">
-                        {doc.contentType.startsWith("image/") ? (
-                          <img
-                            src={doc.previewUrl || "/placeholder.svg?height=200&width=300"}
-                            alt={doc.originalFileName}
-                            className="w-full h-full object-cover cursor-pointer"
-                            onClick={() => {
-                              setGroupPreviewOpen(false)
-                              handlePreview(
-                                doc,
-                                allDocuments.filter((d) => d.documentType === groupPreviewCategory),
-                              )
-                            }}
-                          />
-                        ) : doc.contentType.startsWith("video/") ? (
-                          <video
-                            src={doc.previewUrl || doc.downloadUrl}
-                            className="w-full h-full object-cover cursor-pointer"
-                            onClick={() => {
-                              setGroupPreviewOpen(false)
-                              handlePreview(
-                                doc,
-                                allDocuments.filter((d) => d.documentType === groupPreviewCategory),
-                              )
-                            }}
-                            muted
-                            preload="metadata"
-                          />
-                        ) : doc.contentType === "application/pdf" ? (
-                          <div className="flex flex-col items-center justify-center text-center p-4">
-                            <FileText className="w-16 h-16 text-red-500 mb-2" />
-                            <p className="text-sm font-medium text-gray-700 mb-2">PDF Document</p>
-                            <Button
-                              size="sm"
-                              onClick={() => {
-                                setGroupPreviewOpen(false)
-                                handlePreview(
-                                  doc,
-                                  allDocuments.filter((d) => d.documentType === groupPreviewCategory),
-                                )
-                              }}
-                            >
-                              <Eye className="mr-2 h-4 w-4" />
-                              Podgląd
-                            </Button>
-                          </div>
-                        ) : (
-                          <div className="flex flex-col items-center justify-center text-center p-4">
-                            <FileText className="w-16 h-16 text-gray-400 mb-2" />
-                            <p className="text-sm font-medium text-gray-700">
-                              {doc.contentType.includes("document") || doc.contentType.includes("word")
-                                ? "Dokument Word"
-                                : doc.contentType.startsWith("video/")
-                                  ? "Plik wideo"
-                                  : "Plik"}
-                            </p>
-                          </div>
-                        )}
-                      </div>
-
-                      <div className="p-4">
-                        <h4
-                          className="font-medium text-sm text-gray-800 truncate mb-2"
-                          title={doc.originalFileName}
-                        >
-                          {doc.originalFileName}
-                        </h4>
-                        <div className="flex items-center justify-between text-xs text-gray-500 mb-3">
-                          <span>{formatBytes(doc.fileSize)}</span>
-                          <span>{new Date(doc.createdAt).toLocaleDateString()}</span>
-                        </div>
-
-                        {doc.description && (
-                          <p className="text-xs text-gray-600 mb-3 line-clamp-2">{doc.description}</p>
-                        )}
-
-                        <div className="flex items-center gap-2">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            className="flex-1 bg-transparent"
-                            onClick={() => handleDownload(doc)}
-                          >
-                            <Download className="mr-1 h-3 w-3" />
-                            Pobierz
-                          </Button>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            className="flex-1 bg-transparent"
-                            onClick={() => {
-                              setGroupPreviewOpen(false)
-                              handlePreview(
-                                doc,
-                                allDocuments.filter((d) => d.documentType === groupPreviewCategory),
-                              )
-                            }}
-                          >
-                            <Eye className="mr-1 h-3 w-3" />
-                            Podgląd
-                          </Button>
-                        </div>
-                      </div>
-                    </Card>
-                  ))}
-              </div>
-
-              {allDocuments.filter((d) => d.documentType === groupPreviewCategory).length === 0 && (
-                <div className="text-center py-12">
-                  <FileText className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-                  <p className="text-gray-600">Brak plików w tej kategorii</p>
-                </div>
-              )}
-            </div>
-          </div>
         )}
 
         {/* Enhanced Preview Modal */}
@@ -1744,4 +1472,6 @@ export const DocumentsSection = ({
       </div>
     </div>
   )
-}
+})
+
+DocumentsSection.displayName = "DocumentsSection"

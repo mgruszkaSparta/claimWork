@@ -3,7 +3,9 @@ import Link from "next/link"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 
-import { LayoutDashboard, FileText, Car, Settings, Inbox } from "lucide-react"
+
+import { LayoutDashboard, FileText, Car, Settings, Inbox, Calendar, CalendarCheck, BarChart3 } from "lucide-react"
+
 
 import { useAuth } from "@/hooks/use-auth"
 
@@ -26,12 +28,31 @@ const menuItems = [
     href: "/claims",
   },
   {
+    id: "vacations",
+    label: "Urlopy",
+    icon: Calendar,
+    href: "/vacations",
+  },
+  {
+    id: "vacation-requests",
+    label: "Wnioski urlopowe",
+    icon: CalendarCheck,
+    href: "/vacations/manage",
+    roles: ["Admin", "admin"],
+  },
+  {
     id: "unassigned",
     label: "Szkody nieprzydzielone",
 
     icon: Inbox,
 
     href: "/emails/unassigned",
+  },
+  {
+    id: "reports",
+    label: "Raporty",
+    icon: BarChart3,
+    href: "/reports",
   },
   {
     id: "settings",

@@ -1,12 +1,32 @@
 "use client"
 
-import { useState, useEffect, useMemo, useRef } from "react"
+import { useState, useEffect, useMemo, useRef, type ComponentType } from "react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
 import { Alert, AlertDescription } from "@/components/ui/alert"
-import { Search, Plus, Filter, Eye, Edit, Trash2, RefreshCw, AlertCircle, Loader2, X } from "lucide-react"
+
+import {
+  Search,
+  Plus,
+  Filter,
+  Eye,
+  Edit,
+  Trash2,
+  RefreshCw,
+  AlertCircle,
+  Loader2,
+  X,
+  ChevronUp,
+  ChevronDown,
+  Car,
+  Home,
+  Truck,
+} from "lucide-react"
+
+
+
 import { useClaims } from "@/hooks/use-claims"
 import { useToast } from "@/hooks/use-toast"
 import type { Claim } from "@/types"
@@ -25,6 +45,18 @@ const RISK_TYPE_GROUPS: Record<string, string[]> = {
   ],
   "2": ["MAJĄTKOWE", "NNW", "CPM", "CAR/EAR", "BI", "GWARANCJIE"],
   "3": ["OCPD", "CARGO"],
+}
+
+const typeLabelMap: Record<number, string> = {
+  1: "Komunikacyjna",
+  2: "Majątkowa",
+  3: "Transportowa",
+}
+
+const typeIconMap: Record<number, ComponentType<{ className?: string }>> = {
+  1: Car,
+  2: Home,
+  3: Truck,
 }
 
 interface ClaimsListProps {
@@ -48,7 +80,13 @@ export function ClaimsList({
   const [showFilters, setShowFilters] = useState(false)
   const [isRefreshing, setIsRefreshing] = useState(false)
   const [page, setPage] = useState(1)
+  const [sortConfig, setSortConfig] = useState<{
+    field: string
+    direction: "asc" | "desc"
+  } | null>(null)
   const pageSize = 30
+  const [sortBy, setSortBy] = useState<string>("reportDate")
+  const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc")
   const loaderRef = useRef<HTMLDivElement | null>(null)
   const containerRef = useRef<HTMLDivElement | null>(null)
 
@@ -80,6 +118,8 @@ export function ClaimsList({
             brand: filterBrand || undefined,
             handler: filterHandler || undefined,
             claimObjectTypeId,
+            sortBy,
+            sortOrder,
           },
           { append: page > 1 },
         )
@@ -102,6 +142,8 @@ export function ClaimsList({
     filterBrand,
     filterHandler,
     claimObjectTypeId,
+    sortBy,
+    sortOrder,
     initialClaims,
 
   ])
@@ -121,18 +163,19 @@ export function ClaimsList({
         .filter((claim) => {
           const lowerCaseSearchTerm = searchTerm.toLowerCase()
           const matchesSearch =
-            claim.vehicleNumber?.toLowerCase().includes(lowerCaseSearchTerm) ||
+            claim.damageType?.toLowerCase().includes(lowerCaseSearchTerm) ||
+            claim.insurerClaimNumber?.toLowerCase().includes(lowerCaseSearchTerm) ||
             claim.claimNumber?.toLowerCase().includes(lowerCaseSearchTerm) ||
-            claim.spartaNumber?.toLowerCase().includes(lowerCaseSearchTerm) ||
+            claim.vehicleNumber?.toLowerCase().includes(lowerCaseSearchTerm) ||
+            claim.handler?.toLowerCase().includes(lowerCaseSearchTerm) ||
             claim.client?.toLowerCase().includes(lowerCaseSearchTerm) ||
-            claim.liquidator?.toLowerCase().includes(lowerCaseSearchTerm) ||
-            claim.brand?.toLowerCase().includes(lowerCaseSearchTerm)
+            claim.riskType?.toLowerCase().includes(lowerCaseSearchTerm)
 
           const matchesFilter = filterStatus === "all" || claim.status === filterStatus
           const matchesBrand =
-            !filterBrand || claim.brand?.toLowerCase().includes(filterBrand.toLowerCase())
+            !filterBrand || claim.vehicleNumber?.toLowerCase().includes(filterBrand.toLowerCase())
           const matchesHandler =
-            !filterHandler || claim.liquidator?.toLowerCase().includes(filterHandler.toLowerCase())
+            !filterHandler || claim.handler?.toLowerCase().includes(filterHandler.toLowerCase())
           const matchesClaimType =
             !allowedRiskTypes ||
             !claim.riskType ||
@@ -155,6 +198,18 @@ export function ClaimsList({
       allowedRiskTypes,
     ],
   )
+
+  const sortedClaims = useMemo(() => {
+    if (!sortConfig) return filteredClaims
+    const { field, direction } = sortConfig
+    return [...filteredClaims].sort((a: any, b: any) => {
+      const aVal = a?.[field] ?? 0
+      const bVal = b?.[field] ?? 0
+      if (aVal < bVal) return direction === "asc" ? -1 : 1
+      if (aVal > bVal) return direction === "asc" ? 1 : -1
+      return 0
+    })
+  }, [filteredClaims, sortConfig])
 
   useEffect(() => {
 
@@ -202,6 +257,29 @@ export function ClaimsList({
     }
   }
 
+  const handleSort = (field: string) => {
+
+    setSortConfig((prev) => {
+      if (prev?.field === field) {
+        return {
+          field,
+          direction: prev.direction === "asc" ? "desc" : "asc",
+        }
+      }
+      return { field, direction: "asc" }
+    })
+
+  }
+
+  const renderSortIcon = (field: string) => {
+    if (sortConfig?.field !== field) return null
+    return sortConfig.direction === "asc" ? (
+      <ChevronUp className="inline h-3 w-3 ml-1" />
+    ) : (
+      <ChevronDown className="inline h-3 w-3 ml-1" />
+    )
+  }
+
   const handleDeleteClaim = async (claimId: string | undefined, claimNumber: string | undefined) => {
     if (!claimId) return
 
@@ -243,6 +321,8 @@ export function ClaimsList({
           brand: filterBrand || undefined,
           handler: filterHandler || undefined,
           claimObjectTypeId,
+          sortBy,
+          sortOrder,
         },
         { append: false },
       )
@@ -385,13 +465,13 @@ export function ClaimsList({
         {showFilters && (
           <div className="mt-3 flex flex-col sm:flex-row gap-3">
             <Input
-              placeholder="Filtruj po marce..."
+              placeholder="Filtruj po numerze rejestracyjnym..."
               value={filterBrand}
               onChange={(e) => setFilterBrand(e.target.value)}
               className="h-9 text-sm"
             />
             <Input
-              placeholder="Filtruj po likwidatorze..."
+              placeholder="Filtruj po opiekunie..."
               value={filterHandler}
               onChange={(e) => setFilterHandler(e.target.value)}
               className="h-9 text-sm"
@@ -407,23 +487,58 @@ export function ClaimsList({
             <table className="min-w-full divide-y divide-gray-200">
               <thead className="bg-gray-50 sticky top-0 z-10">
                 <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Pojazd
+
+                  <th
+                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer"
+                    onClick={() => handleSort("objectTypeId")}
+                  >
+                    Typ
+                    {sortConfig?.field === "objectTypeId" && (
+                      sortConfig.direction === "asc" ? (
+                        <ChevronUp className="inline h-3 w-3 ml-1" />
+                      ) : (
+                        <ChevronDown className="inline h-3 w-3 ml-1" />
+                      )
+                    )}
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Numer Szkody
+                    Nr szkody TU
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Klient
+                    Nr szkody Sparta
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Status
+                    Nr rejestracyjny
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Data Szkody
+                    Likwidator
+
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Wartość
+                    <div className="flex items-center cursor-pointer" onClick={() => handleSort("client")}>
+                      Grupa klienta
+                      {renderSortIcon("client")}
+                    </div>
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+
+                    <div className="flex items-center cursor-pointer" onClick={() => handleSort("reportDate")}>
+                      Data rejestracji
+                      {renderSortIcon("reportDate")}
+                    </div>
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <div className="flex items-center cursor-pointer" onClick={() => handleSort("riskType")}>
+                      Ryzyko
+                      {renderSortIcon("riskType")}
+                    </div>
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <div className="flex items-center cursor-pointer" onClick={() => handleSort("status")}>
+                      Status
+                      {renderSortIcon("status")}
+                    </div>
+
                   </th>
                   <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Akcje
@@ -431,47 +546,40 @@ export function ClaimsList({
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200">
-                {filteredClaims.map((claim) => (
+                {sortedClaims.map((claim) => (
                   <tr
                     key={claim.id}
                     className="odd:bg-white even:bg-gray-50 hover:bg-gray-100 transition-colors"
                   >
+
+
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <div>
-                        <div className="text-sm font-medium text-gray-900">{claim.vehicleNumber || "-"}</div>
-                        <div className="text-sm text-gray-500">{claim.brand || "-"}</div>
-                      </div>
+                      {claim.objectTypeId ? (
+                        <div className="flex items-center gap-2">
+                          {(() => {
+                            const Icon = typeIconMap[claim.objectTypeId as number]
+                            return Icon ? <Icon className="h-4 w-4" /> : null
+                          })()}
+                          <span>{typeLabelMap[claim.objectTypeId as number]}</span>
+                        </div>
+                      ) : (
+                        "-"
+                      )}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div>
-                        <div className="text-sm font-medium text-gray-900">{claim.spartaNumber || "-"}</div>
-                        <div className="text-sm text-gray-500">{claim.claimNumber || "-"}</div>
-                      </div>
+                    <td className="px-6 py-4 whitespace-nowrap">{claim.insurerClaimNumber || "-"}</td>
+                    <td className="px-6 py-4 whitespace-nowrap">{claim.claimNumber || "-"}</td>
+                    <td className="px-6 py-4 whitespace-nowrap">{claim.vehicleNumber || "-"}</td>
+                    <td className="px-6 py-4 whitespace-nowrap">{claim.handler || "-"}</td>
+                    <td className="px-6 py-4 whitespace-nowrap">{claim.client || "-"}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      {claim.reportDate ? new Date(claim.reportDate).toLocaleDateString("pl-PL") : "-"}
+
                     </td>
-                    <td className="px-6 py-4">
-                      <div className="text-sm text-gray-900 max-w-xs truncate" title={claim.client}>
-                        {claim.client || "-"}
-                      </div>
-                      <div className="text-sm text-gray-500">{claim.liquidator || "-"}</div>
-                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">{claim.riskType || "-"}</td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <Badge className={`text-xs border ${getStatusColor(claim.status ?? "")}`}>
                         {claim.status || "-"}
                       </Badge>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {claim.damageDate ? new Date(claim.damageDate).toLocaleDateString("pl-PL") : "-"}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm font-medium text-gray-900">
-                        {claim.totalClaim
-                          ? `${claim.totalClaim.toLocaleString("pl-PL")} ${claim.currency || "PLN"}`
-                          : "0 PLN"}
-                      </div>
-                      <div className="text-sm text-gray-500">
-                        Wypłata:{" "}
-                        {claim.payout ? `${claim.payout.toLocaleString("pl-PL")} ${claim.currency || "PLN"}` : "0 PLN"}
-                      </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                       <div className="flex items-center justify-end space-x-2">
@@ -499,7 +607,7 @@ export function ClaimsList({
                           variant="ghost"
                           size="sm"
                           className="h-8 w-8 p-0 hover:bg-red-50"
-                          onClick={() => handleDeleteClaim(claim.id, claim.spartaNumber)}
+                          onClick={() => handleDeleteClaim(claim.id, claim.claimNumber)}
                           title="Usuń"
                         >
                           <Trash2 className="h-4 w-4 text-red-600" />
@@ -519,7 +627,7 @@ export function ClaimsList({
           </div>
 
           {/* Empty State */}
-          {filteredClaims.length === 0 && !loading && (
+          {sortedClaims.length === 0 && !loading && (
             <div className="flex-1 flex items-center justify-center">
               <div className="text-center py-12">
                 <div className="mx-auto w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mb-4">
@@ -546,16 +654,16 @@ export function ClaimsList({
       </div>
 
       {/* Summary */}
-      {filteredClaims.length > 0 && (
+      {sortedClaims.length > 0 && (
         <div className="px-6 pb-6 flex-shrink-0">
           <div className="flex justify-between items-center text-sm text-gray-500 bg-gray-50 px-4 py-2 rounded-lg">
             <span>
-              Wyświetlono {filteredClaims.length} z {totalCount} szkód
+              Wyświetlono {sortedClaims.length} z {totalCount} szkód
               {error && " (sprawdź połączenie z API)"}
             </span>
             <span>
               Łączna wartość:{" "}
-              {filteredClaims.reduce((sum, claim) => sum + (claim.totalClaim || 0), 0).toLocaleString("pl-PL")} PLN
+              {sortedClaims.reduce((sum, claim) => sum + (claim.totalClaim || 0), 0).toLocaleString("pl-PL")} PLN
             </span>
           </div>
         </div>

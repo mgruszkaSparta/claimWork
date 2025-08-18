@@ -6,15 +6,11 @@ namespace AutomotiveClaimsApi.DTOs
     public class CreateRepairScheduleDto
     {
         public Guid EventId { get; set; }
+        public string? BranchId { get; set; }
         public string? CompanyName { get; set; }
-        public string? DamageNumber { get; set; }
         [Required]
         public string VehicleFleetNumber { get; set; } = string.Empty;
-        [Required]
-        public string VehicleRegistration { get; set; } = string.Empty;
-        [Required]
-        public string DamageDate { get; set; } = string.Empty;
-        public string? DamageTime { get; set; }
+        public string? VehicleRegistration { get; set; }
         public string? ExpertWaitingDate { get; set; }
         public string? AdditionalInspections { get; set; }
         public string? RepairStartDate { get; set; }

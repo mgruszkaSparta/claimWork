@@ -1,13 +1,15 @@
-import type { Email, EmailFolder } from "@/types/email"
 
-export const emailFolders: EmailFolder[] = [
-  { id: "inbox", name: "Odebrane", count: 0, unreadCount: 0, icon: "Inbox" },
-  { id: "sent", name: "Wysłane", count: 0, unreadCount: 0, icon: "Send" },
-  { id: "drafts", name: "Szkice", count: 0, unreadCount: 0, icon: "FileEdit" },
-  { id: "starred", name: "Oznaczone gwiazdką", count: 0, unreadCount: 0, icon: "Star" },
-  { id: "important", name: "Ważne", count: 0, unreadCount: 0, icon: "AlertCircle" },
-  { id: "trash", name: "Kosz", count: 0, unreadCount: 0, icon: "Trash2" },
-  { id: "spam", name: "Spam", count: 0, unreadCount: 0, icon: "Shield" },
+import { EmailFolder, type Email, type EmailFolderDefinition } from "@/types/email"
+
+
+export const emailFolders: EmailFolderDefinition[] = [
+  { id: EmailFolder.Inbox, name: "Odebrane", count: 0, unreadCount: 0, icon: "Inbox" },
+  { id: EmailFolder.Sent, name: "Wysłane", count: 0, unreadCount: 0, icon: "Send" },
+  { id: EmailFolder.Drafts, name: "Szkice", count: 0, unreadCount: 0, icon: "FileEdit" },
+  { id: EmailFolder.Starred, name: "Oznaczone gwiazdką", count: 0, unreadCount: 0, icon: "Star" },
+  { id: EmailFolder.Important, name: "Ważne", count: 0, unreadCount: 0, icon: "AlertCircle" },
+  { id: EmailFolder.Trash, name: "Kosz", count: 0, unreadCount: 0, icon: "Trash2" },
+  { id: EmailFolder.Spam, name: "Spam", count: 0, unreadCount: 0, icon: "Shield" },
 ]
 
 export const sampleEmails: Email[] = []

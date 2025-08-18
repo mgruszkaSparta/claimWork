@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-
+using AutomotiveClaimsApi.Models.Dictionary;
 
 namespace AutomotiveClaimsApi.Models
 {
@@ -48,6 +48,10 @@ namespace AutomotiveClaimsApi.Models
 
         [MaxLength(50)]
         public string? Status { get; set; }
+
+        public Guid? ClaimStatusId { get; set; }
+
+        public ClaimStatus? ClaimStatus { get; set; }
 
         public DateTime? DamageDate { get; set; }
 
@@ -160,6 +164,8 @@ namespace AutomotiveClaimsApi.Models
         public string? RegisteredById { get; set; }
 
         public ApplicationUser? RegisteredBy { get; set; }
+
+        public string? SearchData { get; set; }
 
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;

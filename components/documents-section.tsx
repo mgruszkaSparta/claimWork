@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState, useEffect, useCallback } from "react"
+import React, { useState, useEffect, useCallback, useImperativeHandle } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -8,9 +8,21 @@ import { Input } from "@/components/ui/input"
 import { Checkbox } from "@/components/ui/checkbox"
 import { useToast } from "@/hooks/use-toast"
 import { File, Search, Filter, Eye, Download, Upload, X, Trash2, Grid, List, Wand, Plus, FileText, Paperclip, ZoomIn, ZoomOut, ChevronLeft, ChevronRight, RotateCw, Maximize2, Minimize2 } from 'lucide-react'
-import type { DocumentsSectionProps, UploadedFile } from "@/types"
+import type { DocumentsSectionProps, UploadedFile, DocumentsSectionRef } from "@/types"
 import JSZip from "jszip"
 import { saveAs } from "file-saver"
+
+const DEFAULT_HIDDEN_CATEGORIES = [
+  "Decyzje",
+  "Decyzja",
+  "Regresy",
+  "Regres",
+  "Odwołania",
+  "Odwołanie",
+  "Roszczenia klienta",
+  "Roszczenia",
+  "Rozliczenia",
+]
 
 interface Document {
   id: string
@@ -21,6 +33,7 @@ interface Document {
   contentType: string
   fileSize: number
   filePath: string
+  cloudUrl?: string
   description?: string
   status: string
   uploadedBy: string
@@ -34,19 +47,35 @@ interface Document {
   /** Machine readable category code */
   categoryCode?: string
 }
-
-export const DocumentsSection = ({
-  uploadedFiles,
-  setUploadedFiles,
-  requiredDocuments,
-  setRequiredDocuments,
-  eventId,
-  pendingFiles = [],
-  setPendingFiles,
-  hideRequiredDocuments = false,
-}: DocumentsSectionProps & { hideRequiredDocuments?: boolean }) => {
+export const DocumentsSection = React.forwardRef<
+  DocumentsSectionRef,
+  DocumentsSectionProps & { hideRequiredDocuments?: boolean; hiddenCategories?: string[] }
+>(
+  (
+    {
+      uploadedFiles,
+      setUploadedFiles,
+      requiredDocuments,
+      setRequiredDocuments,
+      eventId,
+      pendingFiles = [],
+      setPendingFiles,
+      hideRequiredDocuments = false,
+      storageKey,
+      hiddenCategories = DEFAULT_HIDDEN_CATEGORIES,
+    }: DocumentsSectionProps & { hideRequiredDocuments?: boolean; hiddenCategories?: string[] },
+    ref,
+  ) => {
   const { toast } = useToast()
-  const [viewMode, setViewMode] = useState<"list" | "grid">("list")
+  const [viewMode, setViewMode] = useState<"list" | "grid">(() => {
+    if (storageKey && typeof window !== "undefined") {
+      const stored = localStorage.getItem(`documents-view-${storageKey}`)
+      if (stored === "list" || stored === "grid") {
+        return stored
+      }
+    }
+    return "list"
+  })
   const fileInputRef = React.useRef<HTMLInputElement>(null)
   const [openCategories, setOpenCategories] = useState<Record<string, boolean>>({ "Inne dokumenty": true })
   const [uploadingForCategory, setUploadingForCategory] = useState<string | null>(null)
@@ -54,13 +83,10 @@ export const DocumentsSection = ({
   const [loading, setLoading] = useState(false)
   const [uploading, setUploading] = useState(false)
   const [previewDocument, setPreviewDocument] = useState<Document | null>(null)
-  const [groupPreviewOpen, setGroupPreviewOpen] = useState(false)
-  const [groupPreviewCategory, setGroupPreviewCategory] = useState<string>("")
-  const [allPreviewOpen, setAllPreviewOpen] = useState(false)
-  const [allPreviewDocuments, setAllPreviewDocuments] = useState<Document[]>([])
   const [dragActive, setDragActive] = useState(false)
   const [dragCategory, setDragCategory] = useState<string | null>(null)
   const [selectedDocumentIds, setSelectedDocumentIds] = useState<string[]>([])
+  const [searchQuery, setSearchQuery] = useState("")
 
   // Preview modal states
   const [previewZoom, setPreviewZoom] = useState(1)
@@ -70,6 +96,14 @@ export const DocumentsSection = ({
   const [previewDocuments, setPreviewDocuments] = useState<Document[]>([])
 
   const previewContainerRef = React.useRef<HTMLDivElement>(null)
+  const docxPreviewRef = React.useRef<HTMLDivElement>(null)
+
+  // Persist view mode per section when storageKey provided
+  useEffect(() => {
+    if (storageKey) {
+      localStorage.setItem(`documents-view-${storageKey}`, viewMode)
+    }
+  }, [viewMode, storageKey])
 
   const closePreview = useCallback(() => {
     if (document.fullscreenElement) {
@@ -104,6 +138,50 @@ export const DocumentsSection = ({
     }
   }, [previewDocument, closePreview])
 
+  useEffect(() => {
+    if (
+      previewDocument &&
+      previewDocument.contentType ===
+        "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+    ) {
+      const load = async () => {
+        try {
+          const response = await fetch(
+            previewDocument.previewUrl || previewDocument.downloadUrl,
+          )
+          if (!response.ok) {
+            throw new Error(`HTTP ${response.status}`)
+          }
+          const contentType =
+            response.headers.get("content-type") || ""
+          if (
+            !contentType.includes(
+              "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+            )
+          ) {
+            throw new Error("Invalid file type")
+          }
+          const buffer = await response.arrayBuffer()
+          const { renderAsync } = await import("docx-preview")
+          if (docxPreviewRef.current) {
+            docxPreviewRef.current.innerHTML = ""
+            await renderAsync(buffer, docxPreviewRef.current)
+          }
+        } catch (err) {
+          console.error("Error rendering docx preview:", err)
+          toast({
+            title: "Błąd podglądu",
+            description: "Nie można wyświetlić dokumentu",
+            variant: "destructive",
+          })
+        }
+      }
+      load()
+    } else if (docxPreviewRef.current) {
+      docxPreviewRef.current.innerHTML = ""
+    }
+  }, [previewDocument, toast])
+
   const isGuid = (value: string) =>
     /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/.test(value)
 
@@ -115,6 +193,7 @@ export const DocumentsSection = ({
     contentType: file.file?.type || "",
     fileSize: file.size,
     filePath: file.url,
+    cloudUrl: file.cloudUrl,
     description: file.description,
     status: "pending",
     uploadedBy: "Current User",
@@ -123,7 +202,8 @@ export const DocumentsSection = ({
     canPreview:
       file.type === "image" ||
       file.type === "pdf" ||
-      file.type === "video",
+      file.type === "video" ||
+      file.type === "doc",
     previewUrl: file.url,
     downloadUrl: file.url,
     documentType: file.category || "Inne dokumenty",
@@ -135,13 +215,31 @@ export const DocumentsSection = ({
     [documents, pendingFiles]
   )
 
+  const visibleDocuments = React.useMemo(
+    () => allDocuments.filter((d) => !hiddenCategories.includes(d.documentType)),
+    [allDocuments, hiddenCategories],
+  )
+
+  useEffect(() => {
+    const validIds = selectedDocumentIds.filter((id) =>
+      visibleDocuments.some((d) => d.id === id),
+    )
+
+    if (validIds.length !== selectedDocumentIds.length) {
+      setSelectedDocumentIds(validIds)
+    }
+  }, [visibleDocuments, selectedDocumentIds])
+
 
   // Load documents from API
   useEffect(() => {
-    if (eventId && isGuid(eventId)) {
+    if (!eventId || !isGuid(eventId)) return
+
+    const handler = setTimeout(() => {
       loadDocuments()
-    }
-  }, [eventId])
+    }, 300)
+    return () => clearTimeout(handler)
+  }, [eventId, searchQuery])
 
   const mapCategoryCodeToName = (code?: string) =>
     requiredDocuments.find((d) => d.category === code)?.name || code || "Inne dokumenty"
@@ -154,8 +252,11 @@ export const DocumentsSection = ({
 
     setLoading(true)
     try {
-      console.log("Loading documents for eventId:", eventId)
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/documents?eventId=${eventId}`, {
+      const params = new URLSearchParams({ eventId })
+      if (searchQuery) {
+        params.append("search", searchQuery)
+      }
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/documents?${params.toString()}`, {
         method: "GET",
         credentials: "include",
       })
@@ -168,11 +269,13 @@ export const DocumentsSection = ({
         })
       } else if (response.ok) {
         const data: Document[] = await response.json()
-        console.log("Loaded documents:", data)
+        const apiUrl = process.env.NEXT_PUBLIC_API_URL || ""
         const mappedDocs: Document[] = data.map((d: any) => ({
           ...d,
           documentType: mapCategoryCodeToName(d.documentType || d.category),
           categoryCode: d.documentType || d.category,
+          previewUrl: d.cloudUrl || `${apiUrl}/documents/${d.id}/preview`,
+          downloadUrl: `${apiUrl}/documents/${d.id}/download`,
         }))
         setDocuments(mappedDocs)
       } else {
@@ -205,9 +308,11 @@ export const DocumentsSection = ({
 
   const documentCategories = React.useMemo(() => {
     const categoriesFromRequired = requiredDocuments.filter((d) => d.uploaded).map((d) => d.name)
-    const categoriesFromDocuments = [...new Set(allDocuments.map((d) => d.documentType))]
-    return [...new Set(["Inne dokumenty", ...categoriesFromRequired, ...categoriesFromDocuments])]
-  }, [requiredDocuments, allDocuments])
+    const categoriesFromDocuments = [...new Set(visibleDocuments.map((d) => d.documentType))]
+    return [
+      ...new Set(["Inne dokumenty", ...categoriesFromRequired, ...categoriesFromDocuments]),
+    ].filter((c) => !hiddenCategories.includes(c))
+  }, [requiredDocuments, visibleDocuments, hiddenCategories])
 
   const handleFileUpload = async (files: FileList | null, categoryName: string | null) => {
 
@@ -269,20 +374,14 @@ export const DocumentsSection = ({
           title: "Dodano pliki",
           description: `Dodano ${newFiles.length} plik(ów) do kategorii "${categoryName}".`,
         })
+
       }
       return
     }
 
-    console.log("Starting file upload:", { fileCount: files.length, category: categoryName, eventId })
     setUploading(true)
 
     const uploadPromises = Array.from(files).map(async (file, index) => {
-      console.log(`Uploading file ${index + 1}/${files.length}:`, {
-        name: file.name,
-        type: file.type,
-        size: file.size,
-      })
-
       // Client-side validation
       if (file.size > 50 * 1024 * 1024) {
         console.error(`File ${file.name} is too large:`, file.size)
@@ -311,18 +410,10 @@ export const DocumentsSection = ({
       formData.append("uploadedBy", "Current User")
 
       try {
-        console.log(`Making upload request for ${file.name}...`)
         const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/documents/upload`, {
           method: "POST",
           credentials: "include",
           body: formData,
-        })
-
-        console.log(`Upload response for ${file.name}:`, {
-          status: response.status,
-          statusText: response.statusText,
-          ok: response.ok,
-          contentType: response.headers.get("content-type"),
         })
 
         if (response.ok) {
@@ -338,9 +429,11 @@ export const DocumentsSection = ({
               documentDto.canPreview ??
               (documentDto.contentType?.startsWith("image/") ||
                 documentDto.contentType === "application/pdf" ||
-                documentDto.contentType?.startsWith("video/")),
+                documentDto.contentType?.startsWith("video/") ||
+                documentDto.contentType ===
+                  "application/vnd.openxmlformats-officedocument.wordprocessingml.document" ||
+                documentDto.contentType === "application/msword"),
           }
-          console.log(`File uploaded successfully:`, doc)
           return doc
         } else {
           let errorMessage = `HTTP ${response.status}: ${response.statusText}`
@@ -404,6 +497,7 @@ export const DocumentsSection = ({
               : "other",
             uploadedAt: doc.createdAt,
             url: doc.previewUrl || doc.downloadUrl,
+            cloudUrl: doc.cloudUrl,
             category: doc.documentType,
             categoryCode: doc.categoryCode,
             description: doc.description,
@@ -413,7 +507,6 @@ export const DocumentsSection = ({
           title: "Przesłano pliki",
           description: `Pomyślnie dodano ${successfulUploadsWithIds.length} plik(ów) do kategorii "${categoryName}".`,
         })
-        console.log("All successful uploads:", successfulUploadsWithIds)
       }
 
       const failedUploads = files.length - successfulUploadsWithIds.length
@@ -437,13 +530,11 @@ export const DocumentsSection = ({
   }
 
   const triggerUpload = (category: string) => {
-    console.log("Triggering upload for category:", category)
     setUploadingForCategory(category)
     fileInputRef.current?.click()
   }
 
   const handleFileInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    console.log("File input changed:", e.target.files?.length, "files selected")
     const files = e.target.files
     if (!files || files.length === 0) {
       setUploadingForCategory(null)
@@ -516,12 +607,17 @@ export const DocumentsSection = ({
   }
 
   const handleDescriptionChange = async (documentId: string | number, description: string) => {
-
     const pendingIndex = pendingFiles.findIndex((f) => f.id === documentId)
+
     if (pendingIndex !== -1) {
       setPendingFiles?.((prev) => prev.map((f) => (f.id === documentId ? { ...f, description } : f)))
+      setPreviewDocument((prev) => (prev?.id === documentId ? { ...prev, description } : prev))
       return
     }
+
+    // Optimistic update to keep document within its category and update preview
+    setDocuments((prev) => prev.map((doc) => (doc.id === documentId ? { ...doc, description } : doc)))
+    setPreviewDocument((prev) => (prev?.id === documentId ? { ...prev, description } : prev))
 
     try {
       const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/documents/${documentId}`, {
@@ -535,7 +631,12 @@ export const DocumentsSection = ({
 
       if (response.ok) {
         const updatedDocument = await response.json()
-        setDocuments((prev) => prev.map((doc) => (doc.id === documentId ? updatedDocument : doc)))
+        setDocuments((prev) =>
+          prev.map((doc) => (doc.id === documentId ? { ...doc, ...updatedDocument } : doc)),
+        )
+        setPreviewDocument((prev) =>
+          prev?.id === documentId ? { ...prev, ...updatedDocument } : prev,
+        )
       }
     } catch (error) {
       console.error("Error updating document description:", error)
@@ -543,7 +644,7 @@ export const DocumentsSection = ({
   }
 
   const handleGenerateAIDescription = async (documentId: string | number) => {
-    const doc = allDocuments.find((d) => d.id === documentId)
+    const doc = visibleDocuments.find((d) => d.id === documentId)
     if (!doc || doc.status === "pending") return
 
     try {
@@ -579,7 +680,7 @@ export const DocumentsSection = ({
 
   const handlePreview = (doc: Document, documentsArray?: Document[]) => {
 
-    const docsToPreview = documentsArray || allDocuments
+    const docsToPreview = documentsArray || visibleDocuments
 
     const index = docsToPreview.findIndex((d) => d.id === doc.id)
 
@@ -603,8 +704,8 @@ export const DocumentsSection = ({
 
   const handleDownloadAll = async (category?: string) => {
     const documentsForCategory = category
-      ? allDocuments.filter((d) => d.documentType === category)
-      : allDocuments
+      ? visibleDocuments.filter((d) => d.documentType === category)
+      : visibleDocuments
 
     if (documentsForCategory.length === 0) {
       toast({
@@ -655,15 +756,32 @@ export const DocumentsSection = ({
     }
   }
 
-  const handleDownloadSelected = async (category: string) => {
-    const documentsForCategory = allDocuments.filter(
-      (d) => d.documentType === category && selectedDocumentIds.includes(d.id),
+  const handlePreviewAll = () => {
+    if (visibleDocuments.length === 0) {
+      toast({
+        title: "Brak plików",
+        description: "Nie ma plików do podglądu.",
+        variant: "destructive",
+      })
+      return
+    }
+
+    handlePreview(visibleDocuments[0], visibleDocuments)
+  }
+
+  const handleDownloadSelected = async (category?: string) => {
+    const documentsForCategory = visibleDocuments.filter((d) =>
+      category
+        ? d.documentType === category && selectedDocumentIds.includes(d.id)
+        : selectedDocumentIds.includes(d.id),
     )
 
     if (documentsForCategory.length === 0) {
       toast({
         title: "Brak plików",
-        description: "Nie wybrano plików do pobrania w tej kategorii.",
+        description: category
+          ? "Nie wybrano plików do pobrania w tej kategorii."
+          : "Nie wybrano plików do pobrania.",
         variant: "destructive",
       })
       return
@@ -671,7 +789,9 @@ export const DocumentsSection = ({
 
     toast({
       title: "Pobieranie plików",
-      description: `Rozpoczęto pobieranie ${documentsForCategory.length} zaznaczonych plik(ów).`,
+      description: category
+        ? `Rozpoczęto pobieranie ${documentsForCategory.length} zaznaczonych plik(ów).`
+        : `Rozpoczęto pobieranie ${documentsForCategory.length} zaznaczonych plik(ów).`,
     })
 
     try {
@@ -687,11 +807,13 @@ export const DocumentsSection = ({
       }
 
       const content = await zip.generateAsync({ type: "blob" })
-      saveAs(content, `${category}-wybrane.zip`)
+      saveAs(content, category ? `${category}-wybrane.zip` : `dokumenty-wybrane.zip`)
 
       toast({
         title: "Pobieranie zakończone",
-        description: `Zaznaczone pliki z kategorii "${category}" zostały pobrane w archiwum zip.`,
+        description: category
+          ? `Zaznaczone pliki z kategorii "${category}" zostały pobrane w archiwum zip.`
+          : "Zaznaczone pliki zostały pobrane w archiwum zip.",
       })
     } catch (error) {
       console.error("Failed to download selected documents", error)
@@ -702,6 +824,12 @@ export const DocumentsSection = ({
       })
     }
   }
+
+  useImperativeHandle(ref, () => ({
+    downloadAll: handleDownloadAll,
+    downloadSelected: handleDownloadSelected,
+    search: (query: string) => setSearchQuery(query),
+  }))
 
   const handleDrag = (e: React.DragEvent) => {
     e.preventDefault()
@@ -718,8 +846,9 @@ export const DocumentsSection = ({
     e.stopPropagation()
     setDragActive(false)
     setDragCategory(null)
+    // If the section was collapsed open it so user sees upload progress
+    setOpenCategories((prev) => ({ ...prev, [category]: true }))
 
-    console.log("Files dropped:", e.dataTransfer.files.length, "files for category:", category)
     if (e.dataTransfer.files && e.dataTransfer.files[0]) {
       handleFileUpload(e.dataTransfer.files, category)
     }
@@ -746,7 +875,7 @@ export const DocumentsSection = ({
 
     setSelectedDocumentIds((prev) =>
       prev.filter((id) => {
-        const doc = allDocuments.find((d) => d.id === id)
+        const doc = visibleDocuments.find((d) => d.id === id)
         return doc?.documentType !== category
       }),
     )
@@ -881,7 +1010,18 @@ export const DocumentsSection = ({
         <p className="text-xs text-gray-500">{new Date(doc.createdAt).toLocaleDateString()}</p>
         <p className="text-xs text-gray-400">{formatBytes(doc.fileSize)}</p>
       </div>
-      <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
+      <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity flex gap-1">
+        <Button
+          variant="ghost"
+          size="icon"
+          className="h-8 w-8"
+          onClick={(e) => {
+            e.stopPropagation()
+            handlePreview(doc)
+          }}
+        >
+          <Eye className="h-4 w-4" />
+        </Button>
         <Button
           variant="destructive"
           size="icon"
@@ -928,7 +1068,12 @@ export const DocumentsSection = ({
             <div className="flex items-center justify-between">
               <div className="relative w-full max-w-md">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-                <Input placeholder="Wyszukaj dokumenty (nazwa typu, nazwa pliku, opis)..." className="pl-10" />
+                <Input
+                  placeholder="Wyszukaj dokumenty (nazwa typu, nazwa pliku, opis)..."
+                  className="pl-10"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                />
               </div>
               <Button variant="outline">
                 <Filter className="mr-2 h-4 w-4" />
@@ -952,38 +1097,53 @@ export const DocumentsSection = ({
             </div>
           </CardContent>
         </Card>
-
-        <div className="flex gap-2 justify-end">
+        <div className="flex justify-end gap-2">
           <Button
             variant="outline"
             size="sm"
-            onClick={() => {
-              setAllPreviewDocuments(allDocuments)
-              setAllPreviewOpen(true)
-            }}
+            onClick={handlePreviewAll}
+            disabled={visibleDocuments.length === 0}
           >
-            <Eye className="mr-2 h-4 w-4" />
-            Podgląd wszystkich
+            <Eye className="mr-2 h-4 w-4" /> Podgląd wszystkich
           </Button>
           <Button
             variant="outline"
             size="sm"
             onClick={() => handleDownloadAll()}
+            disabled={visibleDocuments.length === 0}
           >
-            <Download className="mr-2 h-4 w-4" />
-            Pobierz wszystko
+            <Download className="mr-2 h-4 w-4" /> Pobierz wszystkie
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => handleDownloadSelected()}
+            disabled={selectedDocumentIds.length === 0}
+          >
+            <Download className="mr-2 h-4 w-4" /> Pobierz zaznaczone
           </Button>
         </div>
 
         {documentCategories.map((category) => {
-          const documentsForCategory = allDocuments.filter((d) => d.documentType === category)
+          const documentsForCategory = visibleDocuments.filter((d) => d.documentType === category)
           const isCategoryOpen = openCategories[category] ?? false
           const hasSelected = documentsForCategory.some((d) =>
             selectedDocumentIds.includes(d.id),
           )
 
           return (
-            <Card key={category}>
+            <Card
+              key={category}
+              onDragEnter={(e) => {
+                handleDrag(e)
+                setDragCategory(category)
+              }}
+              onDragOver={(e) => {
+                handleDrag(e)
+                setDragCategory(category)
+              }}
+              onDrop={(e) => handleDrop(e, category)}
+            >
               <CardHeader
                 className="flex flex-row items-center justify-between p-4 cursor-pointer"
                 onClick={() => setOpenCategories((prev) => ({ ...prev, [category]: !isCategoryOpen }))}
@@ -1010,18 +1170,6 @@ export const DocumentsSection = ({
                   )}
                 </div>
                 <div className="flex items-center gap-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={(e) => {
-                      e.stopPropagation()
-                      setGroupPreviewCategory(category)
-                      setGroupPreviewOpen(true)
-                    }}
-                  >
-                    <Eye className="mr-2 h-4 w-4" />
-                    Grupowy podgląd
-                  </Button>
                   <Button
                     variant="outline"
                     size="sm"
@@ -1099,6 +1247,7 @@ export const DocumentsSection = ({
                       <table className="w-full text-sm">
                         <thead className="bg-gray-50">
                           <tr>
+                            <th className="p-3 w-4"></th>
                             <th className="p-3 text-left font-medium text-gray-600 w-2/6">Nazwa pliku</th>
                             <th className="p-3 text-left font-medium text-gray-600 w-2/6">Opis pliku</th>
                             <th className="p-3 text-left font-medium text-gray-600 w-1/6">Rozmiar</th>
@@ -1108,66 +1257,82 @@ export const DocumentsSection = ({
                           </tr>
                         </thead>
                         <tbody>
-                          {documentsForCategory.map((doc, index) => (
-                            <tr
-                              key={doc.id}
-                              className={`border-t ${index % 2 === 0 ? "bg-white" : "bg-gray-50/50"}`}
-                            >
-                              <td className="p-3 font-medium flex items-center gap-2">
-                                {getFileIcon(doc.contentType)}
-                                <span className="truncate">{doc.originalFileName}</span>
-                              </td>
-                              <td className="p-3">
-                                <div className="flex items-center gap-1">
-                                  <Button
-                                    variant="ghost"
-                                    size="icon"
-                                    className="h-7 w-7"
-                                    onClick={() => handleGenerateAIDescription(doc.id)}
-                                  >
-                                    <Wand className="h-4 w-4 text-purple-500" />
-                                  </Button>
-                                  <Input
-                                    value={doc.description || ""}
-                                    onChange={(e) => handleDescriptionChange(doc.id, e.target.value)}
-                                    className="text-sm h-8"
-                                    placeholder="Wprowadź opis pliku..."
+                          {documentsForCategory.map((doc, index) => {
+                            const isSelected = selectedDocumentIds.includes(doc.id)
+                            return (
+                              <tr
+                                key={doc.id}
+                                className={`border-t ${index % 2 === 0 ? "bg-white" : "bg-gray-50/50"}`}
+                              >
+                                <td className="p-3">
+                                  <Checkbox
+                                    checked={isSelected}
+                                    onCheckedChange={(checked) => {
+                                      const value = checked === true
+                                      setSelectedDocumentIds((prev) =>
+                                        value
+                                          ? [...prev, doc.id]
+                                          : prev.filter((id) => id !== doc.id),
+                                      )
+                                    }}
                                   />
-                                </div>
-                              </td>
-                              <td className="p-3 text-gray-600">{formatBytes(doc.fileSize)}</td>
-                              <td className="p-3 text-gray-600">{new Date(doc.createdAt).toLocaleDateString()}</td>
-                              <td className="p-3 text-gray-600 capitalize">{doc.status}</td>
-                              <td className="p-3">
-                                <div className="flex items-center gap-1">
-                                  <Button
-                                    variant="ghost"
-                                    size="icon"
-                                    className="h-7 w-7"
-                                    onClick={() => handleDownload(doc)}
-                                  >
-                                    <Download className="h-4 w-4" />
-                                  </Button>
-                                  <Button
-                                    variant="ghost"
-                                    size="icon"
-                                    className="h-7 w-7"
-                                    onClick={() => handlePreview(doc, documentsForCategory)}
-                                  >
-                                    <Eye className="h-4 w-4" />
-                                  </Button>
-                                  <Button
-                                    variant="ghost"
-                                    size="icon"
-                                    className="h-7 w-7 text-red-500 hover:text-red-600"
-                                    onClick={() => handleFileDelete(doc.id)}
-                                  >
-                                    <Trash2 className="h-4 w-4" />
-                                  </Button>
-                                </div>
-                              </td>
-                            </tr>
-                          ))}
+                                </td>
+                                <td className="p-3 font-medium flex items-center gap-2">
+                                  {getFileIcon(doc.contentType)}
+                                  <span className="truncate">{doc.originalFileName}</span>
+                                </td>
+                                <td className="p-3">
+                                  <div className="flex items-center gap-1">
+                                    <Button
+                                      variant="ghost"
+                                      size="icon"
+                                      className="h-7 w-7"
+                                      onClick={() => handleGenerateAIDescription(doc.id)}
+                                    >
+                                      <Wand className="h-4 w-4 text-purple-500" />
+                                    </Button>
+                                    <Input
+                                      value={doc.description || ""}
+                                      onChange={(e) => handleDescriptionChange(doc.id, e.target.value)}
+                                      className="text-sm h-8"
+                                      placeholder="Wprowadź opis pliku..."
+                                    />
+                                  </div>
+                                </td>
+                                <td className="p-3 text-gray-600">{formatBytes(doc.fileSize)}</td>
+                                <td className="p-3 text-gray-600">{new Date(doc.createdAt).toLocaleDateString()}</td>
+                                <td className="p-3 text-gray-600 capitalize">{doc.status}</td>
+                                <td className="p-3">
+                                  <div className="flex items-center gap-1">
+                                    <Button
+                                      variant="ghost"
+                                      size="icon"
+                                      className="h-7 w-7"
+                                      onClick={() => handleDownload(doc)}
+                                    >
+                                      <Download className="h-4 w-4" />
+                                    </Button>
+                                    <Button
+                                      variant="ghost"
+                                      size="icon"
+                                      className="h-7 w-7"
+                                      onClick={() => handlePreview(doc, documentsForCategory)}
+                                    >
+                                      <Eye className="h-4 w-4" />
+                                    </Button>
+                                    <Button
+                                      variant="ghost"
+                                      size="icon"
+                                      className="h-7 w-7 text-red-500 hover:text-red-600"
+                                      onClick={() => handleFileDelete(doc.id)}
+                                    >
+                                      <Trash2 className="h-4 w-4" />
+                                    </Button>
+                                  </div>
+                                </td>
+                              </tr>
+                            )
+                          })}
                         </tbody>
                       </table>
                       {documentsForCategory.length === 0 && (
@@ -1256,263 +1421,6 @@ export const DocumentsSection = ({
               </div>
             </CardContent>
           </Card>
-        )}
-
-        {/* All Preview Modal */}
-        {allPreviewOpen && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-            <div className="bg-white rounded-lg p-6 max-w-6xl max-h-[90vh] overflow-auto w-full mx-4">
-              <div className="flex justify-between items-center mb-6">
-                <h3 className="text-xl font-semibold">Podgląd wszystkich dokumentów</h3>
-                <Button variant="ghost" onClick={() => setAllPreviewOpen(false)}>
-                  <X className="h-4 w-4" />
-                </Button>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {allPreviewDocuments.map((doc) => (
-                  <Card key={doc.id} className="overflow-hidden">
-                    <div className="aspect-w-16 aspect-h-12 bg-gray-100 flex items-center justify-center min-h-[200px]">
-                      {doc.contentType.startsWith("image/") ? (
-                        <img
-                          src={doc.previewUrl || "/placeholder.svg?height=200&width=300"}
-                          alt={doc.originalFileName}
-                          className="w-full h-full object-cover cursor-pointer"
-                          onClick={() => {
-                            setAllPreviewOpen(false)
-                            handlePreview(doc, allPreviewDocuments)
-                          }}
-                        />
-                      ) : doc.contentType.startsWith("video/") ? (
-                        <video
-                          src={doc.previewUrl || doc.downloadUrl}
-                          className="w-full h-full object-cover cursor-pointer"
-                          onClick={() => {
-                            setAllPreviewOpen(false)
-                            handlePreview(doc, allPreviewDocuments)
-                          }}
-                          muted
-                          preload="metadata"
-                        />
-                      ) : doc.contentType === "application/pdf" ? (
-                        <div className="flex flex-col items-center justify-center text-center p-4">
-                          <FileText className="w-16 h-16 text-red-500 mb-2" />
-                          <p className="text-sm font-medium text-gray-700 mb-2">PDF Document</p>
-                          <Button
-                            size="sm"
-                            onClick={() => {
-                              setAllPreviewOpen(false)
-                              handlePreview(doc, allPreviewDocuments)
-                            }}
-                          >
-                            <Eye className="mr-2 h-4 w-4" />
-                            Podgląd
-                          </Button>
-                        </div>
-                      ) : (
-                        <div className="flex flex-col items-center justify-center text-center p-4">
-                          <FileText className="w-16 h-16 text-gray-400 mb-2" />
-                          <p className="text-sm font-medium text-gray-700">
-                            {doc.contentType.includes("document") || doc.contentType.includes("word")
-                              ? "Dokument Word"
-                              : doc.contentType.startsWith("video/")
-                                ? "Plik wideo"
-                                : "Plik"}
-                          </p>
-                        </div>
-                      )}
-                    </div>
-
-                    <div className="p-4">
-                      <div className="flex items-center justify-between mb-2">
-                        <h4
-                          className="font-medium text-sm text-gray-800 truncate"
-                          title={doc.originalFileName}
-                        >
-                          {doc.originalFileName}
-                        </h4>
-                        <Badge variant="secondary" className="ml-2 capitalize">
-                          {doc.documentType}
-                        </Badge>
-                      </div>
-                      <div className="flex items-center justify-between text-xs text-gray-500 mb-3">
-                        <span>{formatBytes(doc.fileSize)}</span>
-                        <span>{new Date(doc.createdAt).toLocaleDateString()}</span>
-                      </div>
-
-                      {doc.description && (
-                        <p className="text-xs text-gray-600 mb-3 line-clamp-2">{doc.description}</p>
-                      )}
-
-                      <div className="flex items-center gap-2">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className="flex-1 bg-transparent"
-                          onClick={() => handleDownload(doc)}
-                        >
-                          <Download className="mr-1 h-3 w-3" />
-                          Pobierz
-                        </Button>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className="flex-1 bg-transparent"
-                          onClick={() => {
-                            setAllPreviewOpen(false)
-                            handlePreview(doc, allPreviewDocuments)
-                          }}
-                        >
-                          <Eye className="mr-1 h-3 w-3" />
-                          Podgląd
-                        </Button>
-                      </div>
-                    </div>
-                  </Card>
-                ))}
-              </div>
-
-              {allPreviewDocuments.length === 0 && (
-                <div className="text-center py-12">
-                  <FileText className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-                  <p className="text-gray-600">Brak plików</p>
-                </div>
-              )}
-            </div>
-          </div>
-        )}
-
-        {/* Group Preview Modal */}
-        {groupPreviewOpen && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-            <div className="bg-white rounded-lg p-6 max-w-6xl max-h-[90vh] overflow-auto w-full mx-4">
-              <div className="flex justify-between items-center mb-6">
-                <h3 className="text-xl font-semibold">Grupowy podgląd - {groupPreviewCategory}</h3>
-                <Button variant="ghost" onClick={() => setGroupPreviewOpen(false)}>
-                  <X className="h-4 w-4" />
-                </Button>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {allDocuments
-                  .filter((d) => d.documentType === groupPreviewCategory)
-                  .map((doc) => (
-                    <Card key={doc.id} className="overflow-hidden">
-                      <div className="aspect-w-16 aspect-h-12 bg-gray-100 flex items-center justify-center min-h-[200px]">
-                        {doc.contentType.startsWith("image/") ? (
-                          <img
-                            src={doc.previewUrl || "/placeholder.svg?height=200&width=300"}
-                            alt={doc.originalFileName}
-                            className="w-full h-full object-cover cursor-pointer"
-                            onClick={() => {
-                              setGroupPreviewOpen(false)
-                              handlePreview(
-                                doc,
-                                allDocuments.filter((d) => d.documentType === groupPreviewCategory),
-                              )
-                            }}
-                          />
-                        ) : doc.contentType.startsWith("video/") ? (
-                          <video
-                            src={doc.previewUrl || doc.downloadUrl}
-                            className="w-full h-full object-cover cursor-pointer"
-                            onClick={() => {
-                              setGroupPreviewOpen(false)
-                              handlePreview(
-                                doc,
-                                allDocuments.filter((d) => d.documentType === groupPreviewCategory),
-                              )
-                            }}
-                            muted
-                            preload="metadata"
-                          />
-                        ) : doc.contentType === "application/pdf" ? (
-                          <div className="flex flex-col items-center justify-center text-center p-4">
-                            <FileText className="w-16 h-16 text-red-500 mb-2" />
-                            <p className="text-sm font-medium text-gray-700 mb-2">PDF Document</p>
-                            <Button
-                              size="sm"
-                              onClick={() => {
-                                setGroupPreviewOpen(false)
-                                handlePreview(
-                                  doc,
-                                  allDocuments.filter((d) => d.documentType === groupPreviewCategory),
-                                )
-                              }}
-                            >
-                              <Eye className="mr-2 h-4 w-4" />
-                              Podgląd
-                            </Button>
-                          </div>
-                        ) : (
-                          <div className="flex flex-col items-center justify-center text-center p-4">
-                            <FileText className="w-16 h-16 text-gray-400 mb-2" />
-                            <p className="text-sm font-medium text-gray-700">
-                              {doc.contentType.includes("document") || doc.contentType.includes("word")
-                                ? "Dokument Word"
-                                : doc.contentType.startsWith("video/")
-                                  ? "Plik wideo"
-                                  : "Plik"}
-                            </p>
-                          </div>
-                        )}
-                      </div>
-
-                      <div className="p-4">
-                        <h4
-                          className="font-medium text-sm text-gray-800 truncate mb-2"
-                          title={doc.originalFileName}
-                        >
-                          {doc.originalFileName}
-                        </h4>
-                        <div className="flex items-center justify-between text-xs text-gray-500 mb-3">
-                          <span>{formatBytes(doc.fileSize)}</span>
-                          <span>{new Date(doc.createdAt).toLocaleDateString()}</span>
-                        </div>
-
-                        {doc.description && (
-                          <p className="text-xs text-gray-600 mb-3 line-clamp-2">{doc.description}</p>
-                        )}
-
-                        <div className="flex items-center gap-2">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            className="flex-1 bg-transparent"
-                            onClick={() => handleDownload(doc)}
-                          >
-                            <Download className="mr-1 h-3 w-3" />
-                            Pobierz
-                          </Button>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            className="flex-1 bg-transparent"
-                            onClick={() => {
-                              setGroupPreviewOpen(false)
-                              handlePreview(
-                                doc,
-                                allDocuments.filter((d) => d.documentType === groupPreviewCategory),
-                              )
-                            }}
-                          >
-                            <Eye className="mr-1 h-3 w-3" />
-                            Podgląd
-                          </Button>
-                        </div>
-                      </div>
-                    </Card>
-                  ))}
-              </div>
-
-              {allDocuments.filter((d) => d.documentType === groupPreviewCategory).length === 0 && (
-                <div className="text-center py-12">
-                  <FileText className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-                  <p className="text-gray-600">Brak plików w tej kategorii</p>
-                </div>
-              )}
-            </div>
-          </div>
         )}
 
         {/* Enhanced Preview Modal */}
@@ -1629,6 +1537,19 @@ export const DocumentsSection = ({
                       title={previewDocument.originalFileName}
                     />
                   </object>
+                ) : previewDocument.contentType === "application/msword" ? (
+                  <iframe
+                    src={`https://view.officeapps.live.com/op/embed.aspx?src=${encodeURIComponent(
+                      previewDocument.previewUrl || previewDocument.downloadUrl,
+                    )}`}
+                    className="w-full h-full"
+                    title={previewDocument.originalFileName}
+                  />
+                ) : previewDocument.contentType ===
+                    "application/vnd.openxmlformats-officedocument.wordprocessingml.document" ? (
+                  <div className="w-full h-full overflow-auto p-4">
+                    <div ref={docxPreviewRef} className="w-full" />
+                  </div>
                 ) : (
                   <div className="text-center py-8">
                     <FileText className="h-16 w-16 text-gray-400 mx-auto mb-4" />
@@ -1651,4 +1572,6 @@ export const DocumentsSection = ({
       </div>
     </div>
   )
-}
+})
+
+DocumentsSection.displayName = "DocumentsSection"

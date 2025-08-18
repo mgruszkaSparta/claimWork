@@ -1,6 +1,15 @@
 import { z } from "zod";
 import { API_BASE_URL } from "../api";
 
+const documentSchema = z.object({
+  id: z.string(),
+  originalFileName: z.string().nullish(),
+  fileName: z.string().nullish(),
+  filePath: z.string().nullish(),
+  downloadUrl: z.string().nullish(),
+  previewUrl: z.string().nullish(),
+});
+
 export const decisionSchema = z.object({
   id: z.string(),
   eventId: z.string(),
@@ -12,6 +21,7 @@ export const decisionSchema = z.object({
   documentDescription: z.string().nullish(),
   documentName: z.string().nullish(),
   documentPath: z.string().nullish(),
+  documents: z.array(documentSchema).optional(),
   createdAt: z.string(),
   updatedAt: z.string(),
 });
@@ -27,9 +37,7 @@ export const decisionUpsertSchema = decisionSchema.pick({
   documentDescription: true,
 });
 
-export type DecisionUpsert = z.infer<typeof decisionUpsertSchema> & {
-  document?: File;
-};
+export type DecisionUpsert = z.infer<typeof decisionUpsertSchema>;
 
 async function request<T>(url: string, options: RequestInit = {}): Promise<T> {
   const response = await fetch(`${API_BASE_URL}${url}`, {
@@ -50,10 +58,7 @@ export async function getDecisions(claimId: string): Promise<Decision[]> {
   return z.array(decisionSchema).parse(data);
 }
 
-export async function createDecision(
-  claimId: string,
-  payload: DecisionUpsert
-): Promise<Decision> {
+function buildFormData(payload: DecisionUpsert, documents: File[] = []) {
   const body = new FormData();
   const parsed = decisionUpsertSchema.parse(payload);
   body.append("decisionDate", new Date(parsed.decisionDate).toISOString());
@@ -65,8 +70,16 @@ export async function createDecision(
     body.append("compensationTitle", parsed.compensationTitle);
   if (parsed.documentDescription)
     body.append("documentDescription", parsed.documentDescription);
-  if (payload.document) body.append("document", payload.document);
+  documents.forEach((file) => body.append("documents", file));
+  return body;
+}
 
+export async function createDecision(
+  claimId: string,
+  payload: DecisionUpsert,
+  documents: File[] = [],
+): Promise<Decision> {
+  const body = buildFormData(payload, documents);
   const data = await request<unknown>(`/claims/${claimId}/decisions`, {
     method: "POST",
     body,
@@ -77,21 +90,10 @@ export async function createDecision(
 export async function updateDecision(
   claimId: string,
   id: string,
-  payload: DecisionUpsert
+  payload: DecisionUpsert,
+  documents: File[] = [],
 ): Promise<Decision> {
-  const body = new FormData();
-  const parsed = decisionUpsertSchema.parse(payload);
-  body.append("decisionDate", new Date(parsed.decisionDate).toISOString());
-  if (parsed.status) body.append("status", parsed.status);
-  if (parsed.amount !== undefined && parsed.amount !== null)
-    body.append("amount", String(parsed.amount));
-  if (parsed.currency) body.append("currency", parsed.currency);
-  if (parsed.compensationTitle)
-    body.append("compensationTitle", parsed.compensationTitle);
-  if (parsed.documentDescription)
-    body.append("documentDescription", parsed.documentDescription);
-  if (payload.document) body.append("document", payload.document);
-
+  const body = buildFormData(payload, documents);
   const data = await request<unknown>(`/claims/${claimId}/decisions/${id}`, {
     method: "PUT",
     body,

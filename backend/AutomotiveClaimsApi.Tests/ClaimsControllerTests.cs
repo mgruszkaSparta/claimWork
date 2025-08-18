@@ -1,18 +1,44 @@
 using System;
 using System.Threading.Tasks;
 using System.Linq;
+using System.Collections.Generic;
+using System.IO;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging.Abstractions;
+using Microsoft.Extensions.Configuration;
+using Microsoft.AspNetCore.Http;
 using Xunit;
 using AutomotiveClaimsApi.Controllers;
 using AutomotiveClaimsApi.Data;
 using AutomotiveClaimsApi.Models;
 using AutomotiveClaimsApi.DTOs;
+using AutomotiveClaimsApi.Services;
+using Microsoft.AspNetCore.Mvc;
 
 namespace AutomotiveClaimsApi.Tests
 {
     public class ClaimsControllerTests
     {
+        private static ClaimsController MakeController(ApplicationDbContext context)
+        {
+            var config = new ConfigurationBuilder().Build();
+            return new ClaimsController(context, NullLogger<ClaimsController>.Instance, config, documentService: new FakeDocumentService());
+        }
+
+        private class FakeDocumentService : IDocumentService
+        {
+            public Task<IEnumerable<DocumentDto>> GetDocumentsByEventIdAsync(Guid eventId) => Task.FromResult<IEnumerable<DocumentDto>>(Array.Empty<DocumentDto>());
+            public Task<DocumentDto?> GetDocumentByIdAsync(Guid id) => Task.FromResult<DocumentDto?>(null);
+            public Task<DocumentDto> UploadAndCreateDocumentAsync(IFormFile file, CreateDocumentDto createDto) => Task.FromResult(new DocumentDto());
+            public Task<bool> DeleteDocumentAsync(Guid id) => Task.FromResult(true);
+            public Task<bool> DeleteDocumentAsync(string filePath) => Task.FromResult(true);
+            public Task<DocumentDownloadResult?> DownloadDocumentAsync(Guid id) => Task.FromResult<DocumentDownloadResult?>(null);
+            public Task<(string FilePath, string OriginalFileName)> SaveDocumentAsync(IFormFile file, string category, string? description) => Task.FromResult((string.Empty, string.Empty));
+            public Task<DocumentDownloadResult?> GetDocumentAsync(string filePath) => Task.FromResult<DocumentDownloadResult?>(null);
+            public Task<Stream> GetDocumentStreamAsync(string filePath) => Task.FromResult(Stream.Null);
+            public Task<DocumentDto> UploadDocumentAsync(IFormFile file, string category, string entityId) => Task.FromResult(new DocumentDto());
+        }
+
         [Fact]
         public async Task CreateClaim_WithExistingId_UpdatesEntityInsteadOfInserting()
         {
@@ -32,7 +58,7 @@ namespace AutomotiveClaimsApi.Tests
             await context.SaveChangesAsync();
 
             var oldUpdatedAt = existing.UpdatedAt;
-            var controller = new ClaimsController(context, NullLogger<ClaimsController>.Instance);
+            var controller = MakeController(context);
             var dto = new ClaimUpsertDto { Id = existing.Id };
 
             await controller.CreateClaim(dto);
@@ -56,7 +82,7 @@ namespace AutomotiveClaimsApi.Tests
             context.Events.Add(ev);
             await context.SaveChangesAsync();
 
-            var controller = new ClaimsController(context, NullLogger<ClaimsController>.Instance);
+            var controller = MakeController(context);
             var dto = new ClaimUpsertDto
             {
                 Id = ev.Id,
@@ -92,7 +118,7 @@ namespace AutomotiveClaimsApi.Tests
             context.Events.Add(ev);
             await context.SaveChangesAsync();
 
-            var controller = new ClaimsController(context, NullLogger<ClaimsController>.Instance);
+            var controller = MakeController(context);
             var dto = new ClaimUpsertDto
             {
                 Id = ev.Id,
@@ -140,7 +166,7 @@ namespace AutomotiveClaimsApi.Tests
             context.Events.Add(ev);
             await context.SaveChangesAsync();
 
-            var controller = new ClaimsController(context, NullLogger<ClaimsController>.Instance);
+            var controller = MakeController(context);
             var pDto = new ParticipantUpsertDto
             {
                 Name = "added",
@@ -161,6 +187,75 @@ namespace AutomotiveClaimsApi.Tests
         }
 
         [Fact]
+        public async Task UpdateClaim_UpdatesDriverPersonalData_WhenModified()
+        {
+            var options = new DbContextOptionsBuilder<ApplicationDbContext>()
+                .UseInMemoryDatabase(Guid.NewGuid().ToString())
+                .Options;
+
+            await using var context = new ApplicationDbContext(options);
+            var ev = new Event { Id = Guid.NewGuid(), CreatedAt = DateTime.UtcNow, UpdatedAt = DateTime.UtcNow };
+            var participant = new Participant { Id = Guid.NewGuid(), EventId = ev.Id, Name = "p" };
+            var driver = new Driver
+            {
+                Id = Guid.NewGuid(),
+                EventId = ev.Id,
+                ParticipantId = participant.Id,
+                FirstName = "Old",
+                LastName = "Driver",
+                Email = "old@example.com",
+                Address = "Old St",
+                City = "Oldtown",
+                PostalCode = "00-000",
+                PersonalId = "OLDID",
+                IsMainDriver = true,
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow
+            };
+            participant.Drivers.Add(driver);
+            ev.Participants.Add(participant);
+            context.Events.Add(ev);
+            await context.SaveChangesAsync();
+
+            var controller = MakeController(context);
+            var dto = new ClaimUpsertDto
+            {
+                Id = ev.Id,
+                Participants = new[]
+                {
+                    new ParticipantUpsertDto
+                    {
+                        Id = participant.Id.ToString(),
+                        Drivers = new[]
+                        {
+                            new DriverUpsertDto
+                            {
+                                Id = driver.Id.ToString(),
+                                FirstName = "New",
+                                LastName = "Driver",
+                                Email = "new@example.com",
+                                Address = "New St",
+                                City = "New City",
+                                PostalCode = "11-111",
+                                PersonalId = "NEWID",
+                                IsMainDriver = true
+                            }
+                        }
+                    }
+                }
+            };
+
+            await controller.UpdateClaim(ev.Id, dto);
+
+            var updated = await context.Drivers.FirstAsync(d => d.Id == driver.Id);
+            Assert.Equal("new@example.com", updated.Email);
+            Assert.Equal("New St", updated.Address);
+            Assert.Equal("New City", updated.City);
+            Assert.Equal("11-111", updated.PostalCode);
+            Assert.Equal("NEWID", updated.PersonalId);
+        }
+
+        [Fact]
         public async Task UpdateClaim_UpdatesDecision_WhenModified()
         {
             var options = new DbContextOptionsBuilder<ApplicationDbContext>()
@@ -174,7 +269,7 @@ namespace AutomotiveClaimsApi.Tests
             context.Events.Add(ev);
             await context.SaveChangesAsync();
 
-            var controller = new ClaimsController(context, NullLogger<ClaimsController>.Instance);
+            var controller = MakeController(context);
             var dto = new ClaimUpsertDto
             {
                 Id = ev.Id,
@@ -185,6 +280,24 @@ namespace AutomotiveClaimsApi.Tests
 
             var updated = await context.Decisions.FirstAsync(d => d.Id == decision.Id);
             Assert.Equal("new", updated.Status);
+        }
+
+        [Fact]
+        public async Task GetClaims_Searches_All_Text_Fields()
+        {
+            var options = new DbContextOptionsBuilder<ApplicationDbContext>()
+                .UseInMemoryDatabase(Guid.NewGuid().ToString())
+                .Options;
+
+            await using var context = new ApplicationDbContext(options);
+            var controller = MakeController(context);
+            await controller.CreateClaim(new ClaimUpsertDto { InsuranceCompanyEmail = "search@example.com" });
+
+            var response = await controller.GetClaims("example", null, null, null, null, 1, 50);
+            var ok = Assert.IsType<OkObjectResult>(response.Result);
+            var items = Assert.IsAssignableFrom<IEnumerable<ClaimListItemDto>>(ok.Value);
+            var item = Assert.Single(items);
+            Assert.NotNull(item.Id);
         }
 
         [Fact]
@@ -199,7 +312,7 @@ namespace AutomotiveClaimsApi.Tests
             context.Events.Add(ev);
             await context.SaveChangesAsync();
 
-            var controller = new ClaimsController(context, NullLogger<ClaimsController>.Instance);
+            var controller = MakeController(context);
             var recourseDto = new RecourseUpsertDto
             {
                 Status = "pending",
@@ -275,7 +388,7 @@ namespace AutomotiveClaimsApi.Tests
             context.Events.Add(ev);
             await context.SaveChangesAsync();
 
-            var controller = new ClaimsController(context, NullLogger<ClaimsController>.Instance);
+            var controller = MakeController(context);
             var recourseDto = new RecourseUpsertDto
             {
                 Id = recourse.Id,
@@ -339,7 +452,7 @@ namespace AutomotiveClaimsApi.Tests
             context.Settlements.Add(settlement);
             await context.SaveChangesAsync();
 
-            var controller = new ClaimsController(context, NullLogger<ClaimsController>.Instance);
+            var controller = MakeController(context);
 
             var result = await controller.GetClaim(eventId);
             var claimDto = result.Value!;

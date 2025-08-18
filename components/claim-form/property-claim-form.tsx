@@ -1,6 +1,5 @@
 "use client"
 
-import DamageDataSection from "./damage-data-section"
 import PropertyDamageSection from "./property-damage-section"
 import PropertyParticipantsSection from "./property-participants-section"
 import type { Dispatch, SetStateAction } from "react"
@@ -71,7 +70,7 @@ export function PropertyClaimForm({
 }: PropertyClaimFormProps) {
   return (
     <div className="space-y-6">
-      <DamageDataSection
+      <PropertyDamageSection
         claimFormData={claimFormData}
         handleFormChange={handleFormChange}
         claimObjectType={claimObjectType}
@@ -80,10 +79,6 @@ export function PropertyClaimForm({
         loadingRiskTypes={loadingRiskTypes}
         claimStatuses={claimStatuses}
         loadingStatuses={loadingStatuses}
-      />
-      <PropertyDamageSection
-        claimFormData={claimFormData}
-        handleFormChange={handleFormChange}
       />
       <PropertyParticipantsSection
         claimFormData={claimFormData}

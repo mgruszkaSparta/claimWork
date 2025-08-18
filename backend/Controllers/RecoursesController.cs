@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Identity;
 using System.Security.Claims;
+using System.Linq;
 
 namespace AutomotiveClaimsApi.Controllers
 {
@@ -38,10 +39,11 @@ namespace AutomotiveClaimsApi.Controllers
                 var recourses = await _context.Recourses
                     .Where(r => r.EventId == eventId)
                     .OrderByDescending(r => r.FilingDate)
-                    .Select(r => MapToDto(r))
                     .ToListAsync();
 
-                return Ok(recourses);
+                var dtos = recourses.Select(r => MapToDto(r)).ToList();
+
+                return Ok(dtos);
             }
             catch (Exception ex)
             {
@@ -81,15 +83,31 @@ namespace AutomotiveClaimsApi.Controllers
                     UpdatedAt = DateTime.UtcNow
                 };
 
-                if (dto.Document != null)
-                {
-                    var doc = await _documentService.SaveDocumentAsync(dto.Document, "recourses", dto.DocumentDescription);
-                    recourse.DocumentPath = doc.FilePath;
-                    recourse.DocumentName = doc.OriginalFileName;
-                }
-
                 _context.Recourses.Add(recourse);
                 await _context.SaveChangesAsync();
+
+                if (dto.Documents != null && dto.Documents.Any())
+                {
+                    foreach (var file in dto.Documents)
+                    {
+                        var docDto = await _documentService.UploadAndCreateDocumentAsync(file, new CreateDocumentDto
+                        {
+                            File = file,
+                            Category = "recourses",
+                            Description = dto.DocumentDescription,
+                            EventId = dto.EventId,
+                            RelatedEntityId = recourse.Id,
+                            RelatedEntityType = "Recourse"
+                        });
+
+                        if (string.IsNullOrEmpty(recourse.DocumentPath))
+                        {
+                            recourse.DocumentPath = docDto.FilePath;
+                            recourse.DocumentName = docDto.OriginalFileName;
+                        }
+                    }
+                    await _context.SaveChangesAsync();
+                }
 
                 if (_notificationService != null)
                 {
@@ -143,15 +161,26 @@ namespace AutomotiveClaimsApi.Controllers
                 recourse.DocumentDescription = dto.DocumentDescription;
                 recourse.UpdatedAt = DateTime.UtcNow;
 
-                if (dto.Document != null)
+                if (dto.Documents != null && dto.Documents.Any())
                 {
-                    if (!string.IsNullOrEmpty(recourse.DocumentPath))
+                    foreach (var file in dto.Documents)
                     {
-                        await _documentService.DeleteDocumentAsync(recourse.DocumentPath);
+                        var docDto = await _documentService.UploadAndCreateDocumentAsync(file, new CreateDocumentDto
+                        {
+                            File = file,
+                            Category = "recourses",
+                            Description = dto.DocumentDescription,
+                            EventId = recourse.EventId,
+                            RelatedEntityId = recourse.Id,
+                            RelatedEntityType = "Recourse"
+                        });
+
+                        if (string.IsNullOrEmpty(recourse.DocumentPath))
+                        {
+                            recourse.DocumentPath = docDto.FilePath;
+                            recourse.DocumentName = docDto.OriginalFileName;
+                        }
                     }
-                    var doc = await _documentService.SaveDocumentAsync(dto.Document, "recourses", dto.DocumentDescription);
-                    recourse.DocumentPath = doc.FilePath;
-                    recourse.DocumentName = doc.OriginalFileName;
                 }
 
                 await _context.SaveChangesAsync();
@@ -235,28 +264,116 @@ namespace AutomotiveClaimsApi.Controllers
             }
         }
 
-        private static RecourseDto MapToDto(Recourse r) => new RecourseDto
+        [HttpGet("{recourseId}/documents/{docId}/download")]
+        public async Task<IActionResult> DownloadRecourseDocument(Guid recourseId, Guid docId)
         {
-            Id = r.Id.ToString(),
-            EventId = r.EventId.ToString(),
-            Status = r.Status,
-            InitiationDate = r.InitiationDate,
-            Description = r.Description,
-            Notes = r.Notes,
-            RecourseNumber = r.RecourseNumber,
-            RecourseAmount = r.RecourseAmount,
-            IsJustified = r.IsJustified,
-            FilingDate = r.FilingDate,
-            InsuranceCompany = r.InsuranceCompany,
-            ObtainDate = r.ObtainDate,
-            Amount = r.Amount,
-            CurrencyCode = r.CurrencyCode,
-            DocumentPath = r.DocumentPath,
-            DocumentName = r.DocumentName,
-            DocumentDescription = r.DocumentDescription,
-            CreatedAt = r.CreatedAt,
-            UpdatedAt = r.UpdatedAt
-        };
+            try
+            {
+                var document = await _context.Documents
+                    .Where(d => d.Id == docId && d.RelatedEntityType == "Recourse" && d.RelatedEntityId == recourseId && !d.IsDeleted)
+                    .FirstOrDefaultAsync();
+
+                if (document == null)
+                {
+                    return NotFound();
+                }
+
+                var result = await _documentService.DownloadDocumentAsync(docId);
+                if (result == null)
+                {
+                    return NotFound();
+                }
+
+                return File(result.FileStream, result.ContentType, result.FileName);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error downloading document {DocId} for recourse {RecourseId}", docId, recourseId);
+                return StatusCode(500, new { error = "Failed to download document" });
+            }
+        }
+
+        [HttpGet("{recourseId}/documents/{docId}/preview")]
+        public async Task<IActionResult> PreviewRecourseDocument(Guid recourseId, Guid docId)
+        {
+            try
+            {
+                var document = await _context.Documents
+                    .Where(d => d.Id == docId && d.RelatedEntityType == "Recourse" && d.RelatedEntityId == recourseId && !d.IsDeleted)
+                    .FirstOrDefaultAsync();
+
+                if (document == null)
+                {
+                    return NotFound();
+                }
+
+                var result = await _documentService.DownloadDocumentAsync(docId);
+                if (result == null)
+                {
+                    return NotFound();
+                }
+
+                return File(result.FileStream, result.ContentType);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error previewing document {DocId} for recourse {RecourseId}", docId, recourseId);
+                return StatusCode(500, new { error = "Failed to preview document" });
+            }
+        }
+
+        private RecourseDto MapToDto(Recourse r)
+        {
+            var documents = _context.Documents
+                .Where(d => d.RelatedEntityType == "Recourse" && d.RelatedEntityId == r.Id && !d.IsDeleted)
+                .Select(d => new DocumentDto
+                {
+                    Id = d.Id,
+                    EventId = d.EventId,
+                    FileName = d.FileName,
+                    OriginalFileName = d.OriginalFileName,
+                    FilePath = d.FilePath,
+                    FileSize = d.FileSize,
+                    ContentType = d.ContentType,
+                    Category = d.DocumentType,
+                    Description = d.Description,
+                    UploadedBy = d.UploadedBy,
+                    IsActive = !d.IsDeleted,
+                    CreatedAt = d.CreatedAt,
+                    UpdatedAt = d.UpdatedAt,
+                    DownloadUrl = $"/api/recourses/{r.Id}/documents/{d.Id}/download",
+                    PreviewUrl = $"/api/recourses/{r.Id}/documents/{d.Id}/preview",
+                    CanPreview = true
+                })
+                .ToList();
+
+            var documentId = documents.FirstOrDefault()?.Id.ToString();
+
+            return new RecourseDto
+            {
+                Id = r.Id.ToString(),
+                EventId = r.EventId.ToString(),
+                Status = r.Status,
+                InitiationDate = r.InitiationDate,
+                Description = r.Description,
+                Notes = r.Notes,
+                RecourseNumber = r.RecourseNumber,
+                RecourseAmount = r.RecourseAmount,
+                IsJustified = r.IsJustified,
+                FilingDate = r.FilingDate,
+                InsuranceCompany = r.InsuranceCompany,
+                ObtainDate = r.ObtainDate,
+                Amount = r.Amount,
+                CurrencyCode = r.CurrencyCode,
+                DocumentPath = r.DocumentPath,
+                DocumentName = r.DocumentName,
+                DocumentDescription = r.DocumentDescription,
+                DocumentId = documentId,
+                Documents = documents,
+                CreatedAt = r.CreatedAt,
+                UpdatedAt = r.UpdatedAt
+            };
+        }
 
         private string GetContentType(string fileName)
         {

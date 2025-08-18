@@ -10,8 +10,9 @@ import { Textarea } from "@/components/ui/textarea"
 import { Badge } from "@/components/ui/badge"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { useToast } from "@/hooks/use-toast"
-import { Plus, Minus, Edit, Trash2, Download, Eye, Upload, X, FileText, Loader2, Gavel } from 'lucide-react'
+import { Plus, Minus, Edit, Trash2, Download, Eye, Upload, X, FileText, Loader2, Gavel, ChevronLeft, ChevronRight } from 'lucide-react'
 import type { Decision } from "@/types"
+import type { DocumentDto } from "@/lib/api"
 import {
   getDecisions as apiGetDecisions,
   createDecision as apiCreateDecision,
@@ -41,6 +42,7 @@ export function DecisionsSection({ claimId, onChange }: DecisionsSectionProps) {
   const [isFormVisible, setIsFormVisible] = useState(false)
   const [isEditing, setIsEditing] = useState(false)
   const [editingDecisionId, setEditingDecisionId] = useState<string | null>(null)
+  const [currentDecision, setCurrentDecision] = useState<Decision | null>(null)
   const [isLoading, setIsLoading] = useState(false)
   const [selectedFiles, setSelectedFiles] = useState<File[]>([])
   const [showFileDescription, setShowFileDescription] = useState(false)
@@ -53,6 +55,9 @@ export function DecisionsSection({ claimId, onChange }: DecisionsSectionProps) {
   const [previewFileName, setPreviewFileName] = useState("")
   const [previewFileType, setPreviewFileType] = useState("")
   const [currentPreviewDecision, setCurrentPreviewDecision] = useState<Decision | null>(null)
+  const [currentPreviewDoc, setCurrentPreviewDoc] = useState<DocumentDto | null>(null)
+  const [previewDocs, setPreviewDocs] = useState<DocumentDto[]>([])
+  const [previewIndex, setPreviewIndex] = useState(0)
 
   // Form state
   const [formData, setFormData] = useState({
@@ -135,6 +140,7 @@ export function DecisionsSection({ claimId, onChange }: DecisionsSectionProps) {
     setShowFileDescription(false)
     setIsEditing(false)
     setEditingDecisionId(null)
+    setCurrentDecision(null)
     if (fileInputRef.current) {
       fileInputRef.current.value = ""
     }
@@ -244,14 +250,13 @@ export function DecisionsSection({ claimId, onChange }: DecisionsSectionProps) {
         currency: formData.currency,
         compensationTitle: formData.compensationTitle ?? undefined,
         documentDescription: formData.documentDescription || undefined,
-        document: selectedFiles[0],
       }
 
       if (isEditing && editingDecisionId) {
-        await apiUpdateDecision(claimId, editingDecisionId, payload)
+        await apiUpdateDecision(claimId, editingDecisionId, payload, selectedFiles)
         toast({ title: "Sukces", description: "Decyzja została zaktualizowana" })
       } else {
-        await apiCreateDecision(claimId, payload)
+        await apiCreateDecision(claimId, payload, selectedFiles)
         toast({ title: "Sukces", description: "Decyzja została dodana" })
       }
 
@@ -274,6 +279,8 @@ export function DecisionsSection({ claimId, onChange }: DecisionsSectionProps) {
     setIsEditing(true)
     setEditingDecisionId(decision.id!)
     setIsFormVisible(true)
+    setCurrentDecision(decision)
+    setShowFileDescription(!!decision.documentPath)
 
     const decisionDate = new Date(decision.decisionDate)
     const year = decisionDate.getFullYear()
@@ -314,16 +321,7 @@ export function DecisionsSection({ claimId, onChange }: DecisionsSectionProps) {
     }
   }
 
-  const downloadFile = async (decision: Decision) => {
-    if (!decision.documentPath) {
-      toast({
-        title: "Błąd",
-        description: "Brak dokumentu do pobrania",
-        variant: "destructive",
-      })
-      return
-    }
-
+  const downloadFile = async (decision: Decision, doc?: DocumentDto) => {
     if (!claimId) {
       toast({
         title: "Brak ID roszczenia",
@@ -333,23 +331,26 @@ export function DecisionsSection({ claimId, onChange }: DecisionsSectionProps) {
       return
     }
 
+    const fileName = doc?.originalFileName || doc?.fileName || getDisplayFileName(decision)
+
     try {
-      const response = await fetch(
-        `${API_BASE_URL}/claims/${claimId}/decisions/${decision.id}/download`,
-        {
-          method: "GET",
-          credentials: "include",
-        },
-      )
+      const url = doc
+        ? `${API_BASE_URL}/claims/${claimId}/decisions/${decision.id}/documents/${doc.id}/download`
+        : `${API_BASE_URL}/claims/${claimId}/decisions/${decision.id}/download`
+
+      const response = await fetch(url, {
+        method: "GET",
+        credentials: "include",
+      })
       if (response.ok) {
         const blob = await response.blob()
-        const url = window.URL.createObjectURL(blob)
+        const objectUrl = window.URL.createObjectURL(blob)
         const a = document.createElement("a")
-        a.href = url
-        a.download = getDisplayFileName(decision)
+        a.href = objectUrl
+        a.download = fileName
         document.body.appendChild(a)
         a.click()
-        window.URL.revokeObjectURL(url)
+        window.URL.revokeObjectURL(objectUrl)
         document.body.removeChild(a)
       } else {
         throw new Error("Failed to download file")
@@ -364,15 +365,21 @@ export function DecisionsSection({ claimId, onChange }: DecisionsSectionProps) {
     }
   }
 
-  const previewFile = async (decision: Decision) => {
-    if (!decision.documentPath) {
-      toast({
-        title: "Błąd",
-        description: "Brak dokumentu do podglądu",
-        variant: "destructive",
-      })
-      return
-    }
+  const loadPreview = async (decision: Decision, doc: DocumentDto) => {
+    if (!claimId) return
+    const url = `${API_BASE_URL}/claims/${claimId}/decisions/${decision.id}/documents/${doc.id}/preview`
+    const response = await fetch(url, { method: "GET", credentials: "include" })
+    if (!response.ok) throw new Error("Failed to preview file")
+    const blob = await response.blob()
+    const objectUrl = window.URL.createObjectURL(blob)
+    const name = doc.originalFileName || doc.fileName
+    setPreviewUrl(objectUrl)
+    setPreviewFileName(name)
+    setPreviewFileType(getFileType(name))
+    setCurrentPreviewDoc(doc)
+  }
+
+  const previewFile = async (decision: Decision, doc?: DocumentDto) => {
     if (!claimId) {
       toast({
         title: "Brak ID roszczenia",
@@ -382,26 +389,42 @@ export function DecisionsSection({ claimId, onChange }: DecisionsSectionProps) {
       return
     }
 
-    try {
-      const response = await fetch(
-        `${API_BASE_URL}/claims/${claimId}/decisions/${decision.id}/preview`,
-        {
-          method: "GET",
-          credentials: "include",
-        },
-      )
-      if (response.ok) {
+    const docs = decision.documents || []
+    if (docs.length === 0) {
+      // fallback for single file
+      try {
+        const url = `${API_BASE_URL}/claims/${claimId}/decisions/${decision.id}/preview`
+        const response = await fetch(url, { method: "GET", credentials: "include" })
+        if (!response.ok) throw new Error("Failed to preview file")
         const blob = await response.blob()
-        const url = window.URL.createObjectURL(blob)
-        setPreviewUrl(url)
-        const fileName = getDisplayFileName(decision)
-        setPreviewFileName(fileName)
-        setPreviewFileType(getFileType(fileName))
+        const objectUrl = window.URL.createObjectURL(blob)
+        const name = getDisplayFileName(decision)
+        setPreviewDocs([])
+        setPreviewUrl(objectUrl)
+        setPreviewFileName(name)
+        setPreviewFileType(getFileType(name))
         setCurrentPreviewDecision(decision)
+        setCurrentPreviewDoc(null)
         setIsPreviewVisible(true)
-      } else {
-        throw new Error("Failed to preview file")
+      } catch (error) {
+        console.error("Error previewing file:", error)
+        toast({
+          title: "Błąd",
+          description: "Błąd podczas wczytywania podglądu",
+          variant: "destructive",
+        })
       }
+      return
+    }
+
+    const startIndex = doc ? docs.findIndex((d) => d.id === doc.id) : 0
+    const index = startIndex >= 0 ? startIndex : 0
+    setPreviewDocs(docs)
+    setPreviewIndex(index)
+    setCurrentPreviewDecision(decision)
+    try {
+      await loadPreview(decision, docs[index])
+      setIsPreviewVisible(true)
     } catch (error) {
       console.error("Error previewing file:", error)
       toast({
@@ -412,6 +435,28 @@ export function DecisionsSection({ claimId, onChange }: DecisionsSectionProps) {
     }
   }
 
+  const showNextDoc = async () => {
+    if (!currentPreviewDecision || previewDocs.length === 0) return
+    const next = (previewIndex + 1) % previewDocs.length
+    setPreviewIndex(next)
+    try {
+      await loadPreview(currentPreviewDecision, previewDocs[next])
+    } catch (error) {
+      console.error("Error previewing file:", error)
+    }
+  }
+
+  const showPrevDoc = async () => {
+    if (!currentPreviewDecision || previewDocs.length === 0) return
+    const prev = (previewIndex - 1 + previewDocs.length) % previewDocs.length
+    setPreviewIndex(prev)
+    try {
+      await loadPreview(currentPreviewDecision, previewDocs[prev])
+    } catch (error) {
+      console.error("Error previewing file:", error)
+    }
+  }
+
   const closePreview = () => {
     setIsPreviewVisible(false)
     if (previewUrl) {
@@ -419,6 +464,8 @@ export function DecisionsSection({ claimId, onChange }: DecisionsSectionProps) {
     }
     setPreviewUrl(null)
     setCurrentPreviewDecision(null)
+    setCurrentPreviewDoc(null)
+    setPreviewDocs([])
   }
 
   const getFileNameFromPath = (path: string): string => {
@@ -591,6 +638,58 @@ export function DecisionsSection({ claimId, onChange }: DecisionsSectionProps) {
 
               <div className="space-y-4">
                 <Label className="text-sm font-medium text-gray-700">Załącz dokumenty decyzji</Label>
+
+                {isEditing && selectedFiles.length === 0 && currentDecision?.documents?.length ? (
+                  <div className="space-y-2">
+                    {currentDecision.documents.map((doc) => (
+                      <div
+                        key={doc.id}
+                        className="p-3 bg-muted rounded-lg border flex items-center justify-between"
+                      >
+                        <div className="flex items-center gap-2">
+                          <FileText className="h-4 w-4 text-primary" />
+                          <span className="text-sm font-medium">
+                            {doc.originalFileName || doc.fileName}
+                          </span>
+                        </div>
+                        <div className="flex gap-1">
+                          {isPreviewable(doc.originalFileName || doc.fileName || "") && (
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => previewFile(currentDecision, doc)}
+                              title="Podgląd"
+                            >
+                              <Eye className="h-4 w-4" />
+                            </Button>
+                          )}
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => downloadFile(currentDecision, doc)}
+                            title="Pobierz"
+                          >
+                            <Download className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </div>
+                    ))}
+                    {showFileDescription && (
+                      <div className="p-3 bg-background rounded-b-lg border-x border-b">
+                        <Label htmlFor="documentDescription" className="text-sm font-medium">
+                          Opis dokumentu
+                        </Label>
+                        <Textarea
+                          id="documentDescription"
+                          value={formData.documentDescription}
+                          onChange={(e) => handleInputChange("documentDescription", e.target.value)}
+                          rows={2}
+                          className="mt-1"
+                        />
+                      </div>
+                    )}
+                  </div>
+                ) : null}
 
                 {/* Drop zone for drag and drop */}
                 <div
@@ -809,23 +908,35 @@ export function DecisionsSection({ claimId, onChange }: DecisionsSectionProps) {
                     <td className="py-3 px-4 text-sm">{decision.currency || "PLN"}</td>
                     <td className="py-3 px-4 text-sm">{decision.compensationTitle ?? "-"}</td>
                     <td className="py-3 px-4">
-                      {decision.documentPath ? (
-                        <div className="flex items-center gap-2">
-                          <span className="text-sm">{getDisplayFileName(decision)}</span>
-                          <div className="flex gap-1">
-                            {isPreviewable(getDisplayFileName(decision)) && (
-                              <Button variant="ghost" size="sm" onClick={() => previewFile(decision)} title="Podgląd">
+                      {(() => {
+                        const count = decision.documents?.length || (decision.documentPath ? 1 : 0)
+                        if (count === 0) {
+                          return <span className="text-sm text-muted-foreground">Brak dokumentów</span>
+                        }
+                        return (
+                          <div className="flex items-center gap-2">
+                            <span className="text-sm">Załączniki ({count})</span>
+                            <div className="flex gap-1">
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => previewFile(decision)}
+                                title="Podgląd"
+                              >
                                 <Eye className="h-4 w-4" />
                               </Button>
-                            )}
-                            <Button variant="ghost" size="sm" onClick={() => downloadFile(decision)} title="Pobierz">
-                              <Download className="h-4 w-4" />
-                            </Button>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => downloadFile(decision)}
+                                title="Pobierz"
+                              >
+                                <Download className="h-4 w-4" />
+                              </Button>
+                            </div>
                           </div>
-                        </div>
-                      ) : (
-                        <span className="text-sm text-muted-foreground">Brak dokumentów</span>
-                      )}
+                        )
+                      })()}
                     </td>
                     <td className="py-3 px-4 text-center">
                       <div className="flex justify-center gap-2">
@@ -902,17 +1013,35 @@ export function DecisionsSection({ claimId, onChange }: DecisionsSectionProps) {
             )}
           </div>
 
-          <div className="flex justify-end pt-4">
-            <Button
-              onClick={() => currentPreviewDecision && downloadFile(currentPreviewDecision)}
-              className="flex items-center gap-2"
-            >
-              <Download className="h-4 w-4" />
-              Pobierz plik
+      <div className="flex justify-between pt-4">
+        {previewDocs.length > 1 && (
+          <div className="flex gap-2">
+            <Button variant="ghost" size="sm" onClick={showPrevDoc}>
+              <ChevronLeft className="h-4 w-4" />
+              <span className="sr-only">Poprzedni</span>
+            </Button>
+            <Button variant="ghost" size="sm" onClick={showNextDoc}>
+              <ChevronRight className="h-4 w-4" />
+              <span className="sr-only">Następny</span>
             </Button>
           </div>
-        </DialogContent>
-      </Dialog>
+        )}
+        <Button
+          onClick={() =>
+            currentPreviewDecision &&
+            downloadFile(
+              currentPreviewDecision,
+              previewDocs.length ? previewDocs[previewIndex] : currentPreviewDoc || undefined
+            )
+          }
+          className="flex items-center gap-2"
+        >
+          <Download className="h-4 w-4" />
+          Pobierz plik
+        </Button>
+      </div>
+    </DialogContent>
+  </Dialog>
     </div>
   )
 }

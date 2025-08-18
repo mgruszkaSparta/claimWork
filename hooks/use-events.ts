@@ -9,6 +9,7 @@ export interface Event {
   eventDate: string
   eventTime: string
   location: string
+  objectTypeId?: number
   city?: string
   postalCode?: string
   country?: string
@@ -33,6 +34,7 @@ const transformApiEvent = (apiEvent: EventDto): Event => ({
   eventDate: apiEvent.damageDate ? new Date(apiEvent.damageDate).toLocaleDateString("pl-PL") : "",
   eventTime: apiEvent.eventTime?.split("T")[1]?.slice(0, 5) || "",
   location: apiEvent.location || "",
+  objectTypeId: apiEvent.objectTypeId,
   city: apiEvent.location || "",
   postalCode: "",
   country: "PL",
@@ -61,6 +63,7 @@ const transformToApiEvent = (event: Partial<Event>): Partial<EventDto> => ({
   location: event.location || "",
   description: event.eventDescription,
   servicesCalled: event.policeInvolved ? ["policja"] : [],
+  objectTypeId: event.objectTypeId,
   notes: event.notes,
 })
 

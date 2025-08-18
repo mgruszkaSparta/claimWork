@@ -1,5 +1,5 @@
 import type React from "react"
-import type { ClaimDto } from "@/lib/api"
+import type { ClaimDto, DocumentDto } from "@/lib/api"
 import type { Settlement } from "@/lib/api/settlements"
 
 export type { Settlement } from "@/lib/api/settlements"
@@ -201,6 +201,7 @@ export interface Decision {
   documentDescription?: string | null
   documentName?: string | null
   documentPath?: string | null
+  documents?: DocumentDto[]
 }
 
 export interface Appeal {
@@ -219,6 +220,7 @@ export interface Appeal {
   documentPath?: string
   documentName?: string
   documentDescription?: string
+  documents?: UploadedFile[]
 }
 
 export interface ClientClaim {
@@ -241,6 +243,7 @@ export interface ClientClaim {
    * Local-only fields for client-side handling
    */
   document?: UploadedFile
+  documents?: DocumentDto[]
   claimId?: string
 }
 
@@ -263,6 +266,7 @@ export interface UploadedFile {
   type: "image" | "pdf" | "doc" | "video" | "other"
   uploadedAt: string // ISO timestamp when the file was uploaded
   url: string
+  cloudUrl?: string
   /** Human readable category name for UI display */
   category?: string
   /** Machine readable category code for API communication */
@@ -291,5 +295,26 @@ export interface DocumentsSectionProps {
   pendingFiles?: UploadedFile[]
   setPendingFiles?: React.Dispatch<React.SetStateAction<UploadedFile[]>>
 
+  /**
+   * Optional key used to persist user preferences (e.g. view mode) for each
+   * section separately. When provided, UI state is stored in localStorage under
+   * this key so changing the view in one section doesn't affect others.
+   */
+  storageKey?: string
+  /**
+   * List of document category names that should be hidden from the user.
+   * Useful for categories that are managed in dedicated modules (e.g. decyzje,
+   * regresy) and shouldn't appear in the generic documents section.
+   */
+  hiddenCategories?: string[]
+}
 
+export interface DocumentsSectionRef {
+  downloadAll: (category?: string) => Promise<void>
+  downloadSelected: (category?: string) => Promise<void>
+  /**
+   * Set search query for documents in this section.
+   * Used for global document search across sections.
+   */
+  search: (query: string) => void
 }

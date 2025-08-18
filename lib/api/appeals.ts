@@ -1,4 +1,4 @@
-import { AppealDto, API_BASE_URL } from "../api";
+import { AppealDto, API_BASE_URL, DocumentDto } from "../api";
 
 export interface Appeal {
   id: string;
@@ -12,6 +12,7 @@ export interface Appeal {
   documentDescription?: string;
   alertDays?: number;
   documentId?: string;
+  documents?: DocumentDto[];
 }
 
 export interface AppealUpsert {
@@ -39,6 +40,7 @@ function mapDtoToAppeal(dto: AppealDto): Appeal {
     documentDescription: dto.documentDescription,
     alertDays: dto.daysSinceSubmission,
     documentId: dto.documentId,
+    documents: dto.documents,
   };
 }
 

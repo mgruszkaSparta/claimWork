@@ -8,6 +8,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { useToast } from "@/hooks/use-toast"
 import {
   Send,
@@ -26,9 +27,11 @@ import {
   ImageIcon,
   Smile,
   MoreHorizontal,
+  FileText,
 } from "lucide-react"
 import { emailTemplates } from "@/lib/email-data"
 import type { EmailCompose, EmailAttachment } from "@/types/email"
+import type { UploadedFile } from "@/types"
 
 interface EmailComposeProps {
   onSend: (email: EmailCompose) => void
@@ -38,6 +41,7 @@ interface EmailComposeProps {
   replySubject?: string
   replyBody?: string
   claimId: string
+  availableDocuments?: UploadedFile[]
 }
 
 export const EmailComposeComponent = ({
@@ -48,6 +52,7 @@ export const EmailComposeComponent = ({
   replySubject,
   replyBody,
   claimId,
+  availableDocuments = [],
 }: EmailComposeProps) => {
   const { toast } = useToast()
   const fileInputRef = useRef<HTMLInputElement>(null)
@@ -55,6 +60,7 @@ export const EmailComposeComponent = ({
   const [showBcc, setShowBcc] = useState(false)
   const [isHtmlMode, setIsHtmlMode] = useState(false)
   const [selectedTemplate, setSelectedTemplate] = useState("")
+  const [documentDialogOpen, setDocumentDialogOpen] = useState(false)
 
   const [emailData, setEmailData] = useState<EmailCompose>({
     to: replyTo || "",
@@ -82,6 +88,7 @@ export const EmailComposeComponent = ({
       size: file.size,
       type: file.type,
       url: URL.createObjectURL(file),
+      file,
     }))
 
     setEmailData((prev) => ({
@@ -100,6 +107,34 @@ export const EmailComposeComponent = ({
       ...prev,
       attachments: prev.attachments.filter((att) => att.id !== attachmentId),
     }))
+  }
+
+  const addDocumentAttachment = async (doc: UploadedFile) => {
+    try {
+      let file = doc.file
+      if (!file) {
+        const response = await fetch(doc.url)
+        const blob = await response.blob()
+        file = new File([blob], doc.name, { type: blob.type || 'application/octet-stream' })
+      }
+      const newAttachment: EmailAttachment = {
+        id: doc.id,
+        name: doc.name,
+        size: doc.size,
+        type: file.type,
+        url: doc.url,
+        file,
+      }
+      setEmailData((prev) => ({
+        ...prev,
+        attachments: [...prev.attachments, newAttachment],
+      }))
+      setDocumentDialogOpen(false)
+      toast({ title: 'Załącznik dodany', description: `Dodano ${doc.name}` })
+    } catch (error) {
+      console.error('Error adding document attachment:', error)
+      toast({ title: 'Błąd', description: 'Nie udało się dodać dokumentu', variant: 'destructive' })
+    }
   }
 
   const handleTemplateSelect = (templateId: string) => {
@@ -361,6 +396,35 @@ export const EmailComposeComponent = ({
               className="hidden"
               onChange={(e) => handleFileUpload(e.target.files)}
             />
+            <Dialog open={documentDialogOpen} onOpenChange={setDocumentDialogOpen}>
+              <DialogTrigger asChild>
+                <Button variant="outline" size="sm">
+                  <FileText className="h-4 w-4 mr-2" />
+                  Dodaj z dokumentów
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="sm:max-w-md">
+                <DialogHeader>
+                  <DialogTitle>Wybierz dokument</DialogTitle>
+                </DialogHeader>
+                <div className="flex flex-col gap-2">
+                  {availableDocuments.length ? (
+                    availableDocuments.map((doc) => (
+                      <Button
+                        key={doc.id}
+                        variant="ghost"
+                        className="justify-start"
+                        onClick={() => addDocumentAttachment(doc)}
+                      >
+                        {doc.name}
+                      </Button>
+                    ))
+                  ) : (
+                    <p className="text-sm text-gray-500">Brak dokumentów</p>
+                  )}
+                </div>
+              </DialogContent>
+            </Dialog>
           </div>
 
           <div className="flex items-center space-x-2">

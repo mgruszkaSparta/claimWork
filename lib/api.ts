@@ -16,11 +16,15 @@ export async function getJson<T>(
     },
     cache: "no-store",
   })
+  const text = await res.text().catch(() => "")
   if (!res.ok) {
-    const text = await res.text().catch(() => "")
     throw new Error(`GET ${path} ${res.status}: ${text || res.statusText}`)
   }
-  return res.json() as Promise<T>
+  try {
+    return JSON.parse(text) as T
+  } catch {
+    throw new Error(`GET ${path} ${res.status}: Invalid JSON response: ${text}`)
+  }
 }
 
 // Types for API responses
@@ -34,15 +38,20 @@ export interface EventListItemDto {
   liquidator?: string
   brand?: string
   status?: string
+  claimStatusId?: string
   damageDate?: string
   totalClaim?: number
   payout?: number
   currency?: string
   insuranceCompanyId?: number
   insuranceCompany?: string
+  insurerClaimNumber?: string
+  reportDate?: string
+  riskType?: string
+  damageType?: string
   leasingCompanyId?: number
   leasingCompany?: string
-  handlerId?: string
+  handlerId?: number
   handler?: string
   objectTypeId?: number
   registeredById?: string
@@ -50,7 +59,6 @@ export interface EventListItemDto {
 }
 
 export interface EventDto extends EventListItemDto {
-  reportDate?: string
   reportDateToInsurer?: string
   eventTime?: string
   location?: string
@@ -64,7 +72,7 @@ export interface EventDto extends EventListItemDto {
   servicesCalled?: string
 
   insuranceCompanyId?: number
-  handlerId?: string
+  handlerId?: number
   riskType?: string
   damageType?: string
   subcontractorName?: string
@@ -92,6 +100,7 @@ export interface DocumentDto {
   fileName: string
   originalFileName?: string
   filePath: string
+  cloudUrl?: string
   fileSize: number
   contentType: string
   category?: string
@@ -122,6 +131,7 @@ export interface EventUpsertDto {
   liquidator?: string
   brand?: string
   status?: string
+  claimStatusId?: string
   riskType?: string
   damageType?: string
   objectTypeId?: number
@@ -130,7 +140,7 @@ export interface EventUpsertDto {
   insuranceCompany?: string
   leasingCompanyId?: number
   leasingCompany?: string
-  handlerId?: string
+  handlerId?: number
   handler?: string
   damageDate?: string
   reportDate?: string
@@ -251,6 +261,34 @@ export interface DamageTypeDto {
   isActive: boolean
   createdAt: string
   updatedAt?: string
+}
+
+export interface CaseHandlerDto {
+  id: number
+  name: string
+  code?: string
+  email?: string
+  phone?: string
+  department?: string
+  isActive: boolean
+}
+
+export interface CreateCaseHandlerDto {
+  name: string
+  code?: string
+  email?: string
+  phone?: string
+  department?: string
+  isActive?: boolean
+}
+
+export interface UpdateCaseHandlerDto {
+  name?: string
+  code?: string
+  email?: string
+  phone?: string
+  department?: string
+  isActive?: boolean
 }
 
 export interface CreateRiskTypeDto {
@@ -492,6 +530,7 @@ export interface AppealDto {
   documentName?: string
   documentDescription?: string
   documentId?: string
+  documents?: DocumentDto[]
   createdAt?: string
   updatedAt?: string
   daysSinceSubmission?: number
@@ -528,6 +567,7 @@ export interface ClientClaimDto {
   documentPath?: string
   documentName?: string
   documentDescription?: string
+  documents?: DocumentDto[]
   claimNotes?: string
   createdAt: string
   updatedAt: string
@@ -567,6 +607,8 @@ export interface RecourseDto {
   documentPath?: string
   documentName?: string
   documentDescription?: string
+  documentId?: string
+  documents?: DocumentDto[]
   createdAt?: string
   updatedAt?: string
 }
@@ -611,6 +653,8 @@ export interface SettlementDto {
   documentPath?: string
   documentName?: string
   documentDescription?: string
+  documentId?: string
+  documents?: DocumentDto[]
 }
 
 export interface SettlementUpsertDto {
@@ -1060,6 +1104,31 @@ class ApiService {
 
   async deleteDamageType(id: string): Promise<void> {
     await this.request<void>(`/damage-types/${id}`, {
+      method: 'DELETE',
+    })
+  }
+
+  // Case Handlers API
+  async getCaseHandlers(): Promise<CaseHandlerDto[]> {
+    return this.request<CaseHandlerDto[]>('/case-handlers')
+  }
+
+  async createCaseHandler(data: CreateCaseHandlerDto): Promise<CaseHandlerDto> {
+    return this.request<CaseHandlerDto>('/case-handlers', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    })
+  }
+
+  async updateCaseHandler(id: number, data: UpdateCaseHandlerDto): Promise<void> {
+    await this.request<void>(`/case-handlers/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    })
+  }
+
+  async deleteCaseHandler(id: number): Promise<void> {
+    await this.request<void>(`/case-handlers/${id}`, {
       method: 'DELETE',
     })
   }

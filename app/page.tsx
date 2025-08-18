@@ -1,14 +1,14 @@
-"use client"
+'use client';
 
-import { useEffect, useState } from "react"
+import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation"
 import { Header } from "@/components/header"
 import { Sidebar } from "@/components/sidebar"
 import { AuthWrapper } from '@/components/auth-wrapper'
 import { ProtectedRoute } from '@/components/protected-route'
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { FileText, Clock, Calendar, DollarSign, TrendingUp, Users, Search, Filter, CheckSquare } from 'lucide-react'
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { FileText, Clock, TrendingUp, Users, Search, Filter, CheckSquare } from 'lucide-react';
 
 interface User {
   username: string
@@ -21,55 +21,72 @@ interface PageProps {
   onLogout?: () => void
 }
 
+interface Task {
+  title: string
+  due: string
+}
+
 function HomePage({ user, onLogout }: PageProps) {
   const router = useRouter()
   const [activeTab, setActiveTab] = useState("dashboard")
+  const [tasks, setTasks] = useState<Task[]>([])
 
   useEffect(() => {
     // additional effects can go here
   }, [])
 
-  const stats = [
-    {
-      title: "Wszystkie szkody",
-      value: "1,247",
-      change: "+12%",
-      changeType: "positive" as const,
-      icon: FileText,
-      color: "blue",
-    },
-    {
-      title: "W trakcie",
-      value: "89",
-      change: "+5%",
-      changeType: "positive" as const,
-      icon: Clock,
-      color: "yellow",
-    },
-    {
-      title: "Ten miesiąc",
-      value: "156",
-      change: "+23%",
-      changeType: "positive" as const,
-      icon: Calendar,
-      color: "green",
-    },
-    {
-      title: "Wartość szkód",
-      value: "2.4M PLN",
-      change: "-8%",
-      changeType: "negative" as const,
-      icon: DollarSign,
-      color: "red",
-    },
-  ]
+  useEffect(() => {
+    async function loadTasks() {
+      try {
+        const res = await fetch("/api/notes?category=task")
+        if (!res.ok) throw new Error("Failed to fetch tasks")
+        const data = await res.json()
+        const mapped = data.map((note: any) => ({
+          title: note.title || note.content,
+          due: note.createdAt
+            ? new Date(note.createdAt).toISOString().split("T")[0]
+            : "",
+        }))
+        setTasks(mapped)
+      } catch (err) {
+        console.error("Error fetching tasks:", err)
+      }
+    }
+    loadTasks()
+  }, [])
+
+  const initialStats = [
+    { title: "Zarejestrowane szkody", value: "0", changeType: "positive" as const, icon: FileText, color: "blue" },
+    { title: "Aktywne szkody", value: "0", changeType: "positive" as const, icon: Clock, color: "yellow" },
+    { title: "Zamknięte szkody", value: "0", changeType: "positive" as const, icon: CheckSquare, color: "green" }
+  ];
+  const [stats, setStats] = useState(initialStats);
+
+  useEffect(() => {
+    async function loadStats() {
+      try {
+        const res = await fetch("/api/dashboard/client");
+        if (!res.ok) throw new Error("Failed to fetch dashboard stats");
+        const data = await res.json();
+        setStats([
+          { ...initialStats[0], value: data.totalClaims?.toString() },
+          { ...initialStats[1], value: data.activeClaims?.toString() },
+          { ...initialStats[2], value: data.closedClaims?.toString() }
+        ]);
+      } catch (err) {
+        console.error("Error fetching dashboard stats:", err);
+      }
+    }
+    loadStats();
+  }, []);
+
 
   const statusOverview = [
     { status: "Nowe", count: 45, percentage: 36, color: "bg-blue-500" },
     { status: "W trakcie", count: 89, percentage: 28, color: "bg-yellow-500" },
     { status: "Zakończone", count: 1113, percentage: 89, color: "bg-green-500" },
     { status: "Odrzucone", count: 23, percentage: 2, color: "bg-red-500" },
-  ]
+  ];
 
   const recentClaims = [
     {
@@ -96,19 +113,13 @@ function HomePage({ user, onLogout }: PageProps) {
       status: "Zakończona",
       date: "2025-01-06",
     },
-  ]
+  ];
 
   const quickActions = [
     { title: "Wyszukaj szkodę", icon: Search, color: "bg-gray-600 hover:bg-gray-700" },
     { title: "Raporty", icon: TrendingUp, color: "bg-green-600 hover:bg-green-700" },
     { title: "Filtry", icon: Filter, color: "bg-purple-600 hover:bg-purple-700" },
-  ]
-
-  const tasks = [
-    { title: 'Przypomnij klientowi o dokumentach', due: '2025-01-10' },
-    { title: 'Zaplanuj oględziny pojazdu', due: '2025-01-12' },
-    { title: 'Przygotuj raport dla zarządu', due: '2025-01-15' },
-  ]
+  ];
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -136,7 +147,7 @@ function HomePage({ user, onLogout }: PageProps) {
             <div className="space-y-6">
                
                 {/* Stats Cards */}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                   {stats.map((stat, index) => {
                     const Icon = stat.icon
                     return (
@@ -146,13 +157,15 @@ function HomePage({ user, onLogout }: PageProps) {
                             <div>
                               <p className="text-sm font-medium text-gray-600">{stat.title}</p>
                               <p className="text-2xl font-bold text-gray-900">{stat.value}</p>
-                              <p
-                                className={`text-sm ${
-                                  stat.changeType === "positive" ? "text-green-600" : "text-red-600"
-                                }`}
-                              >
-                                {stat.change} vs poprzedni miesiąc
-                              </p>
+                              {stat.change && (
+                                <p
+                                  className={`text-sm ${
+                                    stat.changeType === "positive" ? "text-green-600" : "text-red-600"
+                                  }`}
+                                >
+                                  {stat.change} vs poprzedni miesiąc
+                                </p>
+                              )}
                             </div>
                             <div
                               className={`p-3 rounded-full ${
@@ -307,7 +320,6 @@ function HomePage({ user, onLogout }: PageProps) {
                 </Card>
               </div>
             </div>
-          </div>
         </main>
       </div>
     </div>
@@ -316,7 +328,7 @@ function HomePage({ user, onLogout }: PageProps) {
 
 export default function Page() {
   return (
-    <ProtectedRoute roles={["Admin"]}>
+    <ProtectedRoute roles={["Admin", "User"]}>
       <AuthWrapper>
         <HomePage />
       </AuthWrapper>

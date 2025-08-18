@@ -310,6 +310,15 @@ namespace AutomotiveClaimsApi.Migrations
                         .HasColumnType("text")
                         .HasColumnName("ClaimNotes");
 
+                    b.Property<string>("DocumentPath")
+                        .HasColumnType("text");
+
+                    b.Property<string>("DocumentName")
+                        .HasColumnType("text");
+
+                    b.Property<string>("DocumentDescription")
+                        .HasColumnType("text");
+
                     b.Property<string>("ClaimNumber")
                         .HasMaxLength(100)
                         .HasColumnType("character varying(100)");
@@ -605,6 +614,30 @@ namespace AutomotiveClaimsApi.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("character varying(100)");
 
+                    b.Property<string>("Email")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<string>("Address")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<string>("City")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<string>("PostalCode")
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
+                    b.Property<string>("Country")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<string>("PersonalId")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
                     b.Property<bool>("IsMainDriver")
                         .HasColumnType("boolean");
 
@@ -864,7 +897,7 @@ namespace AutomotiveClaimsApi.Migrations
                         .HasColumnType("character varying(50)");
 
 
-                    b.Property<int?>("InsuranceCompanyId")
+                    b.Property<int?>("InsuranceCompanyId");
 
                     b.Property<int?>("HandlerId")
           .HasColumnType("integer");
@@ -970,6 +1003,9 @@ namespace AutomotiveClaimsApi.Migrations
                         .HasMaxLength(50)
                         .HasColumnType("character varying(50)");
 
+                    b.Property<Guid?>("ClaimStatusId")
+                        .HasColumnType("uuid");
+
                     b.Property<decimal?>("TotalClaim")
                         .HasColumnType("decimal(18,2)");
 
@@ -1022,11 +1058,18 @@ namespace AutomotiveClaimsApi.Migrations
                     b.Property<string>("RegisteredById")
                         .HasColumnType("text");
 
+                    b.HasIndex("ClaimStatusId");
+
                     b.HasIndex("RegisteredById");
 
                     b.HasKey("Id");
 
                     b.ToTable("Events");
+
+                    b.HasOne("AutomotiveClaimsApi.Models.Dictionary.ClaimStatus", "ClaimStatus")
+                        .WithMany()
+                        .HasForeignKey("ClaimStatusId")
+                        .OnDelete(DeleteBehavior.SetNull);
 
                     b.HasOne("AutomotiveClaimsApi.Models.ApplicationUser", "RegisteredBy")
                         .WithMany()
@@ -1479,6 +1522,8 @@ namespace AutomotiveClaimsApi.Migrations
                     b.Navigation("Recourses");
 
                     b.Navigation("Settlements");
+
+                    b.Navigation("ClaimStatus");
 
                     b.Navigation("RegisteredBy");
                 });

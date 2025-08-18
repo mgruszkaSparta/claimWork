@@ -221,10 +221,14 @@ export const DocumentsSection = React.forwardRef<
   )
 
   useEffect(() => {
-    setSelectedDocumentIds((prev) =>
-      prev.filter((id) => visibleDocuments.some((d) => d.id === id)),
+    const validIds = selectedDocumentIds.filter((id) =>
+      visibleDocuments.some((d) => d.id === id),
     )
-  }, [visibleDocuments])
+
+    if (validIds.length !== selectedDocumentIds.length) {
+      setSelectedDocumentIds(validIds)
+    }
+  }, [visibleDocuments, selectedDocumentIds])
 
 
   // Load documents from API

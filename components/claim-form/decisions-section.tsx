@@ -41,6 +41,7 @@ export function DecisionsSection({ claimId, onChange }: DecisionsSectionProps) {
   const [isFormVisible, setIsFormVisible] = useState(false)
   const [isEditing, setIsEditing] = useState(false)
   const [editingDecisionId, setEditingDecisionId] = useState<string | null>(null)
+  const [currentDecision, setCurrentDecision] = useState<Decision | null>(null)
   const [isLoading, setIsLoading] = useState(false)
   const [selectedFiles, setSelectedFiles] = useState<File[]>([])
   const [showFileDescription, setShowFileDescription] = useState(false)
@@ -135,6 +136,7 @@ export function DecisionsSection({ claimId, onChange }: DecisionsSectionProps) {
     setShowFileDescription(false)
     setIsEditing(false)
     setEditingDecisionId(null)
+    setCurrentDecision(null)
     if (fileInputRef.current) {
       fileInputRef.current.value = ""
     }
@@ -273,6 +275,8 @@ export function DecisionsSection({ claimId, onChange }: DecisionsSectionProps) {
     setIsEditing(true)
     setEditingDecisionId(decision.id!)
     setIsFormVisible(true)
+    setCurrentDecision(decision)
+    setShowFileDescription(!!decision.documentPath)
 
     const decisionDate = new Date(decision.decisionDate)
     const year = decisionDate.getFullYear()
@@ -590,6 +594,51 @@ export function DecisionsSection({ claimId, onChange }: DecisionsSectionProps) {
 
               <div className="space-y-4">
                 <Label className="text-sm font-medium text-gray-700">Załącz dokumenty decyzji</Label>
+
+                {isEditing && selectedFiles.length === 0 && currentDecision?.documentPath && (
+                  <div className="space-y-2">
+                    <div className="p-3 bg-muted rounded-lg border flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <FileText className="h-4 w-4 text-primary" />
+                        <span className="text-sm font-medium">{getDisplayFileName(currentDecision)}</span>
+                      </div>
+                      <div className="flex gap-1">
+                        {isPreviewable(getDisplayFileName(currentDecision)) && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => previewFile(currentDecision)}
+                            title="Podgląd"
+                          >
+                            <Eye className="h-4 w-4" />
+                          </Button>
+                        )}
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => downloadFile(currentDecision)}
+                          title="Pobierz"
+                        >
+                          <Download className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </div>
+                    {showFileDescription && (
+                      <div className="p-3 bg-background rounded-b-lg border-x border-b">
+                        <Label htmlFor="documentDescription" className="text-sm font-medium">
+                          Opis dokumentu
+                        </Label>
+                        <Textarea
+                          id="documentDescription"
+                          value={formData.documentDescription}
+                          onChange={(e) => handleInputChange("documentDescription", e.target.value)}
+                          rows={2}
+                          className="mt-1"
+                        />
+                      </div>
+                    )}
+                  </div>
+                )}
 
                 {/* Drop zone for drag and drop */}
                 <div

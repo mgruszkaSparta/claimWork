@@ -62,6 +62,7 @@ export function RecourseSection({ eventId }: RecourseSectionProps) {
   const [isFormVisible, setIsFormVisible] = useState(false)
   const [isEditing, setIsEditing] = useState(false)
   const [editingRecourseId, setEditingRecourseId] = useState<string | null>(null)
+  const [currentRecourse, setCurrentRecourse] = useState<Recourse | null>(null)
   const [selectedFiles, setSelectedFiles] = useState<File[]>([])
   const [showFileDescription, setShowFileDescription] = useState(false)
   const [totalRecourseAmounts, setTotalRecourseAmounts] = useState<Record<string, number>>({})
@@ -190,6 +191,7 @@ export function RecourseSection({ eventId }: RecourseSectionProps) {
     setShowFileDescription(false)
     setIsEditing(false)
     setEditingRecourseId(null)
+    setCurrentRecourse(null)
     if (fileInputRef.current) {
       fileInputRef.current.value = ""
     }
@@ -261,6 +263,7 @@ export function RecourseSection({ eventId }: RecourseSectionProps) {
     setIsEditing(true)
     setEditingRecourseId(recourse.id)
     setIsFormVisible(true)
+    setCurrentRecourse(recourse)
 
     // Format dates for input fields
     const formatDateForInput = (dateString?: string): string => {
@@ -291,7 +294,7 @@ export function RecourseSection({ eventId }: RecourseSectionProps) {
       currency: recourse.currencyCode || "PLN",
       documentDescription: recourse.documentDescription || "",
     })
-    setSelectedFile(null)
+    setSelectedFiles([])
     setShowFileDescription(!!recourse.documentPath)
 
     // Scroll to form
@@ -422,6 +425,10 @@ export function RecourseSection({ eventId }: RecourseSectionProps) {
     if (!fileName) return false
     const ext = fileName.split(".").pop()?.toLowerCase()
     return ["pdf", "jpg", "jpeg", "png", "gif", "bmp"].includes(ext || "")
+  }
+
+  const getFileNameFromPath = (path: string): string => {
+    return path.split("/").pop()?.split("?")[0] || "document"
   }
 
   const getFileType = (fileName: string): string => {
@@ -574,7 +581,58 @@ export function RecourseSection({ eventId }: RecourseSectionProps) {
               </div>
 
               <div className="space-y-4">
-                <Label className="text-sm font-medium text-gray-700">Załącz dokument regresu</Label>
+              <Label className="text-sm font-medium text-gray-700">Załącz dokument regresu</Label>
+
+                {isEditing && selectedFiles.length === 0 && currentRecourse?.documentPath && (
+                  <div className="space-y-2 mb-4">
+                    <div className="p-3 bg-gray-50 rounded-lg border flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <FileText className="h-4 w-4 text-[#1a3a6c]" />
+                        <span className="text-sm font-medium">
+                          {currentRecourse.documentName || getFileNameFromPath(currentRecourse.documentPath)}
+                        </span>
+                      </div>
+                      <div className="flex gap-1">
+                        {isPreviewable(
+                          currentRecourse.documentName || getFileNameFromPath(currentRecourse.documentPath),
+                        ) && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => previewFile(currentRecourse)}
+                            title="Podgląd"
+                          >
+                            <Eye className="h-4 w-4" />
+                          </Button>
+                        )}
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => downloadFile(currentRecourse)}
+                          title="Pobierz"
+                        >
+                          <Download className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </div>
+                    {showFileDescription && (
+                      <div className="p-3 bg-white rounded-b-lg border-x border-b">
+                        <Label htmlFor="documentDescription" className="text-sm font-medium">
+                          Opis dokumentu
+                        </Label>
+                        <Textarea
+                          id="documentDescription"
+                          value={formData.documentDescription}
+                          onChange={(e) =>
+                            setFormData({ ...formData, documentDescription: e.target.value })
+                          }
+                          rows={2}
+                          className="mt-1"
+                        />
+                      </div>
+                    )}
+                  </div>
+                )}
 
                 {/* Drop zone for drag and drop */}
                 <div

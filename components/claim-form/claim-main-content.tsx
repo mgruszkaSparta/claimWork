@@ -203,7 +203,6 @@ export const ClaimMainContent = ({
 
   const documentsSectionRef = useRef<DocumentsSectionRef>(null)
 
-  const [documentSearch, setDocumentSearch] = useState("")
 
   const [repairDetails, setRepairDetails] = useState<RepairDetail[]>([])
 
@@ -1372,24 +1371,12 @@ export const ClaimMainContent = ({
                 <CardTitle className="text-lg font-semibold">Dokumenty</CardTitle>
               </div>
               <div className="flex items-center space-x-2">
-                <div className="relative">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-                  <Input
-                    placeholder="Wyszukaj..."
-                    className="pl-8 bg-white text-black"
-                    value={documentSearch}
-                    onChange={(e) => {
-                      setDocumentSearch(e.target.value)
-                      documentsSectionRef.current?.search(e.target.value)
-                    }}
-                  />
-                </div>
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={() => documentsSectionRef.current?.downloadSelected()}
+                  onClick={() => documentsSectionRef.current?.downloadAll()}
                 >
-                  <Download className="mr-2 h-4 w-4" /> Pobierz zaznaczone
+                  <Download className="mr-2 h-4 w-4" /> Pobierz wszystkie
                 </Button>
               </div>
             </CardHeader>

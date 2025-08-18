@@ -414,9 +414,9 @@ export default function NewClaimPage() {
   }
 
   return (
-    <div className="fixed inset-0 bg-white z-50 flex flex-col">
+    <div className="flex flex-col min-h-screen bg-white">
       <ClaimTopHeader claimFormData={claimFormData} onClose={handleClose} />
-      
+
       <div className="flex flex-1 min-h-0">
         <ClaimFormSidebar
           activeClaimSection={activeClaimSection}

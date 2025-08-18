@@ -264,7 +264,7 @@ export default function ClaimPage() {
   // Loading state
   if (isLoading) {
     return (
-      <div className="fixed inset-0 bg-white z-50 flex items-center justify-center">
+      <div className="bg-white min-h-screen flex items-center justify-center">
         <div className="text-center">
           <div className="w-8 h-8 border-4 border-[#1a3a6c] border-t-transparent rounded-full animate-spin mx-auto mb-3" />
           <p className="text-sm text-gray-600">
@@ -278,7 +278,7 @@ export default function ClaimPage() {
   // Error state
   if (loadError && mode !== "new") {
     return (
-      <div className="fixed inset-0 bg-white z-50 flex items-center justify-center">
+      <div className="bg-white min-h-screen flex items-center justify-center">
         <div className="text-center max-w-md mx-auto p-6">
           <div className="text-red-500 mb-4">
             <svg className="w-16 h-16 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -306,7 +306,7 @@ export default function ClaimPage() {
   // Form mode (new or edit)
   if (mode === "new" || mode === "edit") {
     return (
-      <div className="fixed inset-0 bg-white z-50 flex flex-col">
+      <div className="flex flex-col min-h-screen bg-white">
         <ClaimTopHeader claimFormData={claimFormData} onClose={handleClose} />
         <div className="flex flex-1 min-h-0">
           <ClaimFormSidebar
@@ -402,7 +402,7 @@ export default function ClaimPage() {
   // View mode
   if (mode === "view" && claim) {
     return (
-      <div className="fixed inset-0 bg-gray-50 z-50 flex flex-col">
+      <div className="flex flex-col min-h-screen bg-gray-50">
         {/* Header */}
         <div className="bg-white border-b border-gray-200 px-6 py-4">
           <div className="flex items-center justify-between">
@@ -761,7 +761,7 @@ export default function ClaimPage() {
 
   // Fallback
   return (
-    <div className="fixed inset-0 bg-white z-50 flex items-center justify-center">
+    <div className="bg-white min-h-screen flex items-center justify-center">
       <div className="text-center">
         <FileText className="h-12 w-12 text-gray-400 mx-auto mb-3" />
         <p className="text-lg font-medium text-gray-900 mb-2">Nie znaleziono szkody</p>

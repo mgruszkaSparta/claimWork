@@ -24,6 +24,8 @@ import {
   AlertTriangle,
   Minus,
   Loader2,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react"
 import {
   AlertDialog,
@@ -42,11 +44,11 @@ import {
   createRecourse as createRecourseApi,
   updateRecourse as updateRecourseApi,
   deleteRecourse as deleteRecourseApi,
-  downloadRecourseDocument as downloadRecourseDocumentApi,
-  previewRecourseDocument as previewRecourseDocumentApi,
   type Recourse,
   type RecourseUpsert,
 } from "@/lib/api/recourses"
+import { API_BASE_URL } from "@/lib/api"
+import type { DocumentDto } from "@/lib/api"
 
 interface RecourseSectionProps {
   eventId: string
@@ -84,6 +86,9 @@ export function RecourseSection({ eventId }: RecourseSectionProps) {
   const [isPreviewVisible, setIsPreviewVisible] = useState(false)
   const [previewFileName, setPreviewFileName] = useState("")
   const [previewFileType, setPreviewFileType] = useState("")
+  const [previewDoc, setPreviewDoc] = useState<DocumentDto | null>(null)
+  const [previewDocs, setPreviewDocs] = useState<DocumentDto[]>([])
+  const [previewIndex, setPreviewIndex] = useState(0)
 
   // Move this function before the useDragDrop hook
   function handleFilesDropped(files: FileList) {
@@ -295,7 +300,7 @@ export function RecourseSection({ eventId }: RecourseSectionProps) {
       documentDescription: recourse.documentDescription || "",
     })
     setSelectedFiles([])
-    setShowFileDescription(!!recourse.documentPath)
+    setShowFileDescription(!!recourse.documents?.length)
 
     // Scroll to form
     window.scrollTo({ top: 0, behavior: "smooth" })
@@ -322,61 +327,101 @@ export function RecourseSection({ eventId }: RecourseSectionProps) {
     }
   }
 
-  const downloadFile = async (recourse: Recourse) => {
-    if (!recourse.documentPath) {
-      toast({
-        title: "Błąd",
-        description: "Brak dokumentu do pobrania",
-        variant: "destructive",
-      })
-      return
-    }
+  const downloadFile = async (recourse: Recourse, doc?: DocumentDto) => {
+    const fileName = doc?.originalFileName || doc?.fileName || recourse.documentName || "document"
+    const url = doc
+      ? `${API_BASE_URL}/recourses/${recourse.id}/documents/${doc.id}/download`
+      : `${API_BASE_URL}/recourses/${recourse.id}/download`
 
     try {
-      const blob = await downloadRecourseDocumentApi(recourse.id)
-      const url = window.URL.createObjectURL(blob)
+      const response = await fetch(url, { method: "GET", credentials: "include" })
+      if (!response.ok) throw new Error("Failed to download")
+      const blob = await response.blob()
+      const objectUrl = window.URL.createObjectURL(blob)
       const link = document.createElement("a")
-      link.href = url
-      link.download = recourse.documentName || "document"
+      link.href = objectUrl
+      link.download = fileName
       document.body.appendChild(link)
       link.click()
       document.body.removeChild(link)
-      window.URL.revokeObjectURL(url)
+      window.URL.revokeObjectURL(objectUrl)
     } catch (error) {
       console.error("Error downloading file:", error)
-      toast({
-        title: "Błąd",
-        description: "Nie udało się pobrać pliku",
-        variant: "destructive",
-      })
+      toast({ title: "Błąd", description: "Nie udało się pobrać pliku", variant: "destructive" })
     }
   }
 
-  const previewFile = async (recourse: Recourse) => {
-    if (!recourse.documentPath) {
-      toast({
-        title: "Błąd",
-        description: "Brak dokumentu do podglądu",
-        variant: "destructive",
-      })
+  const loadPreview = async (recourse: Recourse, doc: DocumentDto) => {
+    const url = `${API_BASE_URL}/recourses/${recourse.id}/documents/${doc.id}/preview`
+    const response = await fetch(url, { method: "GET", credentials: "include" })
+    if (!response.ok) throw new Error("Failed to preview")
+    const blob = await response.blob()
+    const objectUrl = window.URL.createObjectURL(blob)
+    setPreviewUrl(objectUrl)
+    const name = doc.originalFileName || doc.fileName || ""
+    setPreviewFileName(name)
+    setPreviewFileType(getFileType(name))
+    setPreviewDoc(doc)
+  }
+
+  const previewFile = async (recourse: Recourse, doc?: DocumentDto) => {
+    const docs = recourse.documents || []
+    if (docs.length === 0) {
+      // single file fallback
+      const url = `${API_BASE_URL}/recourses/${recourse.id}/preview`
+      try {
+        const response = await fetch(url, { method: "GET", credentials: "include" })
+        if (!response.ok) throw new Error("Failed to preview")
+        const blob = await response.blob()
+        const objectUrl = window.URL.createObjectURL(blob)
+        const name = recourse.documentName || ""
+        setPreviewDocs([])
+        setPreviewUrl(objectUrl)
+        setPreviewFileName(name)
+        setPreviewFileType(getFileType(name))
+        setPreviewRecourse(recourse)
+        setPreviewDoc(null)
+        setIsPreviewVisible(true)
+      } catch (error) {
+        console.error("Error previewing file:", error)
+        toast({ title: "Błąd", description: "Nie udało się wczytać podglądu", variant: "destructive" })
+      }
       return
     }
 
+    const startIndex = doc ? docs.findIndex((d) => d.id === doc.id) : 0
+    const index = startIndex >= 0 ? startIndex : 0
+    setPreviewDocs(docs)
+    setPreviewIndex(index)
+    setPreviewRecourse(recourse)
     try {
-      const blob = await previewRecourseDocumentApi(recourse.id)
-      const url = window.URL.createObjectURL(blob)
-      setPreviewUrl(url)
-      setPreviewRecourse(recourse)
-      setPreviewFileName(recourse.documentName || "")
-      setPreviewFileType(getFileType(recourse.documentName || ""))
+      await loadPreview(recourse, docs[index])
       setIsPreviewVisible(true)
     } catch (error) {
       console.error("Error previewing file:", error)
-      toast({
-        title: "Błąd",
-        description: "Nie udało się wczytać podglądu",
-        variant: "destructive",
-      })
+      toast({ title: "Błąd", description: "Nie udało się wczytać podglądu", variant: "destructive" })
+    }
+  }
+
+  const showNextDoc = async () => {
+    if (!previewRecourse || previewDocs.length === 0) return
+    const next = (previewIndex + 1) % previewDocs.length
+    setPreviewIndex(next)
+    try {
+      await loadPreview(previewRecourse, previewDocs[next])
+    } catch (error) {
+      console.error("Error previewing file:", error)
+    }
+  }
+
+  const showPrevDoc = async () => {
+    if (!previewRecourse || previewDocs.length === 0) return
+    const prev = (previewIndex - 1 + previewDocs.length) % previewDocs.length
+    setPreviewIndex(prev)
+    try {
+      await loadPreview(previewRecourse, previewDocs[prev])
+    } catch (error) {
+      console.error("Error previewing file:", error)
     }
   }
 
@@ -384,6 +429,8 @@ export function RecourseSection({ eventId }: RecourseSectionProps) {
     setIsPreviewVisible(false)
     setPreviewUrl(null)
     setPreviewRecourse(null)
+    setPreviewDoc(null)
+    setPreviewDocs([])
     if (previewUrl) {
       window.URL.revokeObjectURL(previewUrl)
     }
@@ -583,38 +630,41 @@ export function RecourseSection({ eventId }: RecourseSectionProps) {
               <div className="space-y-4">
               <Label className="text-sm font-medium text-gray-700">Załącz dokument regresu</Label>
 
-                {isEditing && selectedFiles.length === 0 && currentRecourse?.documentPath && (
+                {isEditing && selectedFiles.length === 0 && currentRecourse?.documents?.length ? (
                   <div className="space-y-2 mb-4">
-                    <div className="p-3 bg-gray-50 rounded-lg border flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <FileText className="h-4 w-4 text-[#1a3a6c]" />
-                        <span className="text-sm font-medium">
-                          {currentRecourse.documentName || getFileNameFromPath(currentRecourse.documentPath)}
-                        </span>
-                      </div>
-                      <div className="flex gap-1">
-                        {isPreviewable(
-                          currentRecourse.documentName || getFileNameFromPath(currentRecourse.documentPath),
-                        ) && (
+                    {currentRecourse.documents.map((doc) => (
+                      <div
+                        key={doc.id}
+                        className="p-3 bg-gray-50 rounded-lg border flex items-center justify-between"
+                      >
+                        <div className="flex items-center gap-2">
+                          <FileText className="h-4 w-4 text-[#1a3a6c]" />
+                          <span className="text-sm font-medium">
+                            {doc.originalFileName || doc.fileName}
+                          </span>
+                        </div>
+                        <div className="flex gap-1">
+                          {isPreviewable(doc.originalFileName || doc.fileName || "") && (
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => previewFile(currentRecourse, doc)}
+                              title="Podgląd"
+                            >
+                              <Eye className="h-4 w-4" />
+                            </Button>
+                          )}
                           <Button
                             variant="ghost"
                             size="sm"
-                            onClick={() => previewFile(currentRecourse)}
-                            title="Podgląd"
+                            onClick={() => downloadFile(currentRecourse, doc)}
+                            title="Pobierz"
                           >
-                            <Eye className="h-4 w-4" />
+                            <Download className="h-4 w-4" />
                           </Button>
-                        )}
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => downloadFile(currentRecourse)}
-                          title="Pobierz"
-                        >
-                          <Download className="h-4 w-4" />
-                        </Button>
+                        </div>
                       </div>
-                    </div>
+                    ))}
                     {showFileDescription && (
                       <div className="p-3 bg-white rounded-b-lg border-x border-b">
                         <Label htmlFor="documentDescription" className="text-sm font-medium">
@@ -632,7 +682,7 @@ export function RecourseSection({ eventId }: RecourseSectionProps) {
                       </div>
                     )}
                   </div>
-                )}
+                ) : null}
 
                 {/* Drop zone for drag and drop */}
                 <div
@@ -851,23 +901,35 @@ export function RecourseSection({ eventId }: RecourseSectionProps) {
                     </td>
                     <td className="py-3 px-4 text-sm">{recourse.currencyCode || "PLN"}</td>
                     <td className="py-3 px-4">
-                      {recourse.documentPath ? (
-                        <div className="flex items-center gap-2">
-                          <span className="text-sm">{recourse.documentName}</span>
-                          <div className="flex gap-1">
-                            {isPreviewable(recourse.documentName) && (
-                              <Button variant="ghost" size="sm" onClick={() => previewFile(recourse)} title="Podgląd">
+                      {(() => {
+                        const count = recourse.documents?.length || (recourse.documentPath ? 1 : 0)
+                        if (count === 0) {
+                          return <span className="text-sm text-muted-foreground">Brak dokumentu</span>
+                        }
+                        return (
+                          <div className="flex items-center gap-2">
+                            <span className="text-sm">Załączniki ({count})</span>
+                            <div className="flex gap-1">
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => previewFile(recourse)}
+                                title="Podgląd"
+                              >
                                 <Eye className="h-4 w-4" />
                               </Button>
-                            )}
-                            <Button variant="ghost" size="sm" onClick={() => downloadFile(recourse)} title="Pobierz">
-                              <Download className="h-4 w-4" />
-                            </Button>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => downloadFile(recourse)}
+                                title="Pobierz"
+                              >
+                                <Download className="h-4 w-4" />
+                              </Button>
+                            </div>
                           </div>
-                        </div>
-                      ) : (
-                        <span className="text-sm text-muted-foreground">Brak dokumentu</span>
-                      )}
+                        )
+                      })()}
                     </td>
                     <td className="py-3 px-4 text-center">
                       <div className="flex justify-center gap-2">
@@ -944,9 +1006,27 @@ export function RecourseSection({ eventId }: RecourseSectionProps) {
             )}
           </div>
 
-          <div className="flex justify-end pt-4">
+          <div className="flex justify-between pt-4">
+            {previewDocs.length > 1 && (
+              <div className="flex gap-2">
+                <Button variant="ghost" size="sm" onClick={showPrevDoc}>
+                  <ChevronLeft className="h-4 w-4" />
+                  <span className="sr-only">Poprzedni</span>
+                </Button>
+                <Button variant="ghost" size="sm" onClick={showNextDoc}>
+                  <ChevronRight className="h-4 w-4" />
+                  <span className="sr-only">Następny</span>
+                </Button>
+              </div>
+            )}
             <Button
-              onClick={() => previewRecourse && downloadFile(previewRecourse)}
+              onClick={() =>
+                previewRecourse &&
+                downloadFile(
+                  previewRecourse,
+                  previewDocs.length ? previewDocs[previewIndex] : previewDoc || undefined
+                )
+              }
               className="flex items-center gap-2"
             >
               <Download className="h-4 w-4" />

@@ -1,6 +1,15 @@
 import { z } from "zod"
 import { API_BASE_URL } from "../api"
 
+const documentSchema = z.object({
+  id: z.string(),
+  originalFileName: z.string().nullish(),
+  fileName: z.string().nullish(),
+  filePath: z.string().nullish(),
+  downloadUrl: z.string().nullish(),
+  previewUrl: z.string().nullish(),
+})
+
 const recourseSchema = z.object({
   id: z.string(),
   eventId: z.string(),
@@ -13,6 +22,7 @@ const recourseSchema = z.object({
   documentPath: z.string().nullable().optional(),
   documentName: z.string().nullable().optional(),
   documentDescription: z.string().nullable().optional(),
+  documents: z.array(documentSchema).optional(),
   createdAt: z.string(),
   updatedAt: z.string(),
 })

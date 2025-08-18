@@ -28,8 +28,12 @@ import {
   AlertCircle,
   Minus,
   Loader2,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react"
 import type { ClientClaim, ClaimStatus } from "@/types"
+import type { DocumentDto } from "@/lib/api"
+import { API_BASE_URL } from "@/lib/api"
 import {
   AlertDialog,
   AlertDialogAction,
@@ -45,8 +49,6 @@ import {
   createClientClaim,
   updateClientClaim,
   deleteClientClaim as apiDeleteClientClaim,
-  previewClientClaimDocument,
-  downloadClientClaimDocument,
   type ClientClaimUpsert,
 } from "@/lib/api/clientclaims"
 
@@ -84,13 +86,17 @@ export function ClientClaimsSection({ clientClaims, onClientClaimsChange, claimI
     fileName: string
     fileType: string
     claim: ClientClaim | null
+    doc: DocumentDto | null
   }>({
     isOpen: false,
     url: "",
     fileName: "",
     fileType: "",
     claim: null,
+    doc: null,
   })
+  const [previewDocs, setPreviewDocs] = useState<DocumentDto[]>([])
+  const [previewIndex, setPreviewIndex] = useState(0)
 
   const [formData, setFormData] = useState<ClientClaimFormData>({
     claimNumber: "",
@@ -397,59 +403,101 @@ export function ClientClaimsSection({ clientClaims, onClientClaimsChange, claimI
     return ["pdf", "jpg", "jpeg", "png", "gif"].includes(extension || "")
   }
 
-  const previewFile = async (claim: ClientClaim) => {
-    const fileName =
-      claim.document?.name || claim.documentName || getFileNameFromPath(claim.documentPath || "")
+  const loadPreview = async (claim: ClientClaim, doc: DocumentDto) => {
+    const fileName = doc.originalFileName || doc.fileName || "document"
+    const urlPath = `${API_BASE_URL}/clientclaims/${claim.id}/documents/${doc.id}/preview`
+    const response = await fetch(urlPath, { method: "GET", credentials: "include" })
+    if (!response.ok) throw new Error("Failed to preview")
+    const blob = await response.blob()
+    const url = URL.createObjectURL(blob)
+    const extension = fileName.split(".").pop()?.toLowerCase()
+    const fileType = extension === "pdf" ? "pdf" : "image"
+    setPreviewModal({ isOpen: true, url, fileName, fileType, claim, doc })
+  }
 
-    if (!fileName) {
-      toast({
-        title: "Błąd",
-        description: "Brak dokumentu do podglądu",
-        variant: "destructive",
-      })
+  const previewFile = async (claim: ClientClaim, doc?: DocumentDto) => {
+    const docs = claim.documents || []
+    if (docs.length === 0) {
+      const fileName =
+        doc?.originalFileName ||
+        doc?.fileName ||
+        claim.document?.name ||
+        claim.documentName ||
+        getFileNameFromPath(claim.documentPath || "")
+      if (!fileName) {
+        toast({ title: "Błąd", description: "Brak dokumentu do podglądu", variant: "destructive" })
+        return
+      }
+      try {
+        const urlPath = `${API_BASE_URL}/clientclaims/${claim.id}/preview`
+        const response = await fetch(urlPath, { method: "GET", credentials: "include" })
+        if (!response.ok) throw new Error("Failed to preview")
+        const blob = await response.blob()
+        const url = URL.createObjectURL(blob)
+        const extension = fileName.split(".").pop()?.toLowerCase()
+        const fileType = extension === "pdf" ? "pdf" : "image"
+        setPreviewDocs([])
+        setPreviewModal({ isOpen: true, url, fileName, fileType, claim, doc: doc || null })
+      } catch (error) {
+        toast({ title: "Błąd", description: "Nie udało się wczytać podglądu", variant: "destructive" })
+      }
       return
     }
 
+    const startIndex = doc ? docs.findIndex((d) => d.id === doc.id) : 0
+    const index = startIndex >= 0 ? startIndex : 0
+    setPreviewDocs(docs)
+    setPreviewIndex(index)
     try {
-      const blob = await previewClientClaimDocument(claim.id!)
-      const url = URL.createObjectURL(blob)
-
-      const extension = fileName.split(".").pop()?.toLowerCase()
-      const fileType = extension === "pdf" ? "pdf" : "image"
-
-      setPreviewModal({
-        isOpen: true,
-        url,
-        fileName,
-        fileType,
-        claim,
-      })
+      await loadPreview(claim, docs[index])
     } catch (error) {
-      toast({
-        title: "Błąd",
-        description: "Nie udało się wczytać podglądu",
-        variant: "destructive",
-      })
+      toast({ title: "Błąd", description: "Nie udało się wczytać podglądu", variant: "destructive" })
     }
   }
 
-  const downloadFile = async (claim: ClientClaim) => {
+  const showNextDoc = async () => {
+    if (!previewModal.claim || previewDocs.length === 0) return
+    const next = (previewIndex + 1) % previewDocs.length
+    setPreviewIndex(next)
+    try {
+      await loadPreview(previewModal.claim, previewDocs[next])
+    } catch (error) {
+      console.error(error)
+    }
+  }
+
+  const showPrevDoc = async () => {
+    if (!previewModal.claim || previewDocs.length === 0) return
+    const prev = (previewIndex - 1 + previewDocs.length) % previewDocs.length
+    setPreviewIndex(prev)
+    try {
+      await loadPreview(previewModal.claim, previewDocs[prev])
+    } catch (error) {
+      console.error(error)
+    }
+  }
+
+  const downloadFile = async (claim: ClientClaim, doc?: DocumentDto) => {
     const fileName =
-      claim.document?.name || claim.documentName || getFileNameFromPath(claim.documentPath || "")
+      doc?.originalFileName ||
+      doc?.fileName ||
+      claim.document?.name ||
+      claim.documentName ||
+      getFileNameFromPath(claim.documentPath || "")
 
     if (!fileName) {
-      toast({
-        title: "Błąd",
-        description: "Brak dokumentu do pobrania",
-        variant: "destructive",
-      })
+      toast({ title: "Błąd", description: "Brak dokumentu do pobrania", variant: "destructive" })
       return
     }
 
     try {
-      const blob = await downloadClientClaimDocument(claim.id!)
+      const urlPath = doc
+        ? `${API_BASE_URL}/clientclaims/${claim.id}/documents/${doc.id}/download`
+        : `${API_BASE_URL}/clientclaims/${claim.id}/download`
+      const response = await fetch(urlPath, { method: "GET", credentials: "include" })
+      if (!response.ok) throw new Error("Failed to download")
+      const blob = await response.blob()
       const url = URL.createObjectURL(blob)
-
       const a = document.createElement("a")
       a.href = url
       a.download = fileName
@@ -458,11 +506,7 @@ export function ClientClaimsSection({ clientClaims, onClientClaimsChange, claimI
       document.body.removeChild(a)
       URL.revokeObjectURL(url)
     } catch (error) {
-      toast({
-        title: "Błąd",
-        description: "Nie udało się pobrać pliku",
-        variant: "destructive",
-      })
+      toast({ title: "Błąd", description: "Nie udało się pobrać pliku", variant: "destructive" })
     }
   }
 
@@ -476,7 +520,9 @@ export function ClientClaimsSection({ clientClaims, onClientClaimsChange, claimI
       fileName: "",
       fileType: "",
       claim: null,
+      doc: null,
     })
+    setPreviewDocs([])
   }
 
   return (
@@ -646,42 +692,41 @@ export function ClientClaimsSection({ clientClaims, onClientClaimsChange, claimI
               <div className="space-y-4">
                 <Label className="text-sm font-medium text-gray-700">Załącz dokumenty roszczenia</Label>
                 {isEditing && selectedFiles.length === 0 && editingClaim &&
-                  (editingClaim.document || editingClaim.documentPath) && (
+                  editingClaim.documents?.length ? (
                     <div className="space-y-2 mb-4">
-                      <div className="p-3 bg-gray-50 rounded border flex items-center justify-between">
-                        <div className="flex items-center space-x-2">
-                          <FileText className="h-4 w-4 text-blue-600" />
-                          <span className="text-sm font-medium">
-                            {editingClaim.document?.name ||
-                              editingClaim.documentName ||
-                              getFileNameFromPath(editingClaim.documentPath || "")}
-                          </span>
-                        </div>
-                        <div className="flex gap-1">
-                          {isPreviewable(
-                            editingClaim.document?.name ||
-                              editingClaim.documentName ||
-                              getFileNameFromPath(editingClaim.documentPath || ""),
-                          ) && (
+                      {editingClaim.documents.map((doc) => (
+                        <div
+                          key={doc.id}
+                          className="p-3 bg-gray-50 rounded border flex items-center justify-between"
+                        >
+                          <div className="flex items-center space-x-2">
+                            <FileText className="h-4 w-4 text-blue-600" />
+                            <span className="text-sm font-medium">
+                              {doc.originalFileName || doc.fileName}
+                            </span>
+                          </div>
+                          <div className="flex gap-1">
+                            {isPreviewable(doc.originalFileName || doc.fileName || "") && (
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => previewFile(editingClaim, doc)}
+                                title="Podgląd"
+                              >
+                                <Eye className="h-4 w-4" />
+                              </Button>
+                            )}
                             <Button
                               variant="ghost"
                               size="sm"
-                              onClick={() => previewFile(editingClaim)}
-                              title="Podgląd"
+                              onClick={() => downloadFile(editingClaim, doc)}
+                              title="Pobierz"
                             >
-                              <Eye className="h-4 w-4" />
+                              <Download className="h-4 w-4" />
                             </Button>
-                          )}
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => downloadFile(editingClaim)}
-                            title="Pobierz"
-                          >
-                            <Download className="h-4 w-4" />
-                          </Button>
+                          </div>
                         </div>
-                      </div>
+                      ))}
                       <div className="mt-2">
                         <Label
                           htmlFor="documentDescription"
@@ -703,7 +748,7 @@ export function ClientClaimsSection({ clientClaims, onClientClaimsChange, claimI
                         />
                       </div>
                     </div>
-                  )}
+                  ) : null}
                 <div
                   className={`border-2 border-dashed rounded-lg p-6 text-center transition-colors ${
                     dragActive ? "border-blue-400 bg-blue-50" : "border-gray-300" 
@@ -903,18 +948,16 @@ export function ClientClaimsSection({ clientClaims, onClientClaimsChange, claimI
                         </div>
                       </td>
                       <td className="py-3 px-4">
-                        {claim.document || claim.documentPath ? (
-                          <div className="flex items-center space-x-2">
-                            <FileText className="h-4 w-4 text-blue-600" />
-                            <span className="text-sm text-blue-600">
-                              {claim.documentDescription || "Załącznik"}
-                            </span>
-                            <div className="flex gap-1">
-                              {isPreviewable(
-                                claim.document?.name ||
-                                  claim.documentName ||
-                                  getFileNameFromPath(claim.documentPath || "")
-                              ) && (
+                        {(() => {
+                          const count = claim.documents?.length || (claim.document || claim.documentPath ? 1 : 0)
+                          if (count === 0) {
+                            return <span className="text-sm text-gray-400">Brak</span>
+                          }
+                          return (
+                            <div className="flex items-center space-x-2">
+                              <FileText className="h-4 w-4 text-blue-600" />
+                              <span className="text-sm text-blue-600">Załączniki ({count})</span>
+                              <div className="flex gap-1">
                                 <Button
                                   variant="ghost"
                                   size="sm"
@@ -923,20 +966,18 @@ export function ClientClaimsSection({ clientClaims, onClientClaimsChange, claimI
                                 >
                                   <Eye className="h-4 w-4" />
                                 </Button>
-                              )}
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => downloadFile(claim)}
-                                className="text-green-600 hover:text-green-800 p-1"
-                              >
-                                <Download className="h-4 w-4" />
-                              </Button>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => downloadFile(claim)}
+                                  className="text-green-600 hover:text-green-800 p-1"
+                                >
+                                  <Download className="h-4 w-4" />
+                                </Button>
+                              </div>
                             </div>
-                          </div>
-                        ) : (
-                          <span className="text-sm text-gray-400">Brak</span>
-                        )}
+                          )
+                        })()}
                       </td>
                       <td className="py-3 px-4 text-center">
                         <div className="flex justify-center gap-2">
@@ -1021,9 +1062,27 @@ export function ClientClaimsSection({ clientClaims, onClientClaimsChange, claimI
             )}
           </div>
 
-          <div className="flex justify-end pt-4">
+          <div className="flex justify-between pt-4">
+            {previewDocs.length > 1 && (
+              <div className="flex gap-2">
+                <Button variant="ghost" size="sm" onClick={showPrevDoc}>
+                  <ChevronLeft className="h-4 w-4" />
+                  <span className="sr-only">Poprzedni</span>
+                </Button>
+                <Button variant="ghost" size="sm" onClick={showNextDoc}>
+                  <ChevronRight className="h-4 w-4" />
+                  <span className="sr-only">Następny</span>
+                </Button>
+              </div>
+            )}
             <Button
-              onClick={() => previewModal.claim && downloadFile(previewModal.claim)}
+              onClick={() =>
+                previewModal.claim &&
+                downloadFile(
+                  previewModal.claim,
+                  previewDocs.length ? previewDocs[previewIndex] : previewModal.doc || undefined,
+                )
+              }
               className="flex items-center gap-2"
             >
               <Download className="h-4 w-4" />

@@ -1,5 +1,5 @@
 import type React from "react"
-import type { ClaimDto } from "@/lib/api"
+import type { ClaimDto, DocumentDto } from "@/lib/api"
 import type { Settlement } from "@/lib/api/settlements"
 
 export type { Settlement } from "@/lib/api/settlements"
@@ -201,6 +201,7 @@ export interface Decision {
   documentDescription?: string | null
   documentName?: string | null
   documentPath?: string | null
+  documents?: DocumentDto[]
 }
 
 export interface Appeal {
@@ -242,7 +243,7 @@ export interface ClientClaim {
    * Local-only fields for client-side handling
    */
   document?: UploadedFile
-  documents?: UploadedFile[]
+  documents?: DocumentDto[]
   claimId?: string
 }
 

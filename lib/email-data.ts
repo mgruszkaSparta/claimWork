@@ -1,4 +1,4 @@
-import type { Email, EmailFolder, EmailFolderDefinition } from "@/types/email"
+import { EmailFolder, type Email, type EmailFolderDefinition } from "@/types/email"
 
 export const emailFolders: EmailFolderDefinition[] = [
   { id: EmailFolder.Inbox, name: "Odebrane", count: 0, unreadCount: 0, icon: "Inbox" },

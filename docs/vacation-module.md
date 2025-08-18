@@ -64,3 +64,24 @@ Status: enum (Pending, Approved, Rejected)
 - Support overlapping requests and calendar view.
 - Allow handlers to see status of their requests.
 - Audit trail for approvals.
+<!--
+settlements
+8
+Pobierz zaznaczone
+UPLOAD
+
+recourses
+7
+Pobierz zaznaczone
+UPLOAD
+
+appeals
+11
+Pobierz zaznaczone
+UPLOAD
+
+decisions
+13
+Pobierz zaznaczone
+UPLOAD
+-->

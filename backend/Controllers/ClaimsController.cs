@@ -13,6 +13,7 @@ using Microsoft.AspNetCore.Authorization;
 using System.Security.Claims;
 using Microsoft.AspNetCore.Identity;
 using AutomotiveClaimsApi.Services;
+using AutomotiveClaimsApi.Services.EventSearch;
 
 using Microsoft.AspNetCore.Http;
 
@@ -32,6 +33,7 @@ namespace AutomotiveClaimsApi.Controllers
 
         private readonly IDocumentService _documentService;
         private readonly IConfiguration _config;
+        private readonly IEventDocumentStore _eventDocumentStore;
 
         public ClaimsController(
             ApplicationDbContext context,
@@ -39,7 +41,8 @@ namespace AutomotiveClaimsApi.Controllers
             IConfiguration config,
             UserManager<ApplicationUser>? userManager = null,
             INotificationService? notificationService = null,
-            IDocumentService? documentService = null)
+            IDocumentService? documentService = null,
+            IEventDocumentStore? eventDocumentStore = null)
         {
             _context = context;
             _logger = logger;
@@ -47,6 +50,7 @@ namespace AutomotiveClaimsApi.Controllers
             _userManager = userManager;
             _notificationService = notificationService;
             _documentService = documentService ?? throw new ArgumentNullException(nameof(documentService));
+            _eventDocumentStore = eventDocumentStore ?? throw new ArgumentNullException(nameof(eventDocumentStore));
         }
 
         [HttpGet]
@@ -65,10 +69,15 @@ namespace AutomotiveClaimsApi.Controllers
             {
                 var query = _context.Events.AsQueryable();
 
-                // Apply filters
                 if (!string.IsNullOrWhiteSpace(search))
                 {
-                    query = query.ApplySearch(search);
+                    var ids = await _eventDocumentStore.SearchAsync(search);
+                    if (ids.Count == 0)
+                    {
+                        Response.Headers.Append("X-Total-Count", "0");
+                        return Ok(Array.Empty<ClaimListItemDto>());
+                    }
+                    query = query.Where(e => ids.Contains(e.Id));
                 }
 
                 if (!string.IsNullOrEmpty(clientId) && int.TryParse(clientId, out var clientIdValue))
@@ -318,6 +327,11 @@ namespace AutomotiveClaimsApi.Controllers
                     await _notificationService.NotifyAsync(createdEvent, currentUser, ClaimNotificationEvent.ClaimCreated);
                 }
 
+                if (createdEvent != null)
+                {
+                    await _eventDocumentStore.SaveAsync(createdEvent);
+                }
+
                 var createdClaimDto = MapEventToDto(createdEvent!);
                 return CreatedAtAction(nameof(GetClaim), new { id = eventEntity.Id }, createdClaimDto);
             }
@@ -473,6 +487,25 @@ namespace AutomotiveClaimsApi.Controllers
                 await UpsertClaimAsync(existing, eventDto);
 
                 await _context.SaveChangesAsync();
+
+                var updatedEvent = await _context.Events
+                    .Include(e => e.Participants).ThenInclude(p => p.Drivers)
+                    .Include(e => e.Documents.Where(d => !d.IsDeleted))
+                    .Include(e => e.Damages)
+                    .Include(e => e.Appeals)
+                    .Include(e => e.ClientClaims)
+                    .Include(e => e.Decisions)
+                    .Include(e => e.Recourses)
+                    .Include(e => e.Settlements)
+                    .Include(e => e.Emails)
+                    .Include(e => e.Notes)
+                    .Include(e => e.RegisteredBy)
+                    .FirstOrDefaultAsync(e => e.Id == existing.Id);
+
+                if (updatedEvent != null)
+                {
+                    await _eventDocumentStore.SaveAsync(updatedEvent);
+                }
 
                 if (!isHandler && _notificationService != null)
                 {

@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using AutomotiveClaimsApi.Data;
 using AutomotiveClaimsApi.Services;
 using AutomotiveClaimsApi.Models;
+using AutomotiveClaimsApi.Services.EventSearch;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
@@ -73,6 +74,7 @@ builder.Services.AddScoped<IDocumentService, DocumentService>();
 builder.Services.AddScoped<IRiskTypeService, RiskTypeService>();
 builder.Services.AddScoped<IDamageTypeService, DamageTypeService>();
 builder.Services.AddScoped<ICaseHandlerService, CaseHandlerService>();
+builder.Services.AddEventDocumentStore(builder.Configuration);
 
 // Add background services
 builder.Services.AddHostedService<AppealReminderService>();

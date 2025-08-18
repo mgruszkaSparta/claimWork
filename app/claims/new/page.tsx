@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -61,6 +61,7 @@ export default function NewClaimPage() {
   const [claimId, setClaimId] = useState<string>("")
   const [activeClaimSection, setActiveClaimSection] = useState("teczka-szkodowa")
   const [isSaving, setIsSaving] = useState(false)
+  const initializeClaimRef = useRef(false)
   
   // Repair schedules and details state
   const [repairSchedules, setRepairSchedules] = useState<RepairSchedule[]>([])
@@ -110,6 +111,9 @@ export default function NewClaimPage() {
   } = useClaimForm()
 
   useEffect(() => {
+    if (initializeClaimRef.current) return
+    initializeClaimRef.current = true
+
     initializeClaim().then((id) => {
       if (id) {
         setClaimId(id)

@@ -378,7 +378,7 @@ export default function ViewClaimPage() {
 
   if (isLoading) {
     return (
-      <div className="fixed inset-0 bg-white z-50 flex items-center justify-center">
+      <div className="bg-white min-h-screen flex items-center justify-center">
         <div className="text-center">
           <div className="w-8 h-8 border-4 border-[#1a3a6c] border-t-transparent rounded-full animate-spin mx-auto mb-3" />
           <p className="text-sm text-gray-600">Ładowanie szkody...</p>
@@ -389,7 +389,7 @@ export default function ViewClaimPage() {
 
   if (loadError || !claim) {
     return (
-      <div className="fixed inset-0 bg-white z-50 flex items-center justify-center">
+      <div className="bg-white min-h-screen flex items-center justify-center">
         <div className="text-center max-w-md mx-auto p-6">
           <div className="text-red-500 mb-4">
             <svg className="w-16 h-16 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -415,7 +415,7 @@ export default function ViewClaimPage() {
   }
 
   return (
-    <div className="fixed inset-0 bg-gray-50 z-50 flex flex-col">
+    <div className="flex flex-col min-h-screen bg-gray-50">
       {/* Header */}
       <div className="bg-white border-b border-gray-200 px-6 py-4">
         <div className="flex items-center justify-between">

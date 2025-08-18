@@ -1583,6 +1583,51 @@ namespace AutomotiveClaimsApi.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });
+
+            modelBuilder.Entity("AutomotiveClaimsApi.Models.SmtpSettings", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    b.Property<bool>("EnableSsl")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("FromEmail")
+                        .HasColumnType("nvarchar(255)");
+
+                    b.Property<string>("FromName")
+                        .HasColumnType("nvarchar(255)");
+
+                    b.Property<string>("Host")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(255)");
+
+                    b.Property<string>("ImapServer")
+                        .HasColumnType("nvarchar(255)");
+
+                    b.Property<int>("ImapPort")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Password")
+                        .HasColumnType("nvarchar(255)");
+
+                    b.Property<int>("Port")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Timeout")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Username")
+                        .HasColumnType("nvarchar(255)");
+
+                    b.Property<bool>("UseDefaultCredentials")
+                        .HasColumnType("bit");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("SmtpSettings");
+                });
 #pragma warning restore 612, 618
         }
     }

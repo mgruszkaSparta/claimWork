@@ -8,7 +8,15 @@ using System.Linq;
 namespace AutomotiveClaimsApi.Controllers
 {
     [ApiController]
-    [Route("api/[controller]")]
+    // Explicitly define the route using kebab-case to match frontend expectations
+    // Other controllers in the project use "api/repair-details" style routing.
+    // When this controller used [Route("api/[controller]")], ASP.NET mapped it to
+    // "api/RepairSchedules" (without a hyphen). The frontend, however, requests
+    // "api/repair-schedules". On case-insensitive systems this results in a 404
+    // because the hyphenated segment does not match the controller name. By
+    // specifying the route explicitly we ensure both sides use the same path and
+    // avoid "Failed to fetch repair schedules" errors.
+    [Route("api/repair-schedules")]
     public class RepairSchedulesController : ControllerBase
     {
         private static readonly List<RepairSchedule> _schedules = new();

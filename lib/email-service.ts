@@ -217,6 +217,39 @@ class EmailService {
     }
   }
 
+  async uploadAttachment(
+    emailId: string,
+    file: File,
+  ): Promise<AttachmentDto | undefined> {
+    try {
+      const formData = new FormData()
+      formData.append("file", file)
+      const response = await fetch(`${this.apiUrl}/${emailId}/attachments`, {
+        method: "POST",
+        credentials: "include",
+        body: formData,
+      })
+      if (!response.ok) throw new Error("Failed to upload attachment")
+      return await response.json()
+    } catch (error) {
+      console.error("uploadAttachment failed:", error)
+      return undefined
+    }
+  }
+
+  async deleteAttachment(attachmentId: string): Promise<boolean> {
+    try {
+      const response = await fetch(`${this.apiUrl}/attachment/${attachmentId}`, {
+        method: "DELETE",
+        credentials: "include",
+      })
+      return response.ok
+    } catch (error) {
+      console.error("deleteAttachment failed:", error)
+      return false
+    }
+  }
+
   async assignEmailToClaim(emailId: string, claimIds: string[]): Promise<boolean> {
     try {
       const response = await fetch(`${this.apiUrl}/assign-to-claim`, {

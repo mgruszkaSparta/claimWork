@@ -10,6 +10,10 @@ using AutomotiveClaimsApi.Data;
 using AutomotiveClaimsApi.DTOs;
 using AutomotiveClaimsApi.Models;
 using Microsoft.Extensions.Options;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.Configuration;
+using System.IO;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -23,15 +27,25 @@ namespace AutomotiveClaimsApi.Services
         private readonly ApplicationDbContext _context;
         private readonly SmtpSettings _smtpSettings;
         private readonly ILogger<EmailService> _logger;
+        private readonly string _attachmentsPath;
+        private readonly IConfiguration _config;
 
         public EmailService(
             ApplicationDbContext context,
             IOptions<SmtpSettings> smtpSettings,
-            ILogger<EmailService> logger)
+            ILogger<EmailService> logger,
+            IWebHostEnvironment environment,
+            IConfiguration config)
         {
             _context = context;
             _smtpSettings = smtpSettings.Value;
             _logger = logger;
+            _attachmentsPath = Path.Combine(environment.ContentRootPath, "uploads", "email");
+            if (!Directory.Exists(_attachmentsPath))
+            {
+                Directory.CreateDirectory(_attachmentsPath);
+            }
+            _config = config;
         }
 
         public async Task<EmailDto> CreateEmailAsync(CreateEmailDto createEmailDto)
@@ -76,6 +90,15 @@ namespace AutomotiveClaimsApi.Services
                                 email.EmailClaims.Add(emailClaim);
                             }
                         }
+                    }
+                }
+
+                if (createEmailDto.Attachments != null)
+                {
+                    foreach (var file in createEmailDto.Attachments)
+                    {
+                        var attachment = await SaveAttachmentAsync(file, email.Id);
+                        email.Attachments.Add(attachment);
                     }
                 }
 
@@ -213,6 +236,30 @@ namespace AutomotiveClaimsApi.Services
                     CreatedAt = a.CreatedAt,
                 }).ToList()
             };
+
+        private async Task<EmailAttachment> SaveAttachmentAsync(IFormFile file, Guid emailId)
+        {
+            var uniqueFileName = $"{Guid.NewGuid()}{Path.GetExtension(file.FileName)}";
+            var fullPath = Path.Combine(_attachmentsPath, uniqueFileName);
+            await using (var stream = new FileStream(fullPath, FileMode.Create))
+            {
+                await file.CopyToAsync(stream);
+            }
+
+            var relativePath = Path.Combine("uploads", "email", uniqueFileName).Replace("\\", "/");
+
+            return new EmailAttachment
+            {
+                Id = Guid.NewGuid(),
+                EmailId = emailId,
+                FileName = file.FileName,
+                ContentType = file.ContentType,
+                FileSize = file.Length,
+                FilePath = relativePath,
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow
+            };
+        }
 
         public async Task<IEnumerable<EmailDto>> GetEmailsAsync()
         {
@@ -364,6 +411,70 @@ namespace AutomotiveClaimsApi.Services
                 }
             }
 
+            await _context.SaveChangesAsync();
+            return true;
+        }
+
+        public async Task<EmailAttachmentDto> UploadAttachmentAsync(Guid emailId, IFormFile file)
+        {
+            var email = await _context.Emails.FindAsync(emailId);
+            if (email == null) throw new ArgumentException("Email not found", nameof(emailId));
+
+            var attachment = await SaveAttachmentAsync(file, emailId);
+            email.Attachments.Add(attachment);
+            await _context.SaveChangesAsync();
+            return new EmailAttachmentDto
+            {
+                Id = attachment.Id,
+                EmailId = attachment.EmailId,
+                FileName = attachment.FileName ?? string.Empty,
+                ContentType = attachment.ContentType ?? string.Empty,
+                FileSize = attachment.FileSize,
+                FilePath = attachment.FilePath ?? string.Empty,
+                CreatedAt = attachment.CreatedAt,
+            };
+        }
+
+        public async Task<EmailAttachmentDto?> GetAttachmentByIdAsync(Guid id)
+        {
+            var attachment = await _context.EmailAttachments.FindAsync(id);
+            if (attachment == null) return null;
+            return new EmailAttachmentDto
+            {
+                Id = attachment.Id,
+                EmailId = attachment.EmailId,
+                FileName = attachment.FileName ?? string.Empty,
+                ContentType = attachment.ContentType ?? string.Empty,
+                FileSize = attachment.FileSize,
+                FilePath = attachment.FilePath ?? string.Empty,
+                CreatedAt = attachment.CreatedAt,
+            };
+        }
+
+        public async Task<Stream?> DownloadAttachmentAsync(Guid id)
+        {
+            var attachment = await _context.EmailAttachments.FindAsync(id);
+            if (attachment == null || string.IsNullOrEmpty(attachment.FilePath)) return null;
+            var fullPath = Path.Combine(_attachmentsPath, Path.GetFileName(attachment.FilePath));
+            if (!File.Exists(fullPath)) return null;
+            return new FileStream(fullPath, FileMode.Open, FileAccess.Read);
+        }
+
+        public async Task<bool> DeleteAttachmentAsync(Guid id)
+        {
+            var attachment = await _context.EmailAttachments.FindAsync(id);
+            if (attachment == null) return false;
+
+            if (!string.IsNullOrEmpty(attachment.FilePath))
+            {
+                var fullPath = Path.Combine(_attachmentsPath, Path.GetFileName(attachment.FilePath));
+                if (File.Exists(fullPath))
+                {
+                    File.Delete(fullPath);
+                }
+            }
+
+            _context.EmailAttachments.Remove(attachment);
             await _context.SaveChangesAsync();
             return true;
         }

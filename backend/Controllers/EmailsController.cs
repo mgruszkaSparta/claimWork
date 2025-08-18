@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using AutomotiveClaimsApi.Services;
 using AutomotiveClaimsApi.DTOs;
+using Microsoft.AspNetCore.Http;
 
 namespace AutomotiveClaimsApi.Controllers
 {
@@ -113,6 +114,31 @@ namespace AutomotiveClaimsApi.Controllers
             var success = await _emailService.AssignEmailToClaimAsync(dto.EmailId, dto.ClaimIds);
             if (!success)
                 return NotFound();
+            return NoContent();
+        }
+
+        [HttpPost("{emailId}/attachments")]
+        public async Task<ActionResult<EmailAttachmentDto>> UploadAttachment(Guid emailId, [FromForm] IFormFile file)
+        {
+            var attachment = await _emailService.UploadAttachmentAsync(emailId, file);
+            return CreatedAtAction(nameof(GetEmail), new { id = emailId }, attachment);
+        }
+
+        [HttpGet("attachment/{id}")]
+        public async Task<IActionResult> DownloadAttachment(Guid id)
+        {
+            var attachment = await _emailService.GetAttachmentByIdAsync(id);
+            if (attachment == null) return NotFound();
+            var stream = await _emailService.DownloadAttachmentAsync(id);
+            if (stream == null) return NotFound();
+            return File(stream, attachment.ContentType, attachment.FileName);
+        }
+
+        [HttpDelete("attachment/{id}")]
+        public async Task<IActionResult> DeleteAttachment(Guid id)
+        {
+            var success = await _emailService.DeleteAttachmentAsync(id);
+            if (!success) return NotFound();
             return NoContent();
         }
     }

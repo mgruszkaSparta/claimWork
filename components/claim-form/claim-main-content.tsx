@@ -37,8 +37,8 @@ import type { VehicleTypeSelectionEvent } from "@/types/vehicle-type"
 import { RepairScheduleSection } from "./repair-schedule-section"
 import { RepairDetailsSection } from "./repair-details-section"
 import { DamageDataSection } from "./damage-data-section"
+import PropertyDamageSection from "./property-damage-section"
 import type { RepairDetail } from "@/lib/repair-details-store"
-import { PropertyDamageSection } from "./property-damage-section"
 import { TransportDamageSection } from "./transport-damage-section"
 import { PropertyParticipantsSection } from "./property-participants-section"
 import InjuredPartySection from "./injured-party-section"
@@ -918,16 +918,29 @@ export const ClaimMainContent = ({
       return (
         <div className="space-y-4">
 
-          <DamageDataSection
-            claimFormData={claimFormData}
-            handleFormChange={handleFormChange}
-            claimObjectType={claimObjectType}
-            setClaimObjectType={setClaimObjectType}
-            riskTypes={riskTypes}
-            loadingRiskTypes={loadingRiskTypes}
-            claimStatuses={claimStatuses}
-            loadingStatuses={loadingStatuses}
-          />
+          {claimObjectType === "2" ? (
+            <PropertyDamageSection
+              claimFormData={claimFormData}
+              handleFormChange={handleFormChange}
+              claimObjectType={claimObjectType}
+              setClaimObjectType={setClaimObjectType}
+              riskTypes={riskTypes}
+              loadingRiskTypes={loadingRiskTypes}
+              claimStatuses={claimStatuses}
+              loadingStatuses={loadingStatuses}
+            />
+          ) : (
+            <DamageDataSection
+              claimFormData={claimFormData}
+              handleFormChange={handleFormChange}
+              claimObjectType={claimObjectType}
+              setClaimObjectType={setClaimObjectType}
+              riskTypes={riskTypes}
+              loadingRiskTypes={loadingRiskTypes}
+              claimStatuses={claimStatuses}
+              loadingStatuses={loadingStatuses}
+            />
+          )}
 
           {/* Opis zdarzenia Card */}
           <Card className="overflow-hidden shadow-sm border-gray-200 rounded-xl">
@@ -1313,12 +1326,6 @@ export const ClaimMainContent = ({
                 </div>
               </CardContent>
             </Card>
-          )}
-          {claimObjectType === "2" && (
-            <PropertyDamageSection
-              claimFormData={claimFormData}
-              handleFormChange={(field, value) => handleFormChange(field as keyof Claim, value)}
-            />
           )}
           {claimObjectType === "3" && (
             <TransportDamageSection

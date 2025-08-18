@@ -93,6 +93,15 @@ namespace AutomotiveClaimsApi.Services
             if (file == null || file.Length == 0)
                 throw new ArgumentException("File is required.", nameof(file));
 
+            if (createDto.EventId.HasValue)
+            {
+                bool eventExists = await _context.Events.AnyAsync(e => e.Id == createDto.EventId.Value);
+                if (!eventExists)
+                {
+                    throw new KeyNotFoundException($"Event with ID {createDto.EventId.Value} not found.");
+                }
+            }
+
             var uniqueFileName = $"{Guid.NewGuid()}{Path.GetExtension(file.FileName)}";
 
             // Ensure the upload directory exists

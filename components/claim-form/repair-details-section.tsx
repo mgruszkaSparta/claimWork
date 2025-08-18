@@ -208,23 +208,6 @@ export const RepairDetailsSection: React.FC<RepairDetailsSectionProps> = ({ even
 
   return (
     <div className="space-y-8 animate-fade-in">
-      <div className="relative overflow-hidden rounded-2xl bg-card p-8 border border-border shadow-sm">
-        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-8">
-          <div className="flex items-center gap-3">
-            <div className="p-3 bg-primary/10 rounded-xl border border-primary/20">
-              <Wrench className="h-8 w-8 text-primary" />
-            </div>
-            <div>
-              <h1 className="text-3xl font-bold text-foreground">Szczegóły naprawy</h1>
-              <p className="text-muted-foreground text-lg">Opis wykonanych prac</p>
-            </div>
-          </div>
-          <Button onClick={() => setShowForm(true)} className="bg-primary hover:bg-primary/90 text-primary-foreground px-6 py-3 rounded-xl shadow">
-            <Plus className="h-5 w-5 mr-2" /> Nowy opis
-          </Button>
-        </div>
-      </div>
-
       {showForm && (
         <Card className="border shadow-lg bg-card animate-scale-in">
           <CardHeader className="bg-muted/30 border-b border-border rounded-t-xl">
@@ -569,20 +552,14 @@ export const RepairDetailsSection: React.FC<RepairDetailsSectionProps> = ({ even
                 <div className="p-6 bg-primary/10 rounded-2xl w-fit mx-auto border border-border">
                   <FileText className="h-16 w-16 text-primary" />
                 </div>
-                <p className="text-xl font-semibold text-foreground">Brak opisów naprawy</p>
-                <p className="text-muted-foreground">Dodaj pierwszy opis, aby rozpocząć</p>
-                <Button
-                  onClick={() => setShowForm(true)}
-                  className="bg-primary hover:bg-primary/90 text-primary-foreground mt-6 px-8 py-3 rounded-xl shadow"
-                >
-                  <Plus className="h-5 w-5 mr-2" /> Dodaj opis
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        ) : (
-          details.map((detail, index) => (
-            <Card
+              <p className="text-xl font-semibold text-foreground">Brak opisów naprawy</p>
+              <p className="text-muted-foreground">Dodaj pierwszy opis, aby rozpocząć</p>
+            </div>
+          </CardContent>
+        </Card>
+      ) : (
+        details.map((detail, index) => (
+          <Card
               key={detail.id}
               className="hover:shadow-lg transition-all duration-300 border bg-card rounded-2xl overflow-hidden animate-slide-up"
               style={{ animationDelay: `${index * 100}ms` }}
@@ -652,6 +629,12 @@ export const RepairDetailsSection: React.FC<RepairDetailsSectionProps> = ({ even
             </Card>
           ))
         )}
+      </div>
+
+      <div className="flex justify-end">
+        <Button onClick={() => setShowForm(true)} className="bg-primary hover:bg-primary/90 text-primary-foreground px-6 py-3 rounded-xl shadow">
+          <Plus className="h-5 w-5 mr-2" /> Nowy opis
+        </Button>
       </div>
     </div>
   )

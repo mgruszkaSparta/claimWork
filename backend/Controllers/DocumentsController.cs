@@ -127,6 +127,11 @@ namespace AutomotiveClaimsApi.Controllers
 
                 return CreatedAtAction(nameof(GetDocument), new { id = documentDto.Id }, documentDto);
             }
+            catch (KeyNotFoundException ex)
+            {
+                _logger.LogWarning(ex, "Upload failed: {Message}", ex.Message);
+                return NotFound(new { message = ex.Message });
+            }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error uploading document");

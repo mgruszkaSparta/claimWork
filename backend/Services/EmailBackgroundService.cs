@@ -25,11 +25,10 @@ namespace AutomotiveClaimsApi.Services
                 try
                 {
                     using var scope = _serviceProvider.CreateScope();
-                    var processor = scope.ServiceProvider.GetRequiredService<IEmailProcessingService>();
-
-                    await processor.ProcessPendingEmailsAsync();
-                    await processor.FetchEmailsAsync();
-                    _logger.LogInformation("Email processing completed at {Time}", DateTimeOffset.Now);
+                    var emailService = scope.ServiceProvider.GetRequiredService<IEmailService>();
+                    
+                    await emailService.FetchEmailsAsync();
+                    _logger.LogInformation("Email fetch completed at {Time}", DateTimeOffset.Now);
                 }
                 catch (Exception ex)
                 {

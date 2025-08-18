@@ -9,12 +9,10 @@ namespace AutomotiveClaimsApi.Controllers
     public class EmailsController : ControllerBase
     {
         private readonly IEmailService _emailService;
-        private readonly IEmailProcessingService _processor;
 
-        public EmailsController(IEmailService emailService, IEmailProcessingService processor)
+        public EmailsController(IEmailService emailService)
         {
             _emailService = emailService;
-            _processor = processor;
         }
 
         [HttpGet]
@@ -42,11 +40,11 @@ namespace AutomotiveClaimsApi.Controllers
         }
 
         [HttpPost]
-        public async Task<ActionResult<EmailDto>> SendEmail([FromForm] SendEmailDto sendEmailDto)
+        public async Task<ActionResult<EmailDto>> SendEmail(SendEmailDto sendEmailDto)
         {
             try
             {
-                var email = await _emailService.QueueEmailAsync(sendEmailDto);
+                var email = await _emailService.SendEmailAsync(sendEmailDto);
                 return CreatedAtAction(nameof(GetEmail), new { id = email.Id }, email);
             }
             catch (Exception ex)
@@ -102,17 +100,10 @@ namespace AutomotiveClaimsApi.Controllers
             return NoContent();
         }
 
-        [HttpGet("unassigned")]
-        public async Task<ActionResult<IEnumerable<EmailDto>>> GetUnassigned()
-        {
-            var emails = await _emailService.GetUnassignedEmailsAsync();
-            return Ok(emails);
-        }
-
         [HttpPost("fetch")]
         public async Task<IActionResult> FetchEmails()
         {
-            await _processor.FetchEmailsAsync();
+            await _emailService.FetchEmailsAsync();
             return Ok(new { message = "Emails fetched successfully" });
         }
 

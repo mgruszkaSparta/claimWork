@@ -50,6 +50,10 @@ builder.Services.ConfigureApplicationCookie(options =>
     };
 });
 
+// Configure SMTP settings
+builder.Services.Configure<SmtpSettings>(
+    builder.Configuration.GetSection("SmtpSettings"));
+
 // Configure Google Cloud Storage settings
 builder.Services.Configure<GoogleCloudStorageSettings>(
     builder.Configuration.GetSection("GoogleCloudStorage"));
@@ -67,7 +71,6 @@ if (cloudSettings.Enabled)
 var notificationSettings = builder.Configuration.GetSection("ClaimNotifications").Get<ClaimNotificationSettings>() ?? new ClaimNotificationSettings();
 builder.Services.AddSingleton(notificationSettings);
 builder.Services.AddScoped<IEmailService, EmailService>();
-builder.Services.AddScoped<IEmailProcessingService, EmailProcessingService>();
 builder.Services.AddScoped<IEmailSender, SmtpEmailSender>();
 builder.Services.AddScoped<INotificationService, NotificationService>();
 builder.Services.AddScoped<IDocumentService, DocumentService>();
@@ -77,6 +80,7 @@ builder.Services.AddScoped<ICaseHandlerService, CaseHandlerService>();
 builder.Services.AddEventDocumentStore(builder.Configuration);
 
 // Add background services
+builder.Services.AddHostedService<EmailBackgroundService>();
 builder.Services.AddHostedService<AppealReminderService>();
 
 // Add CORS

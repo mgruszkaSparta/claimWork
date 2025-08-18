@@ -567,6 +567,7 @@ export interface ClientClaimDto {
   documentPath?: string
   documentName?: string
   documentDescription?: string
+  documentId?: string
   documents?: DocumentDto[]
   claimNotes?: string
   createdAt: string

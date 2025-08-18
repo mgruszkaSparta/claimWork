@@ -88,6 +88,7 @@ export const EmailComposeComponent = ({
       size: file.size,
       type: file.type,
       url: URL.createObjectURL(file),
+      file,
     }))
 
     setEmailData((prev) => ({
@@ -106,6 +107,34 @@ export const EmailComposeComponent = ({
       ...prev,
       attachments: prev.attachments.filter((att) => att.id !== attachmentId),
     }))
+  }
+
+  const addDocumentAttachment = async (doc: UploadedFile) => {
+    try {
+      let file = doc.file
+      if (!file) {
+        const response = await fetch(doc.url)
+        const blob = await response.blob()
+        file = new File([blob], doc.name, { type: blob.type || 'application/octet-stream' })
+      }
+      const newAttachment: EmailAttachment = {
+        id: doc.id,
+        name: doc.name,
+        size: doc.size,
+        type: file.type,
+        url: doc.url,
+        file,
+      }
+      setEmailData((prev) => ({
+        ...prev,
+        attachments: [...prev.attachments, newAttachment],
+      }))
+      setDocumentDialogOpen(false)
+      toast({ title: 'Załącznik dodany', description: `Dodano ${doc.name}` })
+    } catch (error) {
+      console.error('Error adding document attachment:', error)
+      toast({ title: 'Błąd', description: 'Nie udało się dodać dokumentu', variant: 'destructive' })
+    }
   }
 
   const handleTemplateSelect = (templateId: string) => {
@@ -385,20 +414,7 @@ export const EmailComposeComponent = ({
                         key={doc.id}
                         variant="ghost"
                         className="justify-start"
-                        onClick={() => {
-                          const newAttachment: EmailAttachment = {
-                            id: doc.id,
-                            name: doc.name,
-                            size: doc.size,
-                            type: doc.type,
-                            url: doc.url,
-                          }
-                          setEmailData((prev) => ({
-                            ...prev,
-                            attachments: [...prev.attachments, newAttachment],
-                          }))
-                          setDocumentDialogOpen(false)
-                        }}
+                        onClick={() => addDocumentAttachment(doc)}
                       >
                         {doc.name}
                       </Button>

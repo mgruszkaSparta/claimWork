@@ -23,6 +23,7 @@ export interface EmailAttachment {
   size: number
   type: string
   url: string
+  file?: File
 }
 
 export interface Email {

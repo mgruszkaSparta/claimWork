@@ -20,6 +20,7 @@ export default function SettingsLayout({ children }: { children: ReactNode }) {
     { href: '/settings/risk-types', label: 'Typy ryzyka' },
     { href: '/settings/damage-types', label: 'Typy szkód' },
     { href: '/settings/notifications', label: 'Powiadomienia' },
+    { href: '/settings/rules', label: 'Reguły' },
   ]
 
   return (

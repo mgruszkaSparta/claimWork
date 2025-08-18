@@ -311,6 +311,12 @@ export default function NewClaimPage() {
     const savedDetailIds: string[] = []
     let createdClaimId: string | null = null
 
+    // Inform the user that saving has started
+    toast({
+      title: "Zapisywanie szkody",
+      description: "Zapisuję szkodę...",
+    })
+
     try {
       const currentClaimId = claimId || claimFormData.id
       if (!currentClaimId) {
@@ -369,10 +375,9 @@ export default function NewClaimPage() {
 
       if (exitAfterSave) {
         router.push("/claims")
-      } else {
-        resetForm()
-        setRepairSchedules([])
-        setRepairDetails([])
+      } else if (createdClaimId) {
+        // Redirect to edit view of the newly created claim
+        router.push(`/claims/${createdClaimId}/edit`)
       }
     } catch (error) {
       // rollback
@@ -607,7 +612,7 @@ export default function NewClaimPage() {
           {isSaving ? (
             <>
               <div className="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin mr-1" />
-              Zapisywanie...
+              Zapisuję szkodę...
             </>
           ) : (
             <>
@@ -625,7 +630,7 @@ export default function NewClaimPage() {
           {isSaving ? (
             <>
               <div className="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin mr-1" />
-              Zapisywanie...
+              Zapisuję szkodę...
             </>
           ) : (
             <>

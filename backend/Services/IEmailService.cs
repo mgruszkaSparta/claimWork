@@ -1,4 +1,6 @@
 using AutomotiveClaimsApi.DTOs;
+using Microsoft.AspNetCore.Http;
+using System.IO;
 
 namespace AutomotiveClaimsApi.Services
 {
@@ -15,6 +17,10 @@ namespace AutomotiveClaimsApi.Services
         Task<bool> DeleteEmailAsync(Guid id);
         Task FetchEmailsAsync();
         Task<bool> AssignEmailToClaimAsync(Guid emailId, IEnumerable<Guid> claimIds);
+        Task<EmailAttachmentDto> UploadAttachmentAsync(Guid emailId, IFormFile file);
+        Task<EmailAttachmentDto?> GetAttachmentByIdAsync(Guid id);
+        Task<Stream?> DownloadAttachmentAsync(Guid id);
+        Task<bool> DeleteAttachmentAsync(Guid id);
         string? ExtractEventNumber(string message);
     }
 }

@@ -63,6 +63,7 @@ export const AppealsSection = ({ claimId }: AppealsSectionProps) => {
   const [isFormVisible, setIsFormVisible] = useState(false)
   const [isEditing, setIsEditing] = useState(false)
   const [editingId, setEditingId] = useState<string | null>(null)
+  const [currentAppeal, setCurrentAppeal] = useState<Appeal | null>(null)
   const [selectedFiles, setSelectedFiles] = useState<File[]>([])
   const [showFileDescription, setShowFileDescription] = useState(false)
   const [previewAppeal, setPreviewAppeal] = useState<Appeal | null>(null)
@@ -209,6 +210,7 @@ export const AppealsSection = ({ claimId }: AppealsSectionProps) => {
     setShowFileDescription(false)
     setIsEditing(false)
     setEditingId(null)
+    setCurrentAppeal(null)
     if (fileInputRef.current) {
       fileInputRef.current.value = ""
     }
@@ -230,6 +232,7 @@ export const AppealsSection = ({ claimId }: AppealsSectionProps) => {
     setIsFormVisible(true)
     setIsEditing(true)
     setEditingId(appeal.id)
+    setCurrentAppeal(appeal)
     setFormData({
       filingDate: appeal.filingDate,
       extensionDate: appeal.extensionDate || "",
@@ -238,7 +241,7 @@ export const AppealsSection = ({ claimId }: AppealsSectionProps) => {
       documentDescription: appeal.documentDescription || "",
     })
     setSelectedFiles([])
-    setShowFileDescription(false)
+    setShowFileDescription(!!appeal.documents?.length)
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -540,6 +543,63 @@ export const AppealsSection = ({ claimId }: AppealsSectionProps) => {
               {/* File Upload Section */}
               <div className="space-y-4">
                 <Label className="text-sm font-medium text-gray-700">Załącz dokument odwołania</Label>
+
+                {isEditing && selectedFiles.length === 0 && currentAppeal?.documents?.length ? (
+                  <div className="space-y-2 mb-4">
+                    {currentAppeal.documents.map((doc) => (
+                      <div
+                        key={doc.id}
+                        className="p-3 bg-gray-50 rounded-lg border flex items-center justify-between"
+                      >
+                        <div className="flex items-center gap-2">
+                          <FileText className="h-4 w-4 text-[#1a3a6c]" />
+                          <span
+                            className="text-sm font-medium truncate max-w-60"
+                            title={doc.originalFileName || doc.fileName}
+                          >
+                            {doc.originalFileName || doc.fileName}
+                          </span>
+                        </div>
+                        <div className="flex gap-1">
+                          {isPreviewable(doc.originalFileName || doc.fileName) && (
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => previewFile(currentAppeal, doc)}
+                              title="Podgląd"
+                            >
+                              <Eye className="h-4 w-4" />
+                            </Button>
+                          )}
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => downloadFile(currentAppeal, doc)}
+                            title="Pobierz"
+                          >
+                            <Download className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </div>
+                    ))}
+                    {showFileDescription && (
+                      <div className="p-3 bg-white rounded-b-lg border-x border-b">
+                        <Label htmlFor="documentDescription" className="text-sm font-medium">
+                          Opis dokumentu
+                        </Label>
+                        <Textarea
+                          id="documentDescription"
+                          value={formData.documentDescription}
+                          onChange={(e) =>
+                            setFormData((prev) => ({ ...prev, documentDescription: e.target.value }))
+                          }
+                          rows={2}
+                          className="mt-1"
+                        />
+                      </div>
+                    )}
+                  </div>
+                ) : null}
 
                 {/* Drop Zone */}
                 <div

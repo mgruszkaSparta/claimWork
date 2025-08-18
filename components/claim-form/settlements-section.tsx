@@ -50,6 +50,7 @@ export const SettlementsSection: React.FC<SettlementsSectionProps> = ({ eventId 
   const [isFormVisible, setIsFormVisible] = useState(false)
   const [isEditing, setIsEditing] = useState(false)
   const [editingSettlementId, setEditingSettlementId] = useState<string | null>(null)
+  const [currentSettlement, setCurrentSettlement] = useState<Settlement | null>(null)
   const [formData, setFormData] = useState<SettlementFormData>(initialFormData)
   const [selectedFiles, setSelectedFiles] = useState<File[]>([])
   const [isLoading, setIsLoading] = useState(false)
@@ -192,6 +193,7 @@ export const SettlementsSection: React.FC<SettlementsSectionProps> = ({ eventId 
     setShowCustomEntityInput(false)
     setIsEditing(false)
     setEditingSettlementId(null)
+    setCurrentSettlement(null)
   }, [])
 
   // Form submission
@@ -275,6 +277,8 @@ export const SettlementsSection: React.FC<SettlementsSectionProps> = ({ eventId 
     setShowCustomEntityInput(isCustom)
     setIsEditing(true)
     setEditingSettlementId(settlement.id!)
+    setCurrentSettlement(settlement)
+    setShowFileDescription(!!settlement.documentPath)
     setIsFormVisible(true)
   }, [])
 
@@ -307,6 +311,10 @@ export const SettlementsSection: React.FC<SettlementsSectionProps> = ({ eventId 
     const ext = fileName.toLowerCase().split(".").pop()
     return ["pdf", "jpg", "jpeg", "png", "gif"].includes(ext || "")
   }, [])
+
+  const getFileNameFromPath = (path: string): string => {
+    return path.split("/").pop()?.split("?")[0] || "document"
+  }
 
   const previewFile = useCallback(
     async (settlement: Settlement) => {
@@ -559,6 +567,56 @@ export const SettlementsSection: React.FC<SettlementsSectionProps> = ({ eventId 
                 {/* Document Upload Section */}
                 <div className="grid gap-2 mt-5">
                   <Label className="text-[#1a3a6c] text-sm font-medium">Załącz dokument ugody (PDF):</Label>
+
+                  {isEditing && selectedFiles.length === 0 && currentSettlement?.documentPath && (
+                    <div className="space-y-2 mb-4">
+                      <div className="p-3 bg-gray-50 rounded-lg border flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <FileText className="text-[#1a3a6c] h-4 w-4" />
+                          <span className="text-sm font-medium">
+                            {currentSettlement.documentName ||
+                              getFileNameFromPath(currentSettlement.documentPath)}
+                          </span>
+                        </div>
+                        <div className="flex gap-1">
+                          {isPreviewable(
+                            currentSettlement.documentName ||
+                              getFileNameFromPath(currentSettlement.documentPath),
+                          ) && (
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => previewFile(currentSettlement)}
+                              title="Podgląd"
+                            >
+                              <Eye className="h-4 w-4" />
+                            </Button>
+                          )}
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => downloadFile(currentSettlement)}
+                            title="Pobierz"
+                          >
+                            <Download className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </div>
+                      {showFileDescription && (
+                        <div className="p-3 bg-white rounded-b-lg border-x border-b">
+                          <Label className="block text-[#1a3a6c] text-sm font-medium mb-1">
+                            Opis dokumentu:
+                          </Label>
+                          <Textarea
+                            value={formData.documentDescription}
+                            onChange={(e) => handleFormChange("documentDescription", e.target.value)}
+                            className="w-full border border-[#d1d9e6] focus:ring-2 focus:ring-[#1a3a6c]/20 focus:border-[#1a3a6c] text-sm"
+                            rows={2}
+                          />
+                        </div>
+                      )}
+                    </div>
+                  )}
 
                   {/* Drop zone for drag and drop */}
                   <div

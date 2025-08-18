@@ -645,9 +645,68 @@ export function ClientClaimsSection({ clientClaims, onClientClaimsChange, claimI
 
               <div className="space-y-4">
                 <Label className="text-sm font-medium text-gray-700">Załącz dokumenty roszczenia</Label>
+                {isEditing && selectedFiles.length === 0 && editingClaim &&
+                  (editingClaim.document || editingClaim.documentPath) && (
+                    <div className="space-y-2 mb-4">
+                      <div className="p-3 bg-gray-50 rounded border flex items-center justify-between">
+                        <div className="flex items-center space-x-2">
+                          <FileText className="h-4 w-4 text-blue-600" />
+                          <span className="text-sm font-medium">
+                            {editingClaim.document?.name ||
+                              editingClaim.documentName ||
+                              getFileNameFromPath(editingClaim.documentPath || "")}
+                          </span>
+                        </div>
+                        <div className="flex gap-1">
+                          {isPreviewable(
+                            editingClaim.document?.name ||
+                              editingClaim.documentName ||
+                              getFileNameFromPath(editingClaim.documentPath || ""),
+                          ) && (
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => previewFile(editingClaim)}
+                              title="Podgląd"
+                            >
+                              <Eye className="h-4 w-4" />
+                            </Button>
+                          )}
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => downloadFile(editingClaim)}
+                            title="Pobierz"
+                          >
+                            <Download className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </div>
+                      <div className="mt-2">
+                        <Label
+                          htmlFor="documentDescription"
+                          className="text-sm font-medium text-gray-700"
+                        >
+                          Opis dokumentu
+                        </Label>
+                        <Input
+                          id="documentDescription"
+                          placeholder="Dodaj opis dokumentu..."
+                          value={formData.documentDescription}
+                          onChange={(e) =>
+                            setFormData((prev) => ({
+                              ...prev,
+                              documentDescription: e.target.value,
+                            }))
+                          }
+                          className="mt-1"
+                        />
+                      </div>
+                    </div>
+                  )}
                 <div
                   className={`border-2 border-dashed rounded-lg p-6 text-center transition-colors ${
-                    dragActive ? "border-blue-400 bg-blue-50" : "border-gray-300"
+                    dragActive ? "border-blue-400 bg-blue-50" : "border-gray-300" 
                   } ${outlookDragActive ? "border-blue-600 bg-blue-100" : ""}`}
                   onDragOver={handleDragOver}
                   onDragLeave={handleDragLeave}

@@ -12,6 +12,18 @@ import type { DocumentsSectionProps, UploadedFile, DocumentsSectionRef } from "@
 import JSZip from "jszip"
 import { saveAs } from "file-saver"
 
+const DEFAULT_HIDDEN_CATEGORIES = [
+  "Decyzje",
+  "Decyzja",
+  "Regresy",
+  "Regres",
+  "Odwołania",
+  "Odwołanie",
+  "Roszczenia klienta",
+  "Roszczenia",
+  "Rozliczenia",
+]
+
 interface Document {
   id: string
   eventId?: string
@@ -35,20 +47,25 @@ interface Document {
   /** Machine readable category code */
   categoryCode?: string
 }
-export const DocumentsSection = React.forwardRef<DocumentsSectionRef, DocumentsSectionProps & { hideRequiredDocuments?: boolean }>(
-  ({
-  uploadedFiles,
-  setUploadedFiles,
-  requiredDocuments,
-  setRequiredDocuments,
-  eventId,
-  pendingFiles = [],
-  setPendingFiles,
-  hideRequiredDocuments = false,
-  storageKey,
-  }: DocumentsSectionProps & { hideRequiredDocuments?: boolean },
-  ref,
-) => {
+export const DocumentsSection = React.forwardRef<
+  DocumentsSectionRef,
+  DocumentsSectionProps & { hideRequiredDocuments?: boolean; hiddenCategories?: string[] }
+>(
+  (
+    {
+      uploadedFiles,
+      setUploadedFiles,
+      requiredDocuments,
+      setRequiredDocuments,
+      eventId,
+      pendingFiles = [],
+      setPendingFiles,
+      hideRequiredDocuments = false,
+      storageKey,
+      hiddenCategories = DEFAULT_HIDDEN_CATEGORIES,
+    }: DocumentsSectionProps & { hideRequiredDocuments?: boolean; hiddenCategories?: string[] },
+    ref,
+  ) => {
   const { toast } = useToast()
   const [viewMode, setViewMode] = useState<"list" | "grid">(() => {
     if (storageKey && typeof window !== "undefined") {
@@ -198,6 +215,17 @@ export const DocumentsSection = React.forwardRef<DocumentsSectionRef, DocumentsS
     [documents, pendingFiles]
   )
 
+  const visibleDocuments = React.useMemo(
+    () => allDocuments.filter((d) => !hiddenCategories.includes(d.documentType)),
+    [allDocuments, hiddenCategories],
+  )
+
+  useEffect(() => {
+    setSelectedDocumentIds((prev) =>
+      prev.filter((id) => visibleDocuments.some((d) => d.id === id)),
+    )
+  }, [visibleDocuments])
+
 
   // Load documents from API
   useEffect(() => {
@@ -224,7 +252,6 @@ export const DocumentsSection = React.forwardRef<DocumentsSectionRef, DocumentsS
       if (searchQuery) {
         params.append("search", searchQuery)
       }
-      console.log("Loading documents for eventId:", eventId, "params:", params.toString())
       const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/documents?${params.toString()}`, {
         method: "GET",
         credentials: "include",
@@ -238,7 +265,6 @@ export const DocumentsSection = React.forwardRef<DocumentsSectionRef, DocumentsS
         })
       } else if (response.ok) {
         const data: Document[] = await response.json()
-        console.log("Loaded documents:", data)
         const apiUrl = process.env.NEXT_PUBLIC_API_URL || ""
         const mappedDocs: Document[] = data.map((d: any) => ({
           ...d,
@@ -278,9 +304,11 @@ export const DocumentsSection = React.forwardRef<DocumentsSectionRef, DocumentsS
 
   const documentCategories = React.useMemo(() => {
     const categoriesFromRequired = requiredDocuments.filter((d) => d.uploaded).map((d) => d.name)
-    const categoriesFromDocuments = [...new Set(allDocuments.map((d) => d.documentType))]
-    return [...new Set(["Inne dokumenty", ...categoriesFromRequired, ...categoriesFromDocuments])]
-  }, [requiredDocuments, allDocuments])
+    const categoriesFromDocuments = [...new Set(visibleDocuments.map((d) => d.documentType))]
+    return [
+      ...new Set(["Inne dokumenty", ...categoriesFromRequired, ...categoriesFromDocuments]),
+    ].filter((c) => !hiddenCategories.includes(c))
+  }, [requiredDocuments, visibleDocuments, hiddenCategories])
 
   const handleFileUpload = async (files: FileList | null, categoryName: string | null) => {
 
@@ -347,16 +375,9 @@ export const DocumentsSection = React.forwardRef<DocumentsSectionRef, DocumentsS
       return
     }
 
-    console.log("Starting file upload:", { fileCount: files.length, category: categoryName, eventId })
     setUploading(true)
 
     const uploadPromises = Array.from(files).map(async (file, index) => {
-      console.log(`Uploading file ${index + 1}/${files.length}:`, {
-        name: file.name,
-        type: file.type,
-        size: file.size,
-      })
-
       // Client-side validation
       if (file.size > 50 * 1024 * 1024) {
         console.error(`File ${file.name} is too large:`, file.size)
@@ -385,18 +406,10 @@ export const DocumentsSection = React.forwardRef<DocumentsSectionRef, DocumentsS
       formData.append("uploadedBy", "Current User")
 
       try {
-        console.log(`Making upload request for ${file.name}...`)
         const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/documents/upload`, {
           method: "POST",
           credentials: "include",
           body: formData,
-        })
-
-        console.log(`Upload response for ${file.name}:`, {
-          status: response.status,
-          statusText: response.statusText,
-          ok: response.ok,
-          contentType: response.headers.get("content-type"),
         })
 
         if (response.ok) {
@@ -417,7 +430,6 @@ export const DocumentsSection = React.forwardRef<DocumentsSectionRef, DocumentsS
                   "application/vnd.openxmlformats-officedocument.wordprocessingml.document" ||
                 documentDto.contentType === "application/msword"),
           }
-          console.log(`File uploaded successfully:`, doc)
           return doc
         } else {
           let errorMessage = `HTTP ${response.status}: ${response.statusText}`
@@ -491,7 +503,6 @@ export const DocumentsSection = React.forwardRef<DocumentsSectionRef, DocumentsS
           title: "Przesłano pliki",
           description: `Pomyślnie dodano ${successfulUploadsWithIds.length} plik(ów) do kategorii "${categoryName}".`,
         })
-        console.log("All successful uploads:", successfulUploadsWithIds)
       }
 
       const failedUploads = files.length - successfulUploadsWithIds.length
@@ -515,13 +526,11 @@ export const DocumentsSection = React.forwardRef<DocumentsSectionRef, DocumentsS
   }
 
   const triggerUpload = (category: string) => {
-    console.log("Triggering upload for category:", category)
     setUploadingForCategory(category)
     fileInputRef.current?.click()
   }
 
   const handleFileInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    console.log("File input changed:", e.target.files?.length, "files selected")
     const files = e.target.files
     if (!files || files.length === 0) {
       setUploadingForCategory(null)
@@ -631,7 +640,7 @@ export const DocumentsSection = React.forwardRef<DocumentsSectionRef, DocumentsS
   }
 
   const handleGenerateAIDescription = async (documentId: string | number) => {
-    const doc = allDocuments.find((d) => d.id === documentId)
+    const doc = visibleDocuments.find((d) => d.id === documentId)
     if (!doc || doc.status === "pending") return
 
     try {
@@ -667,7 +676,7 @@ export const DocumentsSection = React.forwardRef<DocumentsSectionRef, DocumentsS
 
   const handlePreview = (doc: Document, documentsArray?: Document[]) => {
 
-    const docsToPreview = documentsArray || allDocuments
+    const docsToPreview = documentsArray || visibleDocuments
 
     const index = docsToPreview.findIndex((d) => d.id === doc.id)
 
@@ -691,8 +700,8 @@ export const DocumentsSection = React.forwardRef<DocumentsSectionRef, DocumentsS
 
   const handleDownloadAll = async (category?: string) => {
     const documentsForCategory = category
-      ? allDocuments.filter((d) => d.documentType === category)
-      : allDocuments
+      ? visibleDocuments.filter((d) => d.documentType === category)
+      : visibleDocuments
 
     if (documentsForCategory.length === 0) {
       toast({
@@ -744,7 +753,7 @@ export const DocumentsSection = React.forwardRef<DocumentsSectionRef, DocumentsS
   }
 
   const handlePreviewAll = () => {
-    if (allDocuments.length === 0) {
+    if (visibleDocuments.length === 0) {
       toast({
         title: "Brak plików",
         description: "Nie ma plików do podglądu.",
@@ -753,12 +762,14 @@ export const DocumentsSection = React.forwardRef<DocumentsSectionRef, DocumentsS
       return
     }
 
-    handlePreview(allDocuments[0], allDocuments)
+    handlePreview(visibleDocuments[0], visibleDocuments)
   }
 
   const handleDownloadSelected = async (category?: string) => {
-    const documentsForCategory = allDocuments.filter((d) =>
-      category ? d.documentType === category && selectedDocumentIds.includes(d.id) : selectedDocumentIds.includes(d.id),
+    const documentsForCategory = visibleDocuments.filter((d) =>
+      category
+        ? d.documentType === category && selectedDocumentIds.includes(d.id)
+        : selectedDocumentIds.includes(d.id),
     )
 
     if (documentsForCategory.length === 0) {
@@ -834,7 +845,6 @@ export const DocumentsSection = React.forwardRef<DocumentsSectionRef, DocumentsS
     // If the section was collapsed open it so user sees upload progress
     setOpenCategories((prev) => ({ ...prev, [category]: true }))
 
-    console.log("Files dropped:", e.dataTransfer.files.length, "files for category:", category)
     if (e.dataTransfer.files && e.dataTransfer.files[0]) {
       handleFileUpload(e.dataTransfer.files, category)
     }
@@ -861,7 +871,7 @@ export const DocumentsSection = React.forwardRef<DocumentsSectionRef, DocumentsS
 
     setSelectedDocumentIds((prev) =>
       prev.filter((id) => {
-        const doc = allDocuments.find((d) => d.id === id)
+        const doc = visibleDocuments.find((d) => d.id === id)
         return doc?.documentType !== category
       }),
     )
@@ -1088,7 +1098,7 @@ export const DocumentsSection = React.forwardRef<DocumentsSectionRef, DocumentsS
             variant="outline"
             size="sm"
             onClick={handlePreviewAll}
-            disabled={allDocuments.length === 0}
+            disabled={visibleDocuments.length === 0}
           >
             <Eye className="mr-2 h-4 w-4" /> Podgląd wszystkich
           </Button>
@@ -1096,7 +1106,7 @@ export const DocumentsSection = React.forwardRef<DocumentsSectionRef, DocumentsS
             variant="outline"
             size="sm"
             onClick={() => handleDownloadAll()}
-            disabled={allDocuments.length === 0}
+            disabled={visibleDocuments.length === 0}
           >
             <Download className="mr-2 h-4 w-4" /> Pobierz wszystkie
           </Button>
@@ -1111,7 +1121,7 @@ export const DocumentsSection = React.forwardRef<DocumentsSectionRef, DocumentsS
         </div>
 
         {documentCategories.map((category) => {
-          const documentsForCategory = allDocuments.filter((d) => d.documentType === category)
+          const documentsForCategory = visibleDocuments.filter((d) => d.documentType === category)
           const isCategoryOpen = openCategories[category] ?? false
           const hasSelected = documentsForCategory.some((d) =>
             selectedDocumentIds.includes(d.id),

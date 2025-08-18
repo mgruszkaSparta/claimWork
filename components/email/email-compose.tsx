@@ -8,6 +8,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { useToast } from "@/hooks/use-toast"
 import {
   Send,
@@ -26,9 +27,11 @@ import {
   ImageIcon,
   Smile,
   MoreHorizontal,
+  FileText,
 } from "lucide-react"
 import { emailTemplates } from "@/lib/email-data"
 import type { EmailCompose, EmailAttachment } from "@/types/email"
+import type { UploadedFile } from "@/types"
 
 interface EmailComposeProps {
   onSend: (email: EmailCompose) => void
@@ -38,6 +41,7 @@ interface EmailComposeProps {
   replySubject?: string
   replyBody?: string
   claimId: string
+  availableDocuments?: UploadedFile[]
 }
 
 export const EmailComposeComponent = ({
@@ -48,6 +52,7 @@ export const EmailComposeComponent = ({
   replySubject,
   replyBody,
   claimId,
+  availableDocuments = [],
 }: EmailComposeProps) => {
   const { toast } = useToast()
   const fileInputRef = useRef<HTMLInputElement>(null)
@@ -55,6 +60,7 @@ export const EmailComposeComponent = ({
   const [showBcc, setShowBcc] = useState(false)
   const [isHtmlMode, setIsHtmlMode] = useState(false)
   const [selectedTemplate, setSelectedTemplate] = useState("")
+  const [documentDialogOpen, setDocumentDialogOpen] = useState(false)
 
   const [emailData, setEmailData] = useState<EmailCompose>({
     to: replyTo || "",
@@ -361,6 +367,48 @@ export const EmailComposeComponent = ({
               className="hidden"
               onChange={(e) => handleFileUpload(e.target.files)}
             />
+            <Dialog open={documentDialogOpen} onOpenChange={setDocumentDialogOpen}>
+              <DialogTrigger asChild>
+                <Button variant="outline" size="sm">
+                  <FileText className="h-4 w-4 mr-2" />
+                  Dodaj z dokumentów
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="sm:max-w-md">
+                <DialogHeader>
+                  <DialogTitle>Wybierz dokument</DialogTitle>
+                </DialogHeader>
+                <div className="flex flex-col gap-2">
+                  {availableDocuments.length ? (
+                    availableDocuments.map((doc) => (
+                      <Button
+                        key={doc.id}
+                        variant="ghost"
+                        className="justify-start"
+                        onClick={() => {
+                          const newAttachment: EmailAttachment = {
+                            id: doc.id,
+                            name: doc.name,
+                            size: doc.size,
+                            type: doc.type,
+                            url: doc.url,
+                          }
+                          setEmailData((prev) => ({
+                            ...prev,
+                            attachments: [...prev.attachments, newAttachment],
+                          }))
+                          setDocumentDialogOpen(false)
+                        }}
+                      >
+                        {doc.name}
+                      </Button>
+                    ))
+                  ) : (
+                    <p className="text-sm text-gray-500">Brak dokumentów</p>
+                  )}
+                </div>
+              </DialogContent>
+            </Dialog>
           </div>
 
           <div className="flex items-center space-x-2">

@@ -13,6 +13,7 @@ import { sampleEmails } from "@/lib/email-data"
 import { cn } from "@/lib/utils"
 import { Mail, MailOpen, Send, Inbox, Star, Search, Plus, Paperclip, Flag, MoreVertical } from "lucide-react"
 import type { Email, EmailCompose } from "@/types/email"
+import type { UploadedFile } from "@/types"
 
 interface EmailSectionProps {
   claimId?: string
@@ -31,6 +32,25 @@ export const EmailSection = ({ claimId }: EmailSectionProps) => {
     replySubject?: string
     replyBody?: string
   }>({})
+
+  const sampleDocuments: UploadedFile[] = [
+    {
+      id: "doc1",
+      name: "Umowa.pdf",
+      size: 1024,
+      type: "pdf",
+      uploadedAt: new Date().toISOString(),
+      url: "#",
+    },
+    {
+      id: "doc2",
+      name: "Faktura.jpg",
+      size: 2048,
+      type: "image",
+      uploadedAt: new Date().toISOString(),
+      url: "#",
+    },
+  ]
 
   const filteredEmails = emails.filter((email) => {
     if (activeTab === "sent") return email.folder === "sent"
@@ -189,6 +209,7 @@ export const EmailSection = ({ claimId }: EmailSectionProps) => {
         replySubject={composeData.replySubject}
         replyBody={composeData.replyBody}
         claimId={claimId || ""}
+        availableDocuments={sampleDocuments}
       />
     )
   }

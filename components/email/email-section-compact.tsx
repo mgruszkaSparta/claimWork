@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, type Dispatch, type SetStateAction } from "react"
 import { useToast } from "@/hooks/use-toast"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -11,15 +11,36 @@ import { EmailComposeComponent } from "./email-compose"
 import { EmailView } from "./email-view"
 import { sampleEmails } from "@/lib/email-data"
 import { cn } from "@/lib/utils"
-import { Mail, MailOpen, Send, Inbox, Star, Search, Plus, Paperclip, Flag, MoreVertical } from "lucide-react"
-import type { Email, EmailCompose } from "@/types/email"
-import type { UploadedFile } from "@/types"
+import {
+  Mail,
+  MailOpen,
+  Send,
+  Inbox,
+  Star,
+  Search,
+  Plus,
+  Paperclip,
+  Flag,
+  MoreVertical,
+} from "lucide-react"
+import type { Email, EmailCompose, EmailAttachment } from "@/types/email"
+import type { UploadedFile, RequiredDocument } from "@/types"
 
 interface EmailSectionProps {
   claimId?: string
+  uploadedFiles?: UploadedFile[]
+  setUploadedFiles?: Dispatch<SetStateAction<UploadedFile[]>>
+  requiredDocuments?: RequiredDocument[]
+  setRequiredDocuments?: Dispatch<SetStateAction<RequiredDocument[]>>
 }
 
-export const EmailSection = ({ claimId }: EmailSectionProps) => {
+export const EmailSection = ({
+  claimId,
+  uploadedFiles,
+  setUploadedFiles,
+  requiredDocuments,
+  setRequiredDocuments,
+}: EmailSectionProps) => {
   const { toast } = useToast()
   const [emails, setEmails] = useState<Email[]>(
     sampleEmails.filter((email) => !claimId || (email.claimIds && email.claimIds.includes(claimId)))
@@ -33,24 +54,20 @@ export const EmailSection = ({ claimId }: EmailSectionProps) => {
     replyBody?: string
   }>({})
 
-  const sampleDocuments: UploadedFile[] = [
-    {
-      id: "doc1",
-      name: "Umowa.pdf",
-      size: 1024,
-      type: "pdf",
-      uploadedAt: new Date().toISOString(),
-      url: "#",
-    },
-    {
-      id: "doc2",
-      name: "Faktura.jpg",
-      size: 2048,
-      type: "image",
-      uploadedAt: new Date().toISOString(),
-      url: "#",
-    },
-  ]
+  const [internalDocuments, setInternalDocuments] = useState<UploadedFile[]>([])
+  const documents = uploadedFiles ?? internalDocuments
+  const updateDocuments = setUploadedFiles ?? setInternalDocuments
+  const [internalRequiredDocs, setInternalRequiredDocs] = useState<RequiredDocument[]>([])
+  const docs = requiredDocuments ?? internalRequiredDocs
+  const updateRequiredDocs = setRequiredDocuments ?? setInternalRequiredDocs
+
+  const mapAttachmentType = (type: string): UploadedFile["type"] => {
+    if (type.includes("pdf")) return "pdf"
+    if (type.includes("image")) return "image"
+    if (type.includes("doc")) return "doc"
+    if (type.includes("video")) return "video"
+    return "other"
+  }
 
   const filteredEmails = emails.filter((email) => {
     if (activeTab === "sent") return email.folder === "sent"
@@ -117,6 +134,26 @@ export const EmailSection = ({ claimId }: EmailSectionProps) => {
       replyBody: `\n\n--- Przekazana wiadomość ---\nOd: ${email.fromName} <${email.from}>\nData: ${email.date}\nTemat: ${email.subject}\n\n${email.body}`,
     })
     setCurrentView("compose")
+  }
+
+  const handleAssignAttachment = (attachment: EmailAttachment, documentId: string) => {
+    const doc = docs.find((d) => d.id === documentId)
+    const newFile: UploadedFile = {
+      id: attachment.id,
+      name: attachment.name,
+      size: attachment.size,
+      type: mapAttachmentType(attachment.type),
+      uploadedAt: new Date().toISOString(),
+      url: attachment.url,
+      category: doc?.name,
+      categoryCode: doc?.category,
+    }
+    updateDocuments((prev) => [...prev, newFile])
+    updateRequiredDocs((prev) => prev.map((d) => (d.id === documentId ? { ...d, uploaded: true } : d)))
+    toast({
+      title: "Załącznik przypisany",
+      description: `Dodano ${attachment.name} do dokumentu ${doc?.name || documentId}`,
+    })
   }
 
   const handleSendEmail = (emailData: EmailCompose) => {
@@ -209,7 +246,7 @@ export const EmailSection = ({ claimId }: EmailSectionProps) => {
         replySubject={composeData.replySubject}
         replyBody={composeData.replyBody}
         claimId={claimId || ""}
-        availableDocuments={sampleDocuments}
+        availableDocuments={documents}
       />
     )
   }
@@ -231,6 +268,8 @@ export const EmailSection = ({ claimId }: EmailSectionProps) => {
           setEmails((prev) => prev.map((email) => (email.id === id ? { ...email, folder: "trash" } : email)))
           toast({ title: "E-mail usunięty" })
         }}
+        requiredDocuments={docs}
+        onAssignAttachment={handleAssignAttachment}
       />
     )
   }

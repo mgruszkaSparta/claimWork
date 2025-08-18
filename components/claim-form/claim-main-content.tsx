@@ -1914,7 +1914,13 @@ export const ClaimMainContent = ({
               <CardTitle className="text-lg font-semibold">E-mail</CardTitle>
             </CardHeader>
             <CardContent className="p-0 bg-white">
-              <EmailSection claimId={claimFormData.id} />
+              <EmailSection
+                claimId={claimFormData.id}
+                uploadedFiles={uploadedFiles}
+                setUploadedFiles={setUploadedFiles}
+                requiredDocuments={requiredDocuments}
+                setRequiredDocuments={setRequiredDocuments}
+              />
             </CardContent>
           </Card>
         </div>

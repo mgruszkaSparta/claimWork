@@ -148,18 +148,12 @@ export const DocumentsSection = React.forwardRef<
         try {
           const response = await fetch(
             previewDocument.previewUrl || previewDocument.downloadUrl,
+            {
+              credentials: "include",
+            },
           )
           if (!response.ok) {
             throw new Error(`HTTP ${response.status}`)
-          }
-          const contentType =
-            response.headers.get("content-type") || ""
-          if (
-            !contentType.includes(
-              "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-            )
-          ) {
-            throw new Error("Invalid file type")
           }
           const buffer = await response.arrayBuffer()
           const { renderAsync } = await import("docx-preview")

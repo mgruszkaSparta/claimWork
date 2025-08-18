@@ -4,10 +4,10 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { cn } from "@/lib/utils"
 import { Inbox, Send, FileEdit, Star, AlertCircle, Trash2, Shield, Plus, Settings, Archive } from "lucide-react"
-import type { EmailFolder } from "@/types/email"
+import type { EmailFolderDefinition } from "@/types/email"
 
 interface EmailSidebarProps {
-  folders: EmailFolder[]
+  folders: EmailFolderDefinition[]
   activeFolder: string
   onFolderChange: (folderId: string) => void
   onCompose: () => void

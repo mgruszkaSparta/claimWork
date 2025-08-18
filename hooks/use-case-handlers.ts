@@ -13,10 +13,15 @@ interface Handler {
 
 async function getJson<T>(url: string): Promise<T> {
   const response = await fetch(url)
+  const text = await response.text()
   if (!response.ok) {
-    throw new Error(`Failed to fetch ${url}: ${response.status}`)
+    throw new Error(`Failed to fetch ${url}: ${response.status} ${text}`)
   }
-  return (await response.json()) as T
+  try {
+    return JSON.parse(text) as T
+  } catch {
+    throw new Error(`Invalid JSON from ${url}: ${text}`)
+  }
 }
 
 async function fetchCaseHandlers(): Promise<Handler[]> {

@@ -32,10 +32,16 @@ class DictionaryService {
         credentials: "include",
       },
     )
+    const text = await response.text()
     if (!response.ok) {
-      throw new Error(`Failed to fetch ${endpoint}`)
+      throw new Error(`Failed to fetch ${endpoint}: ${response.status} ${text}`)
     }
-    const data: unknown = await response.json()
+    let data: unknown
+    try {
+      data = JSON.parse(text)
+    } catch {
+      throw new Error(`Malformed dictionary response for ${endpoint}: ${text}`)
+    }
     if (
       !data ||
       typeof data !== "object" ||

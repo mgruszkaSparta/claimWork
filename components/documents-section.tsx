@@ -132,6 +132,18 @@ export const DocumentsSection = React.forwardRef<DocumentsSectionRef, DocumentsS
           const response = await fetch(
             previewDocument.previewUrl || previewDocument.downloadUrl,
           )
+          if (!response.ok) {
+            throw new Error(`HTTP ${response.status}`)
+          }
+          const contentType =
+            response.headers.get("content-type") || ""
+          if (
+            !contentType.includes(
+              "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+            )
+          ) {
+            throw new Error("Invalid file type")
+          }
           const buffer = await response.arrayBuffer()
           const { renderAsync } = await import("docx-preview")
           if (docxPreviewRef.current) {
@@ -140,13 +152,18 @@ export const DocumentsSection = React.forwardRef<DocumentsSectionRef, DocumentsS
           }
         } catch (err) {
           console.error("Error rendering docx preview:", err)
+          toast({
+            title: "Błąd podglądu",
+            description: "Nie można wyświetlić dokumentu",
+            variant: "destructive",
+          })
         }
       }
       load()
     } else if (docxPreviewRef.current) {
       docxPreviewRef.current.innerHTML = ""
     }
-  }, [previewDocument])
+  }, [previewDocument, toast])
 
   const isGuid = (value: string) =>
     /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/.test(value)

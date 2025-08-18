@@ -4,7 +4,7 @@ import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 
 
-import { LayoutDashboard, FileText, Car, Settings, Inbox, Calendar, CalendarCheck } from "lucide-react"
+import { LayoutDashboard, FileText, Car, Settings, Inbox, Calendar, CalendarCheck, BarChart3 } from "lucide-react"
 
 
 import { useAuth } from "@/hooks/use-auth"

@@ -2,11 +2,28 @@
 
 import { Button } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
-import { FileText, AlertTriangle, Users, File, MessageSquare, FileCheck, Mail, Calendar, Wrench, Gavel, Shield, DollarSign, HandHeart, FileSignature } from 'lucide-react'
+import {
+  FileText,
+  AlertTriangle,
+  Users,
+  File,
+  MessageSquare,
+  FileCheck,
+  Mail,
+  Calendar,
+  Wrench,
+  Gavel,
+  Shield,
+  DollarSign,
+  HandHeart,
+  FileSignature,
+  UserCheck,
+} from 'lucide-react'
 
 interface ClaimFormSidebarProps {
   activeClaimSection: string
   setActiveClaimSection: (section: string) => void
+  claimObjectType?: string
 }
 
 const sidebarSections = [
@@ -28,6 +45,11 @@ const sidebarSections = [
         id: "uczestnicy",
         label: "Uczestnicy zdarzenia",
         icon: Users,
+      },
+      {
+        id: "podwykonawca",
+        label: "Podwykonawca",
+        icon: UserCheck,
       },
       {
         id: "dokumenty",
@@ -100,12 +122,21 @@ const sidebarSections = [
   },
 ]
 
-function ClaimFormSidebar({ activeClaimSection, setActiveClaimSection }: ClaimFormSidebarProps) {
+function ClaimFormSidebar({ activeClaimSection, setActiveClaimSection, claimObjectType }: ClaimFormSidebarProps) {
+  const sections = sidebarSections.map((section) => {
+    let items = section.items
+    if (claimObjectType === "3") {
+      items = items.filter((item) => item.id !== "uczestnicy")
+    } else {
+      items = items.filter((item) => item.id !== "podwykonawca")
+    }
+    return { ...section, items }
+  })
   return (
     <div className="w-64 bg-white border-r border-gray-200 h-full overflow-y-auto">
       <div className="p-3">
         <div className="space-y-6">
-          {sidebarSections.map((section, sectionIndex) => (
+          {sections.map((section, sectionIndex) => (
             <div key={section.id} className="space-y-3">
               {/* Section Header */}
               <div className="flex items-center space-x-2 px-2">
@@ -146,7 +177,7 @@ function ClaimFormSidebar({ activeClaimSection, setActiveClaimSection }: ClaimFo
               </div>
 
               {/* Separator between sections (except last) */}
-              {sectionIndex < sidebarSections.length - 1 && (
+              {sectionIndex < sections.length - 1 && (
                 <div className="pt-2">
                   <Separator className="bg-gray-100" />
                 </div>

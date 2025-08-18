@@ -20,7 +20,22 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
-import { ArrowUpDown, Plus, Edit, Trash2, Eye, Download, Upload, FileText, X, Info, Loader2, Minus } from "lucide-react"
+import {
+  ArrowUpDown,
+  Plus,
+  Edit,
+  Trash2,
+  Eye,
+  Download,
+  Upload,
+  FileText,
+  X,
+  Info,
+  Loader2,
+  Minus,
+  ChevronLeft,
+  ChevronRight,
+} from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 import { useDragDrop } from "@/hooks/use-drag-drop"
 import {
@@ -29,8 +44,9 @@ import {
   updateAppeal,
   deleteAppeal as apiDeleteAppeal,
   Appeal,
+  AppealUpsert,
 } from "@/lib/api/appeals"
-import { API_BASE_URL } from "@/lib/api"
+import { API_BASE_URL, DocumentDto } from "@/lib/api"
 
 interface AppealsSectionProps {
   claimId: string
@@ -53,6 +69,14 @@ export const AppealsSection = ({ claimId }: AppealsSectionProps) => {
   const [isPreviewOpen, setIsPreviewOpen] = useState(false)
   const [previewUrl, setPreviewUrl] = useState<string | null>(null)
   const [previewFileType, setPreviewFileType] = useState<string>("")
+  const [previewFileName, setPreviewFileName] = useState("")
+  const [previewDoc, setPreviewDoc] = useState<DocumentDto | null>(null)
+
+  // Preview for newly selected files
+  const [isSelectedPreviewOpen, setIsSelectedPreviewOpen] = useState(false)
+  const [selectedPreviewIndex, setSelectedPreviewIndex] = useState(0)
+  const [selectedPreviewUrl, setSelectedPreviewUrl] = useState<string | null>(null)
+  const [selectedPreviewType, setSelectedPreviewType] = useState<string>("")
 
   // Form data
   const [formData, setFormData] = useState({
@@ -101,39 +125,67 @@ export const AppealsSection = ({ claimId }: AppealsSectionProps) => {
   }
 
   const processFiles = (files: File[]) => {
-    const file = files[0]
-    if (!file) return
+    if (!files || files.length === 0) return
 
-    setSelectedFiles([file])
+    setSelectedFiles((prev) => [...prev, ...files])
     setShowFileDescription(true)
 
-    const isOutlookFile =
-      file.name.includes("outlook") || file.type === "application/octet-stream"
-
     toast({
-      title: "Plik dodany",
-      description: isOutlookFile ? "Dodano plik z Outlooka" : "Dodano plik",
+      title: "Pliki dodane",
+      description: `Dodano ${files.length} plik(ów)`,
     })
   }
 
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = event.target.files
     if (files && files.length > 0) {
-      processFiles([files[0]])
+      processFiles(Array.from(files))
     }
   }
 
   const handleFilesDropped = (files: FileList) => {
     if (files.length > 0) {
-      processFiles([files[0]])
+      processFiles(Array.from(files))
     }
   }
 
   const removeSelectedFile = (index: number) => {
-    setSelectedFiles((prev) => prev.filter((_, i) => i !== index))
-    if (selectedFiles.length === 1) {
-      setShowFileDescription(false)
+    setSelectedFiles((prev) => {
+      const updated = prev.filter((_, i) => i !== index)
+      if (updated.length === 0) {
+        setShowFileDescription(false)
+      }
+      return updated
+    })
+  }
+
+  const previewSelectedFile = (index: number) => {
+    const file = selectedFiles[index]
+    if (!file) return
+    const url = URL.createObjectURL(file)
+    setSelectedPreviewIndex(index)
+    setSelectedPreviewUrl(url)
+    setSelectedPreviewType(getFileType(file.name))
+    setIsSelectedPreviewOpen(true)
+  }
+
+  const closeSelectedPreview = () => {
+    setIsSelectedPreviewOpen(false)
+    if (selectedPreviewUrl) {
+      URL.revokeObjectURL(selectedPreviewUrl)
     }
+    setSelectedPreviewUrl(null)
+  }
+
+  const showNextSelected = () => {
+    const nextIndex = (selectedPreviewIndex + 1) % selectedFiles.length
+    previewSelectedFile(nextIndex)
+  }
+
+  const showPrevSelected = () => {
+    const prevIndex =
+      (selectedPreviewIndex - 1 + selectedFiles.length) % selectedFiles.length
+    previewSelectedFile(prevIndex)
   }
 
   const removeAllFiles = () => {
@@ -234,34 +286,26 @@ export const AppealsSection = ({ claimId }: AppealsSectionProps) => {
 
     setIsLoading(true)
     try {
-      const payload = new FormData()
-      if (!isEditing) {
-        payload.append("EventId", claimId)
-      }
-      payload.append("FilingDate", formData.filingDate)
-      if (formData.extensionDate) {
-        payload.append("ExtensionDate", formData.extensionDate)
-      }
-      if (formData.responseDate) {
-        payload.append("DecisionDate", formData.responseDate)
-      }
       const status = formData.responseDate ? "Zamknięte" : formData.status
-      if (status) {
-        payload.append("Status", status)
+      const payload: AppealUpsert = {
+        filingDate: formData.filingDate,
+        extensionDate: formData.extensionDate || undefined,
+        decisionDate: formData.responseDate || undefined,
+        status,
+        documentDescription: formData.documentDescription || undefined,
       }
-      if (formData.documentDescription) {
-        payload.append("DocumentDescription", formData.documentDescription)
+      if (!isEditing) {
+        payload.eventId = claimId
       }
-      selectedFiles.forEach((file) => payload.append("Document", file))
 
       if (isEditing && editingId) {
-        await updateAppeal(editingId, payload)
+        await updateAppeal(editingId, payload, selectedFiles)
         toast({
           title: "Sukces",
           description: "Odwołanie zostało zaktualizowane",
         })
       } else {
-        await createAppeal(payload)
+        await createAppeal(payload, selectedFiles)
         toast({
           title: "Sukces",
           description: "Odwołanie zostało dodane",
@@ -313,21 +357,15 @@ export const AppealsSection = ({ claimId }: AppealsSectionProps) => {
     return "other"
   }
 
-  const downloadFile = async (appeal: Appeal) => {
-    if (!appeal.documentPath) {
-      toast({
-        title: "Błąd",
-        description: "Brak dokumentu do pobrania",
-        variant: "destructive",
-      })
-      return
-    }
-
+  const downloadFile = async (appeal: Appeal, doc: DocumentDto) => {
     try {
-      const response = await fetch(`${API_BASE_URL}/appeals/${appeal.id}/download`, {
-        method: "GET",
-        credentials: "include",
-      })
+      const response = await fetch(
+        `${API_BASE_URL}/appeals/${appeal.id}/documents/${doc.id}/download`,
+        {
+          method: "GET",
+          credentials: "include",
+        },
+      )
       if (!response.ok) {
         throw new Error("Failed to download file")
       }
@@ -335,8 +373,7 @@ export const AppealsSection = ({ claimId }: AppealsSectionProps) => {
       const url = window.URL.createObjectURL(blob)
       const a = document.createElement("a")
       a.href = url
-      const fileName = appeal.documentName || getFileNameFromPath(appeal.documentPath)
-      a.download = fileName
+      a.download = doc.originalFileName || doc.fileName || "document"
       document.body.appendChild(a)
       a.click()
       a.remove()
@@ -351,29 +388,25 @@ export const AppealsSection = ({ claimId }: AppealsSectionProps) => {
     }
   }
 
-  const previewFile = async (appeal: Appeal) => {
-    if (!appeal.documentPath) {
-      toast({
-        title: "Błąd",
-        description: "Brak dokumentu do podglądu",
-        variant: "destructive",
-      })
-      return
-    }
-
+  const previewFile = async (appeal: Appeal, doc: DocumentDto) => {
     try {
-      const response = await fetch(`${API_BASE_URL}/appeals/${appeal.id}/preview`, {
-        method: "GET",
-        credentials: "include",
-      })
+      const response = await fetch(
+        `${API_BASE_URL}/appeals/${appeal.id}/documents/${doc.id}/preview`,
+        {
+          method: "GET",
+          credentials: "include",
+        },
+      )
       if (!response.ok) {
         throw new Error("Failed to preview file")
       }
       const blob = await response.blob()
       const url = window.URL.createObjectURL(blob)
       setPreviewUrl(url)
-      setPreviewFileType(getFileType(appeal.documentName || getFileNameFromPath(appeal.documentPath)))
+      setPreviewFileType(getFileType(doc.originalFileName || doc.fileName || ""))
+      setPreviewFileName(doc.originalFileName || doc.fileName || "")
       setPreviewAppeal(appeal)
+      setPreviewDoc(doc)
       setIsPreviewOpen(true)
     } catch (error) {
       console.error("Error previewing file:", error)
@@ -533,7 +566,7 @@ export const AppealsSection = ({ claimId }: AppealsSectionProps) => {
                         <span className="font-semibold">Kliknij, aby wybrać plik</span> lub przeciągnij i upuść
                       </p>
                       <p className="text-xs text-gray-400">Obsługiwane formaty: PDF, DOC, DOCX, JPG, PNG</p>
-                      <p className="text-xs text-gray-400">Możesz przesłać tylko jeden plik</p>
+                      <p className="text-xs text-gray-400">Możesz przesłać wiele plików</p>
                     </div>
 
                     <input
@@ -541,6 +574,7 @@ export const AppealsSection = ({ claimId }: AppealsSectionProps) => {
                       type="file"
                       className="hidden"
                       accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
+                      multiple
                       onChange={handleFileSelect}
                     />
                     <Button
@@ -561,7 +595,7 @@ export const AppealsSection = ({ claimId }: AppealsSectionProps) => {
                       <div className="flex items-center gap-2">
                         <FileText className="h-4 w-4 text-[#1a3a6c]" />
                         <span className="text-sm font-medium">
-                          Wybrany plik - {formatFileSize(getTotalFileSize())}
+                          Wybrane pliki ({selectedFiles.length}) - {formatFileSize(getTotalFileSize())}
                         </span>
                       </div>
                       <Button
@@ -588,15 +622,26 @@ export const AppealsSection = ({ claimId }: AppealsSectionProps) => {
                               ({formatFileSize(file.size)})
                             </span>
                           </div>
-                          <Button
-                            type="button"
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => removeSelectedFile(index)}
-                            className="h-6 w-6 p-0 flex-shrink-0"
-                          >
-                            <X className="h-3 w-3" />
-                          </Button>
+                          <div className="flex items-center gap-1 flex-shrink-0">
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => previewSelectedFile(index)}
+                              className="h-6 w-6 p-0"
+                            >
+                              <Eye className="h-3 w-3" />
+                            </Button>
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => removeSelectedFile(index)}
+                              className="h-6 w-6 p-0"
+                            >
+                              <X className="h-3 w-3" />
+                            </Button>
+                          </div>
                         </div>
                       ))}
                     </div>
@@ -688,7 +733,8 @@ export const AppealsSection = ({ claimId }: AppealsSectionProps) => {
                     </td>
                   </tr>
                 )}
-                {appeals.map((appeal) => (
+                {appeals.map((appeal) => {
+                  return (
                   <tr key={appeal.id} className="hover:bg-gray-50 text-sm border-b">
                     <td className="py-3 px-4 text-gray-700">
                       {new Date(appeal.filingDate).toLocaleDateString("pl-PL")}
@@ -701,37 +747,44 @@ export const AppealsSection = ({ claimId }: AppealsSectionProps) => {
                     </td>
                     <td className="py-3 px-4">{getStatusBadge(appeal.status)}</td>
                     <td className="py-3 px-4">
-                      {appeal.documentPath ? (
-                        <div className="flex items-center gap-2">
-                          <span className="text-gray-700 truncate max-w-32" title={appeal.documentName}>
-                            {appeal.documentName}
-                          </span>
-                          <div className="flex gap-1">
-                            {isPreviewable(appeal.documentName) && (
+                      {(() => {
+                        const doc = appeal.documents?.[0]
+                        if (!doc) {
+                          return <span className="text-gray-500">Brak dokumentu</span>
+                        }
+                        return (
+                          <div className="flex items-center gap-2">
+                            <span
+                              className="text-gray-700 truncate max-w-32"
+                              title={doc.originalFileName || doc.fileName}
+                            >
+                              {doc.originalFileName || doc.fileName}
+                            </span>
+                            <div className="flex gap-1">
+                              {isPreviewable(doc.originalFileName || doc.fileName) && (
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => previewFile(appeal, doc)}
+                                  className="h-6 w-6 p-0 text-blue-600 hover:text-blue-800 hover:bg-blue-50"
+                                  title="Podgląd"
+                                >
+                                  <Eye className="h-3 w-3" />
+                                </Button>
+                              )}
                               <Button
                                 variant="ghost"
                                 size="sm"
-                                onClick={() => previewFile(appeal)}
-                                className="h-6 w-6 p-0 text-blue-600 hover:text-blue-800 hover:bg-blue-50"
-                                title="Podgląd"
+                                onClick={() => downloadFile(appeal, doc)}
+                                className="h-6 w-6 p-0 text-green-600 hover:text-green-800 hover:bg-green-50"
+                                title="Pobierz"
                               >
-                                <Eye className="h-3 w-3" />
+                                <Download className="h-3 w-3" />
                               </Button>
-                            )}
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => downloadFile(appeal)}
-                              className="h-6 w-6 p-0 text-green-600 hover:text-green-800 hover:bg-green-50"
-                              title="Pobierz"
-                            >
-                              <Download className="h-3 w-3" />
-                            </Button>
+                            </div>
                           </div>
-                        </div>
-                      ) : (
-                        <span className="text-gray-500">Brak dokumentu</span>
-                      )}
+                        )
+                      })()}
                     </td>
                     <td className="py-3 px-4 text-gray-700 max-w-48">
                       <span className="truncate block" title={appeal.documentDescription}>
@@ -782,7 +835,8 @@ export const AppealsSection = ({ claimId }: AppealsSectionProps) => {
                       </div>
                     </td>
                   </tr>
-                ))}
+                  )
+                })}
               </tbody>
             </table>
           </div>
@@ -804,15 +858,19 @@ export const AppealsSection = ({ claimId }: AppealsSectionProps) => {
           if (!open && previewUrl) {
             window.URL.revokeObjectURL(previewUrl)
             setPreviewUrl(null)
+          }
+          if (!open) {
             setPreviewAppeal(null)
+            setPreviewDoc(null)
+            setPreviewFileName("")
           }
         }}
       >
         <DialogContent className="max-w-4xl max-h-[90vh]">
           <DialogHeader>
-            <DialogTitle>Podgląd: {previewAppeal?.documentName}</DialogTitle>
-            {previewAppeal?.documentDescription && (
-              <p className="text-sm text-gray-600 mt-1">{previewAppeal.documentDescription}</p>
+            <DialogTitle>Podgląd: {previewFileName}</DialogTitle>
+            {previewDoc?.description && (
+              <p className="text-sm text-gray-600 mt-1">{previewDoc.description}</p>
             )}
           </DialogHeader>
           <div className="flex-1 overflow-auto flex items-center justify-center bg-gray-100 rounded p-4 min-h-[400px]">
@@ -832,13 +890,68 @@ export const AppealsSection = ({ claimId }: AppealsSectionProps) => {
           </div>
           <div className="flex justify-end pt-4 border-t border-gray-200">
             <Button
-              onClick={() => previewAppeal && downloadFile(previewAppeal)}
+              onClick={() => previewAppeal && previewDoc && downloadFile(previewAppeal, previewDoc)}
               className="bg-[#1a3a6c] hover:bg-[#15305a] text-white"
             >
               <Download className="h-4 w-4 mr-2" />
               Pobierz plik
             </Button>
           </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Selected Files Preview Dialog */}
+      <Dialog
+        open={isSelectedPreviewOpen}
+        onOpenChange={(open) => {
+          setIsSelectedPreviewOpen(open)
+          if (!open) {
+            closeSelectedPreview()
+          }
+        }}
+      >
+        <DialogContent className="max-w-4xl max-h-[90vh]">
+          <DialogHeader>
+            <DialogTitle>Podgląd: {selectedFiles[selectedPreviewIndex]?.name}</DialogTitle>
+          </DialogHeader>
+          <div className="flex-1 overflow-auto flex items-center justify-center bg-gray-100 rounded p-4 min-h-[400px]">
+            {selectedPreviewType === "pdf" && selectedPreviewUrl ? (
+              <iframe src={selectedPreviewUrl} className="w-full h-full border-0" title="PDF Preview" />
+            ) : selectedPreviewType === "image" && selectedPreviewUrl ? (
+              <img
+                src={selectedPreviewUrl}
+                alt="Preview"
+                className="max-w-full max-h-[70vh] object-contain"
+              />
+            ) : (
+              <div className="text-center p-8 space-y-4">
+                <FileText className="h-12 w-12 mx-auto text-gray-400" />
+                <p className="text-gray-600">Podgląd niedostępny dla tego typu pliku.</p>
+              </div>
+            )}
+          </div>
+          {selectedFiles.length > 1 && (
+            <div className="flex justify-between items-center pt-4 border-t border-gray-200">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={showPrevSelected}
+                className="flex items-center gap-1"
+              >
+                <ChevronLeft className="h-4 w-4" />
+                Poprzedni
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={showNextSelected}
+                className="flex items-center gap-1"
+              >
+                Następny
+                <ChevronRight className="h-4 w-4" />
+              </Button>
+            </div>
+          )}
         </DialogContent>
       </Dialog>
     </div>

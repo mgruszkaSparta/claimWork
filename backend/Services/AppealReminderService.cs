@@ -1,7 +1,6 @@
 using System;
 using System.Linq;
 using AutomotiveClaimsApi.Data;
-using AutomotiveClaimsApi.DTOs;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -28,32 +27,33 @@ namespace AutomotiveClaimsApi.Services
                 {
                     using var scope = _serviceProvider.CreateScope();
                     var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-                    var emailService = scope.ServiceProvider.GetRequiredService<IEmailService>();
+                    var notificationService = scope.ServiceProvider.GetRequiredService<INotificationService>();
 
                     var appeals = await context.Appeals
                         .Where(a => a.DecisionDate == null)
+                        .Include(a => a.Event)
                         .ToListAsync(stoppingToken);
 
                     foreach (var appeal in appeals)
                     {
                         var days = (DateTime.UtcNow - appeal.SubmissionDate).Days;
-
-                        if (days == 30 || days == 60)
+                        ClaimNotificationEvent? eventType = days switch
                         {
-                            var level = days == 30 ? "first" : "second";
+                            30 => ClaimNotificationEvent.SettlementAppealReminder30Days,
+                            60 => ClaimNotificationEvent.SettlementAppealReminder60Days,
+                            _ => null
+                        };
+
+                        if (eventType.HasValue && appeal.Event != null)
+                        {
                             try
                             {
-                                await emailService.SendEmailAsync(new SendEmailDto
-                                {
-                                    To = "admin@example.com",
-                                    Subject = $"Appeal reminder ({level} alert)",
-                                    Body = $"Appeal {appeal.Id} has been pending for {days} days."
-                                });
-                                _logger.LogInformation("Sent {Level} alert for appeal {Id}", level, appeal.Id);
+                                await notificationService.NotifyAsync(appeal.Event, null, eventType.Value);
+                                _logger.LogInformation("Sent {Days}-day reminder for appeal {Id}", days, appeal.Id);
                             }
                             catch (Exception ex)
                             {
-                                _logger.LogError(ex, "Error sending {Level} alert for appeal {Id}", level, appeal.Id);
+                                _logger.LogError(ex, "Error sending {Days}-day reminder for appeal {Id}", days, appeal.Id);
                             }
                         }
                     }

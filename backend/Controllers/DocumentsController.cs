@@ -9,6 +9,9 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Identity;
+using System.Security.Claims;
+using Microsoft.Extensions.Configuration;
 
 namespace AutomotiveClaimsApi.Controllers
 {
@@ -19,15 +22,25 @@ namespace AutomotiveClaimsApi.Controllers
         private readonly ApplicationDbContext _context;
         private readonly IDocumentService _documentService;
         private readonly ILogger<DocumentsController> _logger;
+        private readonly UserManager<ApplicationUser>? _userManager;
+        private readonly INotificationService? _notificationService;
+        private readonly IConfiguration _config;
 
         public DocumentsController(
             ApplicationDbContext context,
             IDocumentService documentService,
-            ILogger<DocumentsController> logger)
+            ILogger<DocumentsController> logger,
+            IConfiguration config,
+            UserManager<ApplicationUser>? userManager = null,
+            INotificationService? notificationService = null)
         {
             _context = context;
             _documentService = documentService;
             _logger = logger;
+            _config = config;
+            _userManager = userManager;
+            _notificationService = notificationService;
+            _config = config;
         }
 
         [HttpGet]
@@ -36,6 +49,7 @@ namespace AutomotiveClaimsApi.Controllers
             [FromQuery] Guid? damageId,
             [FromQuery] string? documentType,
             [FromQuery] string? status,
+            [FromQuery] string? search,
             [FromQuery] int page = 1,
             [FromQuery] int pageSize = 50)
         {
@@ -49,17 +63,25 @@ namespace AutomotiveClaimsApi.Controllers
                 query = query.Where(d => d.DocumentType == documentType);
             if (!string.IsNullOrEmpty(status))
                 query = query.Where(d => d.Status == status);
+            if (!string.IsNullOrEmpty(search))
+                query = query.Where(d =>
+                    d.FileName.Contains(search) ||
+                    d.OriginalFileName.Contains(search) ||
+                    (d.Description ?? "").Contains(search) ||
+                    (d.DocumentType ?? "").Contains(search));
 
             var totalCount = await query.CountAsync();
             var documents = await query
                 .OrderByDescending(d => d.CreatedAt)
                 .Skip((page - 1) * pageSize)
                 .Take(pageSize)
-                .Select(d => MapToDto(d))
                 .ToListAsync();
 
+            
+            var documentDtos = documents.Select(d => MapToDto(d)).ToList();
+
             Response.Headers.Append("X-Total-Count", totalCount.ToString());
-            return Ok(documents);
+            return Ok(documentDtos);
         }
 
         [HttpGet("{id}")]
@@ -67,13 +89,13 @@ namespace AutomotiveClaimsApi.Controllers
         {
             var document = await _context.Documents
                 .Where(d => d.Id == id && !d.IsDeleted)
-                .Select(d => MapToDto(d))
                 .FirstOrDefaultAsync();
 
             if (document == null)
                 return NotFound();
 
-            return Ok(document);
+            
+            return Ok(MapToDto(document));
         }
 
         [HttpPost("upload")]
@@ -82,6 +104,27 @@ namespace AutomotiveClaimsApi.Controllers
             try
             {
                 var documentDto = await _documentService.UploadAndCreateDocumentAsync(createDto.File, createDto);
+
+                if (_notificationService != null)
+                {
+                    var eventEntity = await _context.Events.FindAsync(documentDto.EventId);
+                    ApplicationUser? currentUser = null;
+                    bool isHandler = false;
+                    if (_userManager != null)
+                    {
+                        currentUser = await _userManager.GetUserAsync(User);
+                        if (currentUser != null)
+                        {
+                            isHandler = await _userManager.IsInRoleAsync(currentUser, "Admin");
+                        }
+                    }
+
+                    if (eventEntity != null && !isHandler)
+                    {
+                        await _notificationService.NotifyAsync(eventEntity, currentUser, ClaimNotificationEvent.DocumentAdded);
+                    }
+                }
+
                 return CreatedAtAction(nameof(GetDocument), new { id = documentDto.Id }, documentDto);
             }
             catch (Exception ex)
@@ -146,8 +189,11 @@ namespace AutomotiveClaimsApi.Controllers
             return NoContent();
         }
 
-        private static DocumentDto MapToDto(Document doc)
+
+        private DocumentDto MapToDto(Document doc)
+
         {
+            var baseUrl = _config["App:BaseUrl"] ?? string.Empty;
             return new DocumentDto
             {
                 Id = doc.Id,
@@ -155,6 +201,7 @@ namespace AutomotiveClaimsApi.Controllers
                 FileName = doc.FileName,
                 OriginalFileName = doc.OriginalFileName,
                 FilePath = doc.FilePath,
+                CloudUrl = doc.CloudUrl,
                 FileSize = doc.FileSize,
                 ContentType = doc.ContentType,
                 Category = doc.DocumentType,
@@ -164,8 +211,8 @@ namespace AutomotiveClaimsApi.Controllers
                 Status = doc.Status,
                 CreatedAt = doc.CreatedAt,
                 UpdatedAt = doc.UpdatedAt,
-                DownloadUrl = $"/api/documents/{doc.Id}/download",
-                PreviewUrl = $"/api/documents/{doc.Id}/preview",
+                DownloadUrl = $"{baseUrl}/api/documents/{doc.Id}/download",
+                PreviewUrl = $"{baseUrl}/api/documents/{doc.Id}/preview",
                 CanPreview = true // Simplified
             };
         }

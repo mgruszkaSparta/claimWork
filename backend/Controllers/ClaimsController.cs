@@ -11,21 +11,42 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.Authorization;
 using System.Security.Claims;
+using Microsoft.AspNetCore.Identity;
+using AutomotiveClaimsApi.Services;
+
+using Microsoft.AspNetCore.Http;
+
+using Microsoft.Extensions.Configuration;
 
 namespace AutomotiveClaimsApi.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    [Authorize(Roles = "Admin")]
+    [Authorize(Roles = "Admin,User")]
     public class ClaimsController : ControllerBase
     {
         private readonly ApplicationDbContext _context;
         private readonly ILogger<ClaimsController> _logger;
+        private readonly UserManager<ApplicationUser>? _userManager;
+        private readonly INotificationService? _notificationService;
 
-        public ClaimsController(ApplicationDbContext context, ILogger<ClaimsController> logger)
+        private readonly IDocumentService _documentService;
+        private readonly IConfiguration _config;
+
+        public ClaimsController(
+            ApplicationDbContext context,
+            ILogger<ClaimsController> logger,
+            IConfiguration config,
+            UserManager<ApplicationUser>? userManager = null,
+            INotificationService? notificationService = null,
+            IDocumentService? documentService = null)
         {
             _context = context;
             _logger = logger;
+            _config = config;
+            _userManager = userManager;
+            _notificationService = notificationService;
+            _documentService = documentService ?? throw new ArgumentNullException(nameof(documentService));
         }
 
         [HttpGet]
@@ -36,21 +57,18 @@ namespace AutomotiveClaimsApi.Controllers
             [FromQuery] string? policyNumber = null,
             [FromQuery] DateTime? damageDate = null,
             [FromQuery] int page = 1,
-            [FromQuery] int pageSize = 50)
+            [FromQuery] int pageSize = 50,
+            [FromQuery] string? sortBy = null,
+            [FromQuery] string? sortOrder = "asc")
         {
             try
             {
                 var query = _context.Events.AsQueryable();
 
                 // Apply filters
-                if (!string.IsNullOrEmpty(search))
+                if (!string.IsNullOrWhiteSpace(search))
                 {
-                    query = query.Where(e => 
-                        (e.ClaimNumber != null && e.ClaimNumber.Contains(search)) ||
-                        (e.SpartaNumber != null && e.SpartaNumber.Contains(search)) ||
-                        (e.VehicleNumber != null && e.VehicleNumber.Contains(search)) ||
-                        (e.Owner != null && e.Owner.Contains(search)) ||
-                        (e.Brand != null && e.Brand.Contains(search)));
+                    query = query.ApplySearch(search);
                 }
 
                 if (!string.IsNullOrEmpty(clientId) && int.TryParse(clientId, out var clientIdValue))
@@ -58,9 +76,9 @@ namespace AutomotiveClaimsApi.Controllers
                     query = query.Where(e => e.ClientId == clientIdValue);
                 }
 
-                if (!string.IsNullOrEmpty(status))
+                if (!string.IsNullOrEmpty(status) && Guid.TryParse(status, out var statusGuid))
                 {
-                    query = query.Where(e => e.Status == status);
+                    query = query.Where(e => e.ClaimStatusId == statusGuid);
                 }
 
                 if (!string.IsNullOrEmpty(policyNumber))
@@ -76,8 +94,29 @@ namespace AutomotiveClaimsApi.Controllers
 
                 var totalCount = await query.CountAsync();
 
+                if (!string.IsNullOrEmpty(sortBy))
+                {
+                    bool desc = sortOrder != null && sortOrder.ToLower() == "desc";
+                    query = sortBy switch
+                    {
+                        "damageType" => desc ? query.OrderByDescending(e => e.DamageType) : query.OrderBy(e => e.DamageType),
+                        "insurerClaimNumber" => desc ? query.OrderByDescending(e => e.InsurerClaimNumber) : query.OrderBy(e => e.InsurerClaimNumber),
+                        "claimNumber" => desc ? query.OrderByDescending(e => e.ClaimNumber) : query.OrderBy(e => e.ClaimNumber),
+                        "vehicleNumber" => desc ? query.OrderByDescending(e => e.VehicleNumber) : query.OrderBy(e => e.VehicleNumber),
+                        "handler" => desc ? query.OrderByDescending(e => e.Handler) : query.OrderBy(e => e.Handler),
+                        "client" => desc ? query.OrderByDescending(e => e.Client) : query.OrderBy(e => e.Client),
+                        "reportDate" => desc ? query.OrderByDescending(e => e.ReportDate) : query.OrderBy(e => e.ReportDate),
+                        "riskType" => desc ? query.OrderByDescending(e => e.RiskType) : query.OrderBy(e => e.RiskType),
+                        "status" => desc ? query.OrderByDescending(e => e.Status) : query.OrderBy(e => e.Status),
+                        _ => desc ? query.OrderByDescending(e => e.CreatedAt) : query.OrderBy(e => e.CreatedAt),
+                    };
+                }
+                else
+                {
+                    query = query.OrderByDescending(e => e.CreatedAt);
+                }
+
                 var events = await query
-                    .OrderByDescending(e => e.CreatedAt)
                     .Skip((page - 1) * pageSize)
                     .Take(pageSize)
                     .Select(e => new ClaimListItemDto
@@ -90,6 +129,7 @@ namespace AutomotiveClaimsApi.Controllers
                         Model = e.Model,
                         Owner = e.Owner,
                         Status = e.Status,
+                        ClaimStatusId = e.ClaimStatusId,
                         DamageDate = e.DamageDate,
                         TotalClaim = e.TotalClaim,
                         Payout = e.Payout,
@@ -101,15 +141,17 @@ namespace AutomotiveClaimsApi.Controllers
                         PolicyNumber = e.PolicyNumber,
                         InsuranceCompanyId = e.InsuranceCompanyId,
                         InsuranceCompany = e.InsuranceCompany,
+                        InsurerClaimNumber = e.InsurerClaimNumber,
+                        ReportDate = e.ReportDate,
                         RiskType = e.RiskType,
                         DamageType = e.DamageType,
                         ObjectTypeId = e.ObjectTypeId,
                         LeasingCompanyId = e.LeasingCompanyId,
                         LeasingCompany = e.LeasingCompany,
                         HandlerId = e.HandlerId,
-                        Handler = e.Handler
-                        ,RegisteredById = e.RegisteredById
-                        ,RegisteredByName = e.RegisteredBy != null ? e.RegisteredBy.UserName : null
+                        Handler = e.Handler,
+                        RegisteredById = e.RegisteredById,
+                        RegisteredByName = e.RegisteredBy != null ? e.RegisteredBy.UserName : null
                     })
                     .ToListAsync();
 
@@ -191,6 +233,17 @@ namespace AutomotiveClaimsApi.Controllers
             {
                 Event eventEntity;
                 var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                ApplicationUser? currentUser = null;
+                bool isHandler = false;
+
+                if (_userManager != null)
+                {
+                    currentUser = await _userManager.GetUserAsync(User);
+                    if (currentUser != null)
+                    {
+                        isHandler = await _userManager.IsInRoleAsync(currentUser, "Admin");
+                    }
+                }
 
                 if (eventDto.Id.HasValue)
                 {
@@ -232,6 +285,12 @@ namespace AutomotiveClaimsApi.Controllers
 
                 await UpsertClaimAsync(eventEntity, eventDto);
 
+                if (isHandler && currentUser != null)
+                {
+                    eventEntity.Handler = currentUser.UserName;
+                    eventEntity.HandlerEmail = currentUser.Email;
+                }
+
                 if (string.IsNullOrEmpty(eventEntity.SpartaNumber))
                 {
                     eventEntity.SpartaNumber = await GenerateNextSpartaNumber();
@@ -253,6 +312,11 @@ namespace AutomotiveClaimsApi.Controllers
                     .Include(e => e.Notes)
                     .Include(e => e.RegisteredBy)
                     .FirstOrDefaultAsync(e => e.Id == eventEntity.Id);
+
+                if (!isHandler && currentUser != null && _notificationService != null && createdEvent != null)
+                {
+                    await _notificationService.NotifyAsync(createdEvent, currentUser, ClaimNotificationEvent.ClaimCreated);
+                }
 
                 var createdClaimDto = MapEventToDto(createdEvent!);
                 return CreatedAtAction(nameof(GetClaim), new { id = eventEntity.Id }, createdClaimDto);
@@ -276,6 +340,17 @@ namespace AutomotiveClaimsApi.Controllers
                 var existing = await _context.Events
                     .AsNoTracking()
                     .FirstOrDefaultAsync(e => e.Id == id);
+
+                ApplicationUser? currentUser = null;
+                bool isHandler = false;
+                if (_userManager != null)
+                {
+                    currentUser = await _userManager.GetUserAsync(User);
+                    if (currentUser != null)
+                    {
+                        isHandler = await _userManager.IsInRoleAsync(currentUser, "Admin");
+                    }
+                }
 
                 var isNew = existing == null;
 
@@ -393,9 +468,20 @@ namespace AutomotiveClaimsApi.Controllers
                     _context.Entry(existing).State = EntityState.Detached;
                 }
 
+                var originalStatus = existing.Status;
+
                 await UpsertClaimAsync(existing, eventDto);
 
                 await _context.SaveChangesAsync();
+
+                if (!isHandler && _notificationService != null)
+                {
+                    await _notificationService.NotifyAsync(existing, currentUser, ClaimNotificationEvent.ClaimUpdated);
+                    if (originalStatus != eventDto.Status)
+                    {
+                        await _notificationService.NotifyAsync(existing, currentUser, ClaimNotificationEvent.StatusChanged);
+                    }
+                }
 
                 return NoContent();
             }
@@ -448,6 +534,40 @@ namespace AutomotiveClaimsApi.Controllers
             {
                 _logger.LogError(ex, "Error deleting event {EventId}", id);
                 return StatusCode(500, new { error = "An error occurred while deleting the event" });
+            }
+        }
+
+        [HttpPost("{id}/attachments")]
+        public async Task<ActionResult<IEnumerable<DocumentDto>>> UploadClaimAttachments(Guid id, [FromForm] List<IFormFile> files, [FromForm] string? description)
+        {
+            try
+            {
+                if (files == null || files.Count == 0)
+                {
+                    return BadRequest(new { error = "No files provided" });
+                }
+
+                var results = new List<DocumentDto>();
+                foreach (var file in files)
+                {
+                    var docDto = await _documentService.UploadAndCreateDocumentAsync(file, new CreateDocumentDto
+                    {
+                        File = file,
+                        Category = "claims",
+                        Description = description,
+                        EventId = id,
+                        RelatedEntityId = id,
+                        RelatedEntityType = "Claim"
+                    });
+                    results.Add(docDto);
+                }
+
+                return Ok(results);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error uploading attachments for claim {ClaimId}", id);
+                return StatusCode(500, new { error = "Failed to upload attachments" });
             }
         }
 
@@ -639,6 +759,12 @@ namespace AutomotiveClaimsApi.Controllers
                     doc.UpdatedAt = DateTime.UtcNow;
                 }
             }
+
+            var options = new JsonSerializerOptions
+            {
+                DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
+            };
+            eventEntity.SearchData = JsonSerializer.Serialize(MapEventToDto(eventEntity), options);
         }
 
         private async Task<string> GenerateNextSpartaNumber()
@@ -680,6 +806,7 @@ namespace AutomotiveClaimsApi.Controllers
             entity.InsuranceCompanyEmail = dto.InsuranceCompanyEmail;
             entity.PolicyNumber = dto.PolicyNumber;
             entity.Status = dto.Status;
+            entity.ClaimStatusId = dto.ClaimStatusId;
             entity.DamageDate = dto.DamageDate;
             entity.ReportDate = dto.ReportDate;
             entity.ReportDateToInsurer = dto.ReportDateToInsurer;
@@ -1133,6 +1260,12 @@ namespace AutomotiveClaimsApi.Controllers
                         FirstName = dDto.FirstName,
                         LastName = dDto.LastName,
                         Phone = dDto.Phone,
+                        Email = dDto.Email,
+                        Address = dDto.Address,
+                        City = dDto.City,
+                        PostalCode = dDto.PostalCode,
+                        Country = dDto.Country,
+                        PersonalId = dDto.PersonalId,
                         LicenseNumber = dDto.LicenseNumber,
                         LicenseState = dDto.LicenseState,
                         LicenseExpirationDate = dDto.LicenseExpirationDate,
@@ -1157,6 +1290,12 @@ namespace AutomotiveClaimsApi.Controllers
                 driver.FirstName = dDto.FirstName;
                 driver.LastName = dDto.LastName;
                 driver.Phone = dDto.Phone;
+                driver.Email = dDto.Email;
+                driver.Address = dDto.Address;
+                driver.City = dDto.City;
+                driver.PostalCode = dDto.PostalCode;
+                driver.Country = dDto.Country;
+                driver.PersonalId = dDto.PersonalId;
                 driver.LicenseNumber = dDto.LicenseNumber;
                 driver.LicenseState = dDto.LicenseState;
                 driver.LicenseExpirationDate = dDto.LicenseExpirationDate;
@@ -1174,6 +1313,12 @@ namespace AutomotiveClaimsApi.Controllers
                     FirstName = dDto.FirstName,
                     LastName = dDto.LastName,
                     Phone = dDto.Phone,
+                    Email = dDto.Email,
+                    Address = dDto.Address,
+                    City = dDto.City,
+                    PostalCode = dDto.PostalCode,
+                    Country = dDto.Country,
+                    PersonalId = dDto.PersonalId,
                     LicenseNumber = dDto.LicenseNumber,
                     LicenseState = dDto.LicenseState,
                     LicenseExpirationDate = dDto.LicenseExpirationDate,
@@ -1240,6 +1385,12 @@ namespace AutomotiveClaimsApi.Controllers
                 FirstName = dto.FirstName,
                 LastName = dto.LastName,
                 Phone = dto.Phone,
+                Email = dto.Email,
+                Address = dto.Address,
+                City = dto.City,
+                PostalCode = dto.PostalCode,
+                Country = dto.Country,
+                PersonalId = dto.PersonalId,
                 LicenseNumber = dto.LicenseNumber,
                 LicenseState = dto.LicenseState,
                 LicenseExpirationDate = dto.LicenseExpirationDate,
@@ -1441,8 +1592,11 @@ namespace AutomotiveClaimsApi.Controllers
             };
         }
 
-        private static ClaimDto MapEventToDto(Event e) => new ClaimDto
+        private ClaimDto MapEventToDto(Event e)
         {
+            var baseUrl = _config["App:BaseUrl"];
+            return new ClaimDto
+            {
             Id = e.Id.ToString(),
             ClaimNumber = e.ClaimNumber,
             SpartaNumber = e.SpartaNumber,
@@ -1457,6 +1611,7 @@ namespace AutomotiveClaimsApi.Controllers
             InsuranceCompanyEmail = e.InsuranceCompanyEmail,
             PolicyNumber = e.PolicyNumber,
             Status = e.Status,
+            ClaimStatusId = e.ClaimStatusId,
             DamageDate = e.DamageDate,
             ReportDate = e.ReportDate,
             ReportDateToInsurer = e.ReportDateToInsurer,
@@ -1540,12 +1695,19 @@ namespace AutomotiveClaimsApi.Controllers
                     FirstName = d.FirstName,
                     LastName = d.LastName,
                     Phone = d.Phone,
+                    Email = d.Email,
+                    Address = d.Address,
+                    City = d.City,
+                    PostalCode = d.PostalCode,
+                    Country = d.Country,
+                    PersonalId = d.PersonalId,
                     LicenseNumber = d.LicenseNumber,
                     LicenseState = d.LicenseState,
                     LicenseExpirationDate = d.LicenseExpirationDate,
                     IsMainDriver = d.IsMainDriver
                 }).ToList()
             }).ToList(),
+
             Documents = e.Documents.Select(d => new DocumentDto
             {
                 Id = d.Id,
@@ -1553,6 +1715,7 @@ namespace AutomotiveClaimsApi.Controllers
                 FileName = d.FileName,
                 OriginalFileName = d.OriginalFileName,
                 FilePath = d.FilePath,
+                CloudUrl = d.CloudUrl,
                 FileSize = d.FileSize,
                 ContentType = d.ContentType,
                 Category = d.DocumentType,
@@ -1561,9 +1724,10 @@ namespace AutomotiveClaimsApi.Controllers
                 IsActive = !d.IsDeleted,
                 CreatedAt = d.CreatedAt,
                 UpdatedAt = d.UpdatedAt,
-                DownloadUrl = $"/api/documents/{d.Id}/download",
-                PreviewUrl = $"/api/documents/{d.Id}/preview",
+                DownloadUrl = $"{baseUrl}/api/documents/{d.Id}/download",
+                PreviewUrl = $"{baseUrl}/api/documents/{d.Id}/preview",
                 CanPreview = true
+
             }).ToList(),
             Damages = e.Damages.Select(d => new DamageDto
             {

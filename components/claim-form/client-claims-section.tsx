@@ -41,6 +41,14 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
+import {
+  createClientClaim,
+  updateClientClaim,
+  deleteClientClaim as apiDeleteClientClaim,
+  previewClientClaimDocument,
+  downloadClientClaimDocument,
+  type ClientClaimUpsert,
+} from "@/lib/api/clientclaims"
 
 interface ClientClaimsSectionProps {
   clientClaims: ClientClaim[]
@@ -67,7 +75,7 @@ export function ClientClaimsSection({ clientClaims, onClientClaimsChange, claimI
   const [isEditing, setIsEditing] = useState(false)
   const [editingClaim, setEditingClaim] = useState<ClientClaim | null>(null)
   const [isLoading, setIsLoading] = useState(false)
-  const [selectedFile, setSelectedFile] = useState<File | null>(null)
+  const [selectedFiles, setSelectedFiles] = useState<File[]>([])
   const [dragActive, setDragActive] = useState(false)
   const [outlookDragActive, setOutlookDragActive] = useState(false)
   const [previewModal, setPreviewModal] = useState<{
@@ -134,7 +142,7 @@ export function ClientClaimsSection({ clientClaims, onClientClaimsChange, claimI
       documentDescription: "",
     })
     setEditingClaim(null)
-    setSelectedFile(null)
+    setSelectedFiles([])
     setIsEditing(false)
     if (fileInputRef.current) {
       fileInputRef.current.value = ""
@@ -186,9 +194,7 @@ export function ClientClaimsSection({ clientClaims, onClientClaimsChange, claimI
     setIsLoading(true)
 
     try {
-      const claimData: ClientClaim = {
-        id: editingClaim?.id || crypto.randomUUID(),
-        eventId: claimId,
+      const payload: ClientClaimUpsert = {
         claimNumber: formData.claimNumber || undefined,
         claimDate: formData.claimDate,
         claimType: formData.claimType,
@@ -197,35 +203,26 @@ export function ClientClaimsSection({ clientClaims, onClientClaimsChange, claimI
         status: formData.status,
         description: formData.description,
         claimNotes: formData.claimNotes || undefined,
-        documentDescription: formData.documentDescription,
-        ...(selectedFile
-          ? {}
-          : {
-              documentPath: editingClaim?.documentPath,
-              documentName: editingClaim?.documentName,
-            }),
-        document: selectedFile
-          ? {
-              id: crypto.randomUUID(),
-              name: selectedFile.name,
-              size: selectedFile.size,
-              type: selectedFile.type,
-              uploadedAt: new Date().toISOString(),
-            }
-          : editingClaim?.document,
-        claimId,
-        createdAt: editingClaim?.createdAt || new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
+        documentDescription: formData.documentDescription || undefined,
       }
 
+      let savedClaim: ClientClaim
+
       if (editingClaim) {
-        onClientClaimsChange(clientClaims.map((claim) => (claim.id === editingClaim.id ? claimData : claim)))
+        savedClaim = await updateClientClaim(editingClaim.id!, payload, selectedFiles)
+        onClientClaimsChange(
+          clientClaims.map((claim) => (claim.id === editingClaim.id ? savedClaim : claim)),
+        )
         toast({
           title: "Sukces",
           description: "Roszczenie zostało zaktualizowane",
         })
       } else {
-        onClientClaimsChange([...clientClaims, claimData])
+        savedClaim = await createClientClaim(
+          { ...payload, eventId: claimId },
+          selectedFiles,
+        )
+        onClientClaimsChange([...clientClaims, savedClaim])
         toast({
           title: "Sukces",
           description: "Roszczenie zostało dodane",
@@ -259,22 +256,31 @@ export function ClientClaimsSection({ clientClaims, onClientClaimsChange, claimI
       claimNotes: claim.claimNotes || "",
       documentDescription: claim.documentDescription || "",
     })
-    setSelectedFile(null)
+    setSelectedFiles([])
     setIsFormVisible(true)
   }
 
-  const handleDelete = (claimId: string) => {
-    onClientClaimsChange(clientClaims.filter((claim) => claim.id !== claimId))
-    toast({
-      title: "Sukces",
-      description: "Roszczenie zostało usunięte",
-    })
+  const handleDelete = async (claimId: string) => {
+    try {
+      await apiDeleteClientClaim(claimId)
+      onClientClaimsChange(clientClaims.filter((claim) => claim.id !== claimId))
+      toast({
+        title: "Sukces",
+        description: "Roszczenie zostało usunięte",
+      })
+    } catch {
+      toast({
+        title: "Błąd",
+        description: "Nie udało się usunąć roszczenia",
+        variant: "destructive",
+      })
+    }
   }
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    if (file) {
-      setSelectedFile(file)
+    const files = e.target.files
+    if (files && files.length > 0) {
+      setSelectedFiles((prev) => [...prev, ...Array.from(files)])
     }
   }
 
@@ -305,7 +311,7 @@ export function ClientClaimsSection({ clientClaims, onClientClaimsChange, claimI
 
     const files = e.dataTransfer?.files
     if (files && files.length > 0) {
-      setSelectedFile(files[0])
+      setSelectedFiles((prev) => [...prev, ...Array.from(files)])
     }
   }
 
@@ -317,7 +323,7 @@ export function ClientClaimsSection({ clientClaims, onClientClaimsChange, claimI
           const file = items[i].getAsFile()
           if (file) {
             e.preventDefault()
-            setSelectedFile(file)
+            setSelectedFiles((prev) => [...prev, file])
             return
           }
         }
@@ -325,11 +331,14 @@ export function ClientClaimsSection({ clientClaims, onClientClaimsChange, claimI
     }
   }
 
-  const removeSelectedFile = () => {
-    setSelectedFile(null)
-    if (fileInputRef.current) {
-      fileInputRef.current.value = ""
-    }
+  const removeSelectedFile = (index: number) => {
+    setSelectedFiles((prev) => {
+      const updated = prev.filter((_, i) => i !== index)
+      if (fileInputRef.current && updated.length === 0) {
+        fileInputRef.current.value = ""
+      }
+      return updated
+    })
   }
 
   const getStatusBadge = (status: ClaimStatus) => {
@@ -402,14 +411,7 @@ export function ClientClaimsSection({ clientClaims, onClientClaimsChange, claimI
     }
 
     try {
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/client-claims/${claim.id}/preview`,
-        {
-          method: "GET",
-          credentials: "include",
-        }
-      )
-      const blob = await response.blob()
+      const blob = await previewClientClaimDocument(claim.id!)
       const url = URL.createObjectURL(blob)
 
       const extension = fileName.split(".").pop()?.toLowerCase()
@@ -445,14 +447,7 @@ export function ClientClaimsSection({ clientClaims, onClientClaimsChange, claimI
     }
 
     try {
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/client-claims/${claim.id}/download`,
-        {
-          method: "GET",
-          credentials: "include",
-        }
-      )
-      const blob = await response.blob()
+      const blob = await downloadClientClaimDocument(claim.id!)
       const url = URL.createObjectURL(blob)
 
       const a = document.createElement("a")
@@ -675,6 +670,7 @@ export function ClientClaimsSection({ clientClaims, onClientClaimsChange, claimI
                     type="file"
                     accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
                     onChange={handleFileSelect}
+                    multiple
                     className="hidden"
                   />
                   <Button type="button" variant="outline" onClick={() => fileInputRef.current?.click()}>
@@ -682,28 +678,45 @@ export function ClientClaimsSection({ clientClaims, onClientClaimsChange, claimI
                   </Button>
                 </div>
 
-                {selectedFile && (
-                  <div className="mt-4 p-3 bg-gray-50 rounded border">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center space-x-2">
-                        <FileText className="h-4 w-4 text-gray-500" />
-                        <span className="text-sm">{selectedFile.name}</span>
-                        <span className="text-xs text-gray-500">({(selectedFile.size / 1024).toFixed(1)} KB)</span>
+                {selectedFiles.length > 0 && (
+                  <div className="mt-4 space-y-2">
+                    {selectedFiles.map((file, index) => (
+                      <div
+                        key={index}
+                        className="p-3 bg-gray-50 rounded border flex items-center justify-between"
+                      >
+                        <div className="flex items-center space-x-2">
+                          <FileText className="h-4 w-4 text-gray-500" />
+                          <span className="text-sm">{file.name}</span>
+                          <span className="text-xs text-gray-500">
+                            ({(file.size / 1024).toFixed(1)} KB)
+                          </span>
+                        </div>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => removeSelectedFile(index)}
+                        >
+                          <X className="h-4 w-4" />
+                        </Button>
                       </div>
-                      <Button type="button" variant="ghost" size="sm" onClick={removeSelectedFile}>
-                        <X className="h-4 w-4" />
-                      </Button>
-                    </div>
+                    ))}
 
                     <div className="mt-2">
-                      <Label htmlFor="documentDescription" className="text-sm font-medium text-gray-700">
+                      <Label
+                        htmlFor="documentDescription"
+                        className="text-sm font-medium text-gray-700"
+                      >
                         Opis dokumentu
                       </Label>
                       <Input
                         id="documentDescription"
                         placeholder="Dodaj opis dokumentu..."
                         value={formData.documentDescription}
-                        onChange={(e) => setFormData((prev) => ({ ...prev, documentDescription: e.target.value }))}
+                        onChange={(e) =>
+                          setFormData((prev) => ({ ...prev, documentDescription: e.target.value }))
+                        }
                         className="mt-1"
                       />
                     </div>

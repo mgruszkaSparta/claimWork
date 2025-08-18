@@ -16,8 +16,10 @@ export default function SettingsLayout({ children }: { children: ReactNode }) {
   const settingsItems = [
     { href: '/settings/clients', label: 'Klienci' },
     { href: '/settings/users', label: 'Użytkownicy' },
+    { href: '/settings/case-handlers', label: 'Likwidatorzy' },
     { href: '/settings/risk-types', label: 'Typy ryzyka' },
     { href: '/settings/damage-types', label: 'Typy szkód' },
+    { href: '/settings/notifications', label: 'Powiadomienia' },
   ]
 
   return (

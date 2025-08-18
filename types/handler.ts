@@ -1,3 +1,4 @@
+
 // Base model for handler data
 export interface Handler {
   id: string
@@ -55,4 +56,5 @@ export interface ExtendedHandler extends Handler {
   avatar?: string
   bio?: string
   specializations?: string[]
+
 }

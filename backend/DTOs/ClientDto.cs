@@ -8,8 +8,8 @@ namespace AutomotiveClaimsApi.DTOs
         public string Name { get; set; } = string.Empty;
         public string? FullName { get; set; }
         public string? ShortName { get; set; }
-        public string? TaxId { get; set; }
-        public string? RegistrationNumber { get; set; }
+        public string? Nip { get; set; }
+        public string? Regon { get; set; }
         public string? PhoneNumber { get; set; }
         public string? Email { get; set; }
         public string? Address { get; set; }

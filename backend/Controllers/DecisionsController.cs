@@ -9,6 +9,8 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Identity;
+using System.Security.Claims;
 
 namespace AutomotiveClaimsApi.Controllers
 {
@@ -19,12 +21,18 @@ namespace AutomotiveClaimsApi.Controllers
         private readonly ApplicationDbContext _context;
         private readonly IDocumentService _documentService;
         private readonly ILogger<DecisionsController> _logger;
+        private readonly UserManager<ApplicationUser>? _userManager;
+        private readonly INotificationService? _notificationService;
 
-        public DecisionsController(ApplicationDbContext context, IDocumentService documentService, ILogger<DecisionsController> logger)
+        public DecisionsController(ApplicationDbContext context, IDocumentService documentService, ILogger<DecisionsController> logger,
+            UserManager<ApplicationUser>? userManager = null,
+            INotificationService? notificationService = null)
         {
             _context = context;
             _documentService = documentService;
             _logger = logger;
+            _userManager = userManager;
+            _notificationService = notificationService;
         }
 
         [HttpGet]
@@ -80,25 +88,12 @@ namespace AutomotiveClaimsApi.Controllers
         [HttpPost]
         public async Task<ActionResult<DecisionDto>> CreateDecision(Guid claimId, [FromForm] CreateDecisionDto createDto)
         {
-            DocumentDto? document = null;
             try
             {
                 var eventEntity = await _context.Events.FindAsync(claimId);
                 if (eventEntity == null)
                 {
                     return NotFound(new { error = "Event not found" });
-                }
-
-                if (createDto.Document != null)
-                {
-                    var docCreate = new CreateDocumentDto
-                    {
-                        EventId = claimId,
-                        File = createDto.Document,
-                        Category = "decisions",
-                        Description = createDto.DocumentDescription
-                    };
-                    document = await _documentService.UploadAndCreateDocumentAsync(createDto.Document, docCreate);
                 }
 
                 var decision = new Decision
@@ -111,8 +106,6 @@ namespace AutomotiveClaimsApi.Controllers
                     Currency = createDto.Currency,
                     CompensationTitle = createDto.CompensationTitle,
                     DocumentDescription = createDto.DocumentDescription,
-                    DocumentName = document?.OriginalFileName ?? document?.FileName,
-                    DocumentPath = document?.FilePath,
                     CreatedAt = DateTime.UtcNow,
                     UpdatedAt = DateTime.UtcNow
                 };
@@ -120,14 +113,52 @@ namespace AutomotiveClaimsApi.Controllers
                 _context.Decisions.Add(decision);
                 await _context.SaveChangesAsync();
 
+                if (createDto.Documents != null && createDto.Documents.Any())
+                {
+                    foreach (var file in createDto.Documents)
+                    {
+                        var docDto = await _documentService.UploadAndCreateDocumentAsync(file, new CreateDocumentDto
+                        {
+                            File = file,
+                            Category = "decisions",
+                            Description = createDto.DocumentDescription,
+                            EventId = claimId,
+                            RelatedEntityId = decision.Id,
+                            RelatedEntityType = "Decision"
+                        });
+
+                        if (string.IsNullOrEmpty(decision.DocumentPath))
+                        {
+                            decision.DocumentPath = docDto.FilePath;
+                            decision.DocumentName = docDto.OriginalFileName ?? docDto.FileName;
+                        }
+                    }
+                    await _context.SaveChangesAsync();
+                }
+
+                if (_notificationService != null)
+                {
+                    ApplicationUser? currentUser = null;
+                    bool isHandler = false;
+                    if (_userManager != null)
+                    {
+                        currentUser = await _userManager.GetUserAsync(User);
+                        if (currentUser != null)
+                        {
+                            isHandler = await _userManager.IsInRoleAsync(currentUser, "Admin");
+                        }
+                    }
+
+                    if (!isHandler)
+                    {
+                        await _notificationService.NotifyAsync(eventEntity, currentUser, ClaimNotificationEvent.DecisionAdded);
+                    }
+                }
+
                 return CreatedAtAction(nameof(GetDecision), new { claimId, id = decision.Id }, MapToDto(decision));
             }
             catch (Exception ex)
             {
-                if (document != null)
-                {
-                    await _documentService.DeleteDocumentAsync(document.Id);
-                }
                 _logger.LogError(ex, "Error creating decision for claim {ClaimId}", claimId);
                 return StatusCode(500, new { error = "Failed to create decision" });
             }
@@ -136,7 +167,6 @@ namespace AutomotiveClaimsApi.Controllers
         [HttpPut("{id}")]
         public async Task<ActionResult<DecisionDto>> UpdateDecision(Guid claimId, Guid id, [FromForm] UpdateDecisionDto updateDto)
         {
-            DocumentDto? newDocument = null;
             try
             {
                 var decision = await _context.Decisions.FirstOrDefaultAsync(d => d.Id == id && d.EventId == claimId);
@@ -153,37 +183,34 @@ namespace AutomotiveClaimsApi.Controllers
                 decision.DocumentDescription = updateDto.DocumentDescription ?? decision.DocumentDescription;
                 decision.UpdatedAt = DateTime.UtcNow;
 
-                string? oldPath = decision.DocumentPath;
-
-                if (updateDto.Document != null)
+                if (updateDto.Documents != null && updateDto.Documents.Any())
                 {
-                    var docCreate = new CreateDocumentDto
+                    foreach (var file in updateDto.Documents)
                     {
-                        EventId = claimId,
-                        File = updateDto.Document,
-                        Category = "decisions",
-                        Description = updateDto.DocumentDescription
-                    };
-                    newDocument = await _documentService.UploadAndCreateDocumentAsync(updateDto.Document, docCreate);
-                    decision.DocumentPath = newDocument.FilePath;
-                    decision.DocumentName = newDocument.OriginalFileName ?? newDocument.FileName;
+                        var docDto = await _documentService.UploadAndCreateDocumentAsync(file, new CreateDocumentDto
+                        {
+                            File = file,
+                            Category = "decisions",
+                            Description = updateDto.DocumentDescription,
+                            EventId = claimId,
+                            RelatedEntityId = decision.Id,
+                            RelatedEntityType = "Decision"
+                        });
+
+                        if (string.IsNullOrEmpty(decision.DocumentPath))
+                        {
+                            decision.DocumentPath = docDto.FilePath;
+                            decision.DocumentName = docDto.OriginalFileName ?? docDto.FileName;
+                        }
+                    }
                 }
 
                 await _context.SaveChangesAsync();
-
-                if (newDocument != null && !string.IsNullOrEmpty(oldPath))
-                {
-                    await _documentService.DeleteDocumentAsync(oldPath);
-                }
 
                 return Ok(MapToDto(decision));
             }
             catch (Exception ex)
             {
-                if (newDocument != null)
-                {
-                    await _documentService.DeleteDocumentAsync(newDocument.Id);
-                }
                 _logger.LogError(ex, "Error updating decision {DecisionId} for claim {ClaimId}", id, claimId);
                 return StatusCode(500, new { error = "Failed to update decision" });
             }

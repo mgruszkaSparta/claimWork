@@ -48,6 +48,14 @@ namespace AutomotiveClaimsApi.Data
         {
             base.OnModelCreating(modelBuilder);
 
+            modelBuilder.Entity<ApplicationUser>(entity =>
+            {
+                entity.HasOne(u => u.Client)
+                      .WithMany()
+                      .HasForeignKey(u => u.ClientId)
+                      .OnDelete(DeleteBehavior.SetNull);
+            });
+
             // Event is the central aggregate root
             modelBuilder.Entity<Event>(entity =>
             {
@@ -58,6 +66,11 @@ namespace AutomotiveClaimsApi.Data
                 entity.HasOne(e => e.RegisteredBy)
                       .WithMany()
                       .HasForeignKey(e => e.RegisteredById)
+                      .OnDelete(DeleteBehavior.SetNull);
+
+                entity.HasOne(e => e.ClaimStatus)
+                      .WithMany()
+                      .HasForeignKey(e => e.ClaimStatusId)
                       .OnDelete(DeleteBehavior.SetNull);
 
                 entity.HasMany(e => e.Damages).WithOne(d => d.Event).HasForeignKey(d => d.EventId).OnDelete(DeleteBehavior.Cascade);
@@ -89,7 +102,7 @@ namespace AutomotiveClaimsApi.Data
                 entity.HasOne(d => d.Event)
                       .WithMany()
                       .HasForeignKey(d => d.EventId)
-                      .OnDelete(DeleteBehavior.Cascade);
+                      .OnDelete(DeleteBehavior.Restrict);
             });
 
             modelBuilder.Entity<DamageType>(entity =>

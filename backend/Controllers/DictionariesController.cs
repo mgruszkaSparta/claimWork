@@ -35,6 +35,9 @@ namespace AutomotiveClaimsApi.Controllers
                         Id = h.Id.ToString(),
                         Name = h.Name,
                         Code = h.Code,
+                        Email = h.Email,
+                        Phone = h.Phone,
+                        Department = h.Department,
                         IsActive = h.IsActive
                     })
                     .ToListAsync();

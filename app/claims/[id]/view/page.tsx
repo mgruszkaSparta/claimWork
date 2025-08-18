@@ -1,6 +1,6 @@
-"use client"
+'use client';
 
-import { useState, useEffect, useCallback } from "react"
+import React, { useState, useEffect, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -319,60 +319,62 @@ export default function ViewClaimPage() {
     setScheduleFormData({})
   }
 
-  const handleCancelRepairDetail = () => {
-    setIsAddingRepairDetail(false)
-    setRepairDetailFormData({})
-  }
+    const handleCancelRepairDetail = () => {
+      setIsAddingRepairDetail(false);
+      setRepairDetailFormData({});
+    };
 
-  const handleBranchChange = (branchId: string) => {
-    setRepairDetailFormData({ ...repairDetailFormData, branchId, employeeEmail: "" })
-  }
+    const handleBranchChange = (branchId: string) => {
+      setRepairDetailFormData({ ...repairDetailFormData, branchId, employeeEmail: "" });
+    };
 
-  const getTotalHours = () => {
-    return (repairDetailFormData.bodyworkHours || 0) + 
-           (repairDetailFormData.paintingHours || 0) + 
-           (repairDetailFormData.assemblyHours || 0) + 
-           (repairDetailFormData.otherWorkHours || 0)
-  }
+    const getTotalHours = () => {
+      return (
+        (repairDetailFormData.bodyworkHours || 0) +
+        (repairDetailFormData.paintingHours || 0) +
+        (repairDetailFormData.assemblyHours || 0) +
+        (repairDetailFormData.otherWorkHours || 0)
+      );
+    };
 
-  const formatDate = (dateString?: string) => {
-    if (!dateString) return "-"
-    try {
-      return new Date(dateString).toLocaleDateString("pl-PL")
-    } catch {
-      return dateString
-    }
-  }
+    const formatDate = (dateString?: string) => {
+      if (!dateString) return "-";
+      try {
+        return new Date(dateString).toLocaleDateString("pl-PL");
+      } catch {
+        return dateString;
+      }
+    };
 
-  const formatCurrency = (amount?: number, currency = "PLN") => {
-    if (amount === undefined || amount === null) return "-"
-    return new Intl.NumberFormat("pl-PL", {
-      style: "currency",
-      currency: currency,
-    }).format(amount)
-  }
+    const formatCurrency = (amount?: number, currency = "PLN") => {
+      if (amount === undefined || amount === null) return "-";
+      return new Intl.NumberFormat("pl-PL", {
+        style: "currency",
+        currency: currency,
+      }).format(amount);
+    };
 
-  const getStatusBadge = (status?: string) => {
-    const statusColors: Record<string, string> = {
-      nowa: "bg-blue-100 text-blue-800",
-      "w-trakcie": "bg-yellow-100 text-yellow-800",
-      zamknieta: "bg-green-100 text-green-800",
-      anulowana: "bg-red-100 text-red-800",
-    }
+    const getStatusBadge = (status?: string) => {
+      const statusColors: Record<string, string> = {
+        nowa: "bg-blue-100 text-blue-800",
+        "w-trakcie": "bg-yellow-100 text-yellow-800",
+        zamknieta: "bg-green-100 text-green-800",
+        anulowana: "bg-red-100 text-red-800",
+      };
 
-    return <Badge className={statusColors[status || "nowa"] || "bg-gray-100 text-gray-800"}>{status || "Nowa"}</Badge>
-  }
+      return <Badge className={statusColors[status || "nowa"] || "bg-gray-100 text-gray-800"}>{status || "Nowa"}</Badge>;
+    };
 
-  const getRepairDetailStatusBadge = (status: RepairDetail["status"]) => {
-    const statusConfig = {
-      draft: { label: "Szkic", variant: "secondary" as const },
-      "in-progress": { label: "W trakcie", variant: "default" as const },
-      completed: { label: "Zakończony", variant: "default" as const },
-    }
+    const getRepairDetailStatusBadge = (status: RepairDetail["status"]) => {
+      const statusConfig = {
+        draft: { label: "Szkic", variant: "secondary" as const },
+        "in-progress": { label: "W trakcie", variant: "default" as const },
+        completed: { label: "Zakończony", variant: "default" as const },
+      };
 
-    const config = statusConfig[status]
-    return <Badge variant={config.variant}>{config.label}</Badge>
-  }
+      const config = statusConfig[status];
+      return <Badge variant={config.variant}>{config.label}</Badge>;
+    };
 
   if (isLoading) {
     return (
@@ -1720,7 +1722,8 @@ export default function ViewClaimPage() {
         </DialogContent>
       </Dialog>
 
-      <Toaster />
+        <Toaster />
+      </div>
     </div>
   )
 }

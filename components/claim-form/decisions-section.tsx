@@ -244,14 +244,13 @@ export function DecisionsSection({ claimId, onChange }: DecisionsSectionProps) {
         currency: formData.currency,
         compensationTitle: formData.compensationTitle ?? undefined,
         documentDescription: formData.documentDescription || undefined,
-        document: selectedFiles[0],
       }
 
       if (isEditing && editingDecisionId) {
-        await apiUpdateDecision(claimId, editingDecisionId, payload)
+        await apiUpdateDecision(claimId, editingDecisionId, payload, selectedFiles)
         toast({ title: "Sukces", description: "Decyzja została zaktualizowana" })
       } else {
-        await apiCreateDecision(claimId, payload)
+        await apiCreateDecision(claimId, payload, selectedFiles)
         toast({ title: "Sukces", description: "Decyzja została dodana" })
       }
 

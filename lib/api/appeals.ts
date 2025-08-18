@@ -1,4 +1,4 @@
-import { AppealDto, API_BASE_URL } from "../api";
+import { AppealDto, API_BASE_URL, DocumentDto } from "../api";
 
 export interface Appeal {
   id: string;
@@ -11,6 +11,17 @@ export interface Appeal {
   documentName?: string;
   documentDescription?: string;
   alertDays?: number;
+  documentId?: string;
+  documents?: DocumentDto[];
+}
+
+export interface AppealUpsert {
+  eventId?: string;
+  filingDate: string;
+  extensionDate?: string;
+  decisionDate?: string;
+  status?: string;
+  documentDescription?: string;
 }
 
 function formatDate(date?: string | null): string | undefined {
@@ -28,10 +39,23 @@ function mapDtoToAppeal(dto: AppealDto): Appeal {
     documentName: dto.documentName,
     documentDescription: dto.documentDescription,
     alertDays: dto.daysSinceSubmission,
+    documentId: dto.documentId,
+    documents: dto.documents,
   };
 }
 
 const APPEALS_URL = `${API_BASE_URL}/appeals`;
+
+function buildFormData(data: AppealUpsert, documents: File[] = []) {
+  const formData = new FormData();
+  Object.entries(data).forEach(([key, value]) => {
+    if (value !== undefined && value !== null) {
+      formData.append(key, value.toString());
+    }
+  });
+  documents.forEach((file) => formData.append("documents", file));
+  return formData;
+}
 
 export async function getAppeals(claimId: string): Promise<Appeal[]> {
   const response = await fetch(`${APPEALS_URL}/event/${claimId}`, {
@@ -45,11 +69,15 @@ export async function getAppeals(claimId: string): Promise<Appeal[]> {
   return data.map(mapDtoToAppeal);
 }
 
-export async function createAppeal(formData: FormData): Promise<Appeal> {
+export async function createAppeal(
+  data: AppealUpsert,
+  documents: File[] = [],
+): Promise<Appeal> {
+  const body = buildFormData(data, documents);
   const response = await fetch(APPEALS_URL, {
     method: "POST",
     credentials: "include",
-    body: formData,
+    body,
   });
   if (!response.ok) {
     throw new Error("Failed to create appeal");
@@ -60,12 +88,14 @@ export async function createAppeal(formData: FormData): Promise<Appeal> {
 
 export async function updateAppeal(
   id: string,
-  formData: FormData,
+  data: AppealUpsert,
+  documents: File[] = [],
 ): Promise<Appeal> {
+  const body = buildFormData(data, documents);
   const response = await fetch(`${APPEALS_URL}/${id}`, {
     method: "PUT",
     credentials: "include",
-    body: formData,
+    body,
   });
   if (!response.ok) {
     throw new Error("Failed to update appeal");
@@ -83,3 +113,4 @@ export async function deleteAppeal(id: string): Promise<void> {
     throw new Error("Failed to delete appeal");
   }
 }
+

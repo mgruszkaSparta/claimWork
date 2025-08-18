@@ -54,11 +54,12 @@ export default function NewClaimPage() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const claimObjectTypeParam = searchParams.get("claimObjectType") || "1"
+  const [claimObjectType, setClaimObjectType] = useState(claimObjectTypeParam)
   const { toast } = useToast()
   const { createClaim, deleteClaim, initializeClaim } = useClaims()
   const { user } = useAuth()
   const [claimId, setClaimId] = useState<string>("")
-  const [activeClaimSection, setActiveClaimSection] = useState("dane-zdarzenia-podstawowe")
+  const [activeClaimSection, setActiveClaimSection] = useState("teczka-szkodowa")
   const [isSaving, setIsSaving] = useState(false)
   
   // Repair schedules and details state
@@ -69,6 +70,7 @@ export default function NewClaimPage() {
   const [scheduleFormData, setScheduleFormData] = useState<Partial<RepairSchedule>>({})
   const [repairDetailFormData, setRepairDetailFormData] = useState<Partial<RepairDetail>>({})
   const [employeesForSelectedBranch, setEmployeesForSelectedBranch] = useState<Employee[]>([])
+
 
   const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([
     {
@@ -123,6 +125,15 @@ export default function NewClaimPage() {
   }, [user, setClaimFormData])
 
   useEffect(() => {
+    if (user?.roles) {
+      const privileged = user.roles.some((r) =>
+        ["likwidacja", "administrator", "admin"].includes(r.toLowerCase()),
+      )
+      setActiveClaimSection(privileged ? "dane-zdarzenia" : "teczka-szkodowa")
+    }
+  }, [user])
+
+  useEffect(() => {
     const clientId = searchParams.get("clientId")
     const riskType = searchParams.get("riskType")
     const damageType = searchParams.get("damageType")
@@ -142,6 +153,13 @@ export default function NewClaimPage() {
         .catch((e) => console.error(e))
     }
   }, [searchParams, setClaimFormData])
+
+  useEffect(() => {
+    if (claimFormData.objectTypeId) {
+      setClaimObjectType(claimFormData.objectTypeId.toString())
+    }
+  }, [claimFormData.objectTypeId])
+
 
   const getInitialScheduleData = (): Partial<RepairSchedule> => ({
     eventId: "new",
@@ -400,8 +418,12 @@ export default function NewClaimPage() {
       <ClaimTopHeader claimFormData={claimFormData} onClose={handleClose} />
       
       <div className="flex flex-1 min-h-0">
-        <ClaimFormSidebar activeClaimSection={activeClaimSection} setActiveClaimSection={setActiveClaimSection} />
-        
+        <ClaimFormSidebar
+          activeClaimSection={activeClaimSection}
+          setActiveClaimSection={setActiveClaimSection}
+          claimObjectType={claimObjectType}
+        />
+
         <div className="flex-1 overflow-y-auto bg-gray-50">
           <div className="p-6 min-h-full">
             <ClaimMainContent
@@ -416,7 +438,7 @@ export default function NewClaimPage() {
               setUploadedFiles={setUploadedFiles}
               requiredDocuments={requiredDocuments}
               setRequiredDocuments={setRequiredDocuments}
-              initialClaimObjectType={claimObjectTypeParam}
+              initialClaimObjectType={claimObjectType}
             />
 
             {/* Repair Schedules and Details Section */}

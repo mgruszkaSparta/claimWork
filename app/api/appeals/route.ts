@@ -1,14 +1,12 @@
-import { type NextRequest, NextResponse } from "next/server"
-
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5200/api"
 
-export async function GET(request: NextRequest) {
+export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url)
     const eventId = searchParams.get("eventId") || searchParams.get("claimId")
 
     if (!eventId) {
-      return NextResponse.json({ error: "eventId is required" }, { status: 400 })
+      return Response.json({ error: "eventId is required" }, { status: 400 })
     }
 
     const response = await fetch(`${API_BASE_URL}/appeals/event/${eventId}`, {
@@ -19,18 +17,18 @@ export async function GET(request: NextRequest) {
     if (!response.ok) {
       const errorText = await response.text()
       console.error("Backend error in GET /api/appeals:", errorText)
-      return NextResponse.json({ error: "Failed to fetch appeals" }, { status: response.status })
+      return Response.json({ error: "Failed to fetch appeals" }, { status: response.status })
     }
 
     const data = await response.json()
-    return NextResponse.json(data)
+    return Response.json(data)
   } catch (error) {
     console.error("Error in GET /api/appeals:", error)
-    return NextResponse.json({ error: "Failed to fetch appeals" }, { status: 500 })
+    return Response.json({ error: "Failed to fetch appeals" }, { status: 500 })
   }
 }
 
-export async function POST(request: NextRequest) {
+export async function POST(request: Request) {
   try {
     const formData = await request.formData()
     const backendFormData = new FormData()
@@ -47,13 +45,14 @@ export async function POST(request: NextRequest) {
       return fieldMap[key] || `${key.charAt(0).toUpperCase()}${key.slice(1)}`
     }
 
-    formData.forEach((value, key) => {
-      if (key === "documents" && value instanceof File) {
-        if (!backendFormData.has("Document")) {
-          backendFormData.append("Document", value)
-        }
+    const documents = formData
+      .getAll("documents")
+      .filter((d): d is File => d instanceof File)
+    documents.forEach((doc) => backendFormData.append("Document", doc))
 
-      } else if (key === "claimId" && typeof value === "string") {
+    formData.forEach((value, key) => {
+      if (key === "documents") return
+      if (key === "claimId" && typeof value === "string") {
         backendFormData.append("EventId", value)
       } else if (key === "extensionDate" && typeof value === "string") {
         backendFormData.append("ExtensionDate", value)
@@ -70,14 +69,14 @@ export async function POST(request: NextRequest) {
     if (!response.ok) {
       const errorText = await response.text()
       console.error("Backend error in POST /api/appeals:", errorText)
-      return NextResponse.json({ error: "Failed to create appeal" }, { status: response.status })
+      return Response.json({ error: "Failed to create appeal" }, { status: response.status })
     }
 
     const result = await response.json()
-    return NextResponse.json(result, { status: response.status })
+    return Response.json(result, { status: response.status })
   } catch (error) {
     console.error("Error in POST /api/appeals:", error)
-    return NextResponse.json({ error: "Failed to create appeal" }, { status: 500 })
+    return Response.json({ error: "Failed to create appeal" }, { status: 500 })
   }
 }
 

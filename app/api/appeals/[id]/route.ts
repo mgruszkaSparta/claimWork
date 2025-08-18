@@ -72,12 +72,16 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
     const formData = await request.formData()
     const backendFormData = new FormData()
 
+    const documents = formData.getAll("documents")
+    documents.forEach((doc) => {
+      if (doc instanceof File) {
+        backendFormData.append("Documents", doc)
+      }
+    })
+
     formData.forEach((value, key) => {
-      if (key === "documents" && value instanceof File) {
-        if (!backendFormData.has("Document")) {
-          backendFormData.append("Document", value)
-        }
-      } else if (key === "extensionDate" && typeof value === "string") {
+      if (key === "documents") return
+      if (key === "extensionDate" && typeof value === "string") {
         backendFormData.append("ExtensionDate", value)
       } else if (typeof value === "string") {
         backendFormData.append(key, value)

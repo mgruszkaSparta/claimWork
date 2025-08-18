@@ -1,6 +1,27 @@
 // API Configuration
 export const API_BASE_URL =
-  process.env.NEXT_PUBLIC_API_URL || "http://localhost:5200/api"
+  process.env.NEXT_PUBLIC_API_BASE_URL?.replace(/\/+$/, "") ||
+  process.env.NEXT_PUBLIC_API_URL?.replace(/\/+$/, "") ||
+  "http://localhost:5200/api"
+
+export async function getJson<T>(
+  path: string,
+  init?: RequestInit,
+): Promise<T> {
+  const res = await fetch(`${API_BASE_URL}${path}`, {
+    ...init,
+    headers: {
+      "Content-Type": "application/json",
+      ...(init?.headers || {}),
+    },
+    cache: "no-store",
+  })
+  if (!res.ok) {
+    const text = await res.text().catch(() => "")
+    throw new Error(`GET ${path} ${res.status}: ${text || res.statusText}`)
+  }
+  return res.json() as Promise<T>
+}
 
 // Types for API responses
 export interface EventListItemDto {
@@ -13,12 +34,17 @@ export interface EventListItemDto {
   liquidator?: string
   brand?: string
   status?: string
+  claimStatusId?: string
   damageDate?: string
   totalClaim?: number
   payout?: number
   currency?: string
   insuranceCompanyId?: number
   insuranceCompany?: string
+  insurerClaimNumber?: string
+  reportDate?: string
+  riskType?: string
+  damageType?: string
   leasingCompanyId?: number
   leasingCompany?: string
   handlerId?: number
@@ -29,7 +55,6 @@ export interface EventListItemDto {
 }
 
 export interface EventDto extends EventListItemDto {
-  reportDate?: string
   reportDateToInsurer?: string
   eventTime?: string
   location?: string
@@ -71,6 +96,7 @@ export interface DocumentDto {
   fileName: string
   originalFileName?: string
   filePath: string
+  cloudUrl?: string
   fileSize: number
   contentType: string
   category?: string
@@ -85,6 +111,11 @@ export interface DocumentDto {
   canPreview?: boolean
 }
 
+export interface ClaimNotificationSettings {
+  recipients: string[]
+  events: string[]
+}
+
 export interface EventUpsertDto {
   id?: string
   rowVersion?: string
@@ -96,6 +127,7 @@ export interface EventUpsertDto {
   liquidator?: string
   brand?: string
   status?: string
+  claimStatusId?: string
   riskType?: string
   damageType?: string
   objectTypeId?: number
@@ -167,8 +199,8 @@ export interface ClientDto {
   name: string
   fullName?: string
   shortName?: string
-  taxId?: string
-  registrationNumber?: string
+  nip?: string
+  regon?: string
   phoneNumber?: string
   email?: string
   address?: string
@@ -183,8 +215,8 @@ export interface CreateClientDto {
   name: string
   fullName?: string
   shortName?: string
-  taxId?: string
-  registrationNumber?: string
+  nip?: string
+  regon?: string
   phoneNumber?: string
   email?: string
   address?: string
@@ -197,8 +229,8 @@ export interface UpdateClientDto {
   name?: string
   fullName?: string
   shortName?: string
-  taxId?: string
-  registrationNumber?: string
+  nip?: string
+  regon?: string
   phoneNumber?: string
   email?: string
   address?: string
@@ -225,6 +257,34 @@ export interface DamageTypeDto {
   isActive: boolean
   createdAt: string
   updatedAt?: string
+}
+
+export interface CaseHandlerDto {
+  id: number
+  name: string
+  code?: string
+  email?: string
+  phone?: string
+  department?: string
+  isActive: boolean
+}
+
+export interface CreateCaseHandlerDto {
+  name: string
+  code?: string
+  email?: string
+  phone?: string
+  department?: string
+  isActive?: boolean
+}
+
+export interface UpdateCaseHandlerDto {
+  name?: string
+  code?: string
+  email?: string
+  phone?: string
+  department?: string
+  isActive?: boolean
 }
 
 export interface CreateRiskTypeDto {
@@ -465,6 +525,8 @@ export interface AppealDto {
   documentPath?: string
   documentName?: string
   documentDescription?: string
+  documentId?: string
+  documents?: DocumentDto[]
   createdAt?: string
   updatedAt?: string
   daysSinceSubmission?: number
@@ -540,6 +602,8 @@ export interface RecourseDto {
   documentPath?: string
   documentName?: string
   documentDescription?: string
+  documentId?: string
+  documents?: DocumentDto[]
   createdAt?: string
   updatedAt?: string
 }
@@ -584,6 +648,8 @@ export interface SettlementDto {
   documentPath?: string
   documentName?: string
   documentDescription?: string
+  documentId?: string
+  documents?: DocumentDto[]
 }
 
 export interface SettlementUpsertDto {
@@ -1034,6 +1100,43 @@ class ApiService {
   async deleteDamageType(id: string): Promise<void> {
     await this.request<void>(`/damage-types/${id}`, {
       method: 'DELETE',
+    })
+  }
+
+  // Case Handlers API
+  async getCaseHandlers(): Promise<CaseHandlerDto[]> {
+    return this.request<CaseHandlerDto[]>('/case-handlers')
+  }
+
+  async createCaseHandler(data: CreateCaseHandlerDto): Promise<CaseHandlerDto> {
+    return this.request<CaseHandlerDto>('/case-handlers', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    })
+  }
+
+  async updateCaseHandler(id: number, data: UpdateCaseHandlerDto): Promise<void> {
+    await this.request<void>(`/case-handlers/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    })
+  }
+
+  async deleteCaseHandler(id: number): Promise<void> {
+    await this.request<void>(`/case-handlers/${id}`, {
+      method: 'DELETE',
+    })
+  }
+
+  // Notification settings API
+  async getNotificationSettings(): Promise<ClaimNotificationSettings> {
+    return this.request<ClaimNotificationSettings>('/ClaimNotifications')
+  }
+
+  async updateNotificationSettings(data: ClaimNotificationSettings): Promise<void> {
+    await this.request<void>('/ClaimNotifications', {
+      method: 'PUT',
+      body: JSON.stringify(data),
     })
   }
 

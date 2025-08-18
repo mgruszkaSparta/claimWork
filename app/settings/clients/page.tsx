@@ -23,8 +23,8 @@ export default function ClientsPage() {
     address: "",
     city: "",
     postalCode: "",
-    taxId: "",
-    registrationNumber: "",
+    nip: "",
+    regon: "",
     isActive: true,
   })
   const [editingId, setEditingId] = useState<number | null>(null)
@@ -52,8 +52,8 @@ export default function ClientsPage() {
       address: "",
       city: "",
       postalCode: "",
-      taxId: "",
-      registrationNumber: "",
+      nip: "",
+      regon: "",
       isActive: true,
     })
     setEditingId(null)
@@ -68,8 +68,8 @@ export default function ClientsPage() {
       address: client.address,
       city: client.city,
       postalCode: client.postalCode,
-      taxId: client.taxId,
-      registrationNumber: client.registrationNumber,
+      nip: client.nip,
+      regon: client.regon,
       isActive: client.isActive,
     })
     setEditingId(client.id)
@@ -118,6 +118,24 @@ export default function ClientsPage() {
             />
           </div>
         </div>
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <Label htmlFor="nip">NIP</Label>
+            <Input
+              id="nip"
+              value={formData.nip ?? ""}
+              onChange={(e) => setFormData({ ...formData, nip: e.target.value })}
+            />
+          </div>
+          <div>
+            <Label htmlFor="regon">REGON</Label>
+            <Input
+              id="regon"
+              value={formData.regon ?? ""}
+              onChange={(e) => setFormData({ ...formData, regon: e.target.value })}
+            />
+          </div>
+        </div>
         <div className="flex space-x-2">
           <Button type="submit">{editingId ? "Aktualizuj" : "Dodaj"}</Button>
           {editingId && (
@@ -133,8 +151,8 @@ export default function ClientsPage() {
                   address: "",
                   city: "",
                   postalCode: "",
-                  taxId: "",
-                  registrationNumber: "",
+                  nip: "",
+                  regon: "",
                   isActive: true,
                 })
               }}

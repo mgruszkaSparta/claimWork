@@ -159,44 +159,20 @@ export function ClaimsList({
 
   const filteredClaims = useMemo(
     () =>
-      claims
-        .filter((claim) => {
-          const lowerCaseSearchTerm = searchTerm.toLowerCase()
-          const matchesSearch =
-            claim.damageType?.toLowerCase().includes(lowerCaseSearchTerm) ||
-            claim.insurerClaimNumber?.toLowerCase().includes(lowerCaseSearchTerm) ||
-            claim.claimNumber?.toLowerCase().includes(lowerCaseSearchTerm) ||
-            claim.vehicleNumber?.toLowerCase().includes(lowerCaseSearchTerm) ||
-            claim.handler?.toLowerCase().includes(lowerCaseSearchTerm) ||
-            claim.client?.toLowerCase().includes(lowerCaseSearchTerm) ||
-            claim.riskType?.toLowerCase().includes(lowerCaseSearchTerm)
+      claims.filter((claim) => {
+        const matchesFilter = filterStatus === "all" || claim.status === filterStatus
+        const matchesBrand =
+          !filterBrand || claim.vehicleNumber?.toLowerCase().includes(filterBrand.toLowerCase())
+        const matchesHandler =
+          !filterHandler || claim.handler?.toLowerCase().includes(filterHandler.toLowerCase())
+        const matchesClaimType =
+          !allowedRiskTypes ||
+          !claim.riskType ||
+          allowedRiskTypes.includes(claim.riskType.toLowerCase())
 
-          const matchesFilter = filterStatus === "all" || claim.status === filterStatus
-          const matchesBrand =
-            !filterBrand || claim.vehicleNumber?.toLowerCase().includes(filterBrand.toLowerCase())
-          const matchesHandler =
-            !filterHandler || claim.handler?.toLowerCase().includes(filterHandler.toLowerCase())
-          const matchesClaimType =
-            !allowedRiskTypes ||
-            !claim.riskType ||
-            allowedRiskTypes.includes(claim.riskType.toLowerCase())
-
-          return (
-            matchesSearch &&
-            matchesFilter &&
-            matchesBrand &&
-            matchesHandler &&
-            matchesClaimType
-          )
-        }),
-    [
-      claims,
-      searchTerm,
-      filterStatus,
-      filterBrand,
-      filterHandler,
-      allowedRiskTypes,
-    ],
+        return matchesFilter && matchesBrand && matchesHandler && matchesClaimType
+      }),
+    [claims, filterStatus, filterBrand, filterHandler, allowedRiskTypes],
   )
 
   const sortedClaims = useMemo(() => {

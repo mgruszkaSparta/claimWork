@@ -301,6 +301,12 @@ export interface DocumentsSectionProps {
    * this key so changing the view in one section doesn't affect others.
    */
   storageKey?: string
+  /**
+   * List of document category names that should be hidden from the user.
+   * Useful for categories that are managed in dedicated modules (e.g. decyzje,
+   * regresy) and shouldn't appear in the generic documents section.
+   */
+  hiddenCategories?: string[]
 }
 
 export interface DocumentsSectionRef {

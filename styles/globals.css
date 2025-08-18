@@ -87,4 +87,16 @@
   body {
     @apply bg-background text-foreground;
   }
+  html {
+    font-size: 0.875rem;
+  }
+  button,
+  input,
+  select,
+  textarea {
+    @apply p-1;
+  }
+  form > * + * {
+    @apply mt-1;
+  }
 }

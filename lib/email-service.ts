@@ -2,22 +2,31 @@ import { EmailFolder } from "@/types/email"
 import { API_BASE_URL } from "./api"
 
 export interface AttachmentDto {
-  id: number
+  id: string
   fileName: string
   contentType: string
   size: number
 }
 
 export interface EmailDto {
-  id: number
+  id: string
   from: string
   to: string
   subject: string
   body: string
-  receivedDate: Date
+  /**
+   * Date string representing when the email was received or sent.
+   * The backend returns "receivedAt" for inbound messages and
+   * "sentAt" for outbound ones. We map it to a generic
+   * `receivedDate` property for the UI.
+   */
+  receivedDate?: string
   read?: boolean
   claimIds?: string[]
   attachments: AttachmentDto[]
+  direction?: string
+  status?: string
+  isImportant?: boolean
 }
 
 export interface SendEmailRequestDto {
@@ -31,7 +40,7 @@ export interface SendEmailRequestDto {
 }
 
 export interface AssignEmailToClaimDto {
-  emailId: number
+  emailId: string
   claimIds: string[]
 }
 
@@ -45,28 +54,68 @@ class EmailService {
         credentials: "include",
       })
       if (!response.ok) throw new Error("Failed to fetch emails")
-      return await response.json()
+      const data = await response.json()
+      return (data as any[]).map((e) => ({
+        id: e.id,
+        from: e.from,
+        to: e.to,
+        subject: e.subject,
+        body: e.body,
+        receivedDate: e.receivedAt || e.sentAt || e.createdAt,
+        read: e.isRead,
+        claimIds: e.claimIds,
+        direction: e.direction,
+        status: e.status,
+        isImportant: e.isImportant,
+        attachments:
+          e.attachments?.map((a: any) => ({
+            id: a.id,
+            fileName: a.fileName,
+            contentType: a.contentType,
+            size: a.fileSize,
+          })) || [],
+      }))
     } catch (error) {
       console.error("getAllEmails failed:", error)
       return []
     }
   }
 
-  async getEmailById(id: number): Promise<EmailDto | undefined> {
+  async getEmailById(id: string): Promise<EmailDto | undefined> {
     try {
       const response = await fetch(`${this.apiUrl}/${id}`, {
         method: "GET",
         credentials: "include",
       })
       if (!response.ok) throw new Error("Failed to fetch email")
-      return await response.json()
+      const e = await response.json()
+      return {
+        id: e.id,
+        from: e.from,
+        to: e.to,
+        subject: e.subject,
+        body: e.body,
+        receivedDate: e.receivedAt || e.sentAt || e.createdAt,
+        read: e.isRead,
+        claimIds: e.claimIds,
+        direction: e.direction,
+        status: e.status,
+        isImportant: e.isImportant,
+        attachments:
+          e.attachments?.map((a: any) => ({
+            id: a.id,
+            fileName: a.fileName,
+            contentType: a.contentType,
+            size: a.fileSize,
+          })) || [],
+      }
     } catch (error) {
       console.error(`getEmailById id=${id} failed:`, error)
       return undefined
     }
   }
 
-  async deleteEmail(emailId: number): Promise<boolean> {
+  async deleteEmail(emailId: string): Promise<boolean> {
     try {
       const response = await fetch(`${this.apiUrl}/${emailId}`, {
         method: "DELETE",
@@ -80,80 +129,50 @@ class EmailService {
   }
 
   async getEmailsByFolder(folder: EmailFolder): Promise<EmailDto[]> {
+    const emails = await this.getAllEmails()
     if (folder === EmailFolder.Unread) {
-      const emails = await this.getEmailsByFolder(EmailFolder.Inbox)
-      return emails.filter((email) => !email.read)
+      return emails.filter((email) => !email.read && email.direction === "Inbound")
     }
 
-    try {
-      const response = await fetch(`${this.apiUrl}/folder/${folder}`, {
-        method: "GET",
-        credentials: "include",
-      })
-      if (!response.ok) throw new Error("Failed to fetch emails by folder")
-      return await response.json()
-    } catch (error) {
-      console.error("getEmailsByFolder failed:", error)
-      return []
+    switch (folder) {
+      case EmailFolder.Inbox:
+        return emails.filter((e) => e.direction === "Inbound")
+      case EmailFolder.Sent:
+        return emails.filter((e) => e.direction === "Outbound")
+      case EmailFolder.Drafts:
+        return emails.filter((e) => e.status === "Draft")
+      case EmailFolder.Important:
+        return emails.filter((e) => e.isImportant)
+      case EmailFolder.Unassigned:
+        return emails.filter((e) => !e.claimIds || e.claimIds.length === 0)
+      default:
+        return emails
     }
   }
 
-  async getAssignedEmailsByFolderAndClaim(folder: EmailFolder, claimId: string): Promise<EmailDto[]> {
-    if (folder === EmailFolder.Unread) {
-      const emails = await this.getAssignedEmailsByFolderAndClaim(EmailFolder.Inbox, claimId)
-      return emails.filter((email) => !email.read)
-    }
-
-    try {
-      const response = await fetch(
-        `${this.apiUrl}/folder/${folder}/assigned/${claimId}`,
-        {
-          method: "GET",
-          credentials: "include",
-        },
-      )
-      if (!response.ok) throw new Error("Failed to fetch assigned emails")
-      return await response.json()
-    } catch (error) {
-      console.error("getAssignedEmailsByFolderAndClaim failed:", error)
-      return []
-    }
+  async getAssignedEmailsByFolderAndClaim(
+    folder: EmailFolder,
+    claimId: string,
+  ): Promise<EmailDto[]> {
+    const emails = await this.getEmailsByFolder(folder)
+    return emails.filter((email) => email.claimIds?.includes(claimId))
   }
 
   async getUnassignedEmails(): Promise<EmailDto[]> {
-    try {
-      const response = await fetch(`${this.apiUrl}/unassigned`, {
-        method: "GET",
-        credentials: "include",
-      })
-      if (!response.ok) throw new Error("Failed to fetch unassigned emails")
-      return await response.json()
-    } catch (error) {
-      console.error("getUnassignedEmails failed:", error)
-      return []
-    }
+    const emails = await this.getAllEmails()
+    return emails.filter((e) => !e.claimIds || e.claimIds.length === 0)
   }
 
   async getEmailsByClaimId(claimId: string): Promise<EmailDto[]> {
-    try {
-      const response = await fetch(`${this.apiUrl}/by-claim/${claimId}`, {
-        method: "GET",
-        credentials: "include",
-      })
-      if (!response.ok) throw new Error("Failed to fetch emails by claim")
-      return await response.json()
-    } catch (error) {
-      console.error("getEmailsByClaimId failed:", error)
-      return []
-    }
+    const emails = await this.getAllEmails()
+    return emails.filter((e) => e.claimIds?.includes(claimId))
   }
 
-  async markAsRead(emailId: number): Promise<boolean> {
+  async markAsRead(emailId: string): Promise<boolean> {
     try {
       const response = await fetch(`${this.apiUrl}/${emailId}/read`, {
-        method: "POST",
+        method: "PUT",
         credentials: "include",
-        headers: { "Content-Type": "application/json" },
       })
       return response.ok
     } catch (error) {
@@ -164,30 +183,19 @@ class EmailService {
 
   async sendEmail(sendRequest: SendEmailRequestDto): Promise<boolean> {
     try {
-      const formData = new FormData()
-      formData.append("to", sendRequest.to)
-      formData.append("subject", sendRequest.subject)
-      formData.append("body", sendRequest.body)
-
-      if (sendRequest.cc) formData.append("cc", sendRequest.cc)
-      if (sendRequest.bcc) formData.append("bcc", sendRequest.bcc)
-
-      if (sendRequest.attachments) {
-        sendRequest.attachments.forEach((file) => {
-          formData.append("attachments", file, file.name)
-        })
-      }
-
-      const url = sendRequest.claimId
-        ? `${this.apiUrl}/sendClaim?claimId=${sendRequest.claimId}`
-        : `${this.apiUrl}/send`
-
-      const response = await fetch(url, {
+      const response = await fetch(this.apiUrl, {
         method: "POST",
         credentials: "include",
-        body: formData,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          to: sendRequest.to,
+          cc: sendRequest.cc,
+          bcc: sendRequest.bcc,
+          subject: sendRequest.subject,
+          body: sendRequest.body,
+          claimId: sendRequest.claimId,
+        }),
       })
-
       return response.ok
     } catch (error) {
       console.error("sendEmail failed:", error)
@@ -195,7 +203,7 @@ class EmailService {
     }
   }
 
-  async downloadAttachment(attachmentId: number): Promise<Blob | undefined> {
+  async downloadAttachment(attachmentId: string): Promise<Blob | undefined> {
     try {
       const response = await fetch(`${this.apiUrl}/attachment/${attachmentId}`, {
         method: "GET",
@@ -209,7 +217,7 @@ class EmailService {
     }
   }
 
-  async assignEmailToClaim(emailId: number, claimIds: string[]): Promise<boolean> {
+  async assignEmailToClaim(emailId: string, claimIds: string[]): Promise<boolean> {
     try {
       const response = await fetch(`${this.apiUrl}/assign-to-claim`, {
         method: "POST",

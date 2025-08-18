@@ -47,7 +47,13 @@ export async function POST(request: NextRequest) {
     const status = formData.get("status") as string
     const description = formData.get("description") as string
     const documentDescription = formData.get("documentDescription") as string
-    const document = formData.get("document") as File
+    const documents = formData
+      .getAll("documents")
+      .filter((d): d is File => d instanceof File)
+    const singleDocument = formData.get("document")
+    if (singleDocument instanceof File) {
+      documents.push(singleDocument)
+    }
 
     if (!eventId || !claimDate || !claimType || !claimAmount || !status) {
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 })
@@ -62,7 +68,7 @@ export async function POST(request: NextRequest) {
     backendFormData.append("Status", status)
     if (description) backendFormData.append("Description", description)
     if (documentDescription) backendFormData.append("DocumentDescription", documentDescription)
-    if (document) backendFormData.append("Document", document)
+    documents.forEach((doc) => backendFormData.append("Document", doc))
 
     const response = await fetch(`${API_BASE_URL}/clientclaims`, {
       method: "POST",

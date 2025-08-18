@@ -591,6 +591,7 @@ export const SettlementsSection: React.FC<SettlementsSectionProps> = ({ eventId 
                         onChange={onFileSelected}
                         accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
                         id="file-input"
+                        multiple
                       />
                       <Button
                         type="button"

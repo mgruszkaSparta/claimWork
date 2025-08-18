@@ -210,6 +210,34 @@ export const DocumentsSection = React.forwardRef<
     categoryCode: file.categoryCode,
   })
 
+  const mapContentTypeToFileType = (
+    contentType: string,
+  ): UploadedFile["type"] => {
+    if (contentType.includes("pdf")) return "pdf"
+    if (contentType.includes("image")) return "image"
+    if (
+      contentType.includes("msword") ||
+      contentType.includes("wordprocessingml") ||
+      contentType.includes("doc")
+    )
+      return "doc"
+    if (contentType.includes("video")) return "video"
+    return "other"
+  }
+
+  const documentToUploadedFile = (doc: Document): UploadedFile => ({
+    id: doc.id,
+    name: doc.originalFileName || doc.fileName,
+    size: doc.fileSize,
+    type: mapContentTypeToFileType(doc.contentType),
+    uploadedAt: doc.createdAt,
+    url: doc.previewUrl || doc.downloadUrl,
+    cloudUrl: doc.cloudUrl,
+    category: doc.documentType,
+    categoryCode: doc.categoryCode,
+    description: doc.description,
+  })
+
   const allDocuments = React.useMemo(
     () => [...documents, ...pendingFiles.map(uploadedFileToDocument)],
     [documents, pendingFiles]
@@ -278,6 +306,9 @@ export const DocumentsSection = React.forwardRef<
           downloadUrl: `${apiUrl}/documents/${d.id}/download`,
         }))
         setDocuments(mappedDocs)
+        setUploadedFiles(
+          mappedDocs.map(documentToUploadedFile).concat(pendingFiles),
+        )
       } else {
         let errorMessage = "Nie udało się załadować dokumentów"
         try {
@@ -562,6 +593,9 @@ export const DocumentsSection = React.forwardRef<
     if (isPending) {
       if (!window.confirm("Czy na pewno chcesz usunąć ten dokument?")) return
       setPendingFiles?.((prev) => prev.filter((f) => f.id !== documentId))
+      setUploadedFiles((prev) =>
+        prev.filter((f) => f.id !== documentId.toString()),
+      )
       setSelectedDocumentIds((prev) =>
         prev.filter((id) => id !== documentId.toString()),
       )
@@ -585,6 +619,9 @@ export const DocumentsSection = React.forwardRef<
 
       if (response.ok) {
         setDocuments((prev) => prev.filter((doc) => doc.id !== documentId))
+        setUploadedFiles((prev) =>
+          prev.filter((f) => f.id !== documentId.toString()),
+        )
         setSelectedDocumentIds((prev) =>
           prev.filter((id) => id !== documentId.toString()),
         )
@@ -611,6 +648,11 @@ export const DocumentsSection = React.forwardRef<
 
     if (pendingIndex !== -1) {
       setPendingFiles?.((prev) => prev.map((f) => (f.id === documentId ? { ...f, description } : f)))
+      setUploadedFiles((prev) =>
+        prev.map((f) =>
+          f.id === documentId.toString() ? { ...f, description } : f,
+        ),
+      )
       setPreviewDocument((prev) => (prev?.id === documentId ? { ...prev, description } : prev))
       return
     }
@@ -618,6 +660,11 @@ export const DocumentsSection = React.forwardRef<
     // Optimistic update to keep document within its category and update preview
     setDocuments((prev) => prev.map((doc) => (doc.id === documentId ? { ...doc, description } : doc)))
     setPreviewDocument((prev) => (prev?.id === documentId ? { ...prev, description } : prev))
+    setUploadedFiles((prev) =>
+      prev.map((f) =>
+        f.id === documentId.toString() ? { ...f, description } : f,
+      ),
+    )
 
     try {
       const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/documents/${documentId}`, {
@@ -636,6 +683,13 @@ export const DocumentsSection = React.forwardRef<
         )
         setPreviewDocument((prev) =>
           prev?.id === documentId ? { ...prev, ...updatedDocument } : prev,
+        )
+        setUploadedFiles((prev) =>
+          prev.map((f) =>
+            f.id === documentId.toString()
+              ? { ...f, description: updatedDocument.description }
+              : f,
+          ),
         )
       }
     } catch (error) {
@@ -661,6 +715,13 @@ export const DocumentsSection = React.forwardRef<
       if (response.ok) {
         const updatedDocument = await response.json()
         setDocuments((prev) => prev.map((d) => (d.id === documentId ? updatedDocument : d)))
+        setUploadedFiles((prev) =>
+          prev.map((f) =>
+            f.id === documentId.toString()
+              ? { ...f, description: updatedDocument.description }
+              : f,
+          ),
+        )
         toast({
           title: "Sukces",
           description: `Wygenerowano opis dla pliku: ${doc.originalFileName}`,

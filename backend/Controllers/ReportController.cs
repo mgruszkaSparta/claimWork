@@ -10,7 +10,7 @@ using AutomotiveClaimsApi.Data;
 namespace AutomotiveClaimsApi.Controllers
 {
     [ApiController]
-    [Route("[controller]")]
+    [Route("api/[controller]")]
     public class ReportController : ControllerBase
     {
         private readonly ApplicationDbContext _context;

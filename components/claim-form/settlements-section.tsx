@@ -9,10 +9,11 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Textarea } from "@/components/ui/textarea"
 import { Badge } from "@/components/ui/badge"
 import { useToast } from "@/hooks/use-toast"
-import { HandHeart, Plus, Minus, Edit, Trash2, Download, Eye, X, Upload, FileText, Info, Loader2 } from "lucide-react"
+import { HandHeart, Plus, Minus, Edit, Trash2, Download, Eye, X, Upload, FileText, Info, Loader2, ChevronLeft, ChevronRight } from "lucide-react"
 import { getSettlements, createSettlement, updateSettlement, deleteSettlement } from "@/lib/api/settlements"
 import { API_BASE_URL } from "@/lib/api"
 import type { Settlement } from "@/lib/api/settlements"
+import type { DocumentDto } from "@/lib/api"
 
 interface SettlementsSectionProps {
   eventId: string
@@ -65,6 +66,9 @@ export const SettlementsSection: React.FC<SettlementsSectionProps> = ({ eventId 
   const [previewFileName, setPreviewFileName] = useState<string>("")
   const [previewFileType, setPreviewFileType] = useState<"pdf" | "image" | "other">("other")
   const [currentPreviewSettlement, setCurrentPreviewSettlement] = useState<Settlement | null>(null)
+  const [currentPreviewDoc, setCurrentPreviewDoc] = useState<DocumentDto | null>(null)
+  const [previewDocs, setPreviewDocs] = useState<DocumentDto[]>([])
+  const [previewIndex, setPreviewIndex] = useState(0)
 
   const loadSettlements = useCallback(async () => {
     if (!eventId) return
@@ -278,7 +282,7 @@ export const SettlementsSection: React.FC<SettlementsSectionProps> = ({ eventId 
     setIsEditing(true)
     setEditingSettlementId(settlement.id!)
     setCurrentSettlement(settlement)
-    setShowFileDescription(!!settlement.documentPath)
+    setShowFileDescription(!!settlement.documents?.length)
     setIsFormVisible(true)
   }, [])
 
@@ -316,48 +320,87 @@ export const SettlementsSection: React.FC<SettlementsSectionProps> = ({ eventId 
     return path.split("/").pop()?.split("?")[0] || "document"
   }
 
+  const loadPreview = async (settlement: Settlement, doc: DocumentDto) => {
+    const url = `${API_BASE_URL}/settlements/${settlement.id}/documents/${doc.id}/preview`
+    const response = await fetch(url, { method: "GET", credentials: "include" })
+    if (!response.ok) throw new Error("Failed to preview file")
+    const blob = await response.blob()
+    const objectUrl = window.URL.createObjectURL(blob)
+    const fileName = doc.originalFileName || doc.fileName || "document"
+    const ext = fileName.toLowerCase().split(".").pop()
+    setPreviewUrl(objectUrl)
+    setPreviewFileName(fileName)
+    if (ext === "pdf") setPreviewFileType("pdf")
+    else if (["jpg", "jpeg", "png", "gif"].includes(ext || "")) setPreviewFileType("image")
+    else setPreviewFileType("other")
+    setCurrentPreviewDoc(doc)
+  }
+
   const previewFile = useCallback(
-    async (settlement: Settlement) => {
-      if (!settlement.documentPath) return
+    async (settlement: Settlement, doc?: DocumentDto) => {
+      const docs = settlement.documents || []
+      if (docs.length === 0) {
+        try {
+          const url = `${API_BASE_URL}/settlements/${settlement.id}/preview`
+          const response = await fetch(url, { method: "GET", credentials: "include" })
+          if (!response.ok) throw new Error("Failed to preview file")
+          const blob = await response.blob()
+          const objectUrl = window.URL.createObjectURL(blob)
+          const fileName = settlement.documentName || "document"
+          const ext = fileName.toLowerCase().split(".").pop()
+          setPreviewDocs([])
+          setPreviewUrl(objectUrl)
+          setPreviewFileName(fileName)
+          if (ext === "pdf") setPreviewFileType("pdf")
+          else if (["jpg", "jpeg", "png", "gif"].includes(ext || "")) setPreviewFileType("image")
+          else setPreviewFileType("other")
+          setCurrentPreviewSettlement(settlement)
+          setCurrentPreviewDoc(null)
+          setIsPreviewVisible(true)
+        } catch (error) {
+          console.error("Error previewing file:", error)
+          toast({ title: "Błąd", description: "Błąd podczas wczytywania podglądu", variant: "destructive" })
+        }
+        return
+      }
 
+      const startIndex = doc ? docs.findIndex((d) => d.id === doc.id) : 0
+      const index = startIndex >= 0 ? startIndex : 0
+      setPreviewDocs(docs)
+      setPreviewIndex(index)
+      setCurrentPreviewSettlement(settlement)
       try {
-        const response = await fetch(`${API_BASE_URL}/settlements/${settlement.id}/preview`, {
-          method: "GET",
-          credentials: "include",
-        })
-        if (!response.ok) {
-          throw new Error("Failed to preview file")
-        }
-        const blob = await response.blob()
-        const url = window.URL.createObjectURL(blob)
-
-        const fileName = settlement.documentName || "document"
-        const ext = fileName.toLowerCase().split(".").pop()
-
-        setPreviewUrl(url)
-        setPreviewFileName(fileName)
-        setCurrentPreviewSettlement(settlement)
-
-        if (ext === "pdf") {
-          setPreviewFileType("pdf")
-        } else if (["jpg", "jpeg", "png", "gif"].includes(ext || "")) {
-          setPreviewFileType("image")
-        } else {
-          setPreviewFileType("other")
-        }
-
+        await loadPreview(settlement, docs[index])
         setIsPreviewVisible(true)
       } catch (error) {
         console.error("Error previewing file:", error)
-        toast({
-          title: "Błąd",
-          description: "Błąd podczas wczytywania podglądu",
-          variant: "destructive",
-        })
+        toast({ title: "Błąd", description: "Błąd podczas wczytywania podglądu", variant: "destructive" })
       }
     },
     [toast],
   )
+
+  const showNextDoc = async () => {
+    if (!currentPreviewSettlement || previewDocs.length === 0) return
+    const next = (previewIndex + 1) % previewDocs.length
+    setPreviewIndex(next)
+    try {
+      await loadPreview(currentPreviewSettlement, previewDocs[next])
+    } catch (error) {
+      console.error("Error previewing file:", error)
+    }
+  }
+
+  const showPrevDoc = async () => {
+    if (!currentPreviewSettlement || previewDocs.length === 0) return
+    const prev = (previewIndex - 1 + previewDocs.length) % previewDocs.length
+    setPreviewIndex(prev)
+    try {
+      await loadPreview(currentPreviewSettlement, previewDocs[prev])
+    } catch (error) {
+      console.error("Error previewing file:", error)
+    }
+  }
 
   const closePreview = useCallback(() => {
     setIsPreviewVisible(false)
@@ -367,14 +410,18 @@ export const SettlementsSection: React.FC<SettlementsSectionProps> = ({ eventId 
     setPreviewUrl("")
     setPreviewFileName("")
     setCurrentPreviewSettlement(null)
+    setCurrentPreviewDoc(null)
+    setPreviewDocs([])
   }, [previewUrl])
 
   const downloadFile = useCallback(
-    async (settlement: Settlement) => {
-      if (!settlement.documentPath) return
-
+    async (settlement: Settlement, doc?: DocumentDto) => {
       try {
-        const response = await fetch(`${API_BASE_URL}/settlements/${settlement.id}/download`, {
+        const url = doc
+          ? `${API_BASE_URL}/settlements/${settlement.id}/documents/${doc.id}/download`
+          : `${API_BASE_URL}/settlements/${settlement.id}/download`
+
+        const response = await fetch(url, {
           method: "GET",
           credentials: "include",
         })
@@ -385,7 +432,8 @@ export const SettlementsSection: React.FC<SettlementsSectionProps> = ({ eventId 
         const url = window.URL.createObjectURL(blob)
         const a = document.createElement("a")
         a.href = url
-        a.download = settlement.documentName || "document"
+        a.download =
+          doc?.originalFileName || doc?.fileName || settlement.documentName || "document"
         document.body.appendChild(a)
         a.click()
         window.URL.revokeObjectURL(url)
@@ -568,40 +616,41 @@ export const SettlementsSection: React.FC<SettlementsSectionProps> = ({ eventId 
                 <div className="grid gap-2 mt-5">
                   <Label className="text-[#1a3a6c] text-sm font-medium">Załącz dokument ugody (PDF):</Label>
 
-                  {isEditing && selectedFiles.length === 0 && currentSettlement?.documentPath && (
+                  {isEditing && selectedFiles.length === 0 && currentSettlement?.documents?.length ? (
                     <div className="space-y-2 mb-4">
-                      <div className="p-3 bg-gray-50 rounded-lg border flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                          <FileText className="text-[#1a3a6c] h-4 w-4" />
-                          <span className="text-sm font-medium">
-                            {currentSettlement.documentName ||
-                              getFileNameFromPath(currentSettlement.documentPath)}
-                          </span>
-                        </div>
-                        <div className="flex gap-1">
-                          {isPreviewable(
-                            currentSettlement.documentName ||
-                              getFileNameFromPath(currentSettlement.documentPath),
-                          ) && (
+                      {currentSettlement.documents.map((doc) => (
+                        <div
+                          key={doc.id}
+                          className="p-3 bg-gray-50 rounded-lg border flex items-center justify-between"
+                        >
+                          <div className="flex items-center gap-2">
+                            <FileText className="text-[#1a3a6c] h-4 w-4" />
+                            <span className="text-sm font-medium">
+                              {doc.originalFileName || doc.fileName}
+                            </span>
+                          </div>
+                          <div className="flex gap-1">
+                            {isPreviewable(doc.originalFileName || doc.fileName || "") && (
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => previewFile(currentSettlement, doc)}
+                                title="Podgląd"
+                              >
+                                <Eye className="h-4 w-4" />
+                              </Button>
+                            )}
                             <Button
                               variant="ghost"
                               size="sm"
-                              onClick={() => previewFile(currentSettlement)}
-                              title="Podgląd"
+                              onClick={() => downloadFile(currentSettlement, doc)}
+                              title="Pobierz"
                             >
-                              <Eye className="h-4 w-4" />
+                              <Download className="h-4 w-4" />
                             </Button>
-                          )}
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => downloadFile(currentSettlement)}
-                            title="Pobierz"
-                          >
-                            <Download className="h-4 w-4" />
-                          </Button>
+                          </div>
                         </div>
-                      </div>
+                      ))}
                       {showFileDescription && (
                         <div className="p-3 bg-white rounded-b-lg border-x border-b">
                           <Label className="block text-[#1a3a6c] text-sm font-medium mb-1">
@@ -616,7 +665,7 @@ export const SettlementsSection: React.FC<SettlementsSectionProps> = ({ eventId 
                         </div>
                       )}
                     </div>
-                  )}
+                  ) : null}
 
                   {/* Drop zone for drag and drop */}
                   <div
@@ -824,11 +873,15 @@ export const SettlementsSection: React.FC<SettlementsSectionProps> = ({ eventId 
                         {settlement.currency || "PLN"}
                       </td>
                       <td className="py-3 px-4 border-b border-[#d1d9e6]">
-                        {settlement.documentPath ? (
-                          <div className="flex items-center gap-2">
-                            <span className="text-gray-700">{settlement.documentName}</span>
-                            <div className="flex gap-1">
-                              {isPreviewable(settlement.documentName) && (
+                        {(() => {
+                          const count = settlement.documents?.length || (settlement.documentPath ? 1 : 0)
+                          if (count === 0) {
+                            return <span className="text-gray-500">Brak dokumentu</span>
+                          }
+                          return (
+                            <div className="flex items-center gap-2">
+                              <span className="text-gray-700">Załączniki ({count})</span>
+                              <div className="flex gap-1">
                                 <Button
                                   onClick={() => previewFile(settlement)}
                                   variant="ghost"
@@ -838,21 +891,19 @@ export const SettlementsSection: React.FC<SettlementsSectionProps> = ({ eventId 
                                 >
                                   <Eye className="h-4 w-4" />
                                 </Button>
-                              )}
-                              <Button
-                                onClick={() => downloadFile(settlement)}
-                                variant="ghost"
-                                size="sm"
-                                className="p-1 text-green-600 hover:text-green-800 hover:bg-green-50"
-                                title="Pobierz"
-                              >
-                                <Download className="h-4 w-4" />
-                              </Button>
+                                <Button
+                                  onClick={() => downloadFile(settlement)}
+                                  variant="ghost"
+                                  size="sm"
+                                  className="p-1 text-green-600 hover:text-green-800 hover:bg-green-50"
+                                  title="Pobierz"
+                                >
+                                  <Download className="h-4 w-4" />
+                                </Button>
+                              </div>
                             </div>
-                          </div>
-                        ) : (
-                          <span className="text-gray-500">Brak dokumentu</span>
-                        )}
+                          )
+                        })()}
                       </td>
                       <td className="py-3 px-4 border-b border-[#d1d9e6] text-center">
                         <div className="flex justify-center gap-2">
@@ -936,9 +987,27 @@ export const SettlementsSection: React.FC<SettlementsSectionProps> = ({ eventId 
             </div>
 
             {/* Modal footer */}
-            <div className="p-4 bg-gray-50 border-t border-[#d1d9e6] flex justify-end">
+            <div className="p-4 bg-gray-50 border-t border-[#d1d9e6] flex justify-between">
+              {previewDocs.length > 1 && (
+                <div className="flex gap-2">
+                  <Button variant="ghost" size="sm" onClick={showPrevDoc} className="p-1 text-gray-600">
+                    <ChevronLeft className="h-4 w-4" />
+                    <span className="sr-only">Poprzedni</span>
+                  </Button>
+                  <Button variant="ghost" size="sm" onClick={showNextDoc} className="p-1 text-gray-600">
+                    <ChevronRight className="h-4 w-4" />
+                    <span className="sr-only">Następny</span>
+                  </Button>
+                </div>
+              )}
               <Button
-                onClick={() => currentPreviewSettlement && downloadFile(currentPreviewSettlement)}
+                onClick={() =>
+                  currentPreviewSettlement &&
+                  downloadFile(
+                    currentPreviewSettlement,
+                    previewDocs.length ? previewDocs[previewIndex] : currentPreviewDoc || undefined,
+                  )
+                }
                 className="bg-[#1a3a6c] text-white hover:bg-[#15305a] flex items-center gap-2"
               >
                 <Download className="h-4 w-4" />

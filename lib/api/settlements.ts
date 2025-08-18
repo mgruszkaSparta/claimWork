@@ -1,6 +1,15 @@
 import { z } from "zod";
 import { API_BASE_URL } from "../api";
 
+const documentSchema = z.object({
+  id: z.string(),
+  originalFileName: z.string().nullish(),
+  fileName: z.string().nullish(),
+  filePath: z.string().nullish(),
+  downloadUrl: z.string().nullish(),
+  previewUrl: z.string().nullish(),
+});
+
 const settlementSchema = z.object({
   id: z.string(),
   eventId: z.string(),
@@ -18,6 +27,7 @@ const settlementSchema = z.object({
   documentPath: z.string().nullish(),
   documentName: z.string().nullish(),
   documentDescription: z.string().nullish(),
+  documents: z.array(documentSchema).optional(),
   settlementNumber: z.string().nullish(),
   settlementType: z.string().nullish(),
 });

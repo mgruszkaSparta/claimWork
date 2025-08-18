@@ -563,6 +563,7 @@ export interface ClientClaimDto {
   documentPath?: string
   documentName?: string
   documentDescription?: string
+  documents?: DocumentDto[]
   claimNotes?: string
   createdAt: string
   updatedAt: string

@@ -16,11 +16,15 @@ export async function getJson<T>(
     },
     cache: "no-store",
   })
+  const text = await res.text().catch(() => "")
   if (!res.ok) {
-    const text = await res.text().catch(() => "")
     throw new Error(`GET ${path} ${res.status}: ${text || res.statusText}`)
   }
-  return res.json() as Promise<T>
+  try {
+    return JSON.parse(text) as T
+  } catch {
+    throw new Error(`GET ${path} ${res.status}: Invalid JSON response: ${text}`)
+  }
 }
 
 // Types for API responses

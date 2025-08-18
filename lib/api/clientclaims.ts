@@ -36,7 +36,7 @@ function mapDtoToClientClaim(dto: ClientClaimDto): ClientClaim {
   }
 }
 
-function buildFormData(data: ClientClaimUpsert, document?: File) {
+function buildFormData(data: ClientClaimUpsert, documents: File[] = []) {
   const formData = new FormData()
   if (data.eventId) formData.append("EventId", data.eventId)
   formData.append("ClaimDate", data.claimDate)
@@ -49,15 +49,15 @@ function buildFormData(data: ClientClaimUpsert, document?: File) {
   if (data.claimNumber) formData.append("ClaimNumber", data.claimNumber)
   if (data.documentDescription)
     formData.append("DocumentDescription", data.documentDescription)
-  if (document) formData.append("Document", document)
+  documents.forEach((doc) => formData.append("documents", doc))
   return formData
 }
 
 export async function createClientClaim(
   data: ClientClaimUpsert,
-  document?: File,
+  documents: File[] = [],
 ): Promise<ClientClaim> {
-  const body = buildFormData(data, document)
+  const body = buildFormData(data, documents)
   const response = await fetch(CLIENT_CLAIMS_URL, {
     method: "POST",
     credentials: "include",
@@ -74,9 +74,9 @@ export async function createClientClaim(
 export async function updateClientClaim(
   id: string,
   data: ClientClaimUpsert,
-  document?: File,
+  documents: File[] = [],
 ): Promise<ClientClaim> {
-  const body = buildFormData(data, document)
+  const body = buildFormData(data, documents)
   const response = await fetch(`${CLIENT_CLAIMS_URL}/${id}`, {
     method: "PUT",
     credentials: "include",

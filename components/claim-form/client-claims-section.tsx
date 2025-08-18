@@ -209,7 +209,7 @@ export function ClientClaimsSection({ clientClaims, onClientClaimsChange, claimI
       let savedClaim: ClientClaim
 
       if (editingClaim) {
-        savedClaim = await updateClientClaim(editingClaim.id!, payload, selectedFiles[0])
+        savedClaim = await updateClientClaim(editingClaim.id!, payload, selectedFiles)
         onClientClaimsChange(
           clientClaims.map((claim) => (claim.id === editingClaim.id ? savedClaim : claim)),
         )
@@ -220,7 +220,7 @@ export function ClientClaimsSection({ clientClaims, onClientClaimsChange, claimI
       } else {
         savedClaim = await createClientClaim(
           { ...payload, eventId: claimId },
-          selectedFiles[0],
+          selectedFiles,
         )
         onClientClaimsChange([...clientClaims, savedClaim])
         toast({
@@ -670,6 +670,7 @@ export function ClientClaimsSection({ clientClaims, onClientClaimsChange, claimI
                     type="file"
                     accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
                     onChange={handleFileSelect}
+                    multiple
                     className="hidden"
                   />
                   <Button type="button" variant="outline" onClick={() => fileInputRef.current?.click()}>

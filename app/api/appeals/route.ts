@@ -45,10 +45,10 @@ export async function POST(request: Request) {
       return fieldMap[key] || `${key.charAt(0).toUpperCase()}${key.slice(1)}`
     }
 
-    const document = formData.get("documents")
-    if (document instanceof File) {
-      backendFormData.append("Document", document)
-    }
+    const documents = formData
+      .getAll("documents")
+      .filter((d): d is File => d instanceof File)
+    documents.forEach((doc) => backendFormData.append("Document", doc))
 
     formData.forEach((value, key) => {
       if (key === "documents") return

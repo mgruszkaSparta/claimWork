@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, type Dispatch, type SetStateAction } from "react"
 import { useToast } from "@/hooks/use-toast"
 import { EmailSidebar } from "./email-sidebar"
 import { EmailList } from "./email-list"
@@ -12,9 +12,19 @@ import type { UploadedFile, RequiredDocument } from "@/types"
 
 interface EmailSectionProps {
   claimId?: string
+  uploadedFiles?: UploadedFile[]
+  setUploadedFiles?: Dispatch<SetStateAction<UploadedFile[]>>
+  requiredDocuments?: RequiredDocument[]
+  setRequiredDocuments?: Dispatch<SetStateAction<RequiredDocument[]>>
 }
 
-export const EmailSection = ({ claimId }: EmailSectionProps) => {
+export const EmailSection = ({
+  claimId,
+  uploadedFiles,
+  setUploadedFiles,
+  requiredDocuments,
+  setRequiredDocuments,
+}: EmailSectionProps) => {
   const { toast } = useToast()
   const [emails, setEmails] = useState<Email[]>(sampleEmails)
   const [activeFolder, setActiveFolder] = useState("inbox")
@@ -28,7 +38,7 @@ export const EmailSection = ({ claimId }: EmailSectionProps) => {
     claimId?: string
   }>({})
 
-  const sampleDocuments: UploadedFile[] = [
+  const [internalDocuments, setInternalDocuments] = useState<UploadedFile[]>([
     {
       id: "doc1",
       name: "Umowa.pdf",
@@ -45,12 +55,24 @@ export const EmailSection = ({ claimId }: EmailSectionProps) => {
       uploadedAt: new Date().toISOString(),
       url: "#",
     },
-  ]
+  ])
+  const documents = uploadedFiles ?? internalDocuments
+  const updateDocuments = setUploadedFiles ?? setInternalDocuments
 
-  const requiredDocuments: RequiredDocument[] = [
+  const [internalRequiredDocs, setInternalRequiredDocs] = useState<RequiredDocument[]>([
     { id: "req1", name: "Umowa", required: true, uploaded: false, description: "" },
     { id: "req2", name: "Protokół", required: false, uploaded: false, description: "" },
-  ]
+  ])
+  const reqDocuments = requiredDocuments ?? internalRequiredDocs
+  const updateRequiredDocs = setRequiredDocuments ?? setInternalRequiredDocs
+
+  const mapAttachmentType = (type: string): UploadedFile["type"] => {
+    if (type.includes("pdf")) return "pdf"
+    if (type.includes("image")) return "image"
+    if (type.includes("doc")) return "doc"
+    if (type.includes("video")) return "video"
+    return "other"
+  }
 
   const filteredEmails = emails.filter((email) => {
     if (activeFolder === "starred") return email.isStarred
@@ -105,7 +127,19 @@ export const EmailSection = ({ claimId }: EmailSectionProps) => {
   }
 
   const handleAssignAttachment = (attachment: EmailAttachment, documentId: string) => {
-    const doc = requiredDocuments.find((d) => d.id === documentId)
+    const doc = reqDocuments.find((d) => d.id === documentId)
+    const newFile: UploadedFile = {
+      id: attachment.id,
+      name: attachment.name,
+      size: attachment.size,
+      type: mapAttachmentType(attachment.type),
+      uploadedAt: new Date().toISOString(),
+      url: attachment.url,
+      category: doc?.name,
+      categoryCode: doc?.category,
+    }
+    updateDocuments((prev) => [...prev, newFile])
+    updateRequiredDocs((prev) => prev.map((d) => (d.id === documentId ? { ...d, uploaded: true } : d)))
     toast({
       title: "Załącznik przypisany",
       description: `Dodano ${attachment.name} do dokumentu ${doc?.name || documentId}`,
@@ -251,7 +285,7 @@ export const EmailSection = ({ claimId }: EmailSectionProps) => {
           onStar={handleStarEmail}
           onArchive={(id) => handleArchiveEmails([id])}
           onDelete={(id) => handleDeleteEmails([id])}
-          requiredDocuments={requiredDocuments}
+          requiredDocuments={reqDocuments}
           onAssignAttachment={handleAssignAttachment}
         />
       )}
@@ -266,7 +300,7 @@ export const EmailSection = ({ claimId }: EmailSectionProps) => {
             replySubject={composeData.replySubject}
             replyBody={composeData.replyBody}
             claimId={composeData.claimId || ""}
-            availableDocuments={sampleDocuments}
+            availableDocuments={documents}
           />
         </div>
       )}

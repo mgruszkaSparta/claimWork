@@ -47,6 +47,7 @@ import {
   AppealUpsert,
 } from "@/lib/api/appeals"
 import { API_BASE_URL, DocumentDto } from "@/lib/api"
+import { deleteDocument } from "@/lib/api/documents"
 
 interface AppealsSectionProps {
   claimId: string
@@ -421,6 +422,19 @@ export const AppealsSection = ({ claimId }: AppealsSectionProps) => {
     }
   }
 
+  const handleDeleteDocument = async (doc: DocumentDto) => {
+    setIsLoading(true)
+    try {
+      await deleteDocument(doc.id)
+      toast({ title: "Sukces", description: "Plik został usunięty" })
+      await loadAppeals()
+    } catch {
+      toast({ title: "Błąd", description: "Nie udało się usunąć pliku", variant: "destructive" })
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
   const isPreviewable = (fileName?: string) => {
     if (!fileName) return false
     const fileType = getFileType(fileName)
@@ -578,6 +592,14 @@ export const AppealsSection = ({ claimId }: AppealsSectionProps) => {
                             title="Pobierz"
                           >
                             <Download className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleDeleteDocument(doc)}
+                            title="Usuń"
+                          >
+                            <Trash2 className="h-4 w-4" />
                           </Button>
                         </div>
                       </div>
@@ -807,44 +829,53 @@ export const AppealsSection = ({ claimId }: AppealsSectionProps) => {
                     </td>
                     <td className="py-3 px-4">{getStatusBadge(appeal.status)}</td>
                     <td className="py-3 px-4">
-                      {(() => {
-                        const doc = appeal.documents?.[0]
-                        if (!doc) {
-                          return <span className="text-gray-500">Brak dokumentu</span>
-                        }
-                        return (
-                          <div className="flex items-center gap-2">
-                            <span
-                              className="text-gray-700 truncate max-w-32"
-                              title={doc.originalFileName || doc.fileName}
-                            >
-                              {doc.originalFileName || doc.fileName}
-                            </span>
-                            <div className="flex gap-1">
-                              {isPreviewable(doc.originalFileName || doc.fileName) && (
+                      {appeal.documents && appeal.documents.length > 0 ? (
+                        <div className="space-y-1">
+                          {appeal.documents.map((doc) => (
+                            <div key={doc.id} className="flex items-center gap-2">
+                              <span
+                                className="text-gray-700 truncate max-w-32"
+                                title={doc.originalFileName || doc.fileName}
+                              >
+                                {doc.originalFileName || doc.fileName}
+                              </span>
+                              <div className="flex gap-1">
+                                {isPreviewable(doc.originalFileName || doc.fileName) && (
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => previewFile(appeal, doc)}
+                                    className="h-6 w-6 p-0 text-blue-600 hover:text-blue-800 hover:bg-blue-50"
+                                    title="Podgląd"
+                                  >
+                                    <Eye className="h-3 w-3" />
+                                  </Button>
+                                )}
                                 <Button
                                   variant="ghost"
                                   size="sm"
-                                  onClick={() => previewFile(appeal, doc)}
-                                  className="h-6 w-6 p-0 text-blue-600 hover:text-blue-800 hover:bg-blue-50"
-                                  title="Podgląd"
+                                  onClick={() => downloadFile(appeal, doc)}
+                                  className="h-6 w-6 p-0 text-green-600 hover:text-green-800 hover:bg-green-50"
+                                  title="Pobierz"
                                 >
-                                  <Eye className="h-3 w-3" />
+                                  <Download className="h-3 w-3" />
                                 </Button>
-                              )}
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => downloadFile(appeal, doc)}
-                                className="h-6 w-6 p-0 text-green-600 hover:text-green-800 hover:bg-green-50"
-                                title="Pobierz"
-                              >
-                                <Download className="h-3 w-3" />
-                              </Button>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => handleDeleteDocument(doc)}
+                                  className="h-6 w-6 p-0 text-red-600 hover:text-red-800 hover:bg-red-50"
+                                  title="Usuń"
+                                >
+                                  <Trash2 className="h-3 w-3" />
+                                </Button>
+                              </div>
                             </div>
-                          </div>
-                        )
-                      })()}
+                          ))}
+                        </div>
+                      ) : (
+                        <span className="text-gray-500">Brak dokumentu</span>
+                      )}
                     </td>
                     <td className="py-3 px-4 text-gray-700 max-w-48">
                       <span className="truncate block" title={appeal.documentDescription}>

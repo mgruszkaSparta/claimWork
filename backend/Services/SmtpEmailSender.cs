@@ -1,37 +1,31 @@
-using System;
 using AutomotiveClaimsApi.Models;
-using AutomotiveClaimsApi.Data;
 using MailKit.Net.Smtp;
 using MailKit.Security;
-using Microsoft.EntityFrameworkCore;
 using MimeKit;
+using Microsoft.Extensions.Options;
 
 namespace AutomotiveClaimsApi.Services
 {
     public class SmtpEmailSender : IEmailSender
     {
-        private readonly ApplicationDbContext _context;
+        private readonly SmtpSettings _smtpSettings;
 
-        public SmtpEmailSender(ApplicationDbContext context)
+        public SmtpEmailSender(IOptions<SmtpSettings> smtpSettings)
         {
-            _context = context;
+            _smtpSettings = smtpSettings.Value;
         }
 
         public async Task SendEmailAsync(string email, string subject, string message)
         {
-            var settings = await _context.SmtpSettings.AsNoTracking().FirstOrDefaultAsync();
-            if (settings == null)
-                throw new InvalidOperationException("SMTP settings not configured");
-
             var mimeMessage = new MimeMessage();
-            mimeMessage.From.Add(new MailboxAddress(settings.FromName, settings.FromEmail));
+            mimeMessage.From.Add(new MailboxAddress(_smtpSettings.FromName, _smtpSettings.FromEmail));
             mimeMessage.To.Add(MailboxAddress.Parse(email));
             mimeMessage.Subject = subject;
             mimeMessage.Body = new TextPart("plain") { Text = message };
 
             using var client = new SmtpClient();
-            await client.ConnectAsync(settings.Host, settings.Port, SecureSocketOptions.StartTls);
-            await client.AuthenticateAsync(settings.Username, settings.Password);
+            await client.ConnectAsync(_smtpSettings.Host, _smtpSettings.Port, SecureSocketOptions.StartTls);
+            await client.AuthenticateAsync(_smtpSettings.Username, _smtpSettings.Password);
             await client.SendAsync(mimeMessage);
             await client.DisconnectAsync(true);
         }

@@ -417,11 +417,11 @@ export const SettlementsSection: React.FC<SettlementsSectionProps> = ({ eventId 
   const downloadFile = useCallback(
     async (settlement: Settlement, doc?: DocumentDto) => {
       try {
-        const url = doc
+        const downloadUrl = doc
           ? `${API_BASE_URL}/settlements/${settlement.id}/documents/${doc.id}/download`
           : `${API_BASE_URL}/settlements/${settlement.id}/download`
 
-        const response = await fetch(url, {
+        const response = await fetch(downloadUrl, {
           method: "GET",
           credentials: "include",
         })
@@ -429,14 +429,14 @@ export const SettlementsSection: React.FC<SettlementsSectionProps> = ({ eventId 
           throw new Error("Failed to download file")
         }
         const blob = await response.blob()
-        const url = window.URL.createObjectURL(blob)
+        const objectUrl = window.URL.createObjectURL(blob)
         const a = document.createElement("a")
-        a.href = url
+        a.href = objectUrl
         a.download =
           doc?.originalFileName || doc?.fileName || settlement.documentName || "document"
         document.body.appendChild(a)
         a.click()
-        window.URL.revokeObjectURL(url)
+        window.URL.revokeObjectURL(objectUrl)
         document.body.removeChild(a)
       } catch (error) {
         console.error("Error downloading file:", error)

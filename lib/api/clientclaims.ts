@@ -30,6 +30,7 @@ function mapDtoToClientClaim(dto: ClientClaimDto): ClientClaim {
     documentPath: dto.documentPath || undefined,
     documentName: dto.documentName || undefined,
     documentDescription: dto.documentDescription || undefined,
+    documents: dto.documents,
     claimNotes: dto.claimNotes || undefined,
     createdAt: dto.createdAt,
     updatedAt: dto.updatedAt,

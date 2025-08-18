@@ -7,7 +7,8 @@ import { EmailList } from "./email-list"
 import { EmailView } from "./email-view"
 import { EmailComposeComponent } from "./email-compose"
 import { emailFolders, sampleEmails } from "@/lib/email-data"
-import type { Email, EmailCompose } from "@/types/email"
+import type { Email, EmailCompose, EmailAttachment } from "@/types/email"
+import type { UploadedFile, RequiredDocument } from "@/types"
 
 interface EmailSectionProps {
   claimId?: string
@@ -26,6 +27,30 @@ export const EmailSection = ({ claimId }: EmailSectionProps) => {
     replyBody?: string
     claimId?: string
   }>({})
+
+  const sampleDocuments: UploadedFile[] = [
+    {
+      id: "doc1",
+      name: "Umowa.pdf",
+      size: 1024,
+      type: "pdf",
+      uploadedAt: new Date().toISOString(),
+      url: "#",
+    },
+    {
+      id: "doc2",
+      name: "Faktura.jpg",
+      size: 2048,
+      type: "image",
+      uploadedAt: new Date().toISOString(),
+      url: "#",
+    },
+  ]
+
+  const requiredDocuments: RequiredDocument[] = [
+    { id: "req1", name: "Umowa", required: true, uploaded: false, description: "" },
+    { id: "req2", name: "Protokół", required: false, uploaded: false, description: "" },
+  ]
 
   const filteredEmails = emails.filter((email) => {
     if (activeFolder === "starred") return email.isStarred
@@ -76,6 +101,14 @@ export const EmailSection = ({ claimId }: EmailSectionProps) => {
     toast({
       title: isRead ? "Oznaczono jako przeczytane" : "Oznaczono jako nieprzeczytane",
       description: `Zaktualizowano ${emailIds.length} e-mail(i)`,
+    })
+  }
+
+  const handleAssignAttachment = (attachment: EmailAttachment, documentId: string) => {
+    const doc = requiredDocuments.find((d) => d.id === documentId)
+    toast({
+      title: "Załącznik przypisany",
+      description: `Dodano ${attachment.name} do dokumentu ${doc?.name || documentId}`,
     })
   }
 
@@ -218,6 +251,8 @@ export const EmailSection = ({ claimId }: EmailSectionProps) => {
           onStar={handleStarEmail}
           onArchive={(id) => handleArchiveEmails([id])}
           onDelete={(id) => handleDeleteEmails([id])}
+          requiredDocuments={requiredDocuments}
+          onAssignAttachment={handleAssignAttachment}
         />
       )}
 
@@ -230,7 +265,8 @@ export const EmailSection = ({ claimId }: EmailSectionProps) => {
             replyTo={composeData.replyTo}
             replySubject={composeData.replySubject}
             replyBody={composeData.replyBody}
-            claimId={composeData.claimId}
+            claimId={composeData.claimId || ""}
+            availableDocuments={sampleDocuments}
           />
         </div>
       )}

@@ -20,8 +20,11 @@ import {
   Paperclip,
   ChevronLeft,
   PrinterIcon as Print,
+  Plus,
 } from "lucide-react"
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import type { Email } from "@/types/email"
+import type { RequiredDocument } from "@/types"
 
 interface EmailViewProps {
   email: Email
@@ -32,6 +35,8 @@ interface EmailViewProps {
   onStar: (emailId: string) => void
   onArchive: (emailId: string) => void
   onDelete: (emailId: string) => void
+  requiredDocuments?: RequiredDocument[]
+  onAssignAttachment?: (attachment: any, documentId: string) => void
 }
 
 export const EmailView = ({
@@ -43,6 +48,8 @@ export const EmailView = ({
   onStar,
   onArchive,
   onDelete,
+  requiredDocuments = [],
+  onAssignAttachment,
 }: EmailViewProps) => {
   const [showFullHeaders, setShowFullHeaders] = useState(false)
 
@@ -225,6 +232,34 @@ export const EmailView = ({
                           <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
                             <Download className="h-4 w-4" />
                           </Button>
+                          <Dialog>
+                            <DialogTrigger asChild>
+                              <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                                <Plus className="h-4 w-4" />
+                              </Button>
+                            </DialogTrigger>
+                            <DialogContent className="sm:max-w-md">
+                              <DialogHeader>
+                                <DialogTitle>Przypisz do dokumentu</DialogTitle>
+                              </DialogHeader>
+                              <div className="flex flex-col gap-2">
+                                {requiredDocuments.length ? (
+                                  requiredDocuments.map((doc) => (
+                                    <Button
+                                      key={doc.id}
+                                      variant="outline"
+                                      onClick={() => onAssignAttachment?.(attachment, doc.id)}
+                                      className="justify-start"
+                                    >
+                                      {doc.name}
+                                    </Button>
+                                  ))
+                                ) : (
+                                  <p className="text-sm text-gray-500">Brak wymaganych dokumentów</p>
+                                )}
+                              </div>
+                            </DialogContent>
+                          </Dialog>
                         </div>
                       </div>
                     </Card>

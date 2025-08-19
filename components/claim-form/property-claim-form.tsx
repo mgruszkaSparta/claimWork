@@ -69,7 +69,7 @@ export function PropertyClaimForm({
   loadingStatuses,
 }: PropertyClaimFormProps) {
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       <PropertyDamageSection
         claimFormData={claimFormData}
         handleFormChange={handleFormChange}

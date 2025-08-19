@@ -43,7 +43,7 @@ export function DamageBasicInfoSection({
           }}
           disabled
         >
-          <SelectTrigger className="mt-1">
+          <SelectTrigger className="mt-0.5">
             <SelectValue placeholder="Wybierz typ szkody..." />
           </SelectTrigger>
           <SelectContent>
@@ -65,7 +65,7 @@ export function DamageBasicInfoSection({
           }}
           disabled={loadingRiskTypes}
         >
-          <SelectTrigger className="mt-1">
+          <SelectTrigger className="mt-0.5">
             <SelectValue placeholder={loadingRiskTypes ? "Ładowanie..." : "Wybierz ryzyko szkody..."} />
           </SelectTrigger>
           <SelectContent>

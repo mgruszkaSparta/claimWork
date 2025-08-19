@@ -498,7 +498,7 @@ export function RecourseSection({ eventId }: RecourseSectionProps) {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       <div className="flex items-center gap-3 bg-gray-100 p-3 rounded-md mb-4 border border-[#d1d9e6]">
         <div className="text-[#1a3a6c]">
           <DollarSign className="h-5 w-5" />
@@ -528,7 +528,7 @@ export function RecourseSection({ eventId }: RecourseSectionProps) {
             </h3>
           </div>
           <div className="p-6">
-            <form onSubmit={handleSubmit} className="space-y-6">
+            <form onSubmit={handleSubmit} className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-2">
                   <Label className="text-sm font-medium text-gray-700">Czy regres zasadny</Label>
@@ -677,7 +677,7 @@ export function RecourseSection({ eventId }: RecourseSectionProps) {
                             setFormData({ ...formData, documentDescription: e.target.value })
                           }
                           rows={2}
-                          className="mt-1"
+                          className="mt-0.5"
                         />
                       </div>
                     )}
@@ -768,9 +768,9 @@ export function RecourseSection({ eventId }: RecourseSectionProps) {
                           }
                           placeholder="Dodaj opis dokumentu (np. 'Pismo w sprawie regresu', 'Potwierdzenie wpłaty', itp.)"
                           rows={2}
-                          className="mt-1"
+                          className="mt-0.5"
                         />
-                        <p className="text-xs text-muted-foreground mt-1">
+                        <p className="text-xs text-muted-foreground mt-0.5">
                           Opis pomoże w łatwiejszej identyfikacji dokumentu w przyszłości.
                         </p>
                       </div>
@@ -789,7 +789,7 @@ export function RecourseSection({ eventId }: RecourseSectionProps) {
                   {Object.keys(totalRecourseAmounts).length > 0 ? (
                     <div>
                       Łączna kwota regresów:
-                      <ul className="list-none ml-2 mt-1">
+                      <ul className="list-none ml-2 mt-0.5">
                         {Object.entries(totalRecourseAmounts).map(([currency, amount]) => (
                           <li key={currency} className="font-bold">
                             {formatCurrency(amount, currency)}

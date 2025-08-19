@@ -399,7 +399,7 @@ export const RepairScheduleSection: React.FC<RepairScheduleSectionProps> = ({ ev
                   <div className={`text-xs font-medium ${stage.completed ? "text-primary" : "text-muted-foreground"}`}>
                     {stage.label}
                   </div>
-                  {stage.date && <div className="text-xs text-muted-foreground mt-1">{formatDate(stage.date)}</div>}
+                  {stage.date && <div className="text-xs text-muted-foreground mt-0.5">{formatDate(stage.date)}</div>}
                 </div>
               </div>
             )
@@ -412,7 +412,7 @@ export const RepairScheduleSection: React.FC<RepairScheduleSectionProps> = ({ ev
   if (loading) {
     return (
       <div className="flex items-center justify-center py-16">
-        <div className="text-center space-y-6 animate-fade-in">
+        <div className="text-center space-y-4 animate-fade-in">
           <div className="relative">
             <div className="w-16 h-16 border-4 border-primary/20 border-t-primary rounded-full animate-spin mx-auto"></div>
           </div>
@@ -467,7 +467,7 @@ export const RepairScheduleSection: React.FC<RepairScheduleSectionProps> = ({ ev
 
           <CardContent className="p-8">
             <div className="space-y-8 animate-slide-up">
-              <div className="space-y-6">
+              <div className="space-y-4">
                 <h3 className="text-lg font-semibold text-foreground flex items-center gap-2">
                   <Car className="h-5 w-5 text-primary" />
                   Podstawowe informacje
@@ -521,7 +521,7 @@ export const RepairScheduleSection: React.FC<RepairScheduleSectionProps> = ({ ev
                 </div>
               </div>
 
-              <div className="space-y-6">
+              <div className="space-y-4">
                 <h3 className="text-lg font-semibold text-foreground flex items-center gap-2">
                   <Calendar className="h-5 w-5 text-primary" />
                   Harmonogram napraw
@@ -582,12 +582,12 @@ export const RepairScheduleSection: React.FC<RepairScheduleSectionProps> = ({ ev
                 </div>
               </div>
 
-              <div className="space-y-6">
+              <div className="space-y-4">
                 <h3 className="text-lg font-semibold text-foreground flex items-center gap-2">
                   <AlertTriangle className="h-5 w-5 text-accent" />
                   Status operacyjny
                 </h3>
-                <div className="space-y-6">
+                <div className="space-y-4">
                   <div className="space-y-3">
                     <Label htmlFor="whyNotOperational" className="flex items-center gap-2 text-sm font-semibold">
                       <AlertTriangle className="h-4 w-4 text-accent" />
@@ -659,7 +659,7 @@ export const RepairScheduleSection: React.FC<RepairScheduleSectionProps> = ({ ev
                 </div>
               </div>
 
-              <div className="space-y-6">
+              <div className="space-y-4">
                 <h3 className="text-lg font-semibold text-foreground flex items-center gap-2">
                   <User className="h-5 w-5 text-primary" />
                   Kontakty
@@ -749,11 +749,11 @@ export const RepairScheduleSection: React.FC<RepairScheduleSectionProps> = ({ ev
         </Card>
       )}
 
-      <div className="space-y-6">
+      <div className="space-y-4">
         {schedules.length === 0 ? (
           <Card className="border-2 border-dashed border-border bg-muted/20 rounded-2xl animate-fade-in">
             <CardContent className="text-center py-16">
-              <div className="space-y-6">
+              <div className="space-y-4">
                 <div className="p-6 bg-primary/10 rounded-2xl w-fit mx-auto border border-border">
                   <Calendar className="h-16 w-16 text-primary" />
                 </div>
@@ -831,7 +831,7 @@ export const RepairScheduleSection: React.FC<RepairScheduleSectionProps> = ({ ev
                   </div>
                 </CardHeader>
 
-                <CardContent className="space-y-6">
+                <CardContent className="space-y-4">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="space-y-2">
                       <p className="text-xs text-muted-foreground flex items-center gap-2">

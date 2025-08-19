@@ -226,7 +226,7 @@ export const RepairDetailsSection: React.FC<RepairDetailsSectionProps> = ({ even
           <CardContent className="p-8">
             <form onSubmit={handleSubmit} className="space-y-8">
               {/* Basic information */}
-              <div className="space-y-6">
+              <div className="space-y-4">
                 <h3 className="text-lg font-semibold text-foreground flex items-center gap-2">
                   <Car className="h-5 w-5 text-primary" />
                   Informacje podstawowe
@@ -294,7 +294,7 @@ export const RepairDetailsSection: React.FC<RepairDetailsSectionProps> = ({ even
               </div>
 
               {/* Dates */}
-              <div className="space-y-6">
+              <div className="space-y-4">
                 <h3 className="text-lg font-semibold text-foreground flex items-center gap-2">
                   <Calendar className="h-5 w-5 text-primary" /> Daty i terminy
                 </h3>
@@ -347,7 +347,7 @@ export const RepairDetailsSection: React.FC<RepairDetailsSectionProps> = ({ even
               </div>
 
               {/* Damage description */}
-              <div className="space-y-6">
+              <div className="space-y-4">
                 <h3 className="text-lg font-semibold text-foreground flex items-center gap-2">
                   <AlertTriangle className="h-5 w-5 text-accent" /> Opis uszkodzeń
                 </h3>
@@ -362,11 +362,11 @@ export const RepairDetailsSection: React.FC<RepairDetailsSectionProps> = ({ even
               </div>
 
               {/* Vehicle options */}
-              <div className="space-y-6">
+              <div className="space-y-4">
                 <h3 className="text-lg font-semibold text-foreground flex items-center gap-2">
                   <Car className="h-5 w-5 text-primary" /> Opcje pojazdów
                 </h3>
-                <div className="space-y-6">
+                <div className="space-y-4">
                   <div className="space-y-3">
                     <div className="flex items-center space-x-3">
                       <Checkbox
@@ -417,7 +417,7 @@ export const RepairDetailsSection: React.FC<RepairDetailsSectionProps> = ({ even
               </div>
 
               {/* Work hours */}
-              <div className="space-y-6">
+              <div className="space-y-4">
                 <h3 className="text-lg font-semibold text-foreground flex items-center gap-2">
                   <Timer className="h-5 w-5 text-primary" /> Godziny pracy
                 </h3>
@@ -485,7 +485,7 @@ export const RepairDetailsSection: React.FC<RepairDetailsSectionProps> = ({ even
               </div>
 
               {/* Additional info */}
-              <div className="space-y-6">
+              <div className="space-y-4">
                 <h3 className="text-lg font-semibold text-foreground flex items-center gap-2">
                   <FileText className="h-5 w-5 text-muted-foreground" /> Informacje dodatkowe
                 </h3>
@@ -544,11 +544,11 @@ export const RepairDetailsSection: React.FC<RepairDetailsSectionProps> = ({ even
         </Card>
       )}
 
-      <div className="space-y-6">
+      <div className="space-y-4">
         {details.length === 0 ? (
           <Card className="border-2 border-dashed border-border bg-muted/20 rounded-2xl">
             <CardContent className="text-center py-16">
-              <div className="space-y-6">
+              <div className="space-y-4">
                 <div className="p-6 bg-primary/10 rounded-2xl w-fit mx-auto border border-border">
                   <FileText className="h-16 w-16 text-primary" />
                 </div>
@@ -604,7 +604,7 @@ export const RepairDetailsSection: React.FC<RepairDetailsSectionProps> = ({ even
                   </div>
                 </div>
               </CardHeader>
-              <CardContent className="space-y-6">
+              <CardContent className="space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="space-y-2">
                     <p className="text-xs text-muted-foreground">Przystąpienie do naprawy</p>

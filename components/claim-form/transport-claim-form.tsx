@@ -70,7 +70,7 @@ export function TransportClaimForm({
   loadingStatuses,
 }: TransportClaimFormProps) {
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       <DamageDataSection
         claimFormData={claimFormData}
         handleFormChange={handleFormChange}

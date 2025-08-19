@@ -166,7 +166,7 @@ export function ParticipantsSection({
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       {/* Add participant buttons */}
       <div className="flex gap-3 mb-6">
         {!injuredParty && (

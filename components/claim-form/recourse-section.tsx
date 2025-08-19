@@ -38,6 +38,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 
 import {
   getRecourses as fetchRecourses,
@@ -61,6 +62,7 @@ export function RecourseSection({ eventId }: RecourseSectionProps) {
   const [recourses, setRecourses] = useState<Recourse[]>([])
   const [formLoading, setFormLoading] = useState(false)
   const [listLoading, setListLoading] = useState(false)
+  const [listError, setListError] = useState<string | null>(null)
   const [isFormVisible, setIsFormVisible] = useState(false)
   const [isEditing, setIsEditing] = useState(false)
   const [editingRecourseId, setEditingRecourseId] = useState<string | null>(null)
@@ -108,6 +110,7 @@ export function RecourseSection({ eventId }: RecourseSectionProps) {
   const loadRecourses = useCallback(async () => {
     if (!eventId) return
     setListLoading(true)
+    setListError(null)
     try {
       const data = await fetchRecourses(eventId)
       setRecourses(data)
@@ -120,10 +123,15 @@ export function RecourseSection({ eventId }: RecourseSectionProps) {
       })
       setTotalRecourseAmounts(totals)
     } catch (error) {
-      console.error("Error loading recourses:", error)
+      const errorMessage = error instanceof Error ? error.message : String(error)
+      console.error(
+        `Error loading recourses for event ${eventId}: ${errorMessage}`,
+        error,
+      )
+      setListError(errorMessage)
       toast({
         title: "Błąd",
-        description: "Nie udało się załadować regresów",
+        description: `Nie udało się załadować regresów: ${errorMessage}`,
         variant: "destructive",
       })
     } finally {
@@ -841,6 +849,13 @@ export function RecourseSection({ eventId }: RecourseSectionProps) {
               )}
             </div>
           </div>
+          {listError && (
+            <Alert variant="destructive" className="m-4">
+              <AlertTriangle className="h-4 w-4" />
+              <AlertTitle>Błąd</AlertTitle>
+              <AlertDescription>{listError}</AlertDescription>
+            </Alert>
+          )}
           <div className="overflow-x-auto">
             <table className="min-w-full">
               <thead>

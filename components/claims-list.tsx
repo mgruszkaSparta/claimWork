@@ -75,7 +75,7 @@ export function ClaimsList({
   const router = useRouter()
   const [searchTerm, setSearchTerm] = useState("")
   const [filterStatus, setFilterStatus] = useState("all")
-  const [filterBrand, setFilterBrand] = useState("")
+  const [filterRegistration, setFilterRegistration] = useState("")
   const [filterHandler, setFilterHandler] = useState("")
   const [showFilters, setShowFilters] = useState(false)
   const [isRefreshing, setIsRefreshing] = useState(false)
@@ -115,7 +115,7 @@ export function ClaimsList({
             pageSize,
             search: searchTerm,
             status: filterStatus !== "all" ? filterStatus : undefined,
-            brand: filterBrand || undefined,
+            brand: filterRegistration || undefined,
             handler: filterHandler || undefined,
             claimObjectTypeId,
             sortBy,
@@ -139,7 +139,7 @@ export function ClaimsList({
     pageSize,
     searchTerm,
     filterStatus,
-    filterBrand,
+    filterRegistration,
     filterHandler,
     claimObjectTypeId,
     sortBy,
@@ -161,8 +161,9 @@ export function ClaimsList({
     () =>
       claims.filter((claim) => {
         const matchesFilter = filterStatus === "all" || claim.status === filterStatus
-        const matchesBrand =
-          !filterBrand || claim.vehicleNumber?.toLowerCase().includes(filterBrand.toLowerCase())
+        const matchesRegistration =
+          !filterRegistration ||
+          claim.victimRegistrationNumber?.toLowerCase().includes(filterRegistration.toLowerCase())
         const matchesHandler =
           !filterHandler || claim.handler?.toLowerCase().includes(filterHandler.toLowerCase())
         const matchesClaimType =
@@ -170,9 +171,9 @@ export function ClaimsList({
           !claim.riskType ||
           allowedRiskTypes.includes(claim.riskType.toLowerCase())
 
-        return matchesFilter && matchesBrand && matchesHandler && matchesClaimType
+        return matchesFilter && matchesRegistration && matchesHandler && matchesClaimType
       }),
-    [claims, filterStatus, filterBrand, filterHandler, allowedRiskTypes],
+    [claims, filterStatus, filterRegistration, filterHandler, allowedRiskTypes],
   )
 
   const sortedClaims = useMemo(() => {
@@ -294,7 +295,7 @@ export function ClaimsList({
           pageSize,
           search: searchTerm,
           status: filterStatus !== "all" ? filterStatus : undefined,
-          brand: filterBrand || undefined,
+            brand: filterRegistration || undefined,
           handler: filterHandler || undefined,
           claimObjectTypeId,
           sortBy,
@@ -442,8 +443,8 @@ export function ClaimsList({
           <div className="mt-3 flex flex-col sm:flex-row gap-3">
             <Input
               placeholder="Filtruj po numerze rejestracyjnym..."
-              value={filterBrand}
-              onChange={(e) => setFilterBrand(e.target.value)}
+              value={filterRegistration}
+              onChange={(e) => setFilterRegistration(e.target.value)}
               className="h-9 text-sm"
             />
             <Input
@@ -544,7 +545,7 @@ export function ClaimsList({
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">{claim.insurerClaimNumber || "-"}</td>
                     <td className="px-6 py-4 whitespace-nowrap">{claim.claimNumber || "-"}</td>
-                    <td className="px-6 py-4 whitespace-nowrap">{claim.vehicleNumber || "-"}</td>
+                    <td className="px-6 py-4 whitespace-nowrap">{claim.victimRegistrationNumber || "-"}</td>
                     <td className="px-6 py-4 whitespace-nowrap">{claim.handler || "-"}</td>
                     <td className="px-6 py-4 whitespace-nowrap">{claim.client || "-"}</td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">

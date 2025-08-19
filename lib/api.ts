@@ -33,6 +33,8 @@ export interface EventListItemDto {
   spartaNumber?: string
   claimNumber?: string
   vehicleNumber?: string
+  victimRegistrationNumber?: string
+  perpetratorRegistrationNumber?: string
   clientId?: number
   client?: string
   liquidator?: string
@@ -126,6 +128,8 @@ export interface EventUpsertDto {
   spartaNumber?: string
   claimNumber?: string
   vehicleNumber?: string
+  victimRegistrationNumber?: string
+  perpetratorRegistrationNumber?: string
   clientId?: number
   client?: string
   liquidator?: string

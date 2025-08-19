@@ -279,15 +279,6 @@ export const AppealsSection = ({ claimId }: AppealsSectionProps) => {
       return
     }
 
-    if (selectedFiles.length === 0) {
-      toast({
-        title: "Błąd",
-        description: "Musisz dodać plik",
-        variant: "destructive",
-      })
-      return
-    }
-
     setIsLoading(true)
     try {
       const status = formData.responseDate ? "Zamknięte" : formData.status

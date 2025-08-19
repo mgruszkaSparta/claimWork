@@ -185,14 +185,6 @@ export function DecisionsSection({ claimId, onChange }: DecisionsSectionProps) {
     }
   }
 
-  const removeAllFiles = () => {
-    setSelectedFiles([])
-    setShowFileDescription(false)
-    if (fileInputRef.current) {
-      fileInputRef.current.value = ""
-    }
-  }
-
   const handleDragOver = (event: React.DragEvent) => {
     event.preventDefault()
     event.stopPropagation()
@@ -514,10 +506,6 @@ export function DecisionsSection({ claimId, onChange }: DecisionsSectionProps) {
     )
   }
 
-  const getTotalFileSize = () => {
-    return selectedFiles.reduce((total, file) => total + file.size, 0)
-  }
-
   const formatFileSize = (bytes: number) => {
     if (bytes === 0) return "0 B"
     const k = 1024
@@ -640,7 +628,7 @@ export function DecisionsSection({ claimId, onChange }: DecisionsSectionProps) {
                 <Label className="text-sm font-medium text-gray-700">Załącz dokumenty decyzji</Label>
 
                 {isEditing && selectedFiles.length === 0 && currentDecision?.documents?.length ? (
-                  <div className="space-y-2">
+                  <div className="space-y-2 mb-4">
                     {currentDecision.documents.map((doc) => (
                       <div
                         key={doc.id}
@@ -739,29 +727,17 @@ export function DecisionsSection({ claimId, onChange }: DecisionsSectionProps) {
                 {/* Selected files display */}
                 {selectedFiles.length > 0 && (
                   <div className="mt-2">
-                    <div className="p-3 bg-muted rounded-t-lg border flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <FileText className="h-4 w-4 text-primary" />
-                        <span className="text-sm font-medium">
-                          Wybrane pliki ({selectedFiles.length}) - {formatFileSize(getTotalFileSize())}
-                        </span>
-                      </div>
-                      <Button type="button" variant="ghost" size="sm" onClick={removeAllFiles}>
-                        <X className="h-4 w-4" />
-                      </Button>
-                    </div>
-
-                    <div className="max-h-40 overflow-y-auto border-x border-b rounded-b-lg">
+                    <div className="space-y-2">
                       {selectedFiles.map((file, index) => (
                         <div
-                          key={`selected-file-${index}`}
-                          className="p-2 bg-background border-b last:border-b-0 flex items-center justify-between"
+                          key={index}
+                          className="p-3 bg-muted rounded-t-lg border flex items-center justify-between"
                         >
-                          <div className="flex items-center gap-2 flex-1 min-w-0">
-                            <FileText className="h-3 w-3 text-muted-foreground flex-shrink-0" />
-                            <span className="text-xs truncate">{file.name}</span>
-                            <span className="text-xs text-muted-foreground flex-shrink-0">
-                              ({formatFileSize(file.size)})
+                          <div className="flex items-center gap-2">
+                            <FileText className="h-4 w-4 text-primary" />
+                            <span className="text-sm font-medium">{file.name}</span>
+                            <span className="text-xs text-muted-foreground">
+                              {formatFileSize(file.size)}
                             </span>
                           </div>
                           <Button
@@ -769,29 +745,27 @@ export function DecisionsSection({ claimId, onChange }: DecisionsSectionProps) {
                             variant="ghost"
                             size="sm"
                             onClick={() => removeSelectedFile(index)}
-                            className="h-6 w-6 p-0 flex-shrink-0"
                           >
-                            <X className="h-3 w-3" />
+                            <X className="h-4 w-4" />
                           </Button>
                         </div>
                       ))}
                     </div>
 
                     {showFileDescription && (
-                      <div className="p-3 bg-background border-x border-b rounded-b-lg">
+                      <div className="p-3 bg-background rounded-b-lg border-x border-b">
                         <Label htmlFor="documentDescription" className="text-sm font-medium">
-                          Opis dokumentów:
+                          Opis dokumentu
                         </Label>
                         <Textarea
                           id="documentDescription"
                           value={formData.documentDescription}
                           onChange={(e) => handleInputChange("documentDescription", e.target.value)}
-                          placeholder="Dodaj opis dokumentów (np. 'Decyzja o wypłacie', 'Odmowa wypłaty', itp.)"
                           rows={2}
                           className="mt-1"
                         />
                         <p className="text-xs text-muted-foreground mt-1">
-                          Opis pomoże w łatwiejszej identyfikacji dokumentów w przyszłości.
+                          Opis pomoże w łatwiejszej identyfikacji dokumentu w przyszłości.
                         </p>
                       </div>
                     )}

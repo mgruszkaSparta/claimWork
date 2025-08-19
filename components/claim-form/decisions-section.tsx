@@ -883,33 +883,73 @@ export function DecisionsSection({ claimId, onChange }: DecisionsSectionProps) {
                     <td className="py-3 px-4 text-sm">{decision.compensationTitle ?? "-"}</td>
                     <td className="py-3 px-4">
                       {(() => {
-                        const count = decision.documents?.length || (decision.documentPath ? 1 : 0)
-                        if (count === 0) {
-                          return <span className="text-sm text-muted-foreground">Brak dokumentów</span>
+                        const docs = decision.documents
+                        if (docs && docs.length > 0) {
+                          return (
+                            <ul className="space-y-1">
+                              {docs.map((doc) => (
+                                <li key={doc.id} className="flex items-center gap-2">
+                                  <FileText className="h-4 w-4 text-primary" />
+                                  <span className="text-sm font-medium">
+                                    {doc.originalFileName || doc.fileName}
+                                  </span>
+                                  <div className="flex gap-1">
+                                    {isPreviewable(doc.originalFileName || doc.fileName || "") && (
+                                      <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        onClick={() => previewFile(decision, doc)}
+                                        title="Podgląd"
+                                      >
+                                        <Eye className="h-4 w-4" />
+                                      </Button>
+                                    )}
+                                    <Button
+                                      variant="ghost"
+                                      size="sm"
+                                      onClick={() => downloadFile(decision, doc)}
+                                      title="Pobierz"
+                                    >
+                                      <Download className="h-4 w-4" />
+                                    </Button>
+                                  </div>
+                                </li>
+                              ))}
+                            </ul>
+                          )
                         }
-                        return (
-                          <div className="flex items-center gap-2">
-                            <span className="text-sm">Załączniki ({count})</span>
-                            <div className="flex gap-1">
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => previewFile(decision)}
-                                title="Podgląd"
-                              >
-                                <Eye className="h-4 w-4" />
-                              </Button>
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => downloadFile(decision)}
-                                title="Pobierz"
-                              >
-                                <Download className="h-4 w-4" />
-                              </Button>
+
+                        if (decision.documentPath) {
+                          const name = getDisplayFileName(decision)
+                          return (
+                            <div className="flex items-center gap-2">
+                              <FileText className="h-4 w-4 text-primary" />
+                              <span className="text-sm font-medium">{name}</span>
+                              <div className="flex gap-1">
+                                {isPreviewable(name) && (
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => previewFile(decision)}
+                                    title="Podgląd"
+                                  >
+                                    <Eye className="h-4 w-4" />
+                                  </Button>
+                                )}
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => downloadFile(decision)}
+                                  title="Pobierz"
+                                >
+                                  <Download className="h-4 w-4" />
+                                </Button>
+                              </div>
                             </div>
-                          </div>
-                        )
+                          )
+                        }
+
+                        return <span className="text-sm text-muted-foreground">Brak dokumentów</span>
                       })()}
                     </td>
                     <td className="py-3 px-4 text-center">

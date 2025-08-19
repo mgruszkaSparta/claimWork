@@ -21,6 +21,28 @@ test('includes dropdown selections in payload', () => {
   assert.equal(payload.handlerId, 9)
 })
 
+test('maps transportDamage fields', () => {
+  const payload = transformFrontendClaimToApiPayload({
+    transportDamage: {
+      cargoDescription: 'desc',
+      losses: ['a', 'b'],
+      carrier: 'carrier',
+      policyNumber: 'PN',
+      inspectionContactName: 'John',
+      inspectionContactPhone: '123',
+      inspectionContactEmail: 'john@example.com',
+    },
+  } as any)
+
+  assert.equal(payload.cargoDescription, 'desc')
+  assert.equal(payload.losses, 'a,b')
+  assert.equal(payload.carrier, 'carrier')
+  assert.equal(payload.carrierPolicyNumber, 'PN')
+  assert.equal(payload.inspectionContactName, 'John')
+  assert.equal(payload.inspectionContactPhone, '123')
+  assert.equal(payload.inspectionContactEmail, 'john@example.com')
+})
+
 test('maps damageType object to its code value', () => {
   const payload = transformFrontendClaimToApiPayload({
     damageType: { code: 'DT', name: 'Damage' } as any,

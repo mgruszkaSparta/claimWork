@@ -75,8 +75,8 @@ export function DamageDataSection({
         <CardTitle className="text-lg font-semibold">Dane szkody</CardTitle>
       </CardHeader>
       <CardContent className="p-6 bg-white">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
-          <div className="space-y-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4">
+          <div className="space-y-4">
             <div>
               <Label htmlFor="claimObjectType" className="text-sm font-medium text-gray-700">
                 Typ szkody
@@ -89,7 +89,7 @@ export function DamageDataSection({
                   handleFormChange("damageType", "")
                 }}
               >
-                <SelectTrigger className="mt-1">
+                <SelectTrigger className="mt-0.5">
                   <SelectValue placeholder="Wybierz typ szkody..." />
                 </SelectTrigger>
                 <SelectContent>
@@ -110,7 +110,7 @@ export function DamageDataSection({
                 }}
                 disabled={loadingRiskTypes}
               >
-                <SelectTrigger className="mt-1">
+                <SelectTrigger className="mt-0.5">
                   <SelectValue placeholder={loadingRiskTypes ? "Ładowanie..." : "Wybierz ryzyko szkody..."} />
                 </SelectTrigger>
                 <SelectContent>
@@ -131,7 +131,7 @@ export function DamageDataSection({
                 onValueChange={(value) => handleFormChange("status", value)}
                 disabled={loadingStatuses}
               >
-                <SelectTrigger className="mt-1">
+                <SelectTrigger className="mt-0.5">
                   <SelectValue placeholder={loadingStatuses ? "Ładowanie..." : "Wybierz status szkody..."} />
                 </SelectTrigger>
                 <SelectContent>
@@ -152,7 +152,7 @@ export function DamageDataSection({
                 type="date"
                 value={formatDateForInput(claimFormData.reportDateToInsurer)}
                 onChange={(e) => handleFormChange("reportDateToInsurer", e.target.value)}
-                className="mt-1"
+                className="mt-0.5"
               />
             </div>
             <div className="relative z-10">
@@ -197,7 +197,7 @@ export function DamageDataSection({
             </div>
           </div>
 
-          <div className="space-y-6">
+          <div className="space-y-4">
             <div>
               <Label htmlFor="damageType" className="text-sm font-medium text-gray-700">
                 Rodzaj szkody
@@ -219,7 +219,7 @@ export function DamageDataSection({
                 id="insurerClaimNumber"
                 value={claimFormData.insurerClaimNumber || ""}
                 onChange={(e) => handleFormChange("insurerClaimNumber", e.target.value)}
-                className="mt-1"
+                className="mt-0.5"
               />
             </div>
             <div>
@@ -228,7 +228,7 @@ export function DamageDataSection({
                 id="spartaNumber"
                 value={claimFormData.spartaNumber || ""}
                 readOnly
-                className="bg-gray-50 mt-1 border-gray-200"
+                className="bg-gray-50 mt-0.5 border-gray-200"
               />
             </div>
             <div>
@@ -243,7 +243,7 @@ export function DamageDataSection({
                   handleFormChange("handlerEmail", event.handlerEmail || "")
                   handleFormChange("handlerPhone", event.handlerPhone || "")
                 }}
-                className="mt-1"
+                className="mt-0.5"
               />
             </div>
           </div>
@@ -251,7 +251,7 @@ export function DamageDataSection({
 
         <div className="border-t border-gray-200 my-8" />
 
-        <div className="space-y-6">
+        <div className="space-y-4">
           <div className="relative z-10">
             <Label htmlFor="insuranceCompany" className="text-sm font-medium text-gray-700 mb-2 block">
               Towarzystwo ubezpieczeniowe

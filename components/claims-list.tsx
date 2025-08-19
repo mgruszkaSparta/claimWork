@@ -74,6 +74,7 @@ export function ClaimsList({
 }: ClaimsListProps) {
   const router = useRouter()
   const [searchTerm, setSearchTerm] = useState("")
+  const [searchInput, setSearchInput] = useState("")
   const [filterStatus, setFilterStatus] = useState("all")
   const [filterRegistration, setFilterRegistration] = useState("")
   const [filterHandler, setFilterHandler] = useState("")
@@ -103,6 +104,10 @@ export function ClaimsList({
 
   const claims = initialClaims?.length ? initialClaims : fetchedClaims
   const totalRecords = initialClaims?.length ? initialClaims.length : totalCount
+
+  useEffect(() => {
+    setSearchInput(searchTerm)
+  }, [searchTerm])
 
   useEffect(() => {
     if (initialClaims?.length) return
@@ -188,6 +193,11 @@ export function ClaimsList({
     })
   }, [filteredClaims, sortConfig])
 
+  const totalClaimAmount = useMemo(
+    () => claims.reduce((sum, claim) => sum + (claim.totalClaim || 0), 0),
+    [claims],
+  )
+
   useEffect(() => {
 
     if (initialClaims?.length) return
@@ -203,7 +213,7 @@ export function ClaimsList({
           setPage((p) => p + 1)
         }
       },
-      { root: containerRef.current || undefined },
+      { root: containerRef.current || undefined, rootMargin: "200px" },
     )
     if (node) {
       observer.observe(node)
@@ -410,8 +420,15 @@ export function ClaimsList({
             <Search className="absolute left-3 top-2.5 h-4 w-4 text-gray-400" />
             <Input
               placeholder="Szukaj po numerze pojazdu, szkody, kliencie lub likwidatorze..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
+              value={searchInput}
+              onChange={(e) => setSearchInput(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  e.preventDefault()
+                  setPage(1)
+                  setSearchTerm(searchInput)
+                }
+              }}
               className="pl-9 h-9 text-sm"
             />
           </div>
@@ -544,8 +561,10 @@ export function ClaimsList({
                       )}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">{claim.insurerClaimNumber || "-"}</td>
-                    <td className="px-6 py-4 whitespace-nowrap">{claim.claimNumber || "-"}</td>
+
+                    <td className="px-6 py-4 whitespace-nowrap">{claim.spartaNumber || "-"}</td>
                     <td className="px-6 py-4 whitespace-nowrap">{claim.victimRegistrationNumber || "-"}</td>
+
                     <td className="px-6 py-4 whitespace-nowrap">{claim.handler || "-"}</td>
                     <td className="px-6 py-4 whitespace-nowrap">{claim.client || "-"}</td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
@@ -639,8 +658,8 @@ export function ClaimsList({
               {error && " (sprawdź połączenie z API)"}
             </span>
             <span>
-              Łączna wartość:{" "}
-              {sortedClaims.reduce((sum, claim) => sum + (claim.totalClaim || 0), 0).toLocaleString("pl-PL")} PLN
+              Łączna wartość wszystkich szkód:{" "}
+              {totalClaimAmount.toLocaleString("pl-PL")} PLN
             </span>
           </div>
         </div>

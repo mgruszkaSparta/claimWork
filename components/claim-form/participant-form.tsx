@@ -406,7 +406,7 @@ export const ParticipantForm: React.FC<ParticipantFormProps> = ({
           </div>
 
           <div className="p-4">
-            <div className="space-y-6">
+            <div className="space-y-4">
               {participantData.drivers && participantData.drivers.map((driver, index) => (
                 <div key={driver.id} className="border border-gray-200 rounded-lg p-4 bg-gray-50">
                   <div className="flex items-center justify-between mb-4">

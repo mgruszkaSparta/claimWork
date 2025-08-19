@@ -6,6 +6,8 @@ export interface AttachmentDto {
   fileName: string
   contentType: string
   size: number
+  /** Fully qualified URL to download the attachment */
+  url: string
 }
 
 export interface EmailDto {
@@ -46,6 +48,7 @@ export interface AssignEmailToClaimDto {
 
 class EmailService {
   private apiUrl = `${API_BASE_URL}/emails`
+  private defaultFrom = "noreply@automotiveclaims.com"
 
   async getAllEmails(): Promise<EmailDto[]> {
     try {
@@ -73,6 +76,7 @@ class EmailService {
             fileName: a.fileName,
             contentType: a.contentType,
             size: a.fileSize,
+            url: `/api/emails/attachment/${a.id}`,
           })) || [],
       }))
     } catch (error) {
@@ -107,6 +111,7 @@ class EmailService {
             fileName: a.fileName,
             contentType: a.contentType,
             size: a.fileSize,
+            url: `/api/emails/attachment/${a.id}`,
           })) || [],
       }
     } catch (error) {
@@ -188,17 +193,45 @@ class EmailService {
         credentials: "include",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
+          from: this.defaultFrom,
           to: sendRequest.to,
           cc: sendRequest.cc,
           bcc: sendRequest.bcc,
           subject: sendRequest.subject,
           body: sendRequest.body,
+          isHtml: false,
+          direction: "Outbound",
           claimId: sendRequest.claimId,
         }),
       })
       return response.ok
     } catch (error) {
       console.error("sendEmail failed:", error)
+      return false
+    }
+  }
+
+  async saveDraft(sendRequest: SendEmailRequestDto): Promise<boolean> {
+    try {
+      const response = await fetch(`${this.apiUrl}/draft`, {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          from: this.defaultFrom,
+          to: sendRequest.to,
+          cc: sendRequest.cc,
+          bcc: sendRequest.bcc,
+          subject: sendRequest.subject,
+          body: sendRequest.body,
+          isHtml: false,
+          direction: "Outbound",
+          claimIds: sendRequest.claimId ? [sendRequest.claimId] : undefined,
+        }),
+      })
+      return response.ok
+    } catch (error) {
+      console.error("saveDraft failed:", error)
       return false
     }
   }

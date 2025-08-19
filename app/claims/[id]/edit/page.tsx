@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useCallback } from "react"
+import { useState, useEffect, useCallback, useRef } from "react"
 import { useParams, useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { useToast } from "@/hooks/use-toast"
@@ -26,6 +26,11 @@ export default function EditClaimPage() {
   const [loadError, setLoadError] = useState<string | null>(null)
 
   const id = params.id as string
+  const contentRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    contentRef.current?.scrollTo({ top: 0, behavior: "smooth" })
+  }, [activeClaimSection])
 
   useEffect(() => {
     if (user?.roles) {
@@ -245,7 +250,7 @@ export default function EditClaimPage() {
           setActiveClaimSection={setActiveClaimSection}
           claimObjectType={claimFormData.objectTypeId?.toString()}
         />
-        <div className="flex-1 overflow-y-auto bg-gray-50">
+        <div ref={contentRef} className="flex-1 overflow-y-auto bg-gray-50">
           <div className="p-6 min-h-full">
             <ClaimMainContent
               activeClaimSection={activeClaimSection}

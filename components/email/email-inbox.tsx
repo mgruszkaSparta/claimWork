@@ -43,6 +43,7 @@ export default function EmailInbox({ claimId, claimNumber, claimInsuranceNumber 
   const [filterText, setFilterText] = useState("")
   const [isLoading, setIsLoading] = useState(false)
   const [isSending, setIsSending] = useState(false)
+  const [isSavingDraft, setIsSavingDraft] = useState(false)
   const [isDeleting, setIsDeleting] = useState(false)
   const [successMessage, setSuccessMessage] = useState("")
   const [errorMessage, setErrorMessage] = useState("")
@@ -259,6 +260,47 @@ export default function EmailInbox({ claimId, claimNumber, claimInsuranceNumber 
     updateFolderCounts,
   ])
 
+  const saveDraft = useCallback(async () => {
+    setIsSavingDraft(true)
+    setSuccessMessage("")
+    setErrorMessage("")
+
+    const request: SendEmailRequestDto = {
+      to: composeTo,
+      cc: "",
+      bcc: "",
+      subject: composeSubject + (claimInsuranceNumber ? `[[${claimInsuranceNumber}]]` : ""),
+      body: composeBody,
+      attachments: composeAttachments,
+      claimId,
+    }
+
+    try {
+      const success = await emailService.saveDraft(request)
+      if (success) {
+        setSuccessMessage("Szkic został zapisany!")
+        setIsComposing(false)
+        resetComposeForm()
+        updateFolderCounts()
+      } else {
+        setErrorMessage("Błąd podczas zapisywania szkicu. Spróbuj ponownie.")
+      }
+    } catch (error) {
+      console.error("Error saving draft:", error)
+      setErrorMessage("Błąd podczas zapisywania szkicu. Spróbuj ponownie.")
+    } finally {
+      setIsSavingDraft(false)
+    }
+  }, [
+    composeTo,
+    composeSubject,
+    composeBody,
+    composeAttachments,
+    claimId,
+    claimInsuranceNumber,
+    updateFolderCounts,
+  ])
+
   // Reset compose form
   const resetComposeForm = useCallback(() => {
     setComposeTo("")
@@ -268,6 +310,7 @@ export default function EmailInbox({ claimId, claimNumber, claimInsuranceNumber 
     setSuccessMessage("")
     setErrorMessage("")
     setIsSending(false)
+    setIsSavingDraft(false)
   }, [])
 
   // Read email
@@ -794,6 +837,9 @@ export default function EmailInbox({ claimId, claimNumber, claimInsuranceNumber 
                   <h1 className="text-lg font-semibold text-[#1a3a6c]">Nowa wiadomość</h1>
                 </div>
                 <div className="flex items-center gap-2 flex-shrink-0">
+                  <Button variant="outline" onClick={saveDraft} disabled={isSavingDraft}>
+                    {isSavingDraft ? "Zapisywanie..." : "Zapisz szkic"}
+                  </Button>
                   <Button onClick={sendEmail} disabled={isSending}>
                     <Send className="w-4 h-4 mr-2" />
                     {isSending ? "Wysyłanie..." : "Wyślij"}

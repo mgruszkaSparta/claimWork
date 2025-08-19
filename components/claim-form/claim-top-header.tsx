@@ -40,7 +40,7 @@ const getStatusColor = (status: string) => {
 
 export function ClaimTopHeader({ claimFormData, onClose }: ClaimTopHeaderProps) {
   return (
-    <div className="bg-white border-b border-gray-200 p-4 mb-0 mx-0 w-full">
+    <div className="bg-white border-b border-gray-200 p-4 mb-0 mx-0 w-full sticky top-0 z-10">
       {/* Info grid */}
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
         <div className="bg-gray-50 rounded-lg p-3 border border-gray-200 hover:shadow-md transition-shadow">

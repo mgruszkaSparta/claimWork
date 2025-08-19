@@ -23,7 +23,7 @@ export function DamageVehicleDetailsSection({
           id="vehicleNumber"
           value={claimFormData.vehicleNumber || ""}
           onChange={(e) => handleFormChange("vehicleNumber", e.target.value)}
-          className="mt-1"
+          className="mt-0.5"
         />
       </div>
       <div>
@@ -34,7 +34,7 @@ export function DamageVehicleDetailsSection({
           id="vehicleRegistration"
           value={(claimFormData as any).vehicleRegistration || ""}
           onChange={(e) => handleFormChange("vehicleRegistration", e.target.value)}
-          className="mt-1"
+          className="mt-0.5"
         />
       </div>
       <div>
@@ -45,7 +45,7 @@ export function DamageVehicleDetailsSection({
           id="vehicleVin"
           value={(claimFormData as any).vehicleVin || ""}
           onChange={(e) => handleFormChange("vehicleVin", e.target.value)}
-          className="mt-1"
+          className="mt-0.5"
         />
       </div>
       <div>
@@ -56,7 +56,7 @@ export function DamageVehicleDetailsSection({
           id="brand"
           value={claimFormData.brand || ""}
           onChange={(e) => handleFormChange("brand", e.target.value)}
-          className="mt-1"
+          className="mt-0.5"
         />
       </div>
       <div>
@@ -67,7 +67,7 @@ export function DamageVehicleDetailsSection({
           id="vehicleType"
           value={claimFormData.vehicleType || ""}
           onChange={(e) => handleFormChange("vehicleType", e.target.value)}
-          className="mt-1"
+          className="mt-0.5"
         />
       </div>
       <div>
@@ -78,7 +78,7 @@ export function DamageVehicleDetailsSection({
           id="vehicleModel"
           value={(claimFormData as any).vehicleModel || ""}
           onChange={(e) => handleFormChange("vehicleModel", e.target.value)}
-          className="mt-1"
+          className="mt-0.5"
         />
       </div>
     </div>

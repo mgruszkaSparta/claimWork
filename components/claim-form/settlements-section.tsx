@@ -506,7 +506,7 @@ export const SettlementsSection: React.FC<SettlementsSectionProps> = ({ eventId 
                 {isEditing ? `Edytuj ugodę #${editingSettlementId}` : "Dodaj nową ugodę"}
               </h3>
               {isEditing && (
-                <p className="text-sm text-gray-600 mt-1">
+                <p className="text-sm text-gray-600 mt-0.5">
                   Edytujesz istniejącą ugodę. Możesz zmienić wszystkie dane i załączyć nowy dokument.
                 </p>
               )}
@@ -750,7 +750,7 @@ export const SettlementsSection: React.FC<SettlementsSectionProps> = ({ eventId 
                             placeholder="Dodaj opis dokumentu (np. 'Umowa ugody', 'Protokół ugody', itp.)"
                             rows={2}
                           />
-                          <p className="text-xs text-gray-500 mt-1">
+                          <p className="text-xs text-gray-500 mt-0.5">
                             Opis pomoże w łatwiejszej identyfikacji dokumentu w przyszłości.
                           </p>
                         </div>

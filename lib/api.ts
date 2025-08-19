@@ -86,6 +86,13 @@ export interface EventDto extends EventListItemDto {
   claimFromSubcontractorPolicyDate?: string
   complaintResponse?: boolean
   complaintResponseDate?: string
+  cargoDescription?: string
+  losses?: string[]
+  carrier?: string
+  carrierPolicyNumber?: string
+  inspectionContactName?: string
+  inspectionContactPhone?: string
+  inspectionContactEmail?: string
   participants?: ParticipantDto[]
   damages?: DamageDto[]
   notes?: NoteDto[]
@@ -171,6 +178,13 @@ export interface EventUpsertDto {
   claimFromSubcontractorPolicyDate?: string
   complaintResponse?: boolean
   complaintResponseDate?: string
+  cargoDescription?: string
+  losses?: string
+  carrier?: string
+  carrierPolicyNumber?: string
+  inspectionContactName?: string
+  inspectionContactPhone?: string
+  inspectionContactEmail?: string
   participants?: ParticipantUpsertDto[]
 
   notes?: NoteUpsertDto[]

@@ -22,8 +22,28 @@ const toIso = (value?: string, field?: string): string | undefined => {
 }
 
 export const transformApiClaimToFrontend = (apiClaim: ClaimDto): Claim => {
-  const injuredParty = apiClaim.participants?.find((p: any) => p.role === "Poszkodowany")
-  const perpetrator = apiClaim.participants?.find((p: any) => p.role === "Sprawca")
+  const {
+    participants,
+    damages,
+    notes,
+    decisions,
+    appeals,
+    clientClaims,
+    recourses,
+    settlements,
+    servicesCalled,
+    cargoDescription,
+    losses,
+    carrier,
+    carrierPolicyNumber,
+    inspectionContactName,
+    inspectionContactPhone,
+    inspectionContactEmail,
+    ...rest
+  } = apiClaim
+
+  const injuredParty = participants?.find((p: any) => p.role === "Poszkodowany")
+  const perpetrator = participants?.find((p: any) => p.role === "Sprawca")
 
   const mapParticipantDto = (p: any): ParticipantInfo => ({
     ...p,
@@ -41,32 +61,32 @@ export const transformApiClaimToFrontend = (apiClaim: ClaimDto): Claim => {
   })
 
   return {
-    ...apiClaim,
-    id: apiClaim.id,
-    rowVersion: apiClaim.rowVersion,
-    objectTypeId: apiClaim.objectTypeId,
-    insuranceCompanyId: apiClaim.insuranceCompanyId?.toString(),
-    leasingCompanyId: apiClaim.leasingCompanyId?.toString(),
-    handlerId: apiClaim.handlerId?.toString(),
-    clientId: apiClaim.clientId?.toString(),
-    totalClaim: apiClaim.totalClaim ?? 0,
-    payout: apiClaim.payout ?? 0,
-    currency: apiClaim.currency ?? "PLN",
+    ...rest,
+    id: rest.id,
+    rowVersion: rest.rowVersion,
+    objectTypeId: rest.objectTypeId,
+    insuranceCompanyId: rest.insuranceCompanyId?.toString(),
+    leasingCompanyId: rest.leasingCompanyId?.toString(),
+    handlerId: rest.handlerId?.toString(),
+    clientId: rest.clientId?.toString(),
+    totalClaim: rest.totalClaim ?? 0,
+    payout: rest.payout ?? 0,
+    currency: rest.currency ?? "PLN",
 
-    eventTime: apiClaim.eventTime?.split("T")[1]?.slice(0, 5),
+    eventTime: rest.eventTime?.split("T")[1]?.slice(0, 5),
 
-    servicesCalled: Array.isArray(apiClaim.servicesCalled)
-      ? apiClaim.servicesCalled
-      : (apiClaim.servicesCalled?.split(",").filter(Boolean) ?? []),
+    servicesCalled: Array.isArray(servicesCalled)
+      ? servicesCalled
+      : (servicesCalled?.split(",").filter(Boolean) ?? []),
 
-    damages: apiClaim.damages?.map((d: any) => ({
+    damages: damages?.map((d: any) => ({
       id: d.id?.toString(),
       eventId: d.eventId?.toString(),
       description: d.description,
       detail: d.detail,
     })) || [],
     notes:
-      apiClaim.notes?.map((n: any) => ({
+      notes?.map((n: any) => ({
         id: n.id,
         type: (n.category as Note["type"]) || "note",
         title: n.title,
@@ -75,10 +95,10 @@ export const transformApiClaimToFrontend = (apiClaim: ClaimDto): Claim => {
         createdAt: n.createdAt,
         priority: n.priority as Note["priority"],
       })) || [],
-    decisions: apiClaim.decisions || [],
-    appeals: apiClaim.appeals,
+    decisions: decisions || [],
+    appeals,
     clientClaims:
-      apiClaim.clientClaims?.map((c: any) => {
+      clientClaims?.map((c: any) => {
         const document =
           c.documentPath && c.documentName
             ? {
@@ -111,8 +131,17 @@ export const transformApiClaimToFrontend = (apiClaim: ClaimDto): Claim => {
           ...(document ? { document } : {}),
         }
       }) || [],
-    recourses: apiClaim.recourses || [],
-    settlements: apiClaim.settlements || [],
+    recourses: recourses || [],
+    settlements: settlements || [],
+    transportDamage: {
+      cargoDescription: cargoDescription || "",
+      losses: losses || [],
+      carrier: carrier || "",
+      policyNumber: carrierPolicyNumber || "",
+      inspectionContactName: inspectionContactName || "",
+      inspectionContactPhone: inspectionContactPhone || "",
+      inspectionContactEmail: inspectionContactEmail || "",
+    },
     injuredParty: injuredParty ? mapParticipantDto(injuredParty) : undefined,
     perpetrator: perpetrator ? mapParticipantDto(perpetrator) : undefined,
   }
@@ -142,7 +171,7 @@ export const transformFrontendClaimToApiPayload = (
     riskType,
     damageType,
     registeredByName,
-
+    transportDamage,
     ...rest
   } = claimData
 
@@ -246,6 +275,17 @@ export const transformFrontendClaimToApiPayload = (
       "eventTime",
     ),
     servicesCalled: servicesCalled?.join(","),
+    ...(transportDamage
+      ? {
+          cargoDescription: transportDamage.cargoDescription,
+          losses: transportDamage.losses?.join(","),
+          carrier: transportDamage.carrier,
+          carrierPolicyNumber: transportDamage.policyNumber,
+          inspectionContactName: transportDamage.inspectionContactName,
+          inspectionContactPhone: transportDamage.inspectionContactPhone,
+          inspectionContactEmail: transportDamage.inspectionContactEmail,
+        }
+      : {}),
     participants: participants,
 
     documents: documents?.map((d) => ({ id: d.id, filePath: d.url })),

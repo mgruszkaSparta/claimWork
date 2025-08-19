@@ -890,6 +890,13 @@ namespace AutomotiveClaimsApi.Controllers
             entity.ClaimFromSubcontractorPolicyDate = dto.ClaimFromSubcontractorPolicyDate;
             entity.ComplaintResponse = dto.ComplaintResponse;
             entity.ComplaintResponseDate = dto.ComplaintResponseDate;
+            entity.CargoDescription = dto.CargoDescription;
+            entity.Losses = dto.Losses;
+            entity.Carrier = dto.Carrier;
+            entity.CarrierPolicyNumber = dto.CarrierPolicyNumber;
+            entity.InspectionContactName = dto.InspectionContactName;
+            entity.InspectionContactPhone = dto.InspectionContactPhone;
+            entity.InspectionContactEmail = dto.InspectionContactEmail;
             entity.DamageDescription = dto.DamageDescription;
             entity.Description = dto.Description;
         }
@@ -1692,6 +1699,13 @@ namespace AutomotiveClaimsApi.Controllers
             ClaimFromSubcontractorPolicyDate = e.ClaimFromSubcontractorPolicyDate,
             ComplaintResponse = e.ComplaintResponse,
             ComplaintResponseDate = e.ComplaintResponseDate,
+            CargoDescription = e.CargoDescription,
+            Losses = e.Losses?.Split(',', StringSplitOptions.RemoveEmptyEntries),
+            Carrier = e.Carrier,
+            CarrierPolicyNumber = e.CarrierPolicyNumber,
+            InspectionContactName = e.InspectionContactName,
+            InspectionContactPhone = e.InspectionContactPhone,
+            InspectionContactEmail = e.InspectionContactEmail,
             DamageDescription = e.DamageDescription,
             Description = e.Description,
             RegisteredById = e.RegisteredById,

@@ -128,13 +128,17 @@ export const EmailSection = ({
 
   const handleAssignAttachment = (attachment: EmailAttachment, documentId: string) => {
     const doc = reqDocuments.find((d) => d.id === documentId)
+
+    const url = attachment.url || `/api/emails/attachment/${attachment.id}`
+    const type = attachment.type || (attachment as any).contentType || ""
+
     const newFile: UploadedFile = {
       id: attachment.id,
       name: attachment.name,
       size: attachment.size,
-      type: mapAttachmentType(attachment.type),
+      type: mapAttachmentType(type),
       uploadedAt: new Date().toISOString(),
-      url: attachment.url,
+      url,
       category: doc?.name,
       categoryCode: doc?.category,
     }

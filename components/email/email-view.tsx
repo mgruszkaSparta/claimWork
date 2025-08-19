@@ -226,11 +226,32 @@ export const EmailView = ({
                           </div>
                         </div>
                         <div className="flex items-center space-x-1 flex-shrink-0">
-                          <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                            <Eye className="h-4 w-4" />
+                          <Button
+                            asChild
+                            variant="ghost"
+                            size="sm"
+                            className="h-8 w-8 p-0"
+                          >
+                            <a
+                              href={attachment.url || `/api/emails/attachment/${attachment.id}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                            >
+                              <Eye className="h-4 w-4" />
+                            </a>
                           </Button>
-                          <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                            <Download className="h-4 w-4" />
+                          <Button
+                            asChild
+                            variant="ghost"
+                            size="sm"
+                            className="h-8 w-8 p-0"
+                          >
+                            <a
+                              href={attachment.url || `/api/emails/attachment/${attachment.id}`}
+                              download
+                            >
+                              <Download className="h-4 w-4" />
+                            </a>
                           </Button>
                           <Dialog>
                             <DialogTrigger asChild>
@@ -248,7 +269,17 @@ export const EmailView = ({
                                     <Button
                                       key={doc.id}
                                       variant="outline"
-                                      onClick={() => onAssignAttachment?.(attachment, doc.id)}
+                                      onClick={() =>
+                                        onAssignAttachment?.(
+                                          {
+                                            ...attachment,
+                                            url:
+                                              attachment.url ||
+                                              `/api/emails/attachment/${attachment.id}`,
+                                          },
+                                          doc.id,
+                                        )
+                                      }
                                       className="justify-start"
                                     >
                                       {doc.name}

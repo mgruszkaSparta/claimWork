@@ -6,6 +6,8 @@ export interface AttachmentDto {
   fileName: string
   contentType: string
   size: number
+  /** Fully qualified URL to download the attachment */
+  url: string
 }
 
 export interface EmailDto {
@@ -74,6 +76,7 @@ class EmailService {
             fileName: a.fileName,
             contentType: a.contentType,
             size: a.fileSize,
+            url: `/api/emails/attachment/${a.id}`,
           })) || [],
       }))
     } catch (error) {
@@ -108,6 +111,7 @@ class EmailService {
             fileName: a.fileName,
             contentType: a.contentType,
             size: a.fileSize,
+            url: `/api/emails/attachment/${a.id}`,
           })) || [],
       }
     } catch (error) {

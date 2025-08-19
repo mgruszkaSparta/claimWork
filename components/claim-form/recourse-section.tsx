@@ -498,26 +498,27 @@ export function RecourseSection({ eventId }: RecourseSectionProps) {
   }
 
   return (
-    <div className="space-y-4">
-      <div className="flex items-center gap-3 bg-gray-100 p-3 rounded-md mb-4 border border-[#d1d9e6]">
-        <div className="text-[#1a3a6c]">
-          <DollarSign className="h-5 w-5" />
+    <div className="bg-white rounded-lg shadow-sm border border-[#d1d9e6] overflow-hidden">
+      <div className="p-6">
+        <div className="flex items-center gap-3 bg-gray-100 p-3 rounded-md mb-4 border border-[#d1d9e6]">
+          <div className="text-[#1a3a6c]">
+            <DollarSign className="h-5 w-5" />
+          </div>
+          <div>
+            <h2 className="text-lg font-semibold text-[#1a3a6c]">Regres</h2>
+          </div>
         </div>
-        <div>
-          <h2 className="text-lg font-semibold text-[#1a3a6c]">Regres</h2>
-        </div>
-      </div>
 
-      {/* Add/Edit Recourse Form Toggle Button */}
-      <div className="mb-4 flex justify-end">
-        <Button
-          onClick={toggleForm}
-          className="bg-[#1a3a6c] text-white px-4 py-2 rounded hover:bg-[#15305a] transition-colors flex items-center gap-2"
-        >
-          {isFormVisible ? <Minus className="h-4 w-4" /> : <Plus className="h-4 w-4" />}
-          {isFormVisible ? "Ukryj formularz" : "Dodaj nowy regres"}
-        </Button>
-      </div>
+        {/* Add/Edit Recourse Form Toggle Button */}
+        <div className="mb-4 flex justify-end">
+          <Button
+            onClick={toggleForm}
+            className="bg-[#1a3a6c] text-white px-4 py-2 rounded hover:bg-[#15305a] transition-colors flex items-center gap-2"
+          >
+            {isFormVisible ? <Minus className="h-4 w-4" /> : <Plus className="h-4 w-4" />}
+            {isFormVisible ? "Ukryj formularz" : "Dodaj nowy regres"}
+          </Button>
+        </div>
 
       {/* Add New Recourse Form */}
       {isFormVisible && (
@@ -1036,5 +1037,6 @@ export function RecourseSection({ eventId }: RecourseSectionProps) {
         </DialogContent>
       </Dialog>
     </div>
+  </div>
   )
 }

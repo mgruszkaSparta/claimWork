@@ -21,7 +21,6 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
 import {
-  ArrowUpDown,
   Plus,
   Edit,
   Trash2,
@@ -35,6 +34,7 @@ import {
   Minus,
   ChevronLeft,
   ChevronRight,
+  Shield,
 } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 import { useDragDrop } from "@/hooks/use-drag-drop"
@@ -479,27 +479,28 @@ export const AppealsSection = ({ claimId }: AppealsSectionProps) => {
   }
 
   return (
-    <div className="space-y-4">
-      {/* Header Section */}
-      <div className="flex items-center gap-3 bg-gray-100 p-3 rounded-md mb-4 border border-[#d1d9e6]">
-        <div className="text-[#1a3a6c]">
-          <ArrowUpDown className="h-5 w-5" />
+    <div className="bg-white rounded-lg shadow-sm border border-[#d1d9e6] overflow-hidden">
+      <div className="p-6">
+        {/* Header Section */}
+        <div className="flex items-center gap-3 bg-gray-100 p-3 rounded-md mb-4 border border-[#d1d9e6]">
+          <div className="text-[#1a3a6c]">
+            <Shield className="h-5 w-5" />
+          </div>
+          <div>
+            <h2 className="text-lg font-semibold text-[#1a3a6c]">Odwołanie/Reklamacja</h2>
+          </div>
         </div>
-        <div>
-          <h2 className="text-lg font-semibold text-[#1a3a6c]">Odwołanie/Reklamacja</h2>
-        </div>
-      </div>
 
-      {/* Add/Edit Appeal Form Toggle Button */}
-      <div className="mb-4 flex justify-end">
-        <Button
-          onClick={toggleForm}
-          className="bg-[#1a3a6c] text-white px-4 py-2 rounded hover:bg-[#15305a] transition-colors flex items-center gap-2"
-        >
-          {isFormVisible ? <Minus className="h-4 w-4" /> : <Plus className="h-4 w-4" />}
-          {isFormVisible ? "Ukryj formularz" : "Dodaj nowe odwołanie"}
-        </Button>
-      </div>
+        {/* Add/Edit Appeal Form Toggle Button */}
+        <div className="mb-4 flex justify-end">
+          <Button
+            onClick={toggleForm}
+            className="bg-[#1a3a6c] text-white px-4 py-2 rounded hover:bg-[#15305a] transition-colors flex items-center gap-2"
+          >
+            {isFormVisible ? <Minus className="h-4 w-4" /> : <Plus className="h-4 w-4" />}
+            {isFormVisible ? "Ukryj formularz" : "Dodaj nowe odwołanie"}
+          </Button>
+        </div>
 
       {/* Form Section */}
       {isFormVisible && (
@@ -800,7 +801,7 @@ export const AppealsSection = ({ claimId }: AppealsSectionProps) => {
                   <tr>
                     <td colSpan={8} className="py-8 text-center text-gray-500">
                       <div className="space-y-2">
-                        <ArrowUpDown className="h-8 w-8 mx-auto text-gray-300" />
+                        <Shield className="h-8 w-8 mx-auto text-gray-300" />
                         <p>Brak odwołań do wyświetlenia</p>
                       </div>
                     </td>
@@ -1045,5 +1046,6 @@ export const AppealsSection = ({ claimId }: AppealsSectionProps) => {
         </DialogContent>
       </Dialog>
     </div>
+  </div>
   )
 }

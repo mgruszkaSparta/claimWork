@@ -877,6 +877,13 @@ namespace AutomotiveClaimsApi.Controllers
             entity.ServicesCalled = dto.ServicesCalled;
             entity.PoliceUnitDetails = dto.PoliceUnitDetails;
             entity.VehicleType = dto.VehicleType;
+            entity.CargoDescription = dto.CargoDescription;
+            entity.Losses = dto.Losses;
+            entity.Carrier = dto.Carrier;
+            entity.CarrierPolicyNumber = dto.CarrierPolicyNumber;
+            entity.InspectionContactName = dto.InspectionContactName;
+            entity.InspectionContactPhone = dto.InspectionContactPhone;
+            entity.InspectionContactEmail = dto.InspectionContactEmail;
             entity.SubcontractorName = dto.SubcontractorName;
             entity.SubcontractorPolicyNumber = dto.SubcontractorPolicyNumber;
             entity.SubcontractorInsurer = dto.SubcontractorInsurer;
@@ -1677,6 +1684,13 @@ namespace AutomotiveClaimsApi.Controllers
             ServicesCalled = e.ServicesCalled?.Split(',', StringSplitOptions.RemoveEmptyEntries),
             PoliceUnitDetails = e.PoliceUnitDetails,
             VehicleType = e.VehicleType,
+            CargoDescription = e.CargoDescription,
+            Losses = e.Losses?.Split(',', StringSplitOptions.RemoveEmptyEntries),
+            Carrier = e.Carrier,
+            CarrierPolicyNumber = e.CarrierPolicyNumber,
+            InspectionContactName = e.InspectionContactName,
+            InspectionContactPhone = e.InspectionContactPhone,
+            InspectionContactEmail = e.InspectionContactEmail,
             SubcontractorName = e.SubcontractorName,
             SubcontractorPolicyNumber = e.SubcontractorPolicyNumber,
             SubcontractorInsurer = e.SubcontractorInsurer,

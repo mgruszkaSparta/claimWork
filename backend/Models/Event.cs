@@ -136,6 +136,27 @@ namespace AutomotiveClaimsApi.Models
         [MaxLength(100)]
         public string? VehicleType { get; set; }
 
+        [MaxLength(2000)]
+        public string? CargoDescription { get; set; }
+
+        [MaxLength(2000)]
+        public string? Losses { get; set; }
+
+        [MaxLength(200)]
+        public string? Carrier { get; set; }
+
+        [MaxLength(100)]
+        public string? CarrierPolicyNumber { get; set; }
+
+        [MaxLength(200)]
+        public string? InspectionContactName { get; set; }
+
+        [MaxLength(50)]
+        public string? InspectionContactPhone { get; set; }
+
+        [MaxLength(200)]
+        public string? InspectionContactEmail { get; set; }
+
         [MaxLength(200)]
         public string? SubcontractorName { get; set; }
 

@@ -22,8 +22,28 @@ const toIso = (value?: string, field?: string): string | undefined => {
 }
 
 export const transformApiClaimToFrontend = (apiClaim: ClaimDto): Claim => {
-  const injuredParty = apiClaim.participants?.find((p: any) => p.role === "Poszkodowany")
-  const perpetrator = apiClaim.participants?.find((p: any) => p.role === "Sprawca")
+  const {
+    participants,
+    damages: apiDamages,
+    notes: apiNotes,
+    decisions: apiDecisions,
+    appeals: apiAppeals,
+    clientClaims: apiClientClaims,
+    recourses: apiRecourses,
+    settlements: apiSettlements,
+    servicesCalled: apiServicesCalled,
+    cargoDescription,
+    losses,
+    carrier,
+    carrierPolicyNumber,
+    inspectionContactName,
+    inspectionContactPhone,
+    inspectionContactEmail,
+    ...rest
+  } = apiClaim
+
+  const injuredParty = participants?.find((p: any) => p.role === "Poszkodowany")
+  const perpetrator = participants?.find((p: any) => p.role === "Sprawca")
 
   const mapParticipantDto = (p: any): ParticipantInfo => ({
     ...p,
@@ -41,7 +61,7 @@ export const transformApiClaimToFrontend = (apiClaim: ClaimDto): Claim => {
   })
 
   return {
-    ...apiClaim,
+    ...rest,
     id: apiClaim.id,
     rowVersion: apiClaim.rowVersion,
     objectTypeId: apiClaim.objectTypeId,
@@ -55,18 +75,30 @@ export const transformApiClaimToFrontend = (apiClaim: ClaimDto): Claim => {
 
     eventTime: apiClaim.eventTime?.split("T")[1]?.slice(0, 5),
 
-    servicesCalled: Array.isArray(apiClaim.servicesCalled)
-      ? apiClaim.servicesCalled
-      : (apiClaim.servicesCalled?.split(",").filter(Boolean) ?? []),
+    servicesCalled: Array.isArray(apiServicesCalled)
+      ? apiServicesCalled
+      : (apiServicesCalled?.split(",").filter(Boolean) ?? []),
 
-    damages: apiClaim.damages?.map((d: any) => ({
+    transportDamage: {
+      cargoDescription: cargoDescription || "",
+      losses: Array.isArray(losses)
+        ? losses
+        : (losses?.split(",").filter(Boolean) ?? []),
+      carrier: carrier || "",
+      policyNumber: carrierPolicyNumber || "",
+      inspectionContactName: inspectionContactName || "",
+      inspectionContactPhone: inspectionContactPhone || "",
+      inspectionContactEmail: inspectionContactEmail || "",
+    },
+
+    damages: apiDamages?.map((d: any) => ({
       id: d.id?.toString(),
       eventId: d.eventId?.toString(),
       description: d.description,
       detail: d.detail,
     })) || [],
     notes:
-      apiClaim.notes?.map((n: any) => ({
+      apiNotes?.map((n: any) => ({
         id: n.id,
         type: (n.category as Note["type"]) || "note",
         title: n.title,
@@ -75,10 +107,10 @@ export const transformApiClaimToFrontend = (apiClaim: ClaimDto): Claim => {
         createdAt: n.createdAt,
         priority: n.priority as Note["priority"],
       })) || [],
-    decisions: apiClaim.decisions || [],
-    appeals: apiClaim.appeals,
+    decisions: apiDecisions || [],
+    appeals: apiAppeals,
     clientClaims:
-      apiClaim.clientClaims?.map((c: any) => {
+      apiClientClaims?.map((c: any) => {
         const document =
           c.documentPath && c.documentName
             ? {
@@ -111,8 +143,8 @@ export const transformApiClaimToFrontend = (apiClaim: ClaimDto): Claim => {
           ...(document ? { document } : {}),
         }
       }) || [],
-    recourses: apiClaim.recourses || [],
-    settlements: apiClaim.settlements || [],
+    recourses: apiRecourses || [],
+    settlements: apiSettlements || [],
     injuredParty: injuredParty ? mapParticipantDto(injuredParty) : undefined,
     perpetrator: perpetrator ? mapParticipantDto(perpetrator) : undefined,
   }
@@ -142,6 +174,7 @@ export const transformFrontendClaimToApiPayload = (
     riskType,
     damageType,
     registeredByName,
+    transportDamage,
 
     ...rest
   } = claimData
@@ -219,10 +252,23 @@ export const transformFrontendClaimToApiPayload = (
     participants.push(mapParticipant(perpetrator, "Sprawca"))
   }
 
+  const transportDamageFields = transportDamage
+    ? {
+        cargoDescription: transportDamage.cargoDescription,
+        losses: transportDamage.losses?.join(","),
+        carrier: transportDamage.carrier,
+        carrierPolicyNumber: transportDamage.policyNumber,
+        inspectionContactName: transportDamage.inspectionContactName,
+        inspectionContactPhone: transportDamage.inspectionContactPhone,
+        inspectionContactEmail: transportDamage.inspectionContactEmail,
+      }
+    : {}
+
   return {
     id,
     rowVersion,
     ...rest,
+    ...transportDamageFields,
     objectTypeId: rest.objectTypeId
       ? typeof rest.objectTypeId === "string"
         ? parseInt(rest.objectTypeId, 10)

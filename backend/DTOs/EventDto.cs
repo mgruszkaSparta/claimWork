@@ -52,6 +52,13 @@ namespace AutomotiveClaimsApi.DTOs
         public string[]? ServicesCalled { get; set; }
         public string? PoliceUnitDetails { get; set; }
         public string? VehicleType { get; set; }
+        public string? CargoDescription { get; set; }
+        public string[]? Losses { get; set; }
+        public string? Carrier { get; set; }
+        public string? CarrierPolicyNumber { get; set; }
+        public string? InspectionContactName { get; set; }
+        public string? InspectionContactPhone { get; set; }
+        public string? InspectionContactEmail { get; set; }
         public string? SubcontractorName { get; set; }
         public string? SubcontractorPolicyNumber { get; set; }
         public string? SubcontractorInsurer { get; set; }

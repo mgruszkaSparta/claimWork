@@ -71,6 +71,13 @@ export interface Claim
     | "claimFromSubcontractorPolicyDate"
     | "complaintResponse"
     | "complaintResponseDate"
+    | "cargoDescription"
+    | "losses"
+    | "carrier"
+    | "carrierPolicyNumber"
+    | "inspectionContactName"
+    | "inspectionContactPhone"
+    | "inspectionContactEmail"
   > {
   id?: string
   clientId?: string

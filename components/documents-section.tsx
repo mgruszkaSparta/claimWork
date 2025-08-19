@@ -86,6 +86,7 @@ export const DocumentsSection = React.forwardRef<
   const [dragActive, setDragActive] = useState(false)
   const [dragCategory, setDragCategory] = useState<string | null>(null)
   const [selectedDocumentIds, setSelectedDocumentIds] = useState<string[]>([])
+  const [searchInput, setSearchInput] = useState("")
   const [searchQuery, setSearchQuery] = useState("")
 
   // Preview modal states
@@ -97,6 +98,10 @@ export const DocumentsSection = React.forwardRef<
 
   const previewContainerRef = React.useRef<HTMLDivElement>(null)
   const docxPreviewRef = React.useRef<HTMLDivElement>(null)
+
+  const handleSearch = () => {
+    setSearchQuery(searchInput)
+  }
 
   // Persist view mode per section when storageKey provided
   useEffect(() => {
@@ -1122,13 +1127,24 @@ export const DocumentsSection = React.forwardRef<
           <CardContent className="p-4 space-y-4">
             <div className="flex items-center justify-between">
               <div className="relative w-full max-w-md">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
                 <Input
                   placeholder="Wyszukaj dokumenty (nazwa typu, nazwa pliku, opis)..."
-                  className="pl-10"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="pr-10"
+                  value={searchInput}
+                  onChange={(e) => setSearchInput(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") handleSearch()
+                  }}
                 />
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  onClick={handleSearch}
+                  className="absolute right-1 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                >
+                  <Search className="h-4 w-4" />
+                </Button>
               </div>
               <Button variant="outline">
                 <Filter className="mr-2 h-4 w-4" />

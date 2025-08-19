@@ -26,6 +26,7 @@ import { apiService } from "@/lib/api"
 import { pksData, type Employee } from "@/lib/pks-data"
 import type { Claim, UploadedFile, RequiredDocument } from "@/types"
 import type { RepairDetail } from "@/lib/repair-details-store"
+import { getRequiredDocumentsByObjectType } from "@/lib/required-documents"
 
 interface RepairSchedule {
   id?: string
@@ -84,20 +85,9 @@ export default function NewClaimPage() {
     },
   ])
 
-  const [requiredDocuments, setRequiredDocuments] = useState<RequiredDocument[]>([
-    { id: "1", name: "Dowód rejestracyjny", required: true, uploaded: false, description: "" },
-    { id: "2", name: "Dyspozycja dotycząca wypłaty odszkodowania", required: true, uploaded: false, description: "" },
-    { id: "3", name: "Kalkulacja naprawy", required: true, uploaded: false, description: "" },
-    { id: "4", name: "Ocena techniczna", required: true, uploaded: false, description: "" },
-    { id: "5", name: "Oświadczenie o trzeźwości", required: true, uploaded: false, description: "" },
-    { id: "6", name: "Prawo jazdy", required: true, uploaded: false, description: "" },
-    { id: "7", name: "Świadectwo kwalifikacji", required: true, uploaded: false, description: "" },
-    { id: "8", name: "Zdjęcia", required: true, uploaded: false, description: "" },
-    { id: "9", name: "Zgłoszenie szkody", required: true, uploaded: false, description: "" },
-    { id: "10", name: "Akceptacja kalkulacji naprawy", required: true, uploaded: false, description: "" },
-    { id: "11", name: "Faktura za holowanie", required: true, uploaded: false, description: "" },
-    { id: "12", name: "Faktura za wynajem", required: true, uploaded: false, description: "" },
-  ])
+  const [requiredDocuments, setRequiredDocuments] = useState<RequiredDocument[]>(() =>
+    getRequiredDocumentsByObjectType(claimObjectTypeParam)
+  )
 
   const {
     claimFormData,
@@ -164,6 +154,10 @@ export default function NewClaimPage() {
       setClaimObjectType(claimFormData.objectTypeId.toString())
     }
   }, [claimFormData.objectTypeId])
+
+  useEffect(() => {
+    setRequiredDocuments(getRequiredDocumentsByObjectType(claimObjectType))
+  }, [claimObjectType])
 
 
   const getInitialScheduleData = (): Partial<RepairSchedule> => ({

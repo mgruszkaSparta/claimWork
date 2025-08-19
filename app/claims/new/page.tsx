@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -61,6 +61,7 @@ export default function NewClaimPage() {
   const [claimId, setClaimId] = useState<string>("")
   const [activeClaimSection, setActiveClaimSection] = useState("teczka-szkodowa")
   const [isSaving, setIsSaving] = useState(false)
+  const contentRef = useRef<HTMLDivElement>(null)
   
   // Repair schedules and details state
   const [repairSchedules, setRepairSchedules] = useState<RepairSchedule[]>([])
@@ -132,6 +133,10 @@ export default function NewClaimPage() {
       setActiveClaimSection(privileged ? "dane-zdarzenia" : "teczka-szkodowa")
     }
   }, [user])
+
+  useEffect(() => {
+    contentRef.current?.scrollTo({ top: 0, behavior: "smooth" })
+  }, [activeClaimSection])
 
   useEffect(() => {
     const clientId = searchParams.get("clientId")
@@ -424,7 +429,7 @@ export default function NewClaimPage() {
           claimObjectType={claimObjectType}
         />
 
-        <div className="flex-1 overflow-y-auto bg-gray-50">
+        <div ref={contentRef} className="flex-1 overflow-y-auto bg-gray-50">
           <div className="p-6 min-h-full">
             <ClaimMainContent
               activeClaimSection={activeClaimSection}

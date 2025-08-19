@@ -65,6 +65,7 @@ namespace AutomotiveClaimsApi.Services
                     Priority = createEmailDto.Priority,
                     IsHtml = createEmailDto.IsHtml,
                     Status = "Draft",
+                    NeedsSending = false,
                     CreatedAt = DateTime.UtcNow,
                     UpdatedAt = DateTime.UtcNow
                 };
@@ -119,53 +120,12 @@ namespace AutomotiveClaimsApi.Services
             if (email == null)
                 return false;
 
-            try
-            {
-                var message = new MimeMessage();
-                message.From.Add(new MailboxAddress(_smtpSettings.FromName, _smtpSettings.FromEmail));
-                message.To.AddRange(email.To.Split(';').Select(e => MailboxAddress.Parse(e.Trim())));
-                if (!string.IsNullOrEmpty(email.Cc))
-                    message.Cc.AddRange(email.Cc.Split(';').Select(e => MailboxAddress.Parse(e.Trim())));
-                if (!string.IsNullOrEmpty(email.Bcc))
-                    message.Bcc.AddRange(email.Bcc.Split(';').Select(e => MailboxAddress.Parse(e.Trim())));
+            email.NeedsSending = true;
+            email.Status = "Pending";
+            email.UpdatedAt = DateTime.UtcNow;
+            await _context.SaveChangesAsync();
 
-                message.Subject = email.Subject;
-
-                var bodyBuilder = new BodyBuilder();
-                if (email.IsHtml)
-                    bodyBuilder.HtmlBody = email.BodyHtml;
-                else
-                    bodyBuilder.TextBody = email.Body;
-
-                message.Body = bodyBuilder.ToMessageBody();
-
-                using var client = new SmtpClient();
-                await client.ConnectAsync(_smtpSettings.Host, _smtpSettings.Port, SecureSocketOptions.StartTls);
-                await client.AuthenticateAsync(_smtpSettings.Username, _smtpSettings.Password);
-                await client.SendAsync(message);
-                await client.DisconnectAsync(true);
-
-                email.Status = "Sent";
-                email.SentAt = DateTime.UtcNow;
-                email.UpdatedAt = DateTime.UtcNow;
-                await _context.SaveChangesAsync();
-
-                return true;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error sending email with id {EmailId}", emailId);
-                
-                if (email != null)
-                {
-                    email.Status = "Failed";
-                    email.ErrorMessage = ex.Message;
-                    email.UpdatedAt = DateTime.UtcNow;
-                    await _context.SaveChangesAsync();
-                }
-                
-                return false;
-            }
+            return true;
         }
 
         public async Task<IEnumerable<EmailDto>> GetEmailsByEventIdAsync(Guid eventId)
@@ -219,6 +179,7 @@ namespace AutomotiveClaimsApi.Services
                 Category = email.Category,
                 ErrorMessage = email.ErrorMessage,
                 RetryCount = email.RetryCount,
+                NeedsSending = email.NeedsSending,
                 ClaimNumber = email.ClaimNumber,
                 ClaimIds = email.EmailClaims.Select(ec => ec.ClaimId.ToString()).ToList(),
                 ThreadId = email.ThreadId,
@@ -275,34 +236,6 @@ namespace AutomotiveClaimsApi.Services
         {
             try
             {
-                var message = new MimeMessage();
-                message.From.Add(new MailboxAddress(_smtpSettings.FromName, _smtpSettings.FromEmail));
-                message.To.AddRange(sendEmailDto.To.Split(';').Select(e => MailboxAddress.Parse(e.Trim())));
-
-                if (!string.IsNullOrWhiteSpace(sendEmailDto.Cc))
-                    message.Cc.AddRange(sendEmailDto.Cc.Split(';').Select(e => MailboxAddress.Parse(e.Trim())));
-
-                if (!string.IsNullOrWhiteSpace(sendEmailDto.Bcc))
-                    message.Bcc.AddRange(sendEmailDto.Bcc.Split(';').Select(e => MailboxAddress.Parse(e.Trim())));
-
-                message.Subject = sendEmailDto.Subject;
-
-                var bodyBuilder = new BodyBuilder();
-                if (sendEmailDto.IsHtml)
-                    bodyBuilder.HtmlBody = sendEmailDto.Body;
-                else
-                    bodyBuilder.TextBody = sendEmailDto.Body;
-
-                message.Body = bodyBuilder.ToMessageBody();
-
-                using (var client = new SmtpClient())
-                {
-                    await client.ConnectAsync(_smtpSettings.Host, _smtpSettings.Port, SecureSocketOptions.StartTls);
-                    await client.AuthenticateAsync(_smtpSettings.Username, _smtpSettings.Password);
-                    await client.SendAsync(message);
-                    await client.DisconnectAsync(true);
-                }
-
                 var email = new Email
                 {
                     Id = Guid.NewGuid(),
@@ -317,8 +250,8 @@ namespace AutomotiveClaimsApi.Services
                     EventId = sendEmailDto.EventId,
                     ClaimNumber = sendEmailDto.ClaimNumber,
                     Direction = "Outbound",
-                    Status = "Sent",
-                    SentAt = DateTime.UtcNow,
+                    Status = "Pending",
+                    NeedsSending = true,
                     CreatedAt = DateTime.UtcNow,
                     UpdatedAt = DateTime.UtcNow
                 };
@@ -350,6 +283,80 @@ namespace AutomotiveClaimsApi.Services
                 _logger.LogError(ex, "Error sending email");
                 throw;
             }
+        }
+
+        public async Task<int> ProcessPendingEmailsAsync()
+        {
+            var pendingEmails = await _context.Emails
+                .Where(e => e.NeedsSending)
+                .Include(e => e.Attachments)
+                .ToListAsync();
+
+            int processed = 0;
+            foreach (var email in pendingEmails)
+            {
+                try
+                {
+                    var message = BuildMimeMessage(email);
+
+                    using var client = new SmtpClient();
+                    await client.ConnectAsync(_smtpSettings.Host, _smtpSettings.Port, SecureSocketOptions.StartTls);
+                    await client.AuthenticateAsync(_smtpSettings.Username, _smtpSettings.Password);
+                    await client.SendAsync(message);
+                    await client.DisconnectAsync(true);
+
+                    email.NeedsSending = false;
+                    email.Status = "Sent";
+                    email.SentAt = DateTime.UtcNow;
+                    email.UpdatedAt = DateTime.UtcNow;
+                }
+                catch (Exception ex)
+                {
+                    email.Status = "Failed";
+                    email.ErrorMessage = ex.Message;
+                    email.UpdatedAt = DateTime.UtcNow;
+                    _logger.LogError(ex, "Error sending queued email {EmailId}", email.Id);
+                }
+
+                processed++;
+            }
+
+            await _context.SaveChangesAsync();
+            return processed;
+        }
+
+        private MimeMessage BuildMimeMessage(Email email)
+        {
+            var message = new MimeMessage();
+            message.From.Add(new MailboxAddress(_smtpSettings.FromName, _smtpSettings.FromEmail));
+            message.To.AddRange(email.To.Split(';').Select(e => MailboxAddress.Parse(e.Trim())));
+            if (!string.IsNullOrWhiteSpace(email.Cc))
+                message.Cc.AddRange(email.Cc.Split(';').Select(e => MailboxAddress.Parse(e.Trim())));
+            if (!string.IsNullOrWhiteSpace(email.Bcc))
+                message.Bcc.AddRange(email.Bcc.Split(';').Select(e => MailboxAddress.Parse(e.Trim())));
+
+            message.Subject = email.Subject;
+
+            var bodyBuilder = new BodyBuilder();
+            if (email.IsHtml)
+                bodyBuilder.HtmlBody = email.BodyHtml ?? email.Body;
+            else
+                bodyBuilder.TextBody = email.Body;
+
+            foreach (var attachment in email.Attachments)
+            {
+                if (!string.IsNullOrEmpty(attachment.FilePath))
+                {
+                    var fullPath = Path.Combine(_attachmentsPath, Path.GetFileName(attachment.FilePath));
+                    if (File.Exists(fullPath))
+                    {
+                        bodyBuilder.Attachments.Add(fullPath);
+                    }
+                }
+            }
+
+            message.Body = bodyBuilder.ToMessageBody();
+            return message;
         }
 
         public async Task<EmailDto> CreateDraftAsync(CreateEmailDto createEmailDto)
@@ -523,6 +530,7 @@ namespace AutomotiveClaimsApi.Services
                 ReceivedAt = message.Date.UtcDateTime,
                 Direction = folder == EmailFolder.Inbox ? "Inbound" : "Outbound",
                 Status = folder == EmailFolder.Inbox ? "Received" : "Sent",
+                NeedsSending = false,
                 MessageId = message.MessageId,
                 CreatedAt = DateTime.UtcNow,
                 UpdatedAt = DateTime.UtcNow

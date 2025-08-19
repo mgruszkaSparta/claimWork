@@ -108,6 +108,13 @@ namespace AutomotiveClaimsApi.Controllers
             return Ok(new { message = "Emails fetched successfully" });
         }
 
+        [HttpPost("process-pending")]
+        public async Task<IActionResult> ProcessPendingEmails()
+        {
+            var count = await _emailService.ProcessPendingEmailsAsync();
+            return Ok(new { processed = count });
+        }
+
         [HttpPost("assign-to-claim")]
         public async Task<IActionResult> AssignToClaim(AssignEmailToClaimDto dto)
         {

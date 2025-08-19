@@ -27,6 +27,7 @@ namespace AutomotiveClaimsApi.DTOs
         public string? Category { get; set; }
         public string? ErrorMessage { get; set; }
         public int RetryCount { get; set; }
+        public bool NeedsSending { get; set; }
         public string? ClaimNumber { get; set; }
         public List<string> ClaimIds { get; set; } = new List<string>();
         public Guid? EventId { get; set; }

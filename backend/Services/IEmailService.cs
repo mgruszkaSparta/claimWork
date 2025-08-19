@@ -16,6 +16,7 @@ namespace AutomotiveClaimsApi.Services
         Task<bool> ToggleStarredAsync(Guid id);
         Task<bool> DeleteEmailAsync(Guid id);
         Task FetchEmailsAsync();
+        Task<int> ProcessPendingEmailsAsync();
         Task<bool> AssignEmailToClaimAsync(Guid emailId, IEnumerable<Guid> claimIds);
         Task<EmailAttachmentDto> UploadAttachmentAsync(Guid emailId, IFormFile file);
         Task<EmailAttachmentDto?> GetAttachmentByIdAsync(Guid id);

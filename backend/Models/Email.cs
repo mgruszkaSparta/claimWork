@@ -46,6 +46,7 @@ namespace AutomotiveClaimsApi.Models
         public string? Category { get; set; }
         public string? ErrorMessage { get; set; }
         public int RetryCount { get; set; } = 0;
+        public bool NeedsSending { get; set; } = false;
 
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;

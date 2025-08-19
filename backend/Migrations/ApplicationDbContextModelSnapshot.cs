@@ -729,6 +729,9 @@ namespace AutomotiveClaimsApi.Migrations
                     b.Property<bool>("IsHtml")
                         .HasColumnType("boolean");
 
+                    b.Property<bool>("NeedsSending")
+                        .HasColumnType("boolean");
+
                     b.Property<string>("Priority")
                         .HasMaxLength(50)
                         .HasColumnType("character varying(50)");

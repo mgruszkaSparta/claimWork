@@ -691,8 +691,7 @@ export function ClientClaimsSection({ clientClaims, onClientClaimsChange, claimI
 
               <div className="space-y-4">
                 <Label className="text-sm font-medium text-gray-700">Załącz dokumenty roszczenia</Label>
-                {isEditing && selectedFiles.length === 0 && editingClaim &&
-                  editingClaim.documents?.length ? (
+                {isEditing && editingClaim && editingClaim.documents?.length ? (
                     <div className="space-y-2 mb-4">
                       {editingClaim.documents.map((doc) => (
                         <div
@@ -727,31 +726,11 @@ export function ClientClaimsSection({ clientClaims, onClientClaimsChange, claimI
                           </div>
                         </div>
                       ))}
-                      <div className="mt-2">
-                        <Label
-                          htmlFor="documentDescription"
-                          className="text-sm font-medium text-gray-700"
-                        >
-                          Opis dokumentu
-                        </Label>
-                        <Input
-                          id="documentDescription"
-                          placeholder="Dodaj opis dokumentu..."
-                          value={formData.documentDescription}
-                          onChange={(e) =>
-                            setFormData((prev) => ({
-                              ...prev,
-                              documentDescription: e.target.value,
-                            }))
-                          }
-                          className="mt-0.5"
-                        />
-                      </div>
                     </div>
                   ) : null}
                 <div
                   className={`border-2 border-dashed rounded-lg p-6 text-center transition-colors ${
-                    dragActive ? "border-blue-400 bg-blue-50" : "border-gray-300" 
+                    dragActive ? "border-blue-400 bg-blue-50" : "border-gray-300"
                   } ${outlookDragActive ? "border-blue-600 bg-blue-100" : ""}`}
                   onDragOver={handleDragOver}
                   onDragLeave={handleDragLeave}
@@ -806,26 +785,26 @@ export function ClientClaimsSection({ clientClaims, onClientClaimsChange, claimI
                         </Button>
                       </div>
                     ))}
-
-                    <div className="mt-2">
-                      <Label
-                        htmlFor="documentDescription"
-                        className="text-sm font-medium text-gray-700"
-                      >
-                        Opis dokumentu
-                      </Label>
-                      <Input
-                        id="documentDescription"
-                        placeholder="Dodaj opis dokumentu..."
-                        value={formData.documentDescription}
-                        onChange={(e) =>
-                          setFormData((prev) => ({ ...prev, documentDescription: e.target.value }))
-                        }
-                        className="mt-0.5"
-                      />
-                    </div>
                   </div>
                 )}
+
+                <div className="mt-2">
+                  <Label
+                    htmlFor="documentDescription"
+                    className="text-sm font-medium text-gray-700"
+                  >
+                    Opis dokumentu
+                  </Label>
+                  <Input
+                    id="documentDescription"
+                    placeholder="Dodaj opis dokumentu..."
+                    value={formData.documentDescription}
+                    onChange={(e) =>
+                      setFormData((prev) => ({ ...prev, documentDescription: e.target.value }))
+                    }
+                    className="mt-0.5"
+                  />
+                </div>
 
                 <div className="mt-2 flex items-center gap-2 text-xs text-gray-500">
                   <AlertCircle className="h-3 w-3" />

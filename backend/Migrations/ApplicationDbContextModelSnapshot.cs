@@ -1018,6 +1018,14 @@ namespace AutomotiveClaimsApi.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("character varying(100)");
 
+                    b.Property<string>("VictimRegistrationNumber")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<string>("PerpetratorRegistrationNumber")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
                     b.Property<string>("VehicleType")
                         .HasMaxLength(100)
                         .HasColumnType("character varying(100)");

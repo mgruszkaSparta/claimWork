@@ -23,6 +23,12 @@ namespace AutomotiveClaimsApi.Models
         [MaxLength(100)]
         public string? VehicleNumber { get; set; }
 
+        [MaxLength(50)]
+        public string? VictimRegistrationNumber { get; set; }
+
+        [MaxLength(50)]
+        public string? PerpetratorRegistrationNumber { get; set; }
+
         [MaxLength(100)]
         public string? Brand { get; set; }
 

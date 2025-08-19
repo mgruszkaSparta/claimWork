@@ -134,6 +134,8 @@ namespace AutomotiveClaimsApi.Controllers
                         ClaimNumber = e.ClaimNumber,
                         SpartaNumber = e.SpartaNumber,
                         VehicleNumber = e.VehicleNumber,
+                        VictimRegistrationNumber = e.VictimRegistrationNumber,
+                        PerpetratorRegistrationNumber = e.PerpetratorRegistrationNumber,
                         Brand = e.Brand,
                         Model = e.Model,
                         Owner = e.Owner,
@@ -830,6 +832,8 @@ namespace AutomotiveClaimsApi.Controllers
             entity.SpartaNumber = dto.SpartaNumber;
             entity.InsurerClaimNumber = dto.InsurerClaimNumber;
             entity.VehicleNumber = dto.VehicleNumber;
+            entity.VictimRegistrationNumber = dto.VictimRegistrationNumber;
+            entity.PerpetratorRegistrationNumber = dto.PerpetratorRegistrationNumber;
             entity.Brand = dto.Brand;
             entity.Model = dto.Model;
             entity.Owner = dto.Owner;
@@ -1635,6 +1639,8 @@ namespace AutomotiveClaimsApi.Controllers
             SpartaNumber = e.SpartaNumber,
             InsurerClaimNumber = e.InsurerClaimNumber,
             VehicleNumber = e.VehicleNumber,
+            VictimRegistrationNumber = e.VictimRegistrationNumber,
+            PerpetratorRegistrationNumber = e.PerpetratorRegistrationNumber,
             Brand = e.Brand,
             Model = e.Model,
             Owner = e.Owner,

@@ -20,6 +20,12 @@ namespace AutomotiveClaimsApi.DTOs
         [StringLength(50)]
         public string? VehicleNumber { get; set; }
 
+        [StringLength(50)]
+        public string? VictimRegistrationNumber { get; set; }
+
+        [StringLength(50)]
+        public string? PerpetratorRegistrationNumber { get; set; }
+
         [StringLength(100)]
         public string? Brand { get; set; }
 

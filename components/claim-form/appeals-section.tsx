@@ -831,47 +831,55 @@ export const AppealsSection = ({ claimId }: AppealsSectionProps) => {
                     <td className="py-3 px-4">
                       {appeal.documents && appeal.documents.length > 0 ? (
                         <div className="space-y-1">
-                          {appeal.documents.map((doc) => (
-                            <div key={doc.id} className="flex items-center gap-2">
-                              <span
-                                className="text-gray-700 truncate max-w-32"
-                                title={doc.originalFileName || doc.fileName}
-                              >
-                                {doc.originalFileName || doc.fileName}
-                              </span>
-                              <div className="flex gap-1">
-                                {isPreviewable(doc.originalFileName || doc.fileName) && (
+                          {(() => {
+                            const doc = appeal.documents[0]
+                            return (
+                              <div key={doc.id} className="flex items-center gap-2">
+                                <span
+                                  className="text-gray-700 truncate max-w-32"
+                                  title={doc.originalFileName || doc.fileName}
+                                >
+                                  {doc.originalFileName || doc.fileName}
+                                </span>
+                                <div className="flex gap-1">
+                                  {isPreviewable(doc.originalFileName || doc.fileName) && (
+                                    <Button
+                                      variant="ghost"
+                                      size="sm"
+                                      onClick={() => previewFile(appeal, doc)}
+                                      className="h-6 w-6 p-0 text-blue-600 hover:text-blue-800 hover:bg-blue-50"
+                                      title="Podgląd"
+                                    >
+                                      <Eye className="h-3 w-3" />
+                                    </Button>
+                                  )}
                                   <Button
                                     variant="ghost"
                                     size="sm"
-                                    onClick={() => previewFile(appeal, doc)}
-                                    className="h-6 w-6 p-0 text-blue-600 hover:text-blue-800 hover:bg-blue-50"
-                                    title="Podgląd"
+                                    onClick={() => downloadFile(appeal, doc)}
+                                    className="h-6 w-6 p-0 text-green-600 hover:text-green-800 hover:bg-green-50"
+                                    title="Pobierz"
                                   >
-                                    <Eye className="h-3 w-3" />
+                                    <Download className="h-3 w-3" />
                                   </Button>
-                                )}
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  onClick={() => downloadFile(appeal, doc)}
-                                  className="h-6 w-6 p-0 text-green-600 hover:text-green-800 hover:bg-green-50"
-                                  title="Pobierz"
-                                >
-                                  <Download className="h-3 w-3" />
-                                </Button>
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  onClick={() => handleDeleteDocument(doc)}
-                                  className="h-6 w-6 p-0 text-red-600 hover:text-red-800 hover:bg-red-50"
-                                  title="Usuń"
-                                >
-                                  <Trash2 className="h-3 w-3" />
-                                </Button>
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => handleDeleteDocument(doc)}
+                                    className="h-6 w-6 p-0 text-red-600 hover:text-red-800 hover:bg-red-50"
+                                    title="Usuń"
+                                  >
+                                    <Trash2 className="h-3 w-3" />
+                                  </Button>
+                                </div>
                               </div>
-                            </div>
-                          ))}
+                            )
+                          })()}
+                          {appeal.documents.length > 1 && (
+                            <span className="text-xs text-gray-500">
+                              +{appeal.documents.length - 1} więcej
+                            </span>
+                          )}
                         </div>
                       ) : (
                         <span className="text-gray-500">Brak dokumentu</span>

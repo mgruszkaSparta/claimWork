@@ -74,6 +74,7 @@ export function ClaimsList({
 }: ClaimsListProps) {
   const router = useRouter()
   const [searchTerm, setSearchTerm] = useState("")
+  const [searchInput, setSearchInput] = useState("")
   const [filterStatus, setFilterStatus] = useState("all")
   const [filterBrand, setFilterBrand] = useState("")
   const [filterHandler, setFilterHandler] = useState("")
@@ -103,6 +104,10 @@ export function ClaimsList({
 
   const claims = initialClaims?.length ? initialClaims : fetchedClaims
   const totalRecords = initialClaims?.length ? initialClaims.length : totalCount
+
+  useEffect(() => {
+    setSearchInput(searchTerm)
+  }, [searchTerm])
 
   useEffect(() => {
     if (initialClaims?.length) return
@@ -409,8 +414,15 @@ export function ClaimsList({
             <Search className="absolute left-3 top-2.5 h-4 w-4 text-gray-400" />
             <Input
               placeholder="Szukaj po numerze pojazdu, szkody, kliencie lub likwidatorze..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
+              value={searchInput}
+              onChange={(e) => setSearchInput(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  e.preventDefault()
+                  setPage(1)
+                  setSearchTerm(searchInput)
+                }
+              }}
               className="pl-9 h-9 text-sm"
             />
           </div>

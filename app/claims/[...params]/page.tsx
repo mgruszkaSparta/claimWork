@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useCallback } from "react"
+import { useState, useEffect, useCallback, useRef } from "react"
 import { useParams, useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -52,6 +52,7 @@ export default function ClaimPage() {
   const [isLoading, setIsLoading] = useState(!isNew)
   const [loadError, setLoadError] = useState<string | null>(null)
   const [claim, setClaim] = useState<Claim | null>(null)
+  const contentRef = useRef<HTMLDivElement>(null)
 
   const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([
     {
@@ -87,6 +88,10 @@ export default function ClaimPage() {
       setActiveClaimSection(privileged ? "dane-zdarzenia" : "teczka-szkodowa")
     }
   }, [user])
+
+  useEffect(() => {
+    contentRef.current?.scrollTo({ top: 0, behavior: "smooth" })
+  }, [activeClaimSection])
 
   const {
     claimFormData,
@@ -314,7 +319,7 @@ export default function ClaimPage() {
             setActiveClaimSection={setActiveClaimSection}
             claimObjectType={claim?.objectTypeId?.toString()}
           />
-          <div className="flex-1 overflow-y-auto bg-gray-50">
+          <div ref={contentRef} className="flex-1 overflow-y-auto bg-gray-50">
             <div className="p-6 min-h-full">
               <ClaimMainContent
                 activeClaimSection={activeClaimSection}

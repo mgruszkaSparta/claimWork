@@ -130,13 +130,14 @@ INSERT INTO PaymentMethods (Code, Name) VALUES
 ('INSTALLMENTS', 'Raty')
 ON CONFLICT (Code) DO NOTHING;
 
-INSERT INTO ClaimStatuses (Id, Name) VALUES
-(1, 'Zgłoszona'),
-(2, 'W trakcie likwidacji'),
-(3, 'Wypłacona'),
-(4, 'Odrzucona'),
-(5, 'Zamknięta')
-ON CONFLICT (Id) DO NOTHING;
+-- Claim Statuses
+INSERT INTO ClaimStatuses (Code, Name) VALUES
+('REPORTED', 'Zgłoszona'),
+('IN_LIQUIDATION', 'W trakcie likwidacji'),
+('PAID', 'Wypłacona'),
+('REJECTED', 'Odrzucona'),
+('CLOSED', 'Zamknięta')
+ON CONFLICT (Code) DO NOTHING;
 
 -- Vehicle Types
 INSERT INTO VehicleTypes (Code, Name) VALUES

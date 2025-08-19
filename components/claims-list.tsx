@@ -192,6 +192,11 @@ export function ClaimsList({
     })
   }, [filteredClaims, sortConfig])
 
+  const totalClaimAmount = useMemo(
+    () => claims.reduce((sum, claim) => sum + (claim.totalClaim || 0), 0),
+    [claims],
+  )
+
   useEffect(() => {
 
     if (initialClaims?.length) return
@@ -207,7 +212,7 @@ export function ClaimsList({
           setPage((p) => p + 1)
         }
       },
-      { root: containerRef.current || undefined },
+      { root: containerRef.current || undefined, rootMargin: "200px" },
     )
     if (node) {
       observer.observe(node)
@@ -650,8 +655,8 @@ export function ClaimsList({
               {error && " (sprawdź połączenie z API)"}
             </span>
             <span>
-              Łączna wartość:{" "}
-              {sortedClaims.reduce((sum, claim) => sum + (claim.totalClaim || 0), 0).toLocaleString("pl-PL")} PLN
+              Łączna wartość wszystkich szkód:{" "}
+              {totalClaimAmount.toLocaleString("pl-PL")} PLN
             </span>
           </div>
         </div>

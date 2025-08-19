@@ -22,7 +22,7 @@ import {
   XCircle,
   Clock,
   X,
-  User,
+  FileSignature,
   Eye,
   Download,
   AlertCircle,
@@ -526,26 +526,27 @@ export function ClientClaimsSection({ clientClaims, onClientClaimsChange, claimI
   }
 
   return (
-    <div className="space-y-4">
-      <div className="flex items-center gap-3 bg-gray-100 p-3 rounded-md mb-4 border border-[#d1d9e6]">
-        <div className="text-[#1a3a6c]">
-          <User className="h-5 w-5" />
+    <div className="bg-white rounded-lg shadow-sm border border-[#d1d9e6] overflow-hidden">
+      <div className="p-6">
+        <div className="flex items-center gap-3 bg-gray-100 p-3 rounded-md mb-4 border border-[#d1d9e6]">
+          <div className="text-[#1a3a6c]">
+            <FileSignature className="h-5 w-5" />
+          </div>
+          <div>
+            <h2 className="text-lg font-semibold text-[#1a3a6c]">Roszczenia</h2>
+          </div>
         </div>
-        <div>
-          <h2 className="text-lg font-semibold text-[#1a3a6c]">Roszczenia klienta</h2>
-        </div>
-      </div>
 
-      {/* Add/Edit Client Claim Form Toggle Button */}
-      <div className="mb-4 flex justify-end">
-        <Button
-          onClick={toggleForm}
-          className="bg-[#1a3a6c] text-white px-4 py-2 rounded hover:bg-[#15305a] transition-colors flex items-center gap-2"
-        >
-          {isFormVisible ? <Minus className="h-4 w-4" /> : <Plus className="h-4 w-4" />}
-          {isFormVisible ? "Ukryj formularz" : "Dodaj nowe roszczenie"}
-        </Button>
-      </div>
+        {/* Add/Edit Client Claim Form Toggle Button */}
+        <div className="mb-4 flex justify-end">
+          <Button
+            onClick={toggleForm}
+            className="bg-[#1a3a6c] text-white px-4 py-2 rounded hover:bg-[#15305a] transition-colors flex items-center gap-2"
+          >
+            {isFormVisible ? <Minus className="h-4 w-4" /> : <Plus className="h-4 w-4" />}
+            {isFormVisible ? "Ukryj formularz" : "Dodaj nowe roszczenie"}
+          </Button>
+        </div>
 
       {/* Add New Client Claim Form */}
       {isFormVisible && (
@@ -877,7 +878,7 @@ export function ClientClaimsSection({ clientClaims, onClientClaimsChange, claimI
           <div className="overflow-x-auto">
             {clientClaims.length === 0 ? (
               <div className="text-center py-8">
-                <User className="h-12 w-12 text-gray-300 mx-auto mb-4" />
+                <FileSignature className="h-12 w-12 text-gray-300 mx-auto mb-4" />
                 <p className="text-gray-500 mb-2">Brak roszczeń do wyświetlenia</p>
                 <p className="text-sm text-gray-400">Wyświetlanie 0 z 0 roszczeń</p>
               </div>
@@ -1071,5 +1072,6 @@ export function ClientClaimsSection({ clientClaims, onClientClaimsChange, claimI
         </DialogContent>
       </Dialog>
     </div>
+  </div>
   )
 }

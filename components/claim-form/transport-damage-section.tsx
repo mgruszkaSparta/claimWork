@@ -1,12 +1,12 @@
 "use client"
 
-
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
+import { Card, CardContent } from "@/components/ui/card"
+import { FormHeader } from "@/components/ui/form-header"
 import { Label } from "@/components/ui/label"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Button } from "@/components/ui/button"
-import { Plus, Trash2 } from "lucide-react"
+import { FileText, Plus, Trash2 } from "lucide-react"
 
 interface TransportDamage {
   cargoDescription: string
@@ -64,9 +64,7 @@ export function TransportDamageSection({
 
   return (
     <Card>
-      <CardHeader>
-        <CardTitle>Szkoda w transporcie</CardTitle>
-      </CardHeader>
+      <FormHeader icon={FileText} title="Szkoda w transporcie" />
       <CardContent className="space-y-4">
         <div className="space-y-2">
           <Label htmlFor="cargoDescription">Opis ładunku / lista strat</Label>

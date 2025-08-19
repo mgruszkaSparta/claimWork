@@ -1,8 +1,10 @@
 "use client"
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent } from "@/components/ui/card"
+import { FormHeader } from "@/components/ui/form-header"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
+import { FileText } from "lucide-react"
 
 interface PropertyParticipantsSectionProps {
   claimFormData: Record<string, any>
@@ -12,11 +14,7 @@ interface PropertyParticipantsSectionProps {
 export function PropertyParticipantsSection({ claimFormData, handleFormChange }: PropertyParticipantsSectionProps) {
   return (
     <Card className="border border-gray-200 bg-white shadow-sm">
-      <CardHeader className="bg-gray-50 border-b">
-        <CardTitle className="text-lg font-semibold text-gray-700">
-          Poszkodowany / Sprawca
-        </CardTitle>
-      </CardHeader>
+      <FormHeader icon={FileText} title="Poszkodowany / Sprawca" />
       <CardContent className="p-6 space-y-4">
         <div className="space-y-2">
           <Label htmlFor="injuredData">Dane poszkodowanego</Label>

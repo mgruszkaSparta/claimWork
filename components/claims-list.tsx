@@ -543,7 +543,7 @@ export function ClaimsList({
                       )}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">{claim.insurerClaimNumber || "-"}</td>
-                    <td className="px-6 py-4 whitespace-nowrap">{claim.claimNumber || "-"}</td>
+                    <td className="px-6 py-4 whitespace-nowrap">{claim.spartaNumber || "-"}</td>
                     <td className="px-6 py-4 whitespace-nowrap">{claim.vehicleNumber || "-"}</td>
                     <td className="px-6 py-4 whitespace-nowrap">{claim.handler || "-"}</td>
                     <td className="px-6 py-4 whitespace-nowrap">{claim.client || "-"}</td>

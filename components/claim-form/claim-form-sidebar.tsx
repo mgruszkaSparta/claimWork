@@ -135,7 +135,7 @@ function ClaimFormSidebar({ activeClaimSection, setActiveClaimSection, claimObje
   return (
     <div className="w-64 bg-white border-r border-gray-200 h-full overflow-y-auto">
       <div className="p-3">
-        <div className="space-y-6">
+        <div className="space-y-4">
           {sections.map((section, sectionIndex) => (
             <div key={section.id} className="space-y-3">
               {/* Section Header */}

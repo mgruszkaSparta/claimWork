@@ -488,7 +488,7 @@ export const AppealsSection = ({ claimId }: AppealsSectionProps) => {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       {/* Header Section */}
       <div className="flex items-center gap-3 bg-gray-100 p-3 rounded-md mb-4 border border-[#d1d9e6]">
         <div className="text-[#1a3a6c]">
@@ -519,7 +519,7 @@ export const AppealsSection = ({ claimId }: AppealsSectionProps) => {
             </h3>
           </div>
           <div className="p-6">
-            <form onSubmit={handleSubmit} className="space-y-6">
+            <form onSubmit={handleSubmit} className="space-y-4">
               {/* Date Fields */}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div className="space-y-2">
@@ -616,7 +616,7 @@ export const AppealsSection = ({ claimId }: AppealsSectionProps) => {
                             setFormData((prev) => ({ ...prev, documentDescription: e.target.value }))
                           }
                           rows={2}
-                          className="mt-1"
+                          className="mt-0.5"
                         />
                       </div>
                     )}
@@ -961,7 +961,7 @@ export const AppealsSection = ({ claimId }: AppealsSectionProps) => {
           <DialogHeader>
             <DialogTitle>Podgląd: {previewFileName}</DialogTitle>
             {previewDoc?.description && (
-              <p className="text-sm text-gray-600 mt-1">{previewDoc.description}</p>
+              <p className="text-sm text-gray-600 mt-0.5">{previewDoc.description}</p>
             )}
           </DialogHeader>
           <div className="flex-1 overflow-auto flex items-center justify-center bg-gray-100 rounded p-4 min-h-[400px]">

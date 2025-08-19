@@ -515,7 +515,7 @@ export function DecisionsSection({ claimId, onChange }: DecisionsSectionProps) {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       {/* Add/Edit Decision Form Toggle Button */}
       <div className="mb-4 flex justify-end">
         <Button
@@ -536,7 +536,7 @@ export function DecisionsSection({ claimId, onChange }: DecisionsSectionProps) {
             </h3>
           </div>
           <div className="p-6">
-            <form onSubmit={handleSubmit} className="space-y-6">
+            <form onSubmit={handleSubmit} className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 <div className="space-y-2">
                   <Label htmlFor="decisionDate" className="text-sm font-medium text-gray-700">
@@ -672,7 +672,7 @@ export function DecisionsSection({ claimId, onChange }: DecisionsSectionProps) {
                           value={formData.documentDescription}
                           onChange={(e) => handleInputChange("documentDescription", e.target.value)}
                           rows={2}
-                          className="mt-1"
+                          className="mt-0.5"
                         />
                       </div>
                     )}
@@ -704,7 +704,7 @@ export function DecisionsSection({ claimId, onChange }: DecisionsSectionProps) {
                       <span className="font-semibold">Kliknij, aby wybrać pliki</span> lub przeciągnij i upuść
                     </p>
                     <p className="text-xs text-muted-foreground">Obsługiwane formaty: PDF, DOC, DOCX, JPG, PNG</p>
-                    <p className="text-xs text-muted-foreground mt-1">Możesz wybrać wiele plików jednocześnie</p>
+                    <p className="text-xs text-muted-foreground mt-0.5">Możesz wybrać wiele plików jednocześnie</p>
                     <input
                       ref={fileInputRef}
                       type="file"
@@ -762,9 +762,9 @@ export function DecisionsSection({ claimId, onChange }: DecisionsSectionProps) {
                           value={formData.documentDescription}
                           onChange={(e) => handleInputChange("documentDescription", e.target.value)}
                           rows={2}
-                          className="mt-1"
+                          className="mt-0.5"
                         />
-                        <p className="text-xs text-muted-foreground mt-1">
+                        <p className="text-xs text-muted-foreground mt-0.5">
                           Opis pomoże w łatwiejszej identyfikacji dokumentu w przyszłości.
                         </p>
                       </div>
@@ -784,7 +784,7 @@ export function DecisionsSection({ claimId, onChange }: DecisionsSectionProps) {
                   {Object.keys(totalPaymentsByCurrency).length > 0 ? (
                     <div>
                       Suma wypłat:
-                      <ul className="list-none ml-2 mt-1">
+                      <ul className="list-none ml-2 mt-0.5">
                         {Object.entries(totalPaymentsByCurrency).map(([currency, amount]) => (
                           <li key={currency} className="font-bold">
                             {formatCurrency(amount, currency)}

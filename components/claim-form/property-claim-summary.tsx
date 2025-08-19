@@ -175,7 +175,7 @@ export function PropertyClaimSummary({
                   className="border-l-4 border-blue-500 pl-4 py-2 bg-gray-50 rounded-r-lg"
                 >
                   <h4 className="font-medium text-gray-900 text-sm">{note.title}</h4>
-                  <p className="text-sm text-gray-600 mt-1">{note.description}</p>
+                  <p className="text-sm text-gray-600 mt-0.5">{note.description}</p>
                   <div className="flex items-center space-x-4 text-xs text-gray-500 mt-2">
                     {note.user && <span>{note.user}</span>}
                     {note.createdAt && (

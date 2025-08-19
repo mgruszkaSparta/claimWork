@@ -17,7 +17,7 @@ export function PropertyParticipantsSection({ claimFormData, handleFormChange }:
           Poszkodowany / Sprawca
         </CardTitle>
       </CardHeader>
-      <CardContent className="p-6 space-y-6">
+      <CardContent className="p-6 space-y-4">
         <div className="space-y-2">
           <Label htmlFor="injuredData">Dane poszkodowanego</Label>
           <Textarea

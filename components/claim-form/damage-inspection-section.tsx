@@ -15,7 +15,7 @@ export function DamageInspectionSection({
   handleFormChange,
 }: DamageInspectionSectionProps) {
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div>
           <Label htmlFor="inspectionDate" className="text-sm font-medium text-gray-700">
@@ -26,7 +26,7 @@ export function DamageInspectionSection({
             type="date"
             value={(claimFormData as any).inspectionDate || ""}
             onChange={(e) => handleFormChange("inspectionDate", e.target.value)}
-            className="mt-1"
+            className="mt-0.5"
           />
         </div>
         <div>
@@ -37,7 +37,7 @@ export function DamageInspectionSection({
             id="inspectionExpert"
             value={(claimFormData as any).inspectionExpert || ""}
             onChange={(e) => handleFormChange("inspectionExpert", e.target.value)}
-            className="mt-1"
+            className="mt-0.5"
           />
         </div>
       </div>
@@ -49,7 +49,7 @@ export function DamageInspectionSection({
           id="inspectionNotes"
           value={(claimFormData as any).inspectionNotes || ""}
           onChange={(e) => handleFormChange("inspectionNotes", e.target.value)}
-          className="mt-1"
+          className="mt-0.5"
         />
       </div>
     </div>

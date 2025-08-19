@@ -38,7 +38,7 @@ export const DriverForm = ({ driverData, onDriverChange, onRemove, isRemovable }
           )}
         </div>
 
-        <div className="space-y-6">
+        <div className="space-y-4">
           {/* Dane podstawowe */}
           <div className="space-y-4">
             <h4 className="text-base font-semibold text-gray-900 border-b pb-2">Dane podstawowe</h4>
@@ -53,7 +53,7 @@ export const DriverForm = ({ driverData, onDriverChange, onRemove, isRemovable }
                   value={driverData.firstName || ""}
                   onChange={(e) => onDriverChange("firstName", e.target.value)}
                   placeholder="Wprowadź imię"
-                  className="mt-1"
+                  className="mt-0.5"
                 />
               </div>
               <div>
@@ -65,7 +65,7 @@ export const DriverForm = ({ driverData, onDriverChange, onRemove, isRemovable }
                   value={driverData.lastName || ""}
                   onChange={(e) => onDriverChange("lastName", e.target.value)}
                   placeholder="Wprowadź nazwisko"
-                  className="mt-1"
+                  className="mt-0.5"
                 />
               </div>
             </div>
@@ -80,7 +80,7 @@ export const DriverForm = ({ driverData, onDriverChange, onRemove, isRemovable }
                   value={driverData.identityNumber || ""}
                   onChange={(e) => onDriverChange("identityNumber", e.target.value)}
                   placeholder="PESEL lub numer paszportu"
-                  className="mt-1"
+                  className="mt-0.5"
                 />
               </div>
               <div>
@@ -92,7 +92,7 @@ export const DriverForm = ({ driverData, onDriverChange, onRemove, isRemovable }
                   value={driverData.licenseNumber || ""}
                   onChange={(e) => onDriverChange("licenseNumber", e.target.value)}
                   placeholder="Numer prawa jazdy"
-                  className="mt-1"
+                  className="mt-0.5"
                 />
               </div>
             </div>
@@ -106,7 +106,7 @@ export const DriverForm = ({ driverData, onDriverChange, onRemove, isRemovable }
                   value={driverData.role || "driver"}
                   onValueChange={(value) => onDriverChange("role", value)}
                 >
-                  <SelectTrigger className="mt-1">
+                  <SelectTrigger className="mt-0.5">
                     <SelectValue placeholder="Wybierz rolę" />
                   </SelectTrigger>
                   <SelectContent>
@@ -125,7 +125,7 @@ export const DriverForm = ({ driverData, onDriverChange, onRemove, isRemovable }
                   value={driverData.owner || ""}
                   onChange={(e) => onDriverChange("owner", e.target.value)}
                   placeholder="Imię i nazwisko właściciela"
-                  className="mt-1"
+                  className="mt-0.5"
                 />
               </div>
               <div>
@@ -137,7 +137,7 @@ export const DriverForm = ({ driverData, onDriverChange, onRemove, isRemovable }
                   value={driverData.coOwner || ""}
                   onChange={(e) => onDriverChange("coOwner", e.target.value)}
                   placeholder="Imię i nazwisko współwłaściciela"
-                  className="mt-1"
+                  className="mt-0.5"
                 />
               </div>
             </div>
@@ -150,7 +150,7 @@ export const DriverForm = ({ driverData, onDriverChange, onRemove, isRemovable }
                 value={driverData.citizenship || "PL"}
                 onValueChange={(value) => onDriverChange("citizenship", value)}
               >
-                <SelectTrigger className="mt-1">
+                <SelectTrigger className="mt-0.5">
                   <SelectValue placeholder="Wybierz obywatelstwo" />
                 </SelectTrigger>
                 <SelectContent>
@@ -179,7 +179,7 @@ export const DriverForm = ({ driverData, onDriverChange, onRemove, isRemovable }
                   value={driverData.address || ""}
                   onChange={(e) => onDriverChange("address", e.target.value)}
                   placeholder="Ulica i numer"
-                  className="mt-1"
+                  className="mt-0.5"
                 />
               </div>
               <div>
@@ -191,7 +191,7 @@ export const DriverForm = ({ driverData, onDriverChange, onRemove, isRemovable }
                   value={driverData.city || ""}
                   onChange={(e) => onDriverChange("city", e.target.value)}
                   placeholder="Nazwa miasta"
-                  className="mt-1"
+                  className="mt-0.5"
                 />
               </div>
             </div>
@@ -205,7 +205,7 @@ export const DriverForm = ({ driverData, onDriverChange, onRemove, isRemovable }
                 value={driverData.postalCode || ""}
                 onChange={(e) => onDriverChange("postalCode", e.target.value)}
                 placeholder="00-000"
-                className="mt-1"
+                className="mt-0.5"
               />
             </div>
 
@@ -218,7 +218,7 @@ export const DriverForm = ({ driverData, onDriverChange, onRemove, isRemovable }
                 value={driverData.street || ""}
                 onChange={(e) => onDriverChange("street", e.target.value)}
                 placeholder="Nazwa ulicy"
-                className="mt-1"
+                className="mt-0.5"
               />
             </div>
 
@@ -232,7 +232,7 @@ export const DriverForm = ({ driverData, onDriverChange, onRemove, isRemovable }
                   value={driverData.houseNumber || ""}
                   onChange={(e) => onDriverChange("houseNumber", e.target.value)}
                   placeholder="Nr domu"
-                  className="mt-1"
+                  className="mt-0.5"
                 />
               </div>
               <div>
@@ -244,7 +244,7 @@ export const DriverForm = ({ driverData, onDriverChange, onRemove, isRemovable }
                   value={driverData.flatNumber || ""}
                   onChange={(e) => onDriverChange("flatNumber", e.target.value)}
                   placeholder="Nr mieszkania"
-                  className="mt-1"
+                  className="mt-0.5"
                 />
               </div>
             </div>
@@ -257,7 +257,7 @@ export const DriverForm = ({ driverData, onDriverChange, onRemove, isRemovable }
                 value={driverData.country || "PL"}
                 onValueChange={(value) => onDriverChange("country", value)}
               >
-                <SelectTrigger className="mt-1">
+                <SelectTrigger className="mt-0.5">
                   <SelectValue placeholder="Wybierz kraj" />
                 </SelectTrigger>
                 <SelectContent>
@@ -285,7 +285,7 @@ export const DriverForm = ({ driverData, onDriverChange, onRemove, isRemovable }
                 value={driverData.phone || ""}
                 onChange={(e) => onDriverChange("phone", e.target.value)}
                 placeholder="+48 123 456 789"
-                className="mt-1"
+                className="mt-0.5"
                 type="tel"
               />
             </div>
@@ -300,7 +300,7 @@ export const DriverForm = ({ driverData, onDriverChange, onRemove, isRemovable }
                 value={driverData.email || ""}
                 onChange={(e) => onDriverChange("email", e.target.value)}
                 placeholder="email@example.com"
-                className="mt-1"
+                className="mt-0.5"
               />
             </div>
 
@@ -330,7 +330,7 @@ export const DriverForm = ({ driverData, onDriverChange, onRemove, isRemovable }
                 value={driverData.additionalInfo || ""}
                 onChange={(e) => onDriverChange("additionalInfo", e.target.value)}
                 placeholder="Dodatkowe informacje o uczestniku..."
-                className="mt-1"
+                className="mt-0.5"
                 rows={4}
               />
             </div>

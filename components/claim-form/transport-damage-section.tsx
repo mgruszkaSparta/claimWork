@@ -67,7 +67,7 @@ export function TransportDamageSection({
       <CardHeader>
         <CardTitle>Szkoda w transporcie</CardTitle>
       </CardHeader>
-      <CardContent className="space-y-6">
+      <CardContent className="space-y-4">
         <div className="space-y-2">
           <Label htmlFor="cargoDescription">Opis ładunku / lista strat</Label>
           <Textarea

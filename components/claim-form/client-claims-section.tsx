@@ -526,7 +526,7 @@ export function ClientClaimsSection({ clientClaims, onClientClaimsChange, claimI
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       <div className="flex items-center gap-3 bg-gray-100 p-3 rounded-md mb-4 border border-[#d1d9e6]">
         <div className="text-[#1a3a6c]">
           <User className="h-5 w-5" />
@@ -556,7 +556,7 @@ export function ClientClaimsSection({ clientClaims, onClientClaimsChange, claimI
             </h3>
           </div>
           <div className="p-6">
-            <form onSubmit={handleSubmit} className="space-y-6">
+            <form onSubmit={handleSubmit} className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 <div className="space-y-2">
                   <Label htmlFor="claimNumber" className="text-sm font-medium text-gray-700">
@@ -744,7 +744,7 @@ export function ClientClaimsSection({ clientClaims, onClientClaimsChange, claimI
                               documentDescription: e.target.value,
                             }))
                           }
-                          className="mt-1"
+                          className="mt-0.5"
                         />
                       </div>
                     </div>
@@ -821,7 +821,7 @@ export function ClientClaimsSection({ clientClaims, onClientClaimsChange, claimI
                         onChange={(e) =>
                           setFormData((prev) => ({ ...prev, documentDescription: e.target.value }))
                         }
-                        className="mt-1"
+                        className="mt-0.5"
                       />
                     </div>
                   </div>

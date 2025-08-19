@@ -904,7 +904,7 @@ export const ClaimMainContent = ({
               </div>
               <CardTitle className="text-lg font-semibold">Opis zdarzenia</CardTitle>
             </CardHeader>
-            <CardContent className="p-6 bg-white space-y-6">
+            <CardContent className="p-6 bg-white space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div>
                   <Label htmlFor="damageDate" className="text-sm font-medium text-gray-700">
@@ -915,7 +915,7 @@ export const ClaimMainContent = ({
                     type="date"
                     value={formatDateForInput(claimFormData.damageDate)}
                     onChange={(e) => handleFormChange("damageDate", e.target.value)}
-                    className="mt-1"
+                    className="mt-0.5"
                   />
                 </div>
                 <div>
@@ -927,7 +927,7 @@ export const ClaimMainContent = ({
                     type="time"
                     value={claimFormData.eventTime || ""}
                     onChange={(e) => handleFormChange("eventTime", e.target.value)}
-                    className="mt-1"
+                    className="mt-0.5"
                   />
                 </div>
                 <div>
@@ -939,7 +939,7 @@ export const ClaimMainContent = ({
                     type="date"
                     value={formatDateForInput(claimFormData.reportDate)}
                     onChange={(e) => handleFormChange("reportDate", e.target.value)}
-                    className="mt-1"
+                    className="mt-0.5"
                   />
                 </div>
               </div>
@@ -952,7 +952,7 @@ export const ClaimMainContent = ({
                   placeholder="np. Warszawa, ul. Marszałkowska 1"
                   value={claimFormData.eventLocation || ""}
                   onChange={(e) => handleFormChange("eventLocation", e.target.value)}
-                  className="mt-1"
+                  className="mt-0.5"
                 />
               </div>
               <div>
@@ -965,7 +965,7 @@ export const ClaimMainContent = ({
                   rows={4}
                   value={claimFormData.eventDescription || ""}
                   onChange={(e) => handleFormChange("eventDescription", e.target.value)}
-                  className="mt-1"
+                  className="mt-0.5"
                 />
               </div>
               <div>
@@ -978,7 +978,7 @@ export const ClaimMainContent = ({
                   rows={2}
                   value={claimFormData.comments || ""}
                   onChange={(e) => handleFormChange("comments", e.target.value)}
-                  className="mt-1"
+                  className="mt-0.5"
                 />
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -1082,7 +1082,7 @@ export const ClaimMainContent = ({
               </div>
               <CardTitle className="text-lg font-semibold">Służby</CardTitle>
             </CardHeader>
-            <CardContent className="p-6 bg-white space-y-6">
+            <CardContent className="p-6 bg-white space-y-4">
               <div>
                 <div className="flex items-center space-x-6">
                   <div className="flex items-center space-x-2">
@@ -1138,7 +1138,7 @@ export const ClaimMainContent = ({
                       placeholder="Wprowadź opis interwencji policji"
                       value={claimFormData.policeDescription || ""}
                       onChange={(e) => handleFormChange("policeDescription", e.target.value)}
-                      className="mt-1"
+                      className="mt-0.5"
                     />
                   </div>
                 )}
@@ -1152,7 +1152,7 @@ export const ClaimMainContent = ({
                       placeholder="Wprowadź opis interwencji pogotowia"
                       value={claimFormData.ambulanceDescription || ""}
                       onChange={(e) => handleFormChange("ambulanceDescription", e.target.value)}
-                      className="mt-1"
+                      className="mt-0.5"
                     />
                   </div>
                 )}
@@ -1166,7 +1166,7 @@ export const ClaimMainContent = ({
                       placeholder="Wprowadź opis interwencji straży pożarnej"
                       value={claimFormData.fireDescription || ""}
                       onChange={(e) => handleFormChange("fireDescription", e.target.value)}
-                      className="mt-1"
+                      className="mt-0.5"
                     />
                   </div>
                 )}
@@ -1180,7 +1180,7 @@ export const ClaimMainContent = ({
                       placeholder="Wprowadź opis usługi holowania"
                       value={claimFormData.towDescription || ""}
                       onChange={(e) => handleFormChange("towDescription", e.target.value)}
-                      className="mt-1"
+                      className="mt-0.5"
                     />
                   </div>
                 )}
@@ -1195,7 +1195,7 @@ export const ClaimMainContent = ({
                     placeholder="Wprowadź dane jednostki policji"
                     value={claimFormData.policeUnitDetails || ""}
                     onChange={(e) => handleFormChange("policeUnitDetails", e.target.value)}
-                    className="mt-1"
+                    className="mt-0.5"
                   />
                 </div>
               )}
@@ -1211,7 +1211,7 @@ export const ClaimMainContent = ({
                 <CardTitle className="text-lg font-semibold">Uszkodzenia samochodu</CardTitle>
               </CardHeader>
               <CardContent className="p-6 bg-white grid grid-cols-1 lg:grid-cols-2 gap-8">
-                <div className="space-y-6">
+                <div className="space-y-4">
                   <div>
                     <div className="relative z-10">
                       <Label htmlFor="vehicleType" className="text-sm font-medium text-gray-700 mb-2 block">
@@ -1240,7 +1240,7 @@ export const ClaimMainContent = ({
                       rows={3}
                       value={claimFormData.damageDescription || ""}
                       onChange={(e) => handleFormChange("damageDescription", e.target.value)}
-                      className="mt-1"
+                      className="mt-0.5"
                     />
                   </div>
                   <div>
@@ -1557,7 +1557,7 @@ export const ClaimMainContent = ({
                         value={noteForm.title}
                         onChange={(e) => setNoteForm((prev) => ({ ...prev, title: e.target.value }))}
                         placeholder="Wprowadź tytuł..."
-                        className="mt-1"
+                        className="mt-0.5"
                       />
                     </div>
                     <div>
@@ -1570,7 +1570,7 @@ export const ClaimMainContent = ({
                         onChange={(e) => setNoteForm((prev) => ({ ...prev, description: e.target.value }))}
                         placeholder="Wprowadź opis..."
                         rows={4}
-                        className="mt-1"
+                        className="mt-0.5"
                       />
                     </div>
                     {showNoteForm === "task" && (
@@ -1585,7 +1585,7 @@ export const ClaimMainContent = ({
                               setNoteForm((prev) => ({ ...prev, priority: value }))
                             }
                           >
-                            <SelectTrigger className="mt-1">
+                            <SelectTrigger className="mt-0.5">
                               <SelectValue />
                             </SelectTrigger>
                             <SelectContent>
@@ -1604,7 +1604,7 @@ export const ClaimMainContent = ({
                             type="date"
                             value={noteForm.dueDate}
                             onChange={(e) => setNoteForm((prev) => ({ ...prev, dueDate: e.target.value }))}
-                            className="mt-1"
+                            className="mt-0.5"
                           />
                         </div>
                       </div>

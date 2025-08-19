@@ -492,7 +492,7 @@ const CommunicationClaimSummary = ({
                           {note.type === "task" && note.status && getStatusIcon(note.status)}
                         </div>
                         <h4 className="font-medium text-gray-900 text-sm">{note.title}</h4>
-                        <p className="text-sm text-gray-600 mt-1">{note.description}</p>
+                        <p className="text-sm text-gray-600 mt-0.5">{note.description}</p>
                         <div className="flex items-center space-x-4 text-xs text-gray-500 mt-2">
                           <span>{note.user}</span>
                           <span>{new Date(note.createdAt).toLocaleDateString("pl-PL")}</span>

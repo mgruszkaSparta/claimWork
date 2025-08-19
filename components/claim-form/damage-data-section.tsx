@@ -1,6 +1,7 @@
 "use client"
 
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
+import { Card, CardContent } from "@/components/ui/card"
+import { FormHeader } from "@/components/ui/form-header"
 import { Label } from "@/components/ui/label"
 import { Input } from "@/components/ui/input"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
@@ -68,12 +69,7 @@ export function DamageDataSection({
 }: DamageDataSectionProps) {
   return (
     <Card className="overflow-hidden shadow-sm border-gray-200 rounded-xl">
-      <CardHeader className="flex flex-row items-center space-x-4 bg-gradient-to-r from-blue-600 to-blue-700 text-white p-4">
-        <div className="w-8 h-8 bg-blue-500 rounded-lg flex items-center justify-center">
-          <FileText className="h-4 w-4" />
-        </div>
-        <CardTitle className="text-lg font-semibold">Dane szkody</CardTitle>
-      </CardHeader>
+      <FormHeader icon={FileText} title="Dane szkody" />
       <CardContent className="p-6 bg-white">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4">
           <div className="space-y-4">

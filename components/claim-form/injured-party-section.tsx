@@ -1,6 +1,7 @@
 "use client"
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent } from "@/components/ui/card"
+import { FormHeader } from "@/components/ui/form-header"
 import { User } from "lucide-react"
 import { ParticipantForm } from "./participant-form"
 import type { ParticipantInfo, DriverInfo } from "@/types"
@@ -22,12 +23,7 @@ export function InjuredPartySection({
 }: InjuredPartySectionProps) {
   return (
     <Card className="overflow-hidden shadow-sm border-gray-200 rounded-xl">
-      <CardHeader className="flex flex-row items-center space-x-4 bg-gradient-to-r from-blue-600 to-blue-700 text-white p-4">
-        <div className="w-8 h-8 bg-blue-500 rounded-lg flex items-center justify-center">
-          <User className="h-4 w-4" />
-        </div>
-        <CardTitle className="text-lg font-semibold">Poszkodowany</CardTitle>
-      </CardHeader>
+      <FormHeader icon={User} title="Poszkodowany" />
       <CardContent className="p-6 bg-white">
         <ParticipantForm
           title="Poszkodowany"

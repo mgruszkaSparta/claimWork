@@ -9,6 +9,8 @@ import { Label } from '@/components/ui/label'
 import { SearchableSelect } from '@/components/ui/searchable-select'
 import { Switch } from '@/components/ui/switch'
 import { Badge } from '@/components/ui/badge'
+import { FormHeader } from '@/components/ui/form-header'
+import { User } from 'lucide-react'
 
 interface UserFormProps {
   userId?: string
@@ -103,12 +105,14 @@ export default function UserForm({ userId }: UserFormProps) {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="max-w-md space-y-4 p-4">
-      <div>
-        <Label htmlFor="userName">Nazwa użytkownika</Label>
-        <Input id="userName" value={userName} onChange={(e) => setUserName(e.target.value)} />
-        {errors.userName && <p className="text-sm text-red-500">{errors.userName}</p>}
-      </div>
+    <div className="max-w-md">
+      <FormHeader icon={User} title={isEdit ? 'Edytuj użytkownika' : 'Nowy użytkownik'} />
+      <form onSubmit={handleSubmit} className="space-y-4 p-4">
+        <div>
+          <Label htmlFor="userName">Nazwa użytkownika</Label>
+          <Input id="userName" value={userName} onChange={(e) => setUserName(e.target.value)} />
+          {errors.userName && <p className="text-sm text-red-500">{errors.userName}</p>}
+        </div>
       <div>
         <Label htmlFor="firstName">Imię</Label>
         <Input id="firstName" value={firstName} onChange={(e) => setFirstName(e.target.value)} />
@@ -169,8 +173,9 @@ export default function UserForm({ userId }: UserFormProps) {
           </div>
         )}
       </div>
-      <Button type="submit">{isEdit ? 'Zapisz' : 'Utwórz'} użytkownika</Button>
-    </form>
+        <Button type="submit">{isEdit ? 'Zapisz' : 'Utwórz'} użytkownika</Button>
+      </form>
+    </div>
   )
 }
 

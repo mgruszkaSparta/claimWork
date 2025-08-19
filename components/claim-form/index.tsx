@@ -2,12 +2,14 @@
 
 import React, { useState, useEffect, useRef } from 'react'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent } from '@/components/ui/card'
+import { FormHeader } from '@/components/ui/form-header'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Textarea } from '@/components/ui/textarea'
 import { Checkbox } from '@/components/ui/checkbox'
+import { FileText, Users } from 'lucide-react'
 import { ParticipantsSection } from './participants-section'
 import { DocumentsSection } from '../documents-section'
 import { useClaims } from '@/hooks/use-claims'
@@ -215,9 +217,7 @@ export function ClaimForm({ initialData, mode }: ClaimFormProps) {
       <form onSubmit={handleSubmit} className="space-y-8">
         {/* Basic Information */}
         <Card>
-          <CardHeader>
-            <CardTitle>Podstawowe informacje</CardTitle>
-          </CardHeader>
+          <FormHeader icon={FileText} title="Podstawowe informacje" />
           <CardContent className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             <div className="space-y-2">
               <Label htmlFor="spartaNumber">Numer Sparta</Label>
@@ -294,9 +294,7 @@ export function ClaimForm({ initialData, mode }: ClaimFormProps) {
 
         {/* Event Description */}
         <Card>
-          <CardHeader>
-            <CardTitle>Opis zdarzenia</CardTitle>
-          </CardHeader>
+          <FormHeader icon={FileText} title="Opis zdarzenia" />
           <CardContent className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="eventDescription">Opis zdarzenia</Label>
@@ -365,9 +363,7 @@ export function ClaimForm({ initialData, mode }: ClaimFormProps) {
 
         {/* Participants Section */}
         <Card>
-          <CardHeader>
-            <CardTitle>Uczestnicy zdarzenia</CardTitle>
-          </CardHeader>
+          <FormHeader icon={Users} title="Uczestnicy zdarzenia" />
           <CardContent>
             <ParticipantsSection
               injuredParty={formData.injuredParty}
@@ -381,9 +377,7 @@ export function ClaimForm({ initialData, mode }: ClaimFormProps) {
 
         {/* Documents Section */}
         <Card>
-          <CardHeader>
-            <CardTitle>Dokumenty</CardTitle>
-          </CardHeader>
+          <FormHeader icon={FileText} title="Dokumenty" />
           <CardContent>
 
             <DocumentsSection

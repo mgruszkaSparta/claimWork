@@ -1,7 +1,9 @@
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
+import { Card, CardContent } from "@/components/ui/card"
+import { FormHeader } from "@/components/ui/form-header"
 import { Label } from "@/components/ui/label"
 import { Input } from "@/components/ui/input"
 import { Checkbox } from "@/components/ui/checkbox"
+import { FileText } from "lucide-react"
 import type { Claim, SubcontractorInfo } from "@/types"
 
 interface SubcontractorSectionProps {
@@ -40,9 +42,7 @@ export default function SubcontractorSection({
 
   return (
     <Card>
-      <CardHeader>
-        <CardTitle>Podwykonawca</CardTitle>
-      </CardHeader>
+      <FormHeader icon={FileText} title="Podwykonawca" />
       <CardContent className="space-y-4">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <Input

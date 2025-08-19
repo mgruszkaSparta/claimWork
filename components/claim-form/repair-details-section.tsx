@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { FormHeader } from "@/components/ui/form-header"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -210,19 +211,16 @@ export const RepairDetailsSection: React.FC<RepairDetailsSectionProps> = ({ even
     <div className="space-y-8 animate-fade-in">
       {showForm && (
         <Card className="border shadow-lg bg-card animate-scale-in">
-          <CardHeader className="bg-muted/30 border-b border-border rounded-t-xl">
-            <div className="flex items-center justify-between">
-              <CardTitle className="flex items-center gap-4 text-2xl">
-                <div className="p-3 bg-primary/15 rounded-xl border border-primary/20">
-                  <FileText className="h-6 w-6 text-primary" />
-                </div>
-                <div>{editing ? "Edytuj opis naprawy" : "Nowy opis naprawy"}</div>
-              </CardTitle>
-              <Button variant="ghost" size="icon" onClick={resetForm} className="rounded-xl hover:bg-destructive/10 hover:text-destructive">
-                <X className="h-5 w-5" />
-              </Button>
-            </div>
-          </CardHeader>
+          <FormHeader icon={FileText} title={editing ? "Edytuj opis naprawy" : "Nowy opis naprawy"}>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={resetForm}
+              className="rounded-xl hover:bg-destructive/10 hover:text-destructive"
+            >
+              <X className="h-5 w-5" />
+            </Button>
+          </FormHeader>
           <CardContent className="p-8">
             <form onSubmit={handleSubmit} className="space-y-8">
               {/* Basic information */}

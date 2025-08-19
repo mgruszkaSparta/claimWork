@@ -139,6 +139,26 @@ namespace AutomotiveClaimsApi.Models
         [MaxLength(500)]
         public string? PoliceUnitDetails { get; set; }
 
+        [MaxLength(500)]
+        public string? PropertyDamageSubject { get; set; }
+
+        public string? DamageListing { get; set; }
+
+        [MaxLength(500)]
+        public string? InspectionContact { get; set; }
+
+        public string? PoliceDescription { get; set; }
+
+        public string? AmbulanceDescription { get; set; }
+
+        public string? FireDescription { get; set; }
+
+        public string? TowDescription { get; set; }
+
+        public string? InjuredData { get; set; }
+
+        public string? PerpetratorData { get; set; }
+
         [MaxLength(100)]
         public string? VehicleType { get; set; }
 

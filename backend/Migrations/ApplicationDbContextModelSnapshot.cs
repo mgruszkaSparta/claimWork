@@ -974,6 +974,35 @@ namespace AutomotiveClaimsApi.Migrations
                         .HasMaxLength(500)
                         .HasColumnType("character varying(500)");
 
+                    b.Property<string>("PropertyDamageSubject")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<string>("DamageListing")
+                        .HasColumnType("text");
+
+                    b.Property<string>("InspectionContact")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<string>("PoliceDescription")
+                        .HasColumnType("text");
+
+                    b.Property<string>("AmbulanceDescription")
+                        .HasColumnType("text");
+
+                    b.Property<string>("FireDescription")
+                        .HasColumnType("text");
+
+                    b.Property<string>("TowDescription")
+                        .HasColumnType("text");
+
+                    b.Property<string>("InjuredData")
+                        .HasColumnType("text");
+
+                    b.Property<string>("PerpetratorData")
+                        .HasColumnType("text");
+
                     b.Property<DateTime?>("ReportDate")
                         .HasColumnType("timestamp with time zone");
 

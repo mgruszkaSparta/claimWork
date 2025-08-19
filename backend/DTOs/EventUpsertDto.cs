@@ -134,6 +134,33 @@ namespace AutomotiveClaimsApi.DTOs
         [StringLength(500)]
         public string? PoliceUnitDetails { get; set; }
 
+        [StringLength(500)]
+        public string? PropertyDamageSubject { get; set; }
+
+        [StringLength(2000)]
+        public string? DamageListing { get; set; }
+
+        [StringLength(500)]
+        public string? InspectionContact { get; set; }
+
+        [StringLength(2000)]
+        public string? PoliceDescription { get; set; }
+
+        [StringLength(2000)]
+        public string? AmbulanceDescription { get; set; }
+
+        [StringLength(2000)]
+        public string? FireDescription { get; set; }
+
+        [StringLength(2000)]
+        public string? TowDescription { get; set; }
+
+        [StringLength(2000)]
+        public string? InjuredData { get; set; }
+
+        [StringLength(2000)]
+        public string? PerpetratorData { get; set; }
+
         [StringLength(100)]
         public string? VehicleType { get; set; }
 

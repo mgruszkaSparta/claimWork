@@ -53,6 +53,15 @@ namespace AutomotiveClaimsApi.DTOs
         public bool PerpetratorFined { get; set; }
         public string[]? ServicesCalled { get; set; }
         public string? PoliceUnitDetails { get; set; }
+        public string? PropertyDamageSubject { get; set; }
+        public string? DamageListing { get; set; }
+        public string? InspectionContact { get; set; }
+        public string? PoliceDescription { get; set; }
+        public string? AmbulanceDescription { get; set; }
+        public string? FireDescription { get; set; }
+        public string? TowDescription { get; set; }
+        public string? InjuredData { get; set; }
+        public string? PerpetratorData { get; set; }
         public string? VehicleType { get; set; }
         public string? SubcontractorName { get; set; }
         public string? SubcontractorPolicyNumber { get; set; }

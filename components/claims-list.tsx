@@ -29,6 +29,7 @@ import {
 
 import { useClaims } from "@/hooks/use-claims"
 import { useToast } from "@/hooks/use-toast"
+import { useAuth } from "@/hooks/use-auth"
 import type { Claim } from "@/types"
 
 
@@ -101,6 +102,8 @@ export function ClaimsList({
     totalCount,
   } = useClaims()
   const { toast } = useToast()
+  const { user } = useAuth()
+  const isAdmin = user?.roles?.some((r) => r.toLowerCase() === "admin")
 
   const claims = initialClaims?.length ? initialClaims : fetchedClaims
   const totalRecords = initialClaims?.length ? initialClaims.length : totalCount
@@ -269,6 +272,14 @@ export function ClaimsList({
 
   const handleDeleteClaim = async (claimId: string | undefined, claimNumber: string | undefined) => {
     if (!claimId) return
+    if (!isAdmin) {
+      toast({
+        title: "Brak uprawnień",
+        description: "Tylko administrator może usuwać szkody.",
+        variant: "destructive",
+      })
+      return
+    }
 
     if (window.confirm(`Czy na pewno chcesz usunąć szkodę ${claimNumber}?`)) {
       try {
@@ -599,15 +610,17 @@ export function ClaimsList({
                         >
                           <Edit className="h-4 w-4 text-green-600" />
                         </Button>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="h-8 w-8 p-0 hover:bg-red-50"
-                          onClick={() => handleDeleteClaim(claim.id, claim.claimNumber)}
-                          title="Usuń"
-                        >
-                          <Trash2 className="h-4 w-4 text-red-600" />
-                        </Button>
+                        {isAdmin && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-8 w-8 p-0 hover:bg-red-50"
+                            onClick={() => handleDeleteClaim(claim.id, claim.claimNumber)}
+                            title="Usuń"
+                          >
+                            <Trash2 className="h-4 w-4 text-red-600" />
+                          </Button>
+                        )}
                       </div>
                     </td>
                   </tr>

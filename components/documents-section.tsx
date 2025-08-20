@@ -901,6 +901,66 @@ export const DocumentsSection = React.forwardRef<
     }
   }
 
+  const moveDocument = async (documentId: string, targetCategory: string) => {
+    const targetCode = mapCategoryNameToCode(targetCategory)
+    const updatedFiles = uploadedFiles.map((f) =>
+      f.id === documentId ? { ...f, category: targetCategory, categoryCode: targetCode } : f,
+    )
+    setUploadedFiles(updatedFiles)
+
+    const existingDoc = documents.find((d) => d.id === documentId)
+    const oldCategory = existingDoc
+      ? existingDoc.documentType
+      : pendingFiles.find((f) => f.id === documentId)?.category || "Inne dokumenty"
+
+    if (existingDoc) {
+      const newDocs = documents.map((d) =>
+        d.id === documentId
+          ? { ...d, documentType: targetCategory, categoryCode: targetCode }
+          : d,
+      )
+      setDocuments(newDocs)
+
+      if (isGuid(documentId) && eventId) {
+        try {
+          await fetch(`${process.env.NEXT_PUBLIC_API_URL}/documents/${documentId}`, {
+            method: "PUT",
+            credentials: "include",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ documentType: targetCode }),
+          })
+        } catch (error) {
+          console.error("Error moving document:", error)
+          toast({
+            title: "Błąd",
+            description: "Nie udało się przenieść dokumentu",
+            variant: "destructive",
+          })
+        }
+      }
+    } else {
+      setPendingFiles?.((prev) =>
+        prev.map((f) =>
+          f.id === documentId ? { ...f, category: targetCategory, categoryCode: targetCode } : f,
+        ),
+      )
+    }
+
+    setRequiredDocuments((prev) =>
+      prev.map((rd) => {
+        if (rd.name === targetCategory) return { ...rd, uploaded: true }
+        if (rd.name === oldCategory)
+          return {
+            ...rd,
+            uploaded: updatedFiles.some(
+              (f) => f.id !== documentId && f.category === oldCategory,
+            ),
+          }
+        return rd
+      }),
+    )
+  }
+
   const handleDrop = (e: React.DragEvent, category: string) => {
     e.preventDefault()
     e.stopPropagation()
@@ -908,8 +968,12 @@ export const DocumentsSection = React.forwardRef<
     setDragCategory(null)
     // If the section was collapsed open it so user sees upload progress
     setOpenCategories((prev) => ({ ...prev, [category]: true }))
-
-    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+    const documentId =
+      e.dataTransfer.getData("application/x-doc-id") ||
+      e.dataTransfer.getData("text/plain")
+    if (documentId) {
+      moveDocument(documentId, category)
+    } else if (e.dataTransfer.files && e.dataTransfer.files[0]) {
       handleFileUpload(e.dataTransfer.files, category)
     }
   }
@@ -1015,7 +1079,15 @@ export const DocumentsSection = React.forwardRef<
   const FileCard = ({ doc, onDelete }: { doc: Document; onDelete: (id: string | number) => void }) => {
     const isSelected = selectedDocumentIds.includes(doc.id)
     return (
-      <Card className="overflow-hidden group relative">
+      <Card
+        className="overflow-hidden group relative"
+        draggable
+        onDragStart={(e) => {
+          e.dataTransfer.setData("application/x-doc-id", doc.id.toString())
+          e.dataTransfer.setData("text/plain", doc.id.toString())
+          e.dataTransfer.effectAllowed = "move"
+        }}
+      >
         <div className="absolute top-2 left-2 flex items-center gap-2">
           <Checkbox
             checked={isSelected}
@@ -1334,6 +1406,15 @@ export const DocumentsSection = React.forwardRef<
                               <tr
                                 key={doc.id}
                                 className={`border-t ${index % 2 === 0 ? "bg-white" : "bg-gray-50/50"}`}
+                                draggable
+                                onDragStart={(e) => {
+                                  e.dataTransfer.setData(
+                                    "application/x-doc-id",
+                                    doc.id.toString(),
+                                  )
+                                  e.dataTransfer.setData("text/plain", doc.id.toString())
+                                  e.dataTransfer.effectAllowed = "move"
+                                }}
                               >
                                 <td className="p-3">
                                   <Checkbox

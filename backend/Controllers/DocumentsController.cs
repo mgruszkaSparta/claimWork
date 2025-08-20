@@ -176,6 +176,7 @@ namespace AutomotiveClaimsApi.Controllers
                 return NotFound();
 
             document.Description = updateDto.Description ?? document.Description;
+            document.DocumentType = updateDto.DocumentType ?? document.DocumentType;
             // Assuming DocumentStatusId maps to Status string. This might need a lookup table.
             // document.Status = updateDto.DocumentStatusId?.ToString() ?? document.Status;
             document.UpdatedAt = DateTime.UtcNow;

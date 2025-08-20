@@ -24,11 +24,7 @@ namespace AutomotiveClaimsApi.Services.EventSearch
             await using var conn = new SqlConnection(_connectionString);
             await conn.OpenAsync(cancellationToken);
             await using var cmd = conn.CreateCommand();
-            cmd.CommandText = $@
-"MERGE [" + _table + "] AS target USING (SELECT @id AS Id, @data AS Data) AS source " +
-"ON target.Id = source.Id " +
-"WHEN MATCHED THEN UPDATE SET Data = source.Data " +
-"WHEN NOT MATCHED THEN INSERT (Id, Data) VALUES (source.Id, source.Data);";
+            cmd.CommandText = $@"MERGE [{_table}] AS target USING (SELECT @id AS Id, @data AS Data) AS source ON target.Id = source.Id WHEN MATCHED THEN UPDATE SET Data = source.Data WHEN NOT MATCHED THEN INSERT (Id, Data) VALUES (source.Id, source.Data);";
             cmd.Parameters.AddWithValue("@id", @event.Id);
             cmd.Parameters.AddWithValue("@data", json);
             await cmd.ExecuteNonQueryAsync(cancellationToken);
@@ -40,7 +36,7 @@ namespace AutomotiveClaimsApi.Services.EventSearch
             await using var conn = new SqlConnection(_connectionString);
             await conn.OpenAsync(cancellationToken);
             await using var cmd = conn.CreateCommand();
-            cmd.CommandText = $"SELECT Id FROM [{_table}] WHERE Data LIKE @p";
+            cmd.CommandText = $@"SELECT Id FROM [{_table}] WHERE Data LIKE @p";
             cmd.Parameters.AddWithValue("@p", $"%{phrase}%");
             await using var reader = await cmd.ExecuteReaderAsync(cancellationToken);
             while (await reader.ReadAsync(cancellationToken))
@@ -51,4 +47,3 @@ namespace AutomotiveClaimsApi.Services.EventSearch
         }
     }
 }
-

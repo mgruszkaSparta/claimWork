@@ -24,9 +24,7 @@ namespace AutomotiveClaimsApi.Services.EventSearch
             var json = EventSerializer.Serialize(@event);
             await using var conn = new NpgsqlConnection(_connectionString);
             await conn.OpenAsync(cancellationToken);
-            await using var cmd = new NpgsqlCommand($@
-                "INSERT INTO \"{_table}\" (\"Id\", \"Data\") VALUES (@id, @data) " +
-                "ON CONFLICT (\"Id\") DO UPDATE SET \"Data\" = EXCLUDED.\"Data\";", conn);
+            await using var cmd = new NpgsqlCommand($@"INSERT INTO ""{_table}"" (""Id"", ""Data"") VALUES (@id, @data) ON CONFLICT (""Id"") DO UPDATE SET ""Data"" = EXCLUDED.""Data"";", conn);
             cmd.Parameters.AddWithValue("id", @event.Id);
             cmd.Parameters.AddWithValue("data", NpgsqlDbType.Jsonb, json);
             await cmd.ExecuteNonQueryAsync(cancellationToken);
@@ -37,8 +35,7 @@ namespace AutomotiveClaimsApi.Services.EventSearch
             var result = new List<Guid>();
             await using var conn = new NpgsqlConnection(_connectionString);
             await conn.OpenAsync(cancellationToken);
-            await using var cmd = new NpgsqlCommand($@
-                "SELECT \"Id\" FROM \"{_table}\" WHERE \"Data\"::text ILIKE @p;", conn);
+            await using var cmd = new NpgsqlCommand($@"SELECT ""Id"" FROM ""{_table}"" WHERE ""Data""::text ILIKE @p;", conn);
             cmd.Parameters.AddWithValue("p", $"%{phrase}%");
             await using var reader = await cmd.ExecuteReaderAsync(cancellationToken);
             while (await reader.ReadAsync(cancellationToken))
@@ -49,4 +46,3 @@ namespace AutomotiveClaimsApi.Services.EventSearch
         }
     }
 }
-

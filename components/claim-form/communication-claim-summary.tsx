@@ -142,6 +142,7 @@ const CommunicationClaimSummary = ({
     title: string,
     icon: React.ReactNode,
     bgColor: string,
+    showPersonalInfo = true,
   ) => {
     if (!participant) {
       return (
@@ -174,12 +175,16 @@ const CommunicationClaimSummary = ({
           </div>
         </div>
         <div className="p-4 space-y-3">
-          <InfoCard label="Imię i nazwisko" value={participantName} />
-          <InfoCard label="Adres" value={participant.address} />
-          <InfoCard label="Miasto" value={participant.city} />
-          <InfoCard label="Kod pocztowy" value={participant.postalCode} />
-          <InfoCard label="Kraj" value={participant.country} />
-          <InfoCard label="Telefon" value={participant.phone} />
+          {showPersonalInfo && (
+            <>
+              <InfoCard label="Imię i nazwisko" value={participantName} />
+              <InfoCard label="Adres" value={participant.address} />
+              <InfoCard label="Miasto" value={participant.city} />
+              <InfoCard label="Kod pocztowy" value={participant.postalCode} />
+              <InfoCard label="Kraj" value={participant.country} />
+              <InfoCard label="Telefon" value={participant.phone} />
+            </>
+          )}
           <InfoCard label="Rejestracja" value={participant.vehicleRegistration} />
           <InfoCard label="VIN" value={participant.vehicleVin} />
           <InfoCard label="Typ pojazdu" value={participant.vehicleType} />
@@ -313,6 +318,7 @@ const CommunicationClaimSummary = ({
             "Sprawca",
             <AlertTriangle className="h-4 w-4 text-red-600" />,
             "bg-gradient-to-r from-red-50 to-red-100",
+            false,
           )}
         </div>
       </div>

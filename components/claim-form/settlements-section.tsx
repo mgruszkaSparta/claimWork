@@ -1,7 +1,7 @@
 "use client"
 
 import type React from "react"
-import { useState, useCallback, useMemo, useEffect } from "react"
+import { useState, useCallback, useMemo, useEffect, useRef } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -64,7 +64,8 @@ export const SettlementsSection: React.FC<SettlementsSectionProps> = ({ eventId 
   const [isPreviewVisible, setIsPreviewVisible] = useState(false)
   const [previewUrl, setPreviewUrl] = useState<string>("")
   const [previewFileName, setPreviewFileName] = useState<string>("")
-  const [previewFileType, setPreviewFileType] = useState<"pdf" | "image" | "other">("other")
+  const [previewFileType, setPreviewFileType] = useState<"pdf" | "image" | "docx" | "other">("other")
+  const docxPreviewRef = useRef<HTMLDivElement>(null)
   const [currentPreviewSettlement, setCurrentPreviewSettlement] = useState<Settlement | null>(null)
   const [currentPreviewDoc, setCurrentPreviewDoc] = useState<DocumentDto | null>(null)
   const [previewDocs, setPreviewDocs] = useState<DocumentDto[]>([])
@@ -330,9 +331,26 @@ export const SettlementsSection: React.FC<SettlementsSectionProps> = ({ eventId 
     const ext = fileName.toLowerCase().split(".").pop()
     setPreviewUrl(objectUrl)
     setPreviewFileName(fileName)
-    if (ext === "pdf") setPreviewFileType("pdf")
-    else if (["jpg", "jpeg", "png", "gif"].includes(ext || "")) setPreviewFileType("image")
-    else setPreviewFileType("other")
+    if (ext === "pdf") {
+      setPreviewFileType("pdf")
+    } else if (["jpg", "jpeg", "png", "gif"].includes(ext || "")) {
+      setPreviewFileType("image")
+    } else if (ext === "docx") {
+      setPreviewFileType("docx")
+      try {
+        const buffer = await blob.arrayBuffer()
+        const { renderAsync } = await import("docx-preview")
+        if (docxPreviewRef.current) {
+          docxPreviewRef.current.innerHTML = ""
+          await renderAsync(buffer, docxPreviewRef.current)
+        }
+      } catch (err) {
+        console.error("Error rendering docx preview:", err)
+        setPreviewFileType("other")
+      }
+    } else {
+      setPreviewFileType("other")
+    }
     setCurrentPreviewDoc(doc)
   }
 
@@ -351,9 +369,26 @@ export const SettlementsSection: React.FC<SettlementsSectionProps> = ({ eventId 
           setPreviewDocs([])
           setPreviewUrl(objectUrl)
           setPreviewFileName(fileName)
-          if (ext === "pdf") setPreviewFileType("pdf")
-          else if (["jpg", "jpeg", "png", "gif"].includes(ext || "")) setPreviewFileType("image")
-          else setPreviewFileType("other")
+          if (ext === "pdf") {
+            setPreviewFileType("pdf")
+          } else if (["jpg", "jpeg", "png", "gif"].includes(ext || "")) {
+            setPreviewFileType("image")
+          } else if (ext === "docx") {
+            setPreviewFileType("docx")
+            try {
+              const buffer = await blob.arrayBuffer()
+              const { renderAsync } = await import("docx-preview")
+              if (docxPreviewRef.current) {
+                docxPreviewRef.current.innerHTML = ""
+                await renderAsync(buffer, docxPreviewRef.current)
+              }
+            } catch (err) {
+              console.error("Error rendering docx preview:", err)
+              setPreviewFileType("other")
+            }
+          } else {
+            setPreviewFileType("other")
+          }
           setCurrentPreviewSettlement(settlement)
           setCurrentPreviewDoc(null)
           setIsPreviewVisible(true)
@@ -412,6 +447,9 @@ export const SettlementsSection: React.FC<SettlementsSectionProps> = ({ eventId 
     setCurrentPreviewSettlement(null)
     setCurrentPreviewDoc(null)
     setPreviewDocs([])
+    if (docxPreviewRef.current) {
+      docxPreviewRef.current.innerHTML = ""
+    }
   }, [previewUrl])
 
   const downloadFile = useCallback(
@@ -974,6 +1012,11 @@ export const SettlementsSection: React.FC<SettlementsSectionProps> = ({ eventId 
                   className="max-w-full max-h-[70vh] object-contain"
                   alt="Preview"
                 />
+              )}
+
+              {/* DOCX Preview */}
+              {previewFileType === "docx" && (
+                <div ref={docxPreviewRef} className="w-full h-full overflow-auto bg-white"></div>
               )}
 
               {/* Other File Types */}

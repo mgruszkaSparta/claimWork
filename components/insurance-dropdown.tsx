@@ -6,12 +6,12 @@ import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { ChevronDown, Phone, Mail, AlertCircle, ExternalLink, Check } from "lucide-react"
-import type { InsuranceCompany, InsuranceCompanySelectionEvent } from "@/types/insurance"
+import type { InsuranceCompany, CompanySelectionEvent } from "@/types/insurance"
 import { InsuranceCompaniesService } from "@/lib/insurance-companies"
 
 interface InsuranceDropdownProps {
   selectedCompanyId?: number
-  onCompanySelected?: (event: InsuranceCompanySelectionEvent) => void
+  onCompanySelected?: (event: CompanySelectionEvent) => void
   className?: string
 }
 
@@ -35,6 +35,8 @@ export default function InsuranceDropdown({
   const [searchTerm, setSearchTerm] = useState("")
   const [dropdownPosition, setDropdownPosition] = useState<DropdownPosition>({ top: 0, left: 0, width: 0 })
   const [mounted, setMounted] = useState(false)
+  const [isOtherSelected, setIsOtherSelected] = useState(false)
+  const [customCompanyName, setCustomCompanyName] = useState("")
 
   const dropdownRef = useRef<HTMLDivElement>(null)
   const buttonRef = useRef<HTMLButtonElement>(null)
@@ -116,6 +118,8 @@ export default function InsuranceDropdown({
 
   const selectCompany = (company: InsuranceCompany) => {
     setSelectedCompany(company)
+    setIsOtherSelected(false)
+    setCustomCompanyName("")
     setIsDropdownOpen(false)
     setSearchTerm("")
 
@@ -124,6 +128,18 @@ export default function InsuranceDropdown({
         companyId: company.id,
         companyName: company.name,
       })
+    }
+  }
+
+  const selectOther = () => {
+    setSelectedCompany(null)
+    setIsOtherSelected(true)
+    setCustomCompanyName("")
+    setIsDropdownOpen(false)
+    setSearchTerm("")
+
+    if (onCompanySelected) {
+      onCompanySelected({ companyId: 0, companyName: "" })
     }
   }
 
@@ -177,6 +193,13 @@ export default function InsuranceDropdown({
               </div>
             ))
           )}
+          <div
+            key="insurance-other"
+            className="dropdown-item"
+            onClick={selectOther}
+          >
+            <span>Inna firma</span>
+          </div>
         </div>
       </div>,
       document.body,
@@ -194,13 +217,32 @@ export default function InsuranceDropdown({
         type="button"
       >
         <span className="truncate text-gray-900">
-          {selectedCompany ? selectedCompany.name : "Wybierz firmę ubezpieczeniową..."}
+          {isOtherSelected
+            ? customCompanyName || "Inna firma"
+            : selectedCompany
+              ? selectedCompany.name
+              : "Wybierz firmę ubezpieczeniową..."}
         </span>
         <ChevronDown className={`h-4 w-4 transition-transform text-gray-500 ${isDropdownOpen ? "rotate-180" : ""}`} />
       </Button>
 
       {/* Render dropdown portal */}
       {renderDropdownPortal()}
+
+      {isOtherSelected && (
+        <div className="mt-4">
+          <Input
+            placeholder="Wprowadź nazwę ubezpieczyciela"
+            value={customCompanyName}
+            onChange={(e) => {
+              setCustomCompanyName(e.target.value)
+              if (onCompanySelected) {
+                onCompanySelected({ companyId: 0, companyName: e.target.value })
+              }
+            }}
+          />
+        </div>
+      )}
 
       {/* Company Details Card */}
       {selectedCompany && (

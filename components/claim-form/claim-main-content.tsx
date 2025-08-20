@@ -3,6 +3,7 @@
 import type React from "react"
 import { useState, useEffect, useRef } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { FormHeader } from "@/components/ui/form-header"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -1204,12 +1205,7 @@ export const ClaimMainContent = ({
 
           {claimObjectType === "1" && (
             <Card className="overflow-hidden shadow-sm border-gray-200 rounded-xl">
-              <CardHeader className="flex flex-row items-center space-x-4 bg-gradient-to-r from-blue-600 to-blue-700 text-white p-4">
-                <div className="w-8 h-8 bg-blue-500 rounded-lg flex items-center justify-center">
-                  <Car className="h-4 w-4" />
-                </div>
-                <CardTitle className="text-lg font-semibold">Uszkodzenia samochodu</CardTitle>
-              </CardHeader>
+              <FormHeader icon={Car} title="Uszkodzenia samochodu" />
               <CardContent className="p-6 bg-white grid grid-cols-1 lg:grid-cols-2 gap-8">
                 <div className="space-y-4">
                   <div>

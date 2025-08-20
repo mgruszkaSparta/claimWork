@@ -133,7 +133,7 @@ function ClaimFormSidebar({ activeClaimSection, setActiveClaimSection, claimObje
     return { ...section, items }
   })
   return (
-    <div className="h-full w-64 bg-white border-r border-gray-200 overflow-y-auto flex-shrink-0">
+    <div className="h-screen sticky top-0 w-64 bg-white border-r border-gray-200 overflow-y-auto flex-shrink-0">
       <div className="p-3">
         <div className="space-y-4">
           {sections.map((section, sectionIndex) => (

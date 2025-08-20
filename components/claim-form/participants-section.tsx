@@ -1,8 +1,10 @@
 'use client'
 
-import React, { useState } from 'react'
+import React from 'react'
 import { Button } from '@/components/ui/button'
-import { Plus } from 'lucide-react'
+import { Card, CardContent } from '@/components/ui/card'
+import { FormHeader } from '@/components/ui/form-header'
+import { Plus, User, AlertTriangle, Trash2 } from 'lucide-react'
 import { ParticipantForm } from './participant-form'
 import type { ParticipantInfo, DriverInfo } from '@/types'
 
@@ -195,36 +197,58 @@ export function ParticipantsSection({
 
       {/* Injured Party Form */}
       {injuredParty && (
-        <div className="border border-blue-300 rounded-lg bg-blue-50/30">
-          <ParticipantForm
-            title="Poszkodowany"
-            participantData={injuredParty}
-            onParticipantChange={updateInjuredParty}
-            onDriverChange={updateInjuredPartyDriver}
-            onAddDriver={addInjuredPartyDriver}
-            onRemoveDriver={removeInjuredPartyDriver}
-            onRemoveParticipant={removeInjuredParty}
-            isVictim={true}
-            disabled={disabled}
-          />
-        </div>
+        <Card className="border border-blue-300 bg-blue-50/30 rounded-lg overflow-hidden">
+          <FormHeader icon={User} title="Poszkodowany">
+            <Button
+              variant="destructive"
+              size="sm"
+              onClick={removeInjuredParty}
+              disabled={disabled}
+            >
+              <Trash2 className="h-4 w-4 mr-2" />
+              Usuń uczestnika
+            </Button>
+          </FormHeader>
+          <CardContent className="p-0">
+            <ParticipantForm
+              participantData={injuredParty}
+              onParticipantChange={updateInjuredParty}
+              onDriverChange={updateInjuredPartyDriver}
+              onAddDriver={addInjuredPartyDriver}
+              onRemoveDriver={removeInjuredPartyDriver}
+              isVictim={true}
+              disabled={disabled}
+            />
+          </CardContent>
+        </Card>
       )}
 
       {/* Perpetrator Form */}
       {perpetrator && (
-        <div className="border border-red-300 rounded-lg bg-red-50/30">
-          <ParticipantForm
-            title="Sprawca"
-            participantData={perpetrator}
-            onParticipantChange={updatePerpetrator}
-            onDriverChange={updatePerpetratorDriver}
-            onAddDriver={addPerpetratorDriver}
-            onRemoveDriver={removePerpetratorDriver}
-            onRemoveParticipant={removePerpetrator}
-            isVictim={false}
-            disabled={disabled}
-          />
-        </div>
+        <Card className="border border-red-300 bg-red-50/30 rounded-lg overflow-hidden">
+          <FormHeader icon={AlertTriangle} title="Sprawca">
+            <Button
+              variant="destructive"
+              size="sm"
+              onClick={removePerpetrator}
+              disabled={disabled}
+            >
+              <Trash2 className="h-4 w-4 mr-2" />
+              Usuń uczestnika
+            </Button>
+          </FormHeader>
+          <CardContent className="p-0">
+            <ParticipantForm
+              participantData={perpetrator}
+              onParticipantChange={updatePerpetrator}
+              onDriverChange={updatePerpetratorDriver}
+              onAddDriver={addPerpetratorDriver}
+              onRemoveDriver={removePerpetratorDriver}
+              isVictim={false}
+              disabled={disabled}
+            />
+          </CardContent>
+        </Card>
       )}
 
       {!injuredParty && !perpetrator && (

@@ -40,13 +40,11 @@ const DateInput: React.FC<DateInputProps> = ({ value, onChange, disabled, placeh
 }
 
 interface ParticipantFormProps {
-  title: string
   participantData: ParticipantInfo
   onParticipantChange: (field: keyof Omit<ParticipantInfo, "drivers">, value: any) => void
   onDriverChange: (driverIndex: number, field: keyof DriverInfo, value: any) => void
   onAddDriver: () => void
   onRemoveDriver: (driverIndex: number) => void
-  onRemoveParticipant?: () => void
   isVictim?: boolean
   disabled?: boolean
 }
@@ -79,13 +77,11 @@ const personRoles = [
 ]
 
 export const ParticipantForm: React.FC<ParticipantFormProps> = ({
-  title,
   participantData,
   onParticipantChange,
   onDriverChange,
   onAddDriver,
   onRemoveDriver,
-  onRemoveParticipant,
   isVictim = false,
   disabled = false,
 }) => {
@@ -98,22 +94,6 @@ export const ParticipantForm: React.FC<ParticipantFormProps> = ({
 
   return (
     <div className="container-fluid p-4">
-      {/* Header */}
-      <div className="flex items-center justify-between mb-6">
-        <h2 className="text-xl font-semibold text-[#1a3a6c]">{title}</h2>
-        {onRemoveParticipant && (
-          <Button
-            variant="destructive"
-            size="sm"
-            onClick={onRemoveParticipant}
-            disabled={disabled}
-          >
-            <Trash2 className="h-4 w-4 mr-2" />
-            Usuń uczestnika
-          </Button>
-        )}
-      </div>
-
       {/* Two-column layout */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Left column */}

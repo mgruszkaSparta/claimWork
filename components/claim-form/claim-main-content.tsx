@@ -1316,8 +1316,6 @@ export const ClaimMainContent = ({
             </CardHeader>
             <CardContent className="p-6 bg-white">
               <ParticipantForm
-                title="Sprawca"
-                icon={<AlertTriangle className="h-5 w-5 text-red-500" />}
                 participantData={getParticipantData("perpetrator")}
                 onParticipantChange={(field, value) => handleParticipantChange("perpetrator", field, value)}
                 onDriverChange={(driverIndex, field, value) =>

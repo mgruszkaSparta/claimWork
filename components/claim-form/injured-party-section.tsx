@@ -26,8 +26,6 @@ export function InjuredPartySection({
       <FormHeader icon={User} title="Poszkodowany" />
       <CardContent className="p-6 bg-white">
         <ParticipantForm
-          title="Poszkodowany"
-          icon={<User className="h-5 w-5 text-blue-600" />}
           participantData={participantData}
           onParticipantChange={onParticipantChange}
           onDriverChange={onDriverChange}

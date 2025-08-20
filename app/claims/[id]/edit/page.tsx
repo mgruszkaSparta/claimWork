@@ -204,9 +204,9 @@ export default function EditClaimPage() {
   }
 
   return (
-    <div className="flex flex-col min-h-screen bg-white">
+    <div className="flex flex-col h-screen bg-white">
       <ClaimTopHeader claimFormData={claimFormData} onClose={handleClose} />
-      <div className="flex flex-1 min-h-0">
+      <div className="flex flex-1 overflow-hidden min-h-0">
         <ClaimFormSidebar
           activeClaimSection={activeClaimSection}
           setActiveClaimSection={setActiveClaimSection}

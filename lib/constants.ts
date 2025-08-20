@@ -150,6 +150,7 @@ export const DAMAGE_TYPES = [
   "Grad",
   "Powódź",
   "Uszkodzenie parkingowe",
+  "Szkoda transportowa",
   "Inne",
 ] as const
 

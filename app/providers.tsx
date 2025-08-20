@@ -7,6 +7,7 @@ import { ThemeProvider } from '@/components/theme-provider'
 import { Toaster } from '@/components/ui/toaster'
 import Footer from '@/components/footer'
 import SessionGuard from '@/components/session-guard'
+import { AuthProvider } from '@/hooks/use-auth'
 
 function localStorageProvider(): Map<any, any> {
   if (typeof window === 'undefined') {
@@ -31,11 +32,13 @@ export default function Providers({ children }: { children: React.ReactNode }) {
     >
       <QueryProvider>
         <ThemeProvider attribute="class" defaultTheme="light" enableSystem disableTransitionOnChange>
-          <SessionGuard>
-            <main className="flex-1">{children}</main>
-          </SessionGuard>
-          <Footer />
-          <Toaster />
+          <AuthProvider>
+            <SessionGuard>
+              <main className="flex-1">{children}</main>
+            </SessionGuard>
+            <Footer />
+            <Toaster />
+          </AuthProvider>
         </ThemeProvider>
       </QueryProvider>
     </SWRConfig>

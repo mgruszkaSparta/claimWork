@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { createContext, useContext, useEffect, useState, type ReactNode } from "react"
 import { apiService } from "@/lib/api"
 
 interface User {
@@ -16,7 +16,14 @@ interface AuthState {
   isLoading: boolean
 }
 
-export function useAuth() {
+interface AuthContextValue extends AuthState {
+  login: (username: string, password: string) => Promise<any>
+  logout: () => Promise<void>
+}
+
+const AuthContext = createContext<AuthContextValue | undefined>(undefined)
+
+export function AuthProvider({ children }: { children: ReactNode }) {
   const [authState, setAuthState] = useState<AuthState>({
     user: null,
     isAuthenticated: false,
@@ -60,11 +67,22 @@ export function useAuth() {
     }
   }
 
-  return {
+  const value: AuthContextValue = {
     user: authState.user,
     isAuthenticated: authState.isAuthenticated,
     isLoading: authState.isLoading,
     login,
     logout,
   }
+
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
 }
+
+export function useAuth() {
+  const context = useContext(AuthContext)
+  if (!context) {
+    throw new Error("useAuth must be used within an AuthProvider")
+  }
+  return context
+}
+

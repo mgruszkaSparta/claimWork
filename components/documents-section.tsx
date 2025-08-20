@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Checkbox } from "@/components/ui/checkbox"
 import { useToast } from "@/hooks/use-toast"
-import { File, Search, Filter, Eye, Download, Upload, X, Trash2, Grid, List, Wand, Plus, FileText, Paperclip, ZoomIn, ZoomOut, ChevronLeft, ChevronRight, RotateCw, Maximize2, Minimize2 } from 'lucide-react'
+import { File, Search, Eye, Download, Upload, X, Trash2, Grid, List, Wand, Plus, FileText, Paperclip, ZoomIn, ZoomOut, ChevronLeft, ChevronRight, RotateCw, Maximize2, Minimize2 } from 'lucide-react'
 import type { DocumentsSectionProps, UploadedFile, DocumentsSectionRef } from "@/types"
 import JSZip from "jszip"
 import { saveAs } from "file-saver"
@@ -86,8 +86,6 @@ export const DocumentsSection = React.forwardRef<
   const [dragActive, setDragActive] = useState(false)
   const [dragCategory, setDragCategory] = useState<string | null>(null)
   const [selectedDocumentIds, setSelectedDocumentIds] = useState<string[]>([])
-  const [searchInput, setSearchInput] = useState("")
-  const [searchQuery, setSearchQuery] = useState("")
 
   // Preview modal states
   const [previewZoom, setPreviewZoom] = useState(1)
@@ -98,10 +96,6 @@ export const DocumentsSection = React.forwardRef<
 
   const previewContainerRef = React.useRef<HTMLDivElement>(null)
   const docxPreviewRef = React.useRef<HTMLDivElement>(null)
-
-  const handleSearch = () => {
-    setSearchQuery(searchInput)
-  }
 
   // Persist view mode per section when storageKey provided
   useEffect(() => {
@@ -266,7 +260,7 @@ export const DocumentsSection = React.forwardRef<
       loadDocuments()
     }, 300)
     return () => clearTimeout(handler)
-  }, [eventId, searchQuery])
+  }, [eventId])
 
   const mapCategoryCodeToName = (code?: string) =>
     requiredDocuments.find((d) => d.category === code)?.name || code || "Inne dokumenty"
@@ -280,9 +274,6 @@ export const DocumentsSection = React.forwardRef<
     setLoading(true)
     try {
       const params = new URLSearchParams({ eventId })
-      if (searchQuery) {
-        params.append("search", searchQuery)
-      }
       const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/documents?${params.toString()}`, {
         method: "GET",
         credentials: "include",
@@ -1196,33 +1187,10 @@ export const DocumentsSection = React.forwardRef<
         />
 
         <Card>
+          <CardHeader>
+            <CardTitle>Dokumenty</CardTitle>
+          </CardHeader>
           <CardContent className="p-4 space-y-4">
-            <div className="flex items-center justify-between">
-              <div className="relative w-full max-w-md">
-                <Input
-                  placeholder="Wyszukaj dokumenty (nazwa typu, nazwa pliku, opis)..."
-                  className="pr-10"
-                  value={searchInput}
-                  onChange={(e) => setSearchInput(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter") handleSearch()
-                  }}
-                />
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon"
-                  onClick={handleSearch}
-                  className="absolute right-1 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
-                >
-                  <Search className="h-4 w-4" />
-                </Button>
-              </div>
-              <Button variant="outline">
-                <Filter className="mr-2 h-4 w-4" />
-                Filtry
-              </Button>
-            </div>
             <div className="flex items-center gap-2">
               <span className="text-sm font-medium text-gray-600">Szybkie filtry:</span>
               <Badge variant="secondary" className="cursor-pointer bg-blue-100 text-blue-800">

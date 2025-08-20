@@ -226,18 +226,24 @@ export function ParticipantsSection({
       {/* Perpetrator Form */}
       {perpetrator && (
         <Card className="border border-red-300 bg-red-50/30 rounded-lg overflow-hidden">
-          <FormHeader icon={AlertTriangle} title="Sprawca">
-            <Button
-              variant="destructive"
-              size="sm"
-              onClick={removePerpetrator}
-              disabled={disabled}
-            >
-              <Trash2 className="h-4 w-4 mr-2" />
-              Usuń uczestnika
-            </Button>
-          </FormHeader>
-          <CardContent className="p-0">
+          <div className="p-6">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-3 bg-gray-100 p-3 rounded-md border border-[#d1d9e6]">
+                <div className="text-[#1a3a6c]">
+                  <AlertTriangle className="h-5 w-5" />
+                </div>
+                <h2 className="text-lg font-semibold text-[#1a3a6c]">Sprawca</h2>
+              </div>
+              <Button
+                variant="destructive"
+                size="sm"
+                onClick={removePerpetrator}
+                disabled={disabled}
+              >
+                <Trash2 className="h-4 w-4 mr-2" />
+                Usuń uczestnika
+              </Button>
+            </div>
             <ParticipantForm
               participantData={perpetrator}
               onParticipantChange={updatePerpetrator}
@@ -247,7 +253,7 @@ export function ParticipantsSection({
               isVictim={false}
               disabled={disabled}
             />
-          </CardContent>
+          </div>
         </Card>
       )}
 

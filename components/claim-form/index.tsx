@@ -294,9 +294,9 @@ export function ClaimForm({ initialData, mode }: ClaimFormProps) {
         </Card>
 
         {/* Event Description */}
-        <Card>
+        <Card className="overflow-hidden shadow-sm border-gray-200 rounded-xl">
           <FormHeader icon={FileText} title="Opis zdarzenia" />
-          <CardContent className="space-y-4">
+          <CardContent className="p-6 bg-white space-y-4">
             <div className="space-y-2">
               <Label htmlFor="eventDescription">Opis zdarzenia</Label>
               <Textarea

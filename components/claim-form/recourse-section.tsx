@@ -11,6 +11,8 @@ import { Textarea } from "@/components/ui/textarea"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { useToast } from "@/hooks/use-toast"
 import { useDragDrop } from "@/hooks/use-drag-drop"
+import InsuranceDropdown from "@/components/insurance-dropdown"
+import { InsuranceCompaniesService } from "@/lib/insurance-companies"
 import {
   DollarSign,
   Download,
@@ -74,6 +76,7 @@ export function RecourseSection({ eventId }: RecourseSectionProps) {
     isJustified: true,
     filingDate: new Date().toISOString().split("T")[0],
     insuranceCompany: "",
+    insuranceCompanyId: "",
     obtainDate: "",
     amount: "",
     currency: "PLN",
@@ -187,6 +190,7 @@ export function RecourseSection({ eventId }: RecourseSectionProps) {
       isJustified: true,
       filingDate: new Date().toISOString().split("T")[0],
       insuranceCompany: "",
+      insuranceCompanyId: "",
       obtainDate: "",
       amount: "",
       currency: "PLN",
@@ -290,10 +294,15 @@ export function RecourseSection({ eventId }: RecourseSectionProps) {
       return `${year}-${monthPadded}-${dayPadded}`
     }
 
+    const company = InsuranceCompaniesService.getCompanies().find(
+      (c) => c.name === recourse.insuranceCompany,
+    )
+
     setFormData({
       isJustified: recourse.isJustified,
       filingDate: formatDateForInput(recourse.filingDate),
       insuranceCompany: recourse.insuranceCompany || "",
+      insuranceCompanyId: company ? company.id.toString() : "",
       obtainDate: formatDateForInput(recourse.obtainDate),
       amount: recourse.amount?.toString() || "",
       currency: recourse.currencyCode || "PLN",
@@ -576,15 +585,20 @@ export function RecourseSection({ eventId }: RecourseSectionProps) {
                   />
                 </div>
 
-                <div className="space-y-2">
+                <div className="space-y-2 relative z-10">
                   <Label className="text-sm font-medium text-gray-700">Nazwa towarzystwa ubezpieczeniowego *</Label>
-                  <Input
-                    type="text"
-                    value={formData.insuranceCompany}
-                    onChange={(e) => setFormData({ ...formData, insuranceCompany: e.target.value })}
-                    className="w-full"
-                    placeholder="Nazwa towarzystwa"
-                    required
+                  <InsuranceDropdown
+                    selectedCompanyId={
+                      formData.insuranceCompanyId ? parseInt(formData.insuranceCompanyId) : undefined
+                    }
+                    onCompanySelected={(event) =>
+                      setFormData({
+                        ...formData,
+                        insuranceCompany: event.companyName,
+                        insuranceCompanyId: event.companyId.toString(),
+                      })
+                    }
+                    className="relative z-20"
                   />
                 </div>
 

@@ -211,24 +211,12 @@ namespace AutomotiveClaimsApi.Controllers
         }
 
         [HttpPost("initialize")]
-        public async Task<ActionResult<object>> InitializeClaim()
+        public ActionResult<object> InitializeClaim()
         {
             try
             {
-                var eventEntity = new Event
-                {
-                    Id = Guid.NewGuid(),
-                    Status = "Nowa",
-                    Currency = "PLN",
-                    CreatedAt = DateTime.UtcNow,
-                    UpdatedAt = DateTime.UtcNow,
-                    RegisteredById = User.FindFirstValue(ClaimTypes.NameIdentifier)
-                };
-
-                _context.Events.Add(eventEntity);
-                await _context.SaveChangesAsync();
-
-                return Ok(new { id = eventEntity.Id });
+                var id = Guid.NewGuid();
+                return Ok(new { id });
             }
             catch (Exception ex)
             {

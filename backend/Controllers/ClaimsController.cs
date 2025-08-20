@@ -1930,4 +1930,6 @@ namespace AutomotiveClaimsApi.Controllers
             }).ToList()
         };
     }
+
+    }
 }

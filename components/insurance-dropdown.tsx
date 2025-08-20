@@ -13,6 +13,12 @@ interface InsuranceDropdownProps {
   selectedCompanyId?: number
   onCompanySelected?: (event: CompanySelectionEvent) => void
   className?: string
+  /**
+   * Controls visibility of the claim reporting section with a link to the
+   * external form. Defaults to true so existing usages keep the current
+   * behaviour.
+   */
+  showClaimLink?: boolean
 }
 
 interface DropdownPosition {
@@ -25,6 +31,7 @@ export default function InsuranceDropdown({
   selectedCompanyId,
   onCompanySelected,
   className = "",
+  showClaimLink = true,
 }: InsuranceDropdownProps) {
   const [companies] = useState<InsuranceCompany[]>(
     InsuranceCompaniesService.sortCompaniesAlphabetically(InsuranceCompaniesService.getCompanies()),
@@ -282,30 +289,32 @@ export default function InsuranceDropdown({
             </div>
 
             {/* Form Section */}
-            <div className="pt-4 border-t border-gray-200">
-              <h3 className="flex items-center text-sm font-medium mb-3 text-gray-700">
-                <AlertCircle className="h-4 w-4 mr-2 text-blue-600" />
-                Zgłoszenie szkody
-              </h3>
+            {showClaimLink && (
+              <div className="pt-4 border-t border-gray-200">
+                <h3 className="flex items-center text-sm font-medium mb-3 text-gray-700">
+                  <AlertCircle className="h-4 w-4 mr-2 text-blue-600" />
+                  Zgłoszenie szkody
+                </h3>
 
-              {hasFormLink(selectedCompany.formLink) ? (
-                <a
-                  href={selectedCompany.formLink}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors text-sm font-medium"
-                >
-                  Przejdź do formularza zgłoszenia szkody
-                  <ExternalLink className="h-4 w-4 ml-2" />
-                </a>
-              ) : (
-                <div className="p-3 bg-orange-50 border border-orange-200 rounded-md">
-                  <p className="text-orange-800 text-sm">
-                    Brak formularza online. Skontaktuj się telefonicznie lub mailowo.
-                  </p>
-                </div>
-              )}
-            </div>
+                {hasFormLink(selectedCompany.formLink) ? (
+                  <a
+                    href={selectedCompany.formLink}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors text-sm font-medium"
+                  >
+                    Przejdź do formularza zgłoszenia szkody
+                    <ExternalLink className="h-4 w-4 ml-2" />
+                  </a>
+                ) : (
+                  <div className="p-3 bg-orange-50 border border-orange-200 rounded-md">
+                    <p className="text-orange-800 text-sm">
+                      Brak formularza online. Skontaktuj się telefonicznie lub mailowo.
+                    </p>
+                  </div>
+                )}
+              </div>
+            )}
           </CardContent>
         </Card>
       )}

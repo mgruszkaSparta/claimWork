@@ -599,6 +599,7 @@ export function RecourseSection({ eventId }: RecourseSectionProps) {
                       })
                     }
                     className="relative z-20"
+                    showClaimLink={false}
                   />
                 </div>
 

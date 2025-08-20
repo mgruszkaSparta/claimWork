@@ -10,7 +10,6 @@ import {
   MessageSquare,
   FileCheck,
   Mail,
-  Calendar,
   Wrench,
   Gavel,
   Shield,
@@ -76,11 +75,6 @@ const sidebarSections = [
         id: "email",
         label: "E-mail",
         icon: Mail,
-      },
-      {
-        id: "harmonogram",
-        label: "Harmonogram",
-        icon: Calendar,
       },
       {
         id: "naprawa",

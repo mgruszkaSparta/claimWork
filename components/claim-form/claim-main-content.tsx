@@ -11,7 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Textarea } from "@/components/ui/textarea"
 import { Checkbox } from "@/components/ui/checkbox"
-import { AlertTriangle, User, Wrench, Car, X, MessageSquare, Clock, FileCheck, FileText, Search, Mail, Plus, CheckCircle, Trash2, Save, Calendar, Phone, Paperclip, DollarSign, Gavel, ArrowUpDown, HandHeart, Users, CreditCard, Shield, UserCheck, Download } from 'lucide-react'
+import { AlertTriangle, User, Wrench, Car, X, MessageSquare, Clock, FileCheck, FileText, Search, Mail, Plus, CheckCircle, Trash2, Save, Phone, Paperclip, DollarSign, Gavel, ArrowUpDown, HandHeart, Users, CreditCard, Shield, UserCheck, Download } from 'lucide-react'
 import { DamageDiagram } from "@/components/damage-diagram"
 import { ParticipantForm } from "./participant-form"
 import { DocumentsSection } from "../documents-section"
@@ -36,7 +36,6 @@ import { useToast } from "@/hooks/use-toast"
 import { useDamages, createDamageDraft } from "@/hooks/use-damages"
 import VehicleTypeDropdown from "@/components/vehicle-type-dropdown"
 import type { VehicleTypeSelectionEvent } from "@/types/vehicle-type"
-import { RepairScheduleSection } from "./repair-schedule-section"
 import { RepairDetailsSection } from "./repair-details-section"
 import { DamageDataSection } from "./damage-data-section"
 import type { RepairDetail } from "@/lib/repair-details-store"
@@ -684,92 +683,6 @@ export const ClaimMainContent = ({
 
 
   switch (activeClaimSection) {
-    case "harmonogram":
-      return (
-        <div className="space-y-4">
-          <Card className="overflow-hidden shadow-sm border-gray-200 rounded-xl">
-            <CardHeader className="flex flex-row items-center space-x-4 bg-gradient-to-r from-blue-600 to-blue-700 text-white p-4">
-              <div className="w-8 h-8 bg-blue-500 rounded-lg flex items-center justify-center">
-                <Calendar className="h-4 w-4" />
-              </div>
-              <CardTitle className="text-lg font-semibold">Harmonogram naprawy</CardTitle>
-            </CardHeader>
-            <CardContent className="p-0 bg-white">
-              {/* Harmonogram naprawy - expandable section with data preview */}
-              <div className="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden">
-                <div className="px-4 py-3 bg-gradient-to-r from-blue-50 to-blue-100 border-b border-gray-200">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-2">
-                      <Calendar className="h-4 w-4 text-blue-600" />
-                      <h3 className="text-sm font-semibold text-gray-900">Harmonogram naprawy</h3>
-                    </div>
-                  </div>
-                </div>
-                <div className="p-4">
-                {eventId ? (
-                  <div className="border rounded-lg overflow-hidden">
-                    <RepairScheduleSection eventId={eventId} />
-                  </div>
-                ) : (
-                    <div className="space-y-4">
-                      {/* Sample repair schedule items */}
-                      <div className="space-y-2">
-                        <div className="bg-gray-50 rounded-lg p-3 border border-gray-200">
-                          <div className="flex items-center justify-between mb-2">
-                            <h4 className="font-medium text-gray-900 text-sm">Harmonogram #1</h4>
-                            <span className="px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-xs font-medium">
-                              W trakcie
-                            </span>
-                          </div>
-                          <div className="grid grid-cols-2 gap-4 text-xs text-gray-600">
-                            <div>
-                              <span className="font-medium">Data rozpoczęcia:</span> 15.01.2025
-                            </div>
-                            <div>
-                              <span className="font-medium">Planowane zakończenie:</span> 22.01.2025
-                            </div>
-                            <div>
-                              <span className="font-medium">Warsztat:</span> AutoSerwis Kowalski
-                            </div>
-                            <div>
-                              <span className="font-medium">Koszt:</span> 4,500 PLN
-                            </div>
-                          </div>
-                        </div>
-
-                        <div className="bg-gray-50 rounded-lg p-3 border border-gray-200">
-                          <div className="flex items-center justify-between mb-2">
-                            <h4 className="font-medium text-gray-900 text-sm">Harmonogram #2</h4>
-                            <span className="px-2 py-1 bg-green-100 text-green-800 rounded-full text-xs font-medium">
-                              Zakończony
-                            </span>
-                          </div>
-                          <div className="grid grid-cols-2 gap-4 text-xs text-gray-600">
-                            <div>
-                              <span className="font-medium">Data rozpoczęcia:</span> 08.01.2025
-                            </div>
-                            <div>
-                              <span className="font-medium">Data zakończenia:</span> 12.01.2025
-                            </div>
-                            <div>
-                              <span className="font-medium">Warsztat:</span> Lakiernia Nowak
-                            </div>
-                            <div>
-                              <span className="font-medium">Koszt:</span> 2,800 PLN
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-
-                    </div>
-                  )}
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-      )
-
     case "naprawa":
       return (
         <div className="space-y-4">
@@ -1954,85 +1867,6 @@ export const ClaimMainContent = ({
               claimStatuses={claimStatuses}
               riskTypes={riskTypes}
             />
-            {/* Harmonogram naprawy - expandable section */}
-            <div className="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden">
-                <div className="px-4 py-3 bg-gradient-to-r from-blue-50 to-blue-100 border-b border-gray-200">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-2">
-                      <Calendar className="h-4 w-4 text-blue-600" />
-                      <h3 className="text-sm font-semibold text-gray-900">Harmonogram naprawy</h3>
-                    </div>
-                  </div>
-                </div>
-                <div className="p-4">
-                {eventId ? (
-                  <div className="border rounded-lg overflow-hidden">
-                    <RepairScheduleSection eventId={eventId} />
-                  </div>
-                ) : (
-                <div className="space-y-4">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <InfoCard
-                      icon={<Calendar className="h-4 w-4" />}
-                      label="Liczba harmonogramów"
-                      value="2"
-                    />
-                    <InfoCard
-                      icon={<Clock className="h-4 w-4" />}
-                      label="Status ostatniego"
-                      value="W trakcie"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <div className="bg-gray-50 rounded-lg p-3 border border-gray-200">
-                      <div className="flex items-center justify-between mb-2">
-                        <h4 className="font-medium text-gray-900 text-sm">Harmonogram #1</h4>
-                        <span className="px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-xs font-medium">
-                          W trakcie
-                        </span>
-                      </div>
-                      <div className="grid grid-cols-2 gap-4 text-xs text-gray-600">
-                        <div>
-                          <span className="font-medium">Data rozpoczęcia:</span> 15.01.2025
-                        </div>
-                        <div>
-                          <span className="font-medium">Planowane zakończenie:</span> 22.01.2025
-                        </div>
-                        <div>
-                          <span className="font-medium">Warsztat:</span> AutoSerwis Kowalski
-                        </div>
-                        <div>
-                          <span className="font-medium">Koszt:</span> 4,500 PLN
-                        </div>
-                      </div>
-                    </div>
-                    <div className="bg-gray-50 rounded-lg p-3 border border-gray-200">
-                      <div className="flex items-center justify-between mb-2">
-                        <h4 className="font-medium text-gray-900 text-sm">Harmonogram #2</h4>
-                        <span className="px-2 py-1 bg-green-100 text-green-800 rounded-full text-xs font-medium">
-                          Zakończony
-                        </span>
-                      </div>
-                      <div className="grid grid-cols-2 gap-4 text-xs text-gray-600">
-                        <div>
-                          <span className="font-medium">Data rozpoczęcia:</span> 08.01.2025
-                        </div>
-                        <div>
-                          <span className="font-medium">Data zakończenia:</span> 12.01.2025
-                        </div>
-                        <div>
-                          <span className="font-medium">Warsztat:</span> Lakiernia Nowak
-                        </div>
-                        <div>
-                          <span className="font-medium">Koszt:</span> 2,800 PLN
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              )}
-              </div>
-            </div>
             {/* Szczegóły naprawy - expandable section */}
             <div className="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden">
             <div className="px-4 py-3 bg-gradient-to-r from-blue-50 to-blue-100 border-b border-gray-200">

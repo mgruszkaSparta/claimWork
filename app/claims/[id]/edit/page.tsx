@@ -13,6 +13,7 @@ import { useClaimForm } from "@/hooks/use-claim-form"
 import { useClaims, transformApiClaimToFrontend } from "@/hooks/use-claims"
 import { useAuth } from "@/hooks/use-auth"
 import type { UploadedFile, RequiredDocument } from "@/types"
+import { getRequiredDocumentsByObjectType } from "@/lib/required-documents"
 
 export default function EditClaimPage() {
   const params = useParams()

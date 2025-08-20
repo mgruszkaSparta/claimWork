@@ -8,10 +8,12 @@ import { Header } from '@/components/header'
 import { Sidebar } from '@/components/sidebar'
 import { ProtectedRoute } from '@/components/protected-route'
 import { cn } from '@/lib/utils'
+import { useAuth } from '@/hooks/use-auth'
 
 export default function SettingsLayout({ children }: { children: ReactNode }) {
   const [activeTab, setActiveTab] = useState('settings')
   const pathname = usePathname()
+  const { user, logout } = useAuth()
 
   const settingsItems = [
     { href: '/settings/clients', label: 'Klienci' },
@@ -27,7 +29,7 @@ export default function SettingsLayout({ children }: { children: ReactNode }) {
       <div className="min-h-screen bg-gray-50">
         <Sidebar activeTab={activeTab} onTabChange={setActiveTab} />
         <div className="ml-16 flex flex-col min-h-screen">
-          <Header onMenuClick={() => {}} />
+          <Header onMenuClick={() => {}} user={user ?? undefined} onLogout={logout} />
           <div className="flex flex-1">
             <nav className="w-48 border-r bg-white p-4 space-y-2">
               {settingsItems.map((item) => (

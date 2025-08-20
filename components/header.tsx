@@ -1,7 +1,7 @@
 'use client'
 
 import { Button } from '@/components/ui/button'
-import { Menu, Bell, User, LogOut, Settings } from 'lucide-react'
+import { Menu, User, LogOut, Settings } from 'lucide-react'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -65,14 +65,6 @@ export function Header({ onMenuClick, user, onLogout }: HeaderProps) {
         </div>
 
         <div className="flex items-center space-x-4">
-          {/* Notifications */}
-          <Button variant="ghost" size="icon" className="relative">
-            <Bell className="h-5 w-5" />
-            <span className="absolute -top-1 -right-1 h-4 w-4 bg-red-500 rounded-full text-xs text-white flex items-center justify-center">
-              3
-            </span>
-          </Button>
-
           {/* User Menu */}
           {user && (
             <DropdownMenu>

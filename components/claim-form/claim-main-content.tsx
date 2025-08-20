@@ -1072,12 +1072,7 @@ export const ClaimMainContent = ({
 
           {/* Służby Card */}
           <Card className="overflow-hidden shadow-sm border-gray-200 rounded-xl">
-            <CardHeader className="flex flex-row items-center space-x-4 bg-gradient-to-r from-blue-600 to-blue-700 text-white p-4">
-              <div className="w-8 h-8 bg-blue-500 rounded-lg flex items-center justify-center">
-                <Wrench className="h-4 w-4" />
-              </div>
-              <CardTitle className="text-lg font-semibold">Służby</CardTitle>
-            </CardHeader>
+            <FormHeader icon={Wrench} title="Służby" />
             <CardContent className="p-6 bg-white space-y-4">
               <div>
                 <div className="flex items-center space-x-6">

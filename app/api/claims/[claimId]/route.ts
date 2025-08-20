@@ -82,6 +82,28 @@ export async function DELETE(
   { params }: { params: { claimId: string } },
 ) {
   try {
+    const token = request.cookies.get("token")?.value
+    if (!token) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+    }
+
+    const userResp = await fetch(`${API_BASE_URL}/auth/me`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    })
+
+    if (!userResp.ok) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: userResp.status })
+    }
+
+    const user = await userResp.json()
+    const roles: string[] = user.roles || []
+    const isAdmin = roles.some((r) => r.toLowerCase() === "admin")
+    if (!isAdmin) {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 })
+    }
+
     const { claimId } = params
     console.log(`Deleting claim ${claimId}`)
 
@@ -89,6 +111,7 @@ export async function DELETE(
       method: "DELETE",
       headers: {
         "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
       },
     })
 

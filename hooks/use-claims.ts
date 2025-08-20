@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useCallback } from "react"
+import { useAuth } from "@/hooks/use-auth"
 import {
   apiService,
   type ClaimUpsertDto,
@@ -377,6 +378,7 @@ export function useClaims() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [totalCount, setTotalCount] = useState(0)
+  const { user } = useAuth()
 
   const fetchClaims = useCallback(
     async (
@@ -494,6 +496,11 @@ export function useClaims() {
   }
 
   const deleteClaim = async (id: string): Promise<boolean> => {
+    const isAdmin = user?.roles?.some((r) => r.toLowerCase() === "admin")
+    if (!isAdmin) {
+      setError("Only administrators can delete claims")
+      return false
+    }
     try {
       setError(null)
       await apiService.deleteClaim(id)

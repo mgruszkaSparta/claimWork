@@ -30,6 +30,8 @@ function HomePage({ user, onLogout }: PageProps) {
   const router = useRouter()
   const [activeTab, setActiveTab] = useState("dashboard")
   const [tasks, setTasks] = useState<Task[]>([])
+  const isBasicUser =
+    user?.roles?.length === 1 && user.roles?.[0].toLowerCase() === "user"
 
   useEffect(() => {
     // additional effects can go here
@@ -123,8 +125,10 @@ function HomePage({ user, onLogout }: PageProps) {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <Sidebar activeTab={activeTab} onTabChange={setActiveTab} />
-      <div className="ml-16 flex flex-col min-h-screen">
+      {!isBasicUser && (
+        <Sidebar activeTab={activeTab} onTabChange={setActiveTab} />
+      )}
+      <div className={`${isBasicUser ? "" : "ml-16"} flex flex-col min-h-screen`}>
         <Header onMenuClick={() => {}} user={user} onLogout={onLogout} />
         <main className="flex-1 p-0">
           <div className="w-full">

@@ -277,15 +277,17 @@ export const EmailSection = ({
   return (
     <div className="space-y-6">
       <Card>
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
+        <CardHeader>
           <CardTitle className="text-lg font-semibold">Korespondencja e-mail {claimId && `- ${claimId}`}</CardTitle>
-          <Button onClick={handleCompose} className="bg-blue-600 hover:bg-blue-700">
-            <Plus className="h-4 w-4 mr-2" />
-            Napisz e-mail
-          </Button>
         </CardHeader>
 
         <CardContent>
+          <div className="flex justify-end mb-4">
+            <Button onClick={handleCompose} className="bg-blue-600 hover:bg-blue-700">
+              <Plus className="h-4 w-4 mr-2" />
+              Napisz e-mail
+            </Button>
+          </div>
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
             <TabsList className="grid w-full grid-cols-4">
               <TabsTrigger value="inbox" className="flex items-center space-x-2">

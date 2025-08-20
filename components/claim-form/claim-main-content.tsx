@@ -688,12 +688,7 @@ export const ClaimMainContent = ({
       return (
         <div className="space-y-4">
           <Card className="overflow-hidden shadow-sm border-gray-200 rounded-xl">
-            <CardHeader className="flex flex-row items-center space-x-4 bg-gradient-to-r from-blue-600 to-blue-700 text-white p-4">
-              <div className="w-8 h-8 bg-blue-500 rounded-lg flex items-center justify-center">
-                <Calendar className="h-4 w-4" />
-              </div>
-              <CardTitle className="text-lg font-semibold">Harmonogram naprawy</CardTitle>
-            </CardHeader>
+            <FormHeader icon={Calendar} title="Harmonogram naprawy" />
             <CardContent className="p-0 bg-white">
               {/* Harmonogram naprawy - expandable section with data preview */}
               <div className="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden">
@@ -774,12 +769,7 @@ export const ClaimMainContent = ({
       return (
         <div className="space-y-4">
           <Card className="overflow-hidden shadow-sm border-gray-200 rounded-xl">
-            <CardHeader className="flex flex-row items-center space-x-4 bg-gradient-to-r from-blue-600 to-blue-700 text-white p-4">
-              <div className="w-8 h-8 bg-blue-500 rounded-lg flex items-center justify-center">
-                <Wrench className="h-4 w-4" />
-              </div>
-              <CardTitle className="text-lg font-semibold">Szczegóły naprawy</CardTitle>
-            </CardHeader>
+            <FormHeader icon={Wrench} title="Szczegóły naprawy" />
             <CardContent className="p-0 bg-white">
               {/* Szczegóły naprawy - expandable section with data preview */}
               <div className="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden">
@@ -1347,23 +1337,15 @@ export const ClaimMainContent = ({
       return (
         <div className="space-y-4">
           <Card className="overflow-hidden shadow-sm border-gray-200 rounded-xl">
-            <CardHeader className="flex items-center justify-between space-x-4 bg-gradient-to-r from-blue-600 to-blue-700 text-white p-4">
-              <div className="flex items-center space-x-4">
-                <div className="w-8 h-8 bg-blue-500 rounded-lg flex items-center justify-center">
-                  <Paperclip className="h-4 w-4" />
-                </div>
-                <CardTitle className="text-lg font-semibold">Dokumenty</CardTitle>
-              </div>
-              <div className="flex items-center space-x-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => documentsSectionRef.current?.downloadAll()}
-                >
-                  <Download className="mr-2 h-4 w-4" /> Pobierz wszystkie
-                </Button>
-              </div>
-            </CardHeader>
+            <FormHeader icon={Paperclip} title="Dokumenty">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => documentsSectionRef.current?.downloadAll()}
+              >
+                <Download className="mr-2 h-4 w-4" /> Pobierz wszystkie
+              </Button>
+            </FormHeader>
             <CardContent className="p-0 bg-white">
               {eventId && (
                 <DocumentsSection
@@ -1386,12 +1368,7 @@ export const ClaimMainContent = ({
       return (
         <div className="space-y-4">
           <Card className="overflow-hidden shadow-sm border-gray-200 rounded-xl">
-            <CardHeader className="flex flex-row items-center space-x-4 bg-gradient-to-r from-blue-600 to-blue-700 text-white p-4">
-              <div className="w-8 h-8 bg-blue-500 rounded-lg flex items-center justify-center">
-                <Gavel className="h-4 w-4" />
-              </div>
-              <CardTitle className="text-lg font-semibold">Decyzje</CardTitle>
-            </CardHeader>
+            <FormHeader icon={Gavel} title="Decyzje" />
             <CardContent className="p-0 bg-white">
               <DecisionsSection claimId={claimFormData.id} onChange={handleDecisionsChange} />
             </CardContent>
@@ -1403,12 +1380,7 @@ export const ClaimMainContent = ({
       return (
         <div className="space-y-4">
           <Card className="overflow-hidden shadow-sm border-gray-200 rounded-xl">
-            <CardHeader className="flex flex-row items-center space-x-4 bg-gradient-to-r from-blue-600 to-blue-700 text-white p-4">
-              <div className="w-8 h-8 bg-blue-500 rounded-lg flex items-center justify-center">
-                <ArrowUpDown className="h-4 w-4" />
-              </div>
-              <CardTitle className="text-lg font-semibold">Odwołanie/Reklamacja</CardTitle>
-            </CardHeader>
+            <FormHeader icon={ArrowUpDown} title="Odwołanie/Reklamacja" />
             <CardContent className="p-0 bg-white">
               {eventId && <AppealsSection claimId={eventId} />}
             </CardContent>
@@ -1420,12 +1392,7 @@ export const ClaimMainContent = ({
       return (
         <div className="space-y-4">
           <Card className="overflow-hidden shadow-sm border-gray-200 rounded-xl">
-            <CardHeader className="flex flex-row items-center space-x-4 bg-gradient-to-r from-blue-600 to-blue-700 text-white p-4">
-              <div className="w-8 h-8 bg-blue-500 rounded-lg flex items-center justify-center">
-                <User className="h-4 w-4" />
-              </div>
-              <CardTitle className="text-lg font-semibold">Roszczenia klienta</CardTitle>
-            </CardHeader>
+            <FormHeader icon={User} title="Roszczenia klienta" />
             <CardContent className="p-0 bg-white">
               <ClientClaimsSection
                 clientClaims={claimFormData.clientClaims || []}
@@ -1441,12 +1408,7 @@ export const ClaimMainContent = ({
       return (
         <div className="space-y-4">
           <Card className="overflow-hidden shadow-sm border-gray-200 rounded-xl">
-            <CardHeader className="flex flex-row items-center space-x-4 bg-gradient-to-r from-blue-600 to-blue-700 text-white p-4">
-              <div className="w-8 h-8 bg-blue-500 rounded-lg flex items-center justify-center">
-                <DollarSign className="h-4 w-4" />
-              </div>
-              <CardTitle className="text-lg font-semibold">Regres</CardTitle>
-            </CardHeader>
+            <FormHeader icon={DollarSign} title="Regres" />
             <CardContent className="p-0 bg-white">
               {eventId && <RecourseSection eventId={eventId} />}
             </CardContent>
@@ -1458,12 +1420,7 @@ export const ClaimMainContent = ({
       return (
         <div className="space-y-4">
           <Card className="overflow-hidden shadow-sm border-gray-200 rounded-xl">
-            <CardHeader className="flex flex-row items-center space-x-4 bg-gradient-to-r from-blue-600 to-blue-700 text-white p-4">
-              <div className="w-8 h-8 bg-blue-500 rounded-lg flex items-center justify-center">
-                <HandHeart className="h-4 w-4" />
-              </div>
-              <CardTitle className="text-lg font-semibold">Ugoda</CardTitle>
-            </CardHeader>
+            <FormHeader icon={HandHeart} title="Ugoda" />
             <CardContent className="p-0 bg-white">
               <SettlementsSection eventId={eventId || ""} />
             </CardContent>
@@ -1475,12 +1432,7 @@ export const ClaimMainContent = ({
       return (
         <div className="space-y-4">
           <Card className="overflow-hidden shadow-sm border-gray-200 rounded-xl">
-            <CardHeader className="flex flex-row items-center space-x-4 bg-gradient-to-r from-blue-600 to-blue-700 text-white p-4">
-              <div className="w-8 h-8 bg-blue-500 rounded-lg flex items-center justify-center">
-                <MessageSquare className="h-4 w-4" />
-              </div>
-              <CardTitle className="text-lg font-semibold">Notatki</CardTitle>
-            </CardHeader>
+            <FormHeader icon={MessageSquare} title="Notatki" />
             <CardContent className="p-6 bg-white">
               {/* Action buttons */}
               <div className="flex items-center space-x-2 mb-4">
@@ -1870,12 +1822,7 @@ export const ClaimMainContent = ({
       return (
         <div className="space-y-4">
           <Card className="overflow-hidden shadow-sm border-gray-200 rounded-xl">
-            <CardHeader className="flex flex-row items-center space-x-4 bg-gradient-to-r from-blue-600 to-blue-700 text-white p-4">
-              <div className="w-8 h-8 bg-blue-500 rounded-lg flex items-center justify-center">
-                <FileCheck className="h-4 w-4" />
-              </div>
-              <CardTitle className="text-lg font-semibold">Pisma</CardTitle>
-            </CardHeader>
+            <FormHeader icon={FileCheck} title="Pisma" />
             <CardContent className="p-8 bg-white">
               <div className="text-center py-12">
                 <FileCheck className="h-12 w-12 text-gray-400 mx-auto mb-4" />
@@ -1891,12 +1838,7 @@ export const ClaimMainContent = ({
       return (
         <div className="space-y-4">
           <Card className="overflow-hidden shadow-sm border-gray-200 rounded-xl">
-            <CardHeader className="flex flex-row items-center space-x-4 bg-gradient-to-r from-blue-600 to-blue-700 text-white p-4">
-              <div className="w-8 h-8 bg-blue-500 rounded-lg flex items-center justify-center">
-                <Mail className="h-4 w-4" />
-              </div>
-              <CardTitle className="text-lg font-semibold">E-mail</CardTitle>
-            </CardHeader>
+            <FormHeader icon={Mail} title="E-mail" />
             <CardContent className="p-0 bg-white">
               <EmailSection
                 claimId={claimFormData.id}

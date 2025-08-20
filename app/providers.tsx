@@ -6,6 +6,7 @@ import QueryProvider from '@/components/query-provider'
 import { ThemeProvider } from '@/components/theme-provider'
 import { Toaster } from '@/components/ui/toaster'
 import Footer from '@/components/footer'
+import SessionGuard from '@/components/session-guard'
 
 function localStorageProvider(): Map<any, any> {
   if (typeof window === 'undefined') {
@@ -30,7 +31,9 @@ export default function Providers({ children }: { children: React.ReactNode }) {
     >
       <QueryProvider>
         <ThemeProvider attribute="class" defaultTheme="light" enableSystem disableTransitionOnChange>
-          <main className="flex-1">{children}</main>
+          <SessionGuard>
+            <main className="flex-1">{children}</main>
+          </SessionGuard>
           <Footer />
           <Toaster />
         </ThemeProvider>

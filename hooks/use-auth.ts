@@ -51,8 +51,13 @@ export function useAuth() {
   }
 
   const logout = async () => {
-    await apiService.logout()
-    setAuthState({ user: null, isAuthenticated: false, isLoading: false })
+    try {
+      await apiService.logout()
+    } catch {
+      // ignore errors during logout
+    } finally {
+      setAuthState({ user: null, isAuthenticated: false, isLoading: false })
+    }
   }
 
   return {

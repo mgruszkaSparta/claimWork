@@ -975,7 +975,6 @@ namespace AutomotiveClaimsApi.Controllers
                     UpdatedAt = DateTime.UtcNow
                 };
                 entity.Damages.Add(damage);
-                context.Damages.Add(damage);
             }
         }
 

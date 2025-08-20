@@ -10,7 +10,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Textarea } from "@/components/ui/textarea"
 import { Checkbox } from "@/components/ui/checkbox"
-import { AlertTriangle, User, FileSignature, Wrench, Car, X, MessageSquare, Clock, FileCheck, FileText, Search, Mail, Plus, CheckCircle, Trash2, Save, Calendar, Phone, Paperclip, DollarSign, Gavel, ArrowUpDown, HandHeart, Users, CreditCard, Shield, UserCheck, Download } from 'lucide-react'
+import { AlertTriangle, User, Wrench, Car, X, MessageSquare, Clock, FileCheck, FileText, Search, Mail, Plus, CheckCircle, Trash2, Save, Calendar, Phone, Paperclip, DollarSign, Gavel, ArrowUpDown, HandHeart, Users, CreditCard, Shield, UserCheck, Download } from 'lucide-react'
+import { FormHeader } from "@/components/ui/form-header"
 import { DamageDiagram } from "@/components/damage-diagram"
 import { ParticipantForm } from "./participant-form"
 import { DocumentsSection } from "../documents-section"
@@ -898,12 +899,7 @@ export const ClaimMainContent = ({
 
           {/* Opis zdarzenia Card */}
           <Card className="overflow-hidden shadow-sm border-gray-200 rounded-xl">
-            <CardHeader className="flex flex-row items-center space-x-4 bg-gradient-to-r from-blue-600 to-blue-700 text-white p-4">
-              <div className="w-8 h-8 bg-blue-500 rounded-lg flex items-center justify-center">
-                <FileSignature className="h-4 w-4" />
-              </div>
-              <CardTitle className="text-lg font-semibold">Opis zdarzenia</CardTitle>
-            </CardHeader>
+            <FormHeader icon={FileText} title="Opis zdarzenia" />
             <CardContent className="p-6 bg-white space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div>

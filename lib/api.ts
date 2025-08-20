@@ -841,6 +841,14 @@ class ApiService {
     this.setToken(null)
   }
 
+  async checkHealth(): Promise<void> {
+    try {
+      await fetch(API_BASE_URL, { method: "HEAD" })
+    } catch {
+      throw new Error("API unavailable")
+    }
+  }
+
   async getCurrentUser(): Promise<{ id: string; username: string; email?: string; roles?: string[]; createdAt?: string; lastLogin?: string } | undefined> {
     const data = await this.request<{ id: string; userName: string; email: string; roles: string[]; createdAt: string; lastLogin?: string }>("/auth/me")
     if (!data) return undefined

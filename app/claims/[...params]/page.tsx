@@ -30,6 +30,7 @@ import { useClaims, transformApiClaimToFrontend } from "@/hooks/use-claims"
 import { useAuth } from "@/hooks/use-auth"
 import { generateId } from "@/lib/constants"
 import type { Claim, UploadedFile, RequiredDocument } from "@/types"
+import { getRequiredDocumentsByObjectType } from "@/lib/required-documents"
 
 type PageMode = "new" | "view" | "edit"
 
@@ -65,20 +66,9 @@ export default function ClaimPage() {
     },
   ])
 
-  const [requiredDocuments, setRequiredDocuments] = useState<RequiredDocument[]>([
-    { id: "1", name: "Dowód rejestracyjny", required: true, uploaded: false },
-    { id: "2", name: "Dyspozycja dotycząca wypłaty odszkodowania", required: true, uploaded: false },
-    { id: "3", name: "Kalkulacja naprawy", required: true, uploaded: false },
-    { id: "4", name: "Ocena techniczna", required: true, uploaded: false },
-    { id: "5", name: "Oświadczenie o trzeźwości", required: true, uploaded: false },
-    { id: "6", name: "Prawo jazdy", required: true, uploaded: false },
-    { id: "7", name: "Świadectwo kwalifikacji", required: true, uploaded: false },
-    { id: "8", name: "Zdjęcia", required: true, uploaded: false },
-    { id: "9", name: "Zgłoszenie szkody", required: true, uploaded: false },
-    { id: "10", name: "Akceptacja kalkulacji naprawy", required: true, uploaded: false },
-    { id: "11", name: "Faktura za holowanie", required: true, uploaded: false },
-    { id: "12", name: "Faktura za wynajem", required: true, uploaded: false },
-  ])
+  const [requiredDocuments, setRequiredDocuments] = useState<RequiredDocument[]>(() =>
+    getRequiredDocumentsByObjectType()
+  )
 
   useEffect(() => {
     if (user?.roles) {
@@ -103,6 +93,13 @@ export default function ClaimPage() {
     handleRemoveDriver,
     resetForm,
   } = useClaimForm()
+
+  useEffect(() => {
+    const objectType = claim?.objectTypeId || claimFormData.objectTypeId
+    if (objectType) {
+      setRequiredDocuments(getRequiredDocumentsByObjectType(objectType))
+    }
+  }, [claim?.objectTypeId, claimFormData.objectTypeId])
 
   // Load claim data for existing claims
   const loadClaimData = useCallback(async () => {

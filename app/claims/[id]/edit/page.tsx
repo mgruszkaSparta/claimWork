@@ -51,53 +51,9 @@ export default function EditClaimPage() {
     },
   ])
 
-  const [requiredDocuments, setRequiredDocuments] = useState<RequiredDocument[]>([
-    {
-      id: "1", name: "Dowód rejestracyjny", required: true, uploaded: false,
-      description: ""
-    },
-    {
-      id: "2", name: "Dyspozycja dotycząca wypłaty odszkodowania", required: true, uploaded: false,
-      description: ""
-    },
-    { id: "3", name: "Kalkulacja naprawy", required: true, uploaded: false },
-    {
-      id: "4", name: "Ocena techniczna", required: true, uploaded: false,
-      description: ""
-    },
-    {
-      id: "5", name: "Oświadczenie o trzeźwości", required: true, uploaded: false,
-      description: ""
-    },
-    {
-      id: "6", name: "Prawo jazdy", required: true, uploaded: false,
-      description: ""
-    },
-    {
-      id: "7", name: "Świadectwo kwalifikacji", required: true, uploaded: false,
-      description: ""
-    },
-    {
-      id: "8", name: "Zdjęcia", required: true, uploaded: false,
-      description: ""
-    },
-    {
-      id: "9", name: "Zgłoszenie szkody", required: true, uploaded: false,
-      description: ""
-    },
-    {
-      id: "10", name: "Akceptacja kalkulacji naprawy", required: true, uploaded: false,
-      description: ""
-    },
-    {
-      id: "11", name: "Faktura za holowanie", required: true, uploaded: false,
-      description: ""
-    },
-    {
-      id: "12", name: "Faktura za wynajem", required: true, uploaded: false,
-      description: ""
-    },
-  ])
+  const [requiredDocuments, setRequiredDocuments] = useState<RequiredDocument[]>(() =>
+    getRequiredDocumentsByObjectType()
+  )
 
   const {
     claimFormData,
@@ -108,6 +64,12 @@ export default function EditClaimPage() {
     handleAddDriver,
     handleRemoveDriver,
   } = useClaimForm()
+
+  useEffect(() => {
+    if (claimFormData.objectTypeId) {
+      setRequiredDocuments(getRequiredDocumentsByObjectType(claimFormData.objectTypeId))
+    }
+  }, [claimFormData.objectTypeId])
 
   // Stable function to load claim data
   const loadClaimData = useCallback(async () => {

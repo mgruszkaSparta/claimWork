@@ -18,6 +18,7 @@ import { useRouter } from 'next/navigation'
 import { useToast } from '@/hooks/use-toast'
 import { useUnsavedChangesWarning, UNSAVED_CHANGES_MESSAGE } from '@/hooks/use-unsaved-changes-warning'
 import type { Claim, ParticipantInfo, UploadedFile, RequiredDocument } from '@/types'
+import { getRequiredDocumentsByObjectType } from '@/lib/required-documents'
 
 interface ClaimFormProps {
   initialData?: Claim
@@ -86,13 +87,9 @@ export function ClaimForm({ initialData, mode }: ClaimFormProps) {
 
   const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([])
   const [pendingFiles, setPendingFiles] = useState<UploadedFile[]>([])
-  const [requiredDocuments, setRequiredDocuments] = useState<RequiredDocument[]>([
-    { id: '1', name: 'Zgłoszenie szkody', required: true, uploaded: false, description: 'Formularz zgłoszenia szkody' },
-    { id: '2', name: 'Dowód rejestracyjny', required: true, uploaded: false, description: 'Kopia dowodu rejestracyjnego pojazdu' },
-    { id: '3', name: 'Polisa ubezpieczeniowa', required: true, uploaded: false, description: 'Kopia polisy OC/AC' },
-    { id: '4', name: 'Prawo jazdy', required: false, uploaded: false, description: 'Kopia prawa jazdy kierowcy' },
-    { id: '5', name: 'Zdjęcia szkody', required: false, uploaded: false, description: 'Dokumentacja fotograficzna szkody' }
-  ])
+  const [requiredDocuments, setRequiredDocuments] = useState<RequiredDocument[]>(() =>
+    getRequiredDocumentsByObjectType(initialData?.objectTypeId)
+  )
 
   const isDisabled = mode === 'view'
   const { createDamage } = useDamages(formData.id)
@@ -117,6 +114,10 @@ export function ClaimForm({ initialData, mode }: ClaimFormProps) {
       [field]: value
     }))
   }
+
+  useEffect(() => {
+    setRequiredDocuments(getRequiredDocumentsByObjectType(formData.objectTypeId))
+  }, [formData.objectTypeId])
 
   const handleInjuredPartyChange = (participant: ParticipantInfo | undefined) => {
     setFormData(prev => ({

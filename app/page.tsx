@@ -39,7 +39,14 @@ function HomePage({ user, onLogout }: PageProps) {
     async function loadTasks() {
       try {
         const res = await fetch("/api/notes?category=task")
-        if (!res.ok) throw new Error("Failed to fetch tasks")
+        if (!res.ok) {
+          console.warn(
+            "Failed to fetch tasks:",
+            res.status,
+            res.statusText,
+          )
+          return
+        }
         const data = await res.json()
         const mapped = data.map((note: any) => ({
           title: note.title || note.content,

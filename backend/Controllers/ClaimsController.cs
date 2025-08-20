@@ -242,7 +242,11 @@ namespace AutomotiveClaimsApi.Controllers
         {
             try
             {
-                Event eventEntity;
+                if (!eventDto.Id.HasValue || eventDto.Id == Guid.Empty)
+                {
+                    return BadRequest("Claim ID is required. Use the initialize endpoint to obtain one.");
+                }
+
                 var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
                 ApplicationUser? currentUser = null;
                 bool isHandler = false;
@@ -256,43 +260,58 @@ namespace AutomotiveClaimsApi.Controllers
                     }
                 }
 
-                if (eventDto.Id.HasValue)
+                var existingEvent = await _context.Events
+                    .Include(e => e.Participants).ThenInclude(p => p.Drivers)
+                    .Include(e => e.Damages)
+                    .Include(e => e.Appeals)
+                    .Include(e => e.ClientClaims)
+                    .Include(e => e.Decisions)
+                    .Include(e => e.Recourses)
+                    .Include(e => e.Settlements)
+                    .Include(e => e.Emails)
+                    .Include(e => e.Notes)
+                    .FirstOrDefaultAsync(e => e.Id == eventDto.Id.Value);
+
+                if (existingEvent != null)
                 {
-                    eventEntity = await _context.Events.FirstOrDefaultAsync(e => e.Id == eventDto.Id.Value) ?? new Event
-                    {
-                        Id = eventDto.Id.Value,
-                        CreatedAt = DateTime.UtcNow
-                    };
+                    await UpsertClaimAsync(existingEvent, eventDto);
+                    existingEvent.UpdatedAt = DateTime.UtcNow;
 
-
-                    if (_context.Entry(eventEntity).State == EntityState.Detached)
+                    if (string.IsNullOrEmpty(existingEvent.RegisteredById))
                     {
-                        _context.Events.Add(eventEntity);
+                        existingEvent.RegisteredById = userId;
                     }
 
-                    eventEntity.UpdatedAt = DateTime.UtcNow;
-                }
-                else
-                {
-                    eventEntity = new Event
+                    if (isHandler && currentUser != null)
                     {
-                        Id = Guid.NewGuid(),
-                        CreatedAt = DateTime.UtcNow,
-                        UpdatedAt = DateTime.UtcNow
-                    };
-                    _context.Events.Add(eventEntity);
+                        existingEvent.Handler = currentUser.UserName;
+                        existingEvent.HandlerEmail = currentUser.Email;
+                    }
+
+                    if (string.IsNullOrEmpty(existingEvent.SpartaNumber))
+                    {
+                        existingEvent.SpartaNumber = await GenerateNextSpartaNumber();
+                    }
+
+                    await _context.SaveChangesAsync();
+
+                    if (!isHandler && currentUser != null && _notificationService != null)
+                    {
+                        await _notificationService.NotifyAsync(existingEvent, currentUser, ClaimNotificationEvent.ClaimCreated);
+                    }
+
+                    await _eventDocumentStore.SaveAsync(existingEvent);
+
+                    return Ok(MapEventToDto(existingEvent));
                 }
 
-
-                if (_context.Entry(eventEntity).State == EntityState.Detached)
+                var eventEntity = new Event
                 {
-                    _context.Events.Add(eventEntity);
-                }
-
-                if (string.IsNullOrEmpty(eventEntity.RegisteredById))
-                {
-                    eventEntity.RegisteredById = userId;
-                }
+                    Id = eventDto.Id.Value,
+                    CreatedAt = DateTime.UtcNow,
+                    UpdatedAt = DateTime.UtcNow,
+                    RegisteredById = userId
+                };
 
                 await UpsertClaimAsync(eventEntity, eventDto);
 
@@ -307,6 +326,7 @@ namespace AutomotiveClaimsApi.Controllers
                     eventEntity.SpartaNumber = await GenerateNextSpartaNumber();
                 }
 
+                _context.Events.Add(eventEntity);
                 await _context.SaveChangesAsync();
 
                 // Reload the entity with all related data

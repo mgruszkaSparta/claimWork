@@ -1519,9 +1519,11 @@ export const DocumentsSection = React.forwardRef<
           <Card>
             <CardHeader>
               <CardTitle>Wymagane dokumenty</CardTitle>
-              <p className="text-sm text-gray-500">Dodaj kategorię, aby móc załączyć odpowiednie pliki.</p>
             </CardHeader>
             <CardContent>
+              <p className="mb-4 text-sm text-gray-500">
+                Dodaj kategorię, aby móc załączyć odpowiednie pliki.
+              </p>
               <div className="border rounded-md">
                 {missingRequiredDocs.map((doc, index, arr) => (
                   <div
@@ -1532,7 +1534,11 @@ export const DocumentsSection = React.forwardRef<
                       <span className="font-medium text-gray-800">{doc.name}</span>
                       <div className="h-2 w-2 rounded-full bg-red-500 animate-pulse" title="Brakujący"></div>
                     </div>
-                    <Button variant="outline" size="sm" onClick={() => handleAddRequiredCategory(doc.name)}>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleAddRequiredCategory(doc.name)}
+                    >
                       <Plus className="mr-2 h-4 w-4" />
                       Dodaj
                     </Button>

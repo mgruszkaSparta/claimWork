@@ -60,6 +60,10 @@ namespace AutomotiveClaimsApi.Controllers
             [FromQuery] string? status = null,
             [FromQuery] string? policyNumber = null,
             [FromQuery] DateTime? damageDate = null,
+            [FromQuery] DateTime? reportFromDate = null,
+            [FromQuery] DateTime? reportToDate = null,
+            [FromQuery] DateTime? damageFromDate = null,
+            [FromQuery] DateTime? damageToDate = null,
             [FromQuery] DateTime? fromDate = null,
             [FromQuery] DateTime? toDate = null,
             [FromQuery] int page = 1,
@@ -101,6 +105,30 @@ namespace AutomotiveClaimsApi.Controllers
                 {
                     var date = damageDate.Value.Date;
                     query = query.Where(e => e.DamageDate.HasValue && e.DamageDate.Value.Date == date);
+                }
+
+                if (reportFromDate.HasValue)
+                {
+                    var from = reportFromDate.Value.Date;
+                    query = query.Where(e => e.ReportDate.HasValue && e.ReportDate.Value.Date >= from);
+                }
+
+                if (reportToDate.HasValue)
+                {
+                    var to = reportToDate.Value.Date;
+                    query = query.Where(e => e.ReportDate.HasValue && e.ReportDate.Value.Date <= to);
+                }
+
+                if (damageFromDate.HasValue)
+                {
+                    var from = damageFromDate.Value.Date;
+                    query = query.Where(e => e.DamageDate.HasValue && e.DamageDate.Value.Date >= from);
+                }
+
+                if (damageToDate.HasValue)
+                {
+                    var to = damageToDate.Value.Date;
+                    query = query.Where(e => e.DamageDate.HasValue && e.DamageDate.Value.Date <= to);
                 }
 
                 if (fromDate.HasValue)

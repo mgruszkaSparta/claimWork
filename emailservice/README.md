@@ -2,6 +2,8 @@
 
 A simple .NET 8 console project that provides a minimal client for sending and receiving e-mails using SMTP and IMAP via the MailKit library. Incoming messages are stored using the existing `Email` entities from the main application and attachments can be saved locally or in Google Cloud Storage.
 
+Fetched messages are also inspected for claim numbers using the same mapping rules as the main project so related events can be linked automatically.
+
 ## Usage
 
 Build the project:

@@ -1,6 +1,8 @@
 using System;
 using System.IO;
 using System.Linq;
+using System.Text.RegularExpressions;
+using Microsoft.EntityFrameworkCore;
 using MailKit.Net.Imap;
 using MailKit.Net.Smtp;
 using MailKit.Security;
@@ -84,9 +86,10 @@ public class EmailClient
                 Body = message.TextBody ?? string.Empty,
                 BodyHtml = message.HtmlBody,
                 From = message.From.ToString(),
-                To = message.To.ToString(),
-                Cc = message.Cc.ToString(),
-                Bcc = message.Bcc.ToString(),
+                To = string.Join(";", message.To.Select(r => r.ToString())),
+                Cc = message.Cc?.Any() == true ? string.Join(";", message.Cc.Select(r => r.ToString())) : null,
+                Bcc = message.Bcc?.Any() == true ? string.Join(";", message.Bcc.Select(r => r.ToString())) : null,
+                IsHtml = !string.IsNullOrEmpty(message.HtmlBody),
                 ReceivedAt = message.Date.UtcDateTime,
                 Direction = "Inbound",
                 Status = "Received",
@@ -94,6 +97,9 @@ public class EmailClient
                 CreatedAt = DateTime.UtcNow,
                 UpdatedAt = DateTime.UtcNow
             };
+
+            var eventNumber = ExtractEventNumber((message.Subject ?? string.Empty) + " " + (message.TextBody ?? string.Empty));
+            emailEntity.EventId = await ResolveEventIdFromEventNumberAsync(eventNumber);
 
             foreach (var attachment in message.Attachments.OfType<MimePart>())
             {
@@ -120,5 +126,25 @@ public class EmailClient
 
         await client.DisconnectAsync(true);
         return emails;
+    }
+
+    private static string? ExtractEventNumber(string message)
+    {
+        if (string.IsNullOrWhiteSpace(message))
+            return null;
+
+        var match = Regex.Match(message, @"\b\w{3}\d{7}\b");
+        return match.Success ? match.Value : null;
+    }
+
+    private async Task<Guid?> ResolveEventIdFromEventNumberAsync(string? eventNumber)
+    {
+        if (string.IsNullOrWhiteSpace(eventNumber))
+            return null;
+
+        return await _db.Events
+            .Where(e => e.ClaimNumber != null && e.ClaimNumber == eventNumber)
+            .Select(e => (Guid?)e.Id)
+            .FirstOrDefaultAsync();
     }
 }

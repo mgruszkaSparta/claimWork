@@ -11,6 +11,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Identity;
 using System.Security.Claims;
+using Microsoft.Extensions.Configuration;
 
 namespace AutomotiveClaimsApi.Controllers
 {
@@ -23,14 +24,17 @@ namespace AutomotiveClaimsApi.Controllers
         private readonly ILogger<DecisionsController> _logger;
         private readonly UserManager<ApplicationUser>? _userManager;
         private readonly INotificationService? _notificationService;
+        private readonly IConfiguration _config;
 
         public DecisionsController(ApplicationDbContext context, IDocumentService documentService, ILogger<DecisionsController> logger,
+            IConfiguration config,
             UserManager<ApplicationUser>? userManager = null,
             INotificationService? notificationService = null)
         {
             _context = context;
             _documentService = documentService;
             _logger = logger;
+            _config = config;
             _userManager = userManager;
             _notificationService = notificationService;
         }
@@ -49,12 +53,13 @@ namespace AutomotiveClaimsApi.Controllers
                     return NotFound(new { error = "Event not found" });
                 }
 
-                var decisions = eventEntity.Decisions
-                    .OrderByDescending(d => d.DecisionDate)
-                    .Select(d => MapToDto(d))
-                    .ToList();
+                var decisionDtos = new List<DecisionDto>();
+                foreach (var d in eventEntity.Decisions.OrderByDescending(d => d.DecisionDate))
+                {
+                    decisionDtos.Add(await MapToDto(d));
+                }
 
-                return Ok(decisions);
+                return Ok(decisionDtos);
             }
             catch (Exception ex)
             {
@@ -76,7 +81,7 @@ namespace AutomotiveClaimsApi.Controllers
                     return NotFound(new { error = "Decision not found" });
                 }
 
-                return Ok(MapToDto(decision));
+                return Ok(await MapToDto(decision));
             }
             catch (Exception ex)
             {
@@ -155,7 +160,7 @@ namespace AutomotiveClaimsApi.Controllers
                     }
                 }
 
-                return CreatedAtAction(nameof(GetDecision), new { claimId, id = decision.Id }, MapToDto(decision));
+                return CreatedAtAction(nameof(GetDecision), new { claimId, id = decision.Id }, await MapToDto(decision));
             }
             catch (Exception ex)
             {
@@ -207,7 +212,7 @@ namespace AutomotiveClaimsApi.Controllers
 
                 await _context.SaveChangesAsync();
 
-                return Ok(MapToDto(decision));
+                return Ok(await MapToDto(decision));
             }
             catch (Exception ex)
             {
@@ -288,8 +293,23 @@ namespace AutomotiveClaimsApi.Controllers
             }
         }
 
-        private static DecisionDto MapToDto(Decision d)
+        private async Task<DecisionDto> MapToDto(Decision d)
         {
+            var baseUrl = _config["App:BaseUrl"] ?? string.Empty;
+
+            var documents = await _context.Documents
+                .Where(doc => doc.RelatedEntityId == d.Id && doc.RelatedEntityType == "Decision" && !doc.IsDeleted)
+                .Select(doc => new DocumentDto
+                {
+                    Id = doc.Id,
+                    OriginalFileName = doc.OriginalFileName,
+                    FileName = doc.FileName,
+                    FilePath = doc.FilePath,
+                    DownloadUrl = $"{baseUrl}/api/documents/{doc.Id}/download",
+                    PreviewUrl = $"{baseUrl}/api/documents/{doc.Id}/preview"
+                })
+                .ToListAsync();
+
             return new DecisionDto
             {
                 Id = d.Id.ToString(),
@@ -302,6 +322,7 @@ namespace AutomotiveClaimsApi.Controllers
                 DocumentDescription = d.DocumentDescription,
                 DocumentName = d.DocumentName,
                 DocumentPath = d.DocumentPath,
+                Documents = documents,
                 CreatedAt = d.CreatedAt,
                 UpdatedAt = d.UpdatedAt
             };

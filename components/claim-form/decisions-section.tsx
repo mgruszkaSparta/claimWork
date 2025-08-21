@@ -326,9 +326,11 @@ export function DecisionsSection({ claimId, onChange }: DecisionsSectionProps) {
     const fileName = doc?.originalFileName || doc?.fileName || getDisplayFileName(decision)
 
     try {
-      const url = doc
-        ? `${API_BASE_URL}/claims/${claimId}/decisions/${decision.id}/documents/${doc.id}/download`
-        : `${API_BASE_URL}/claims/${claimId}/decisions/${decision.id}/download`
+      const url =
+        doc?.downloadUrl ??
+        (doc
+          ? `${API_BASE_URL}/documents/${doc.id}/download`
+          : `${API_BASE_URL}/claims/${claimId}/decisions/${decision.id}/download`)
 
       const response = await fetch(url, {
         method: "GET",
@@ -359,7 +361,7 @@ export function DecisionsSection({ claimId, onChange }: DecisionsSectionProps) {
 
   const loadPreview = async (decision: Decision, doc: DocumentDto) => {
     if (!claimId) return
-    const url = `${API_BASE_URL}/claims/${claimId}/decisions/${decision.id}/documents/${doc.id}/preview`
+    const url = doc.previewUrl ?? `${API_BASE_URL}/documents/${doc.id}/preview`
     const response = await fetch(url, { method: "GET", credentials: "include" })
     if (!response.ok) throw new Error("Failed to preview file")
     const blob = await response.blob()

@@ -30,5 +30,8 @@ var client = new EmailClient(
     db: db,
     storage: storage
 );
+var fetched = await client.FetchUnreadEmailsAsync();
+Console.WriteLine($"Fetched {fetched.Count} unread emails.");
 
-Console.WriteLine("EmailService ready. Implement custom logic to call SendEmailAsync or FetchUnreadEmailsAsync as needed.");
+var sent = await client.SendPendingEmailsAsync();
+Console.WriteLine($"Sent {sent} pending emails.");

@@ -128,6 +128,71 @@ public class EmailClient
         return emails;
     }
 
+    /// <summary>
+    /// Sends all emails marked as needing sending and updates their status.
+    /// </summary>
+    public async Task<int> SendPendingEmailsAsync()
+    {
+        var pending = await _db.Emails
+            .Where(e => e.NeedsSending)
+            .Include(e => e.Attachments)
+            .ToListAsync();
+
+        int processed = 0;
+        foreach (var email in pending)
+        {
+            try
+            {
+                var message = new MimeMessage();
+                message.From.Add(MailboxAddress.Parse(_username));
+                message.To.AddRange(email.To.Split(';').Select(t => MailboxAddress.Parse(t.Trim())));
+                if (!string.IsNullOrWhiteSpace(email.Cc))
+                    message.Cc.AddRange(email.Cc.Split(';').Select(t => MailboxAddress.Parse(t.Trim())));
+                if (!string.IsNullOrWhiteSpace(email.Bcc))
+                    message.Bcc.AddRange(email.Bcc.Split(';').Select(t => MailboxAddress.Parse(t.Trim())));
+                message.Subject = email.Subject;
+
+                var bodyBuilder = new BodyBuilder();
+                if (email.IsHtml)
+                    bodyBuilder.HtmlBody = email.BodyHtml ?? email.Body;
+                else
+                    bodyBuilder.TextBody = email.Body;
+
+                foreach (var attachment in email.Attachments)
+                {
+                    if (!string.IsNullOrEmpty(attachment.FilePath) && File.Exists(attachment.FilePath))
+                    {
+                        bodyBuilder.Attachments.Add(attachment.FilePath);
+                    }
+                }
+
+                message.Body = bodyBuilder.ToMessageBody();
+
+                using var client = new SmtpClient();
+                await client.ConnectAsync(_smtpHost, _smtpPort, SecureSocketOptions.StartTls);
+                await client.AuthenticateAsync(_username, _password);
+                await client.SendAsync(message);
+                await client.DisconnectAsync(true);
+
+                email.NeedsSending = false;
+                email.Status = "Sent";
+                email.SentAt = DateTime.UtcNow;
+                email.UpdatedAt = DateTime.UtcNow;
+            }
+            catch (Exception ex)
+            {
+                email.Status = "Failed";
+                email.ErrorMessage = ex.Message;
+                email.UpdatedAt = DateTime.UtcNow;
+            }
+
+            processed++;
+        }
+
+        await _db.SaveChangesAsync();
+        return processed;
+    }
+
     private static string? ExtractEventNumber(string message)
     {
         if (string.IsNullOrWhiteSpace(message))

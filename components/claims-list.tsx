@@ -6,6 +6,13 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
 import { Alert, AlertDescription } from "@/components/ui/alert"
+import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
+} from "@/components/ui/select"
 
 import {
   Search,
@@ -79,8 +86,9 @@ export function ClaimsList({
   const [filterStatus, setFilterStatus] = useState("all")
   const [filterRegistration, setFilterRegistration] = useState("")
   const [filterHandler, setFilterHandler] = useState("")
-  const [fromDate, setFromDate] = useState("")
-  const [toDate, setToDate] = useState("")
+  const [dateFilters, setDateFilters] = useState<
+    { type: "reportDate" | "damageDate"; from: string; to: string }
+  >([])
   const [showFilters, setShowFilters] = useState(false)
   const [isRefreshing, setIsRefreshing] = useState(false)
   const [page, setPage] = useState(1)
@@ -119,6 +127,8 @@ export function ClaimsList({
 
     const loadClaims = async () => {
       try {
+        const reportFilter = dateFilters.find((f) => f.type === "reportDate")
+        const damageFilter = dateFilters.find((f) => f.type === "damageDate")
         await fetchClaims(
           {
             page,
@@ -130,8 +140,10 @@ export function ClaimsList({
             claimObjectTypeId,
             sortBy,
             sortOrder,
-            fromDate: fromDate || undefined,
-            toDate: toDate || undefined,
+            reportFromDate: reportFilter?.from || undefined,
+            reportToDate: reportFilter?.to || undefined,
+            damageFromDate: damageFilter?.from || undefined,
+            damageToDate: damageFilter?.to || undefined,
           },
           { append: page > 1 },
         )
@@ -153,8 +165,7 @@ export function ClaimsList({
     filterStatus,
     filterRegistration,
     filterHandler,
-    fromDate,
-    toDate,
+    dateFilters,
     claimObjectTypeId,
     sortBy,
     sortOrder,
@@ -316,6 +327,8 @@ export function ClaimsList({
     setIsRefreshing(true)
     try {
       setPage(1)
+      const reportFilter = dateFilters.find((f) => f.type === "reportDate")
+      const damageFilter = dateFilters.find((f) => f.type === "damageDate")
       await fetchClaims(
         {
           page: 1,
@@ -327,8 +340,10 @@ export function ClaimsList({
           claimObjectTypeId,
           sortBy,
           sortOrder,
-          fromDate: fromDate || undefined,
-          toDate: toDate || undefined,
+          reportFromDate: reportFilter?.from || undefined,
+          reportToDate: reportFilter?.to || undefined,
+          damageFromDate: damageFilter?.from || undefined,
+          damageToDate: damageFilter?.to || undefined,
         },
         { append: false },
       )
@@ -476,31 +491,80 @@ export function ClaimsList({
           </div>
         </div>
         {showFilters && (
-          <div className="mt-3 flex flex-col sm:flex-row gap-3">
-            <Input
-              placeholder="Filtruj po numerze rejestracyjnym..."
-              value={filterRegistration}
-              onChange={(e) => setFilterRegistration(e.target.value)}
-              className="h-9 text-sm"
-            />
-            <Input
-              placeholder="Filtruj po opiekunie..."
-              value={filterHandler}
-              onChange={(e) => setFilterHandler(e.target.value)}
-              className="h-9 text-sm"
-            />
-            <Input
-              type="date"
-              value={fromDate}
-              onChange={(e) => setFromDate(e.target.value)}
-              className="h-9 text-sm"
-            />
-            <Input
-              type="date"
-              value={toDate}
-              onChange={(e) => setToDate(e.target.value)}
-              className="h-9 text-sm"
-            />
+          <div className="mt-3 flex flex-col gap-3">
+            <div className="flex flex-col sm:flex-row gap-3">
+              <Input
+                placeholder="Filtruj po numerze rejestracyjnym..."
+                value={filterRegistration}
+                onChange={(e) => setFilterRegistration(e.target.value)}
+                className="h-9 text-sm"
+              />
+              <Input
+                placeholder="Filtruj po opiekunie..."
+                value={filterHandler}
+                onChange={(e) => setFilterHandler(e.target.value)}
+                className="h-9 text-sm"
+              />
+              <Select
+                value=""
+                onValueChange={(value) => {
+                  if (!dateFilters.find((f) => f.type === value)) {
+                    setDateFilters((prev) => [
+                      ...prev,
+                      { type: value as "reportDate" | "damageDate", from: "", to: "" },
+                    ])
+                  }
+                }}
+              >
+                <SelectTrigger className="w-48 h-9 text-sm">
+                  <SelectValue placeholder="Dodaj filtr daty" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="reportDate">Data zgłoszenia</SelectItem>
+                  <SelectItem value="damageDate">Data szkody</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            {dateFilters.map((f) => (
+              <div key={f.type} className="flex items-center gap-2 flex-wrap">
+                <span className="text-sm w-32">
+                  {f.type === "reportDate" ? "Data zgłoszenia" : "Data szkody"}
+                </span>
+                <Input
+                  type="date"
+                  value={f.from}
+                  onChange={(e) =>
+                    setDateFilters((prev) =>
+                      prev.map((df) =>
+                        df.type === f.type ? { ...df, from: e.target.value } : df,
+                      ),
+                    )
+                  }
+                  className="h-9 text-sm"
+                />
+                <Input
+                  type="date"
+                  value={f.to}
+                  onChange={(e) =>
+                    setDateFilters((prev) =>
+                      prev.map((df) =>
+                        df.type === f.type ? { ...df, to: e.target.value } : df,
+                      ),
+                    )
+                  }
+                  className="h-9 text-sm"
+                />
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() =>
+                    setDateFilters((prev) => prev.filter((df) => df.type !== f.type))
+                  }
+                >
+                  <X className="h-3 w-3" />
+                </Button>
+              </div>
+            ))}
           </div>
         )}
       </div>

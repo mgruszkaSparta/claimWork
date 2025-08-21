@@ -2,7 +2,13 @@
 
 import { FileText, MessageSquare } from "lucide-react"
 import { DocumentsSection } from "../documents-section"
-import type { Claim, Note, UploadedFile, ClaimStatus } from "@/types"
+import type { Claim, Note, UploadedFile } from "@/types"
+
+interface ClaimStatus {
+  id: number
+  name: string
+  description: string
+}
 
 interface RiskType {
   value: string
@@ -40,9 +46,9 @@ export function PropertyClaimSummary({
 }: PropertyClaimSummaryProps) {
   const visibleNotes = notes.filter((note) => !note.type || note.type === "note")
 
-  const getStatusLabel = (statusId?: string) => {
-    const status = claimStatuses.find((s) => s.id.toString() === statusId)
-    return status ? status.name : statusId || "Nie wybrano"
+  const getStatusLabel = (statusId?: number) => {
+    const status = claimStatuses.find((s) => s.id === statusId)
+    return status ? status.name : statusId?.toString() || "Nie wybrano"
   }
 
   const getRiskTypeLabel = (riskTypeCode?: string) => {

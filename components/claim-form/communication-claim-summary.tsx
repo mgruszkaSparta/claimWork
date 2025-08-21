@@ -21,8 +21,13 @@ import type {
   UploadedFile,
   ParticipantInfo,
   RequiredDocument,
-  ClaimStatus,
 } from "@/types"
+
+interface ClaimStatus {
+  id: number
+  name: string
+  description: string
+}
 
 interface RiskType {
   value: string
@@ -127,9 +132,9 @@ const CommunicationClaimSummary = ({
 }: CommunicationClaimSummaryProps) => {
   const visibleNotes = notes.filter((note) => !note.type || note.type === "note")
 
-  const getStatusLabel = (statusId?: string) => {
-    const status = claimStatuses.find((s) => s.id.toString() === statusId)
-    return status ? status.name : statusId || "Nie wybrano"
+  const getStatusLabel = (statusId?: number) => {
+    const status = claimStatuses.find((s) => s.id === statusId)
+    return status ? status.name : statusId?.toString() || "Nie wybrano"
   }
 
   const getRiskTypeLabel = (riskTypeCode?: string) => {

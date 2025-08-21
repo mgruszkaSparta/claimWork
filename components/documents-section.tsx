@@ -639,7 +639,79 @@ export const DocumentsSection = React.forwardRef<
     }
   }
 
-  const handleDescriptionChange = async (documentId: string | number, description: string) => {
+  const handleFileNameChange = async (documentId: string | number, name: string) => {
+    const pendingIndex = pendingFiles.findIndex((f) => f.id === documentId)
+
+    if (pendingIndex !== -1) {
+      setPendingFiles?.((prev) =>
+        prev.map((f) => (f.id === documentId ? { ...f, name } : f)),
+      )
+      setUploadedFiles((prev) =>
+        prev.map((f) =>
+          f.id === documentId.toString() ? { ...f, name } : f,
+        ),
+      )
+      setPreviewDocument((prev) =>
+        prev?.id === documentId ? { ...prev, originalFileName: name } : prev,
+      )
+      return
+    }
+
+    // Optimistic update
+    setDocuments((prev) =>
+      prev.map((doc) =>
+        doc.id === documentId ? { ...doc, originalFileName: name } : doc,
+      ),
+    )
+    setPreviewDocument((prev) =>
+      prev?.id === documentId ? { ...prev, originalFileName: name } : prev,
+    )
+    setUploadedFiles((prev) =>
+      prev.map((f) =>
+        f.id === documentId.toString() ? { ...f, name } : f,
+      ),
+    )
+
+    try {
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/documents/${documentId}`,
+        {
+          method: "PUT",
+          credentials: "include",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ originalFileName: name }),
+        },
+      )
+
+      if (response.ok) {
+        const updatedDocument = await response.json()
+        setDocuments((prev) =>
+          prev.map((doc) =>
+            doc.id === documentId ? { ...doc, ...updatedDocument } : doc,
+          ),
+        )
+        setPreviewDocument((prev) =>
+          prev?.id === documentId ? { ...prev, ...updatedDocument } : prev,
+        )
+        setUploadedFiles((prev) =>
+          prev.map((f) =>
+            f.id === documentId.toString()
+              ? { ...f, name: updatedDocument.originalFileName }
+              : f,
+          ),
+        )
+      }
+    } catch (error) {
+      console.error("Error updating document name:", error)
+    }
+  }
+
+  const handleDescriptionChange = async (
+    documentId: string | number,
+    description: string,
+  ) => {
     const pendingIndex = pendingFiles.findIndex((f) => f.id === documentId)
 
     if (pendingIndex !== -1) {
@@ -1125,9 +1197,12 @@ export const DocumentsSection = React.forwardRef<
         )}
       </div>
       <div className="p-3">
-        <p className="text-sm font-medium text-gray-800 truncate" title={doc.originalFileName}>
-          {doc.originalFileName}
-        </p>
+        <Input
+          value={doc.originalFileName}
+          onChange={(e) => handleFileNameChange(doc.id, e.target.value)}
+          className="text-sm mb-1"
+          title={doc.originalFileName}
+        />
         <p className="text-xs text-gray-500">{new Date(doc.createdAt).toLocaleDateString()}</p>
         <p className="text-xs text-gray-400">{formatBytes(doc.fileSize)}</p>
       </div>
@@ -1415,7 +1490,13 @@ export const DocumentsSection = React.forwardRef<
                                 </td>
                                 <td className="p-3 font-medium flex items-center gap-2">
                                   {getFileIcon(doc.contentType)}
-                                  <span className="truncate">{doc.originalFileName}</span>
+                                  <Input
+                                    value={doc.originalFileName}
+                                    onChange={(e) =>
+                                      handleFileNameChange(doc.id, e.target.value)
+                                    }
+                                    className="text-sm h-8"
+                                  />
                                 </td>
                                 <td className="p-3">
                                   <div className="flex items-center gap-1">

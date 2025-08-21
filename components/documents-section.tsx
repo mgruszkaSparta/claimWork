@@ -6,6 +6,12 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Checkbox } from "@/components/ui/checkbox"
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+} from "@/components/ui/dropdown-menu"
 import { useToast } from "@/hooks/use-toast"
 import { File, Search, Eye, Download, Upload, X, Trash2, Grid, List, Wand, Plus, FileText, Paperclip, ZoomIn, ZoomOut, ChevronLeft, ChevronRight, RotateCw, Maximize2, Minimize2 } from 'lucide-react'
 import type { DocumentsSectionProps, UploadedFile, DocumentsSectionRef } from "@/types"
@@ -1070,15 +1076,7 @@ export const DocumentsSection = React.forwardRef<
   const FileCard = ({ doc, onDelete }: { doc: Document; onDelete: (id: string | number) => void }) => {
     const isSelected = selectedDocumentIds.includes(doc.id)
     return (
-      <Card
-        className="overflow-hidden group relative"
-        draggable
-        onDragStart={(e) => {
-          e.dataTransfer.setData("application/x-doc-id", doc.id.toString())
-          e.dataTransfer.setData("text/plain", doc.id.toString())
-          e.dataTransfer.effectAllowed = "move"
-        }}
-      >
+      <Card className="overflow-hidden group relative">
         <div className="absolute top-2 left-2 flex items-center gap-2">
           <Checkbox
             checked={isSelected}
@@ -1134,6 +1132,33 @@ export const DocumentsSection = React.forwardRef<
         <p className="text-xs text-gray-400">{formatBytes(doc.fileSize)}</p>
       </div>
       <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity flex gap-1">
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-8"
+              onClick={(e) => e.stopPropagation()}
+            >
+              Przenieś
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            {documentCategories
+              .filter((c) => c !== doc.documentType)
+              .map((c) => (
+                <DropdownMenuItem
+                  key={c}
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    moveDocument(doc.id, c)
+                  }}
+                >
+                  {c}
+                </DropdownMenuItem>
+              ))}
+          </DropdownMenuContent>
+        </DropdownMenu>
         <Button
           variant="ghost"
           size="icon"
@@ -1374,15 +1399,6 @@ export const DocumentsSection = React.forwardRef<
                               <tr
                                 key={doc.id}
                                 className={`border-t ${index % 2 === 0 ? "bg-white" : "bg-gray-50/50"}`}
-                                draggable
-                                onDragStart={(e) => {
-                                  e.dataTransfer.setData(
-                                    "application/x-doc-id",
-                                    doc.id.toString(),
-                                  )
-                                  e.dataTransfer.setData("text/plain", doc.id.toString())
-                                  e.dataTransfer.effectAllowed = "move"
-                                }}
                               >
                                 <td className="p-3">
                                   <Checkbox
@@ -1424,6 +1440,25 @@ export const DocumentsSection = React.forwardRef<
                                 <td className="p-3 text-gray-600 capitalize">{doc.status}</td>
                                 <td className="p-3">
                                   <div className="flex items-center gap-1">
+                                    <DropdownMenu>
+                                      <DropdownMenuTrigger asChild>
+                                        <Button variant="ghost" size="sm" className="h-7">
+                                          Przenieś
+                                        </Button>
+                                      </DropdownMenuTrigger>
+                                      <DropdownMenuContent align="end">
+                                        {documentCategories
+                                          .filter((c) => c !== doc.documentType)
+                                          .map((c) => (
+                                            <DropdownMenuItem
+                                              key={c}
+                                              onClick={() => moveDocument(doc.id, c)}
+                                            >
+                                              {c}
+                                            </DropdownMenuItem>
+                                          ))}
+                                      </DropdownMenuContent>
+                                    </DropdownMenu>
                                     <Button
                                       variant="ghost"
                                       size="icon"

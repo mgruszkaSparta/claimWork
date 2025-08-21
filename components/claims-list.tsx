@@ -79,6 +79,8 @@ export function ClaimsList({
   const [filterStatus, setFilterStatus] = useState("all")
   const [filterRegistration, setFilterRegistration] = useState("")
   const [filterHandler, setFilterHandler] = useState("")
+  const [fromDate, setFromDate] = useState("")
+  const [toDate, setToDate] = useState("")
   const [showFilters, setShowFilters] = useState(false)
   const [isRefreshing, setIsRefreshing] = useState(false)
   const [page, setPage] = useState(1)
@@ -128,6 +130,8 @@ export function ClaimsList({
             claimObjectTypeId,
             sortBy,
             sortOrder,
+            fromDate: fromDate || undefined,
+            toDate: toDate || undefined,
           },
           { append: page > 1 },
         )
@@ -149,6 +153,8 @@ export function ClaimsList({
     filterStatus,
     filterRegistration,
     filterHandler,
+    fromDate,
+    toDate,
     claimObjectTypeId,
     sortBy,
     sortOrder,
@@ -316,11 +322,13 @@ export function ClaimsList({
           pageSize,
           search: searchTerm,
           status: filterStatus !== "all" ? filterStatus : undefined,
-            brand: filterRegistration || undefined,
+          brand: filterRegistration || undefined,
           handler: filterHandler || undefined,
           claimObjectTypeId,
           sortBy,
           sortOrder,
+          fromDate: fromDate || undefined,
+          toDate: toDate || undefined,
         },
         { append: false },
       )
@@ -479,6 +487,18 @@ export function ClaimsList({
               placeholder="Filtruj po opiekunie..."
               value={filterHandler}
               onChange={(e) => setFilterHandler(e.target.value)}
+              className="h-9 text-sm"
+            />
+            <Input
+              type="date"
+              value={fromDate}
+              onChange={(e) => setFromDate(e.target.value)}
+              className="h-9 text-sm"
+            />
+            <Input
+              type="date"
+              value={toDate}
+              onChange={(e) => setToDate(e.target.value)}
               className="h-9 text-sm"
             />
           </div>

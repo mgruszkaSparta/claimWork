@@ -60,6 +60,8 @@ namespace AutomotiveClaimsApi.Controllers
             [FromQuery] string? status = null,
             [FromQuery] string? policyNumber = null,
             [FromQuery] DateTime? damageDate = null,
+            [FromQuery] DateTime? fromDate = null,
+            [FromQuery] DateTime? toDate = null,
             [FromQuery] int page = 1,
             [FromQuery] int pageSize = 50,
             [FromQuery] string? sortBy = null,
@@ -99,6 +101,24 @@ namespace AutomotiveClaimsApi.Controllers
                 {
                     var date = damageDate.Value.Date;
                     query = query.Where(e => e.DamageDate.HasValue && e.DamageDate.Value.Date == date);
+                }
+
+                if (fromDate.HasValue)
+                {
+                    var from = fromDate.Value.Date;
+                    query = query.Where(e =>
+                        (e.ReportDate.HasValue && e.ReportDate.Value.Date >= from) ||
+                        (e.DamageDate.HasValue && e.DamageDate.Value.Date >= from) ||
+                        e.CreatedAt.Date >= from);
+                }
+
+                if (toDate.HasValue)
+                {
+                    var to = toDate.Value.Date;
+                    query = query.Where(e =>
+                        (e.ReportDate.HasValue && e.ReportDate.Value.Date <= to) ||
+                        (e.DamageDate.HasValue && e.DamageDate.Value.Date <= to) ||
+                        e.CreatedAt.Date <= to);
                 }
 
                 var totalCount = await query.CountAsync();

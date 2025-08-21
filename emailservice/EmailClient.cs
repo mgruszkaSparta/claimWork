@@ -1,15 +1,19 @@
+
 using System;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
 using Microsoft.EntityFrameworkCore;
+
 using MailKit.Net.Imap;
 using MailKit.Net.Smtp;
 using MailKit.Security;
 using MimeKit;
+
 using AutomotiveClaimsApi.Data;
 using AutomotiveClaimsApi.Models;
 using EmailService.Storage;
+
 
 namespace EmailService;
 
@@ -36,6 +40,7 @@ public class EmailClient
         string password,
         ApplicationDbContext db,
         IAttachmentStorage storage)
+
     {
         _smtpHost = smtpHost;
         _smtpPort = smtpPort;
@@ -45,6 +50,7 @@ public class EmailClient
         _password = password;
         _db = db;
         _storage = storage;
+
     }
 
     /// <summary>
@@ -66,9 +72,11 @@ public class EmailClient
     }
 
     /// <summary>
+
     /// Fetches unread e-mails, saves them using existing Email entities and marks them as read.
     /// </summary>
     public async Task<IList<Email>> FetchUnreadEmailsAsync()
+
     {
         using var client = new ImapClient();
         await client.ConnectAsync(_imapHost, _imapPort, SecureSocketOptions.SslOnConnect);
@@ -76,6 +84,7 @@ public class EmailClient
         await client.Inbox.OpenAsync(FolderAccess.ReadWrite);
 
         var uids = await client.Inbox.SearchAsync(MailKit.Search.SearchQuery.NotSeen);
+
         var emails = new List<Email>();
         foreach (var uid in uids)
         {
@@ -121,10 +130,12 @@ public class EmailClient
             _db.Emails.Add(emailEntity);
             await _db.SaveChangesAsync();
             emails.Add(emailEntity);
+
             await client.Inbox.AddFlagsAsync(uid, MessageFlags.Seen, true);
         }
 
         await client.DisconnectAsync(true);
+
         return emails;
     }
 
@@ -211,5 +222,6 @@ public class EmailClient
             .Where(e => e.ClaimNumber != null && e.ClaimNumber == eventNumber)
             .Select(e => (Guid?)e.Id)
             .FirstOrDefaultAsync();
+
     }
 }

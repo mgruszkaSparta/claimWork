@@ -5,7 +5,7 @@ namespace AutomotiveClaimsApi.DTOs
     public class DamageDto
     {
         public string Id { get; set; } = string.Empty;
-        public string EventId { get; set; } = string.Empty;
+        public string? EventId { get; set; }
         public string? Description { get; set; }
         public string? Detail { get; set; }
         public string? Location { get; set; }

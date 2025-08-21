@@ -73,7 +73,10 @@ namespace AutomotiveClaimsApi.Data
                       .HasForeignKey(e => e.ClaimStatusId)
                       .OnDelete(DeleteBehavior.SetNull);
 
-                entity.HasMany(e => e.Damages).WithOne(d => d.Event).HasForeignKey(d => d.EventId).OnDelete(DeleteBehavior.Cascade);
+                entity.HasMany(e => e.Damages)
+                      .WithOne()
+                      .HasForeignKey(d => d.EventId)
+                      .OnDelete(DeleteBehavior.Cascade);
                 entity.HasMany(e => e.Appeals).WithOne(a => a.Event).HasForeignKey(a => a.EventId).OnDelete(DeleteBehavior.Cascade);
                 entity.HasMany(e => e.ClientClaims).WithOne(c => c.Event).HasForeignKey(c => c.EventId).OnDelete(DeleteBehavior.Cascade);
                 entity.HasMany(e => e.Decisions).WithOne(d => d.Event).HasForeignKey(d => d.EventId).OnDelete(DeleteBehavior.Cascade);

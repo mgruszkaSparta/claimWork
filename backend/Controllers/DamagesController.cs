@@ -69,20 +69,10 @@ namespace AutomotiveClaimsApi.Controllers
                 {
                     return BadRequest("Damage ID is required. Use the init endpoint to obtain one.");
                 }
-                if (!upsertDto.EventId.HasValue || upsertDto.EventId == Guid.Empty)
-                {
-                    return BadRequest("EventId is required.");
-                }
-
-                if (!await _context.Events.AnyAsync(e => e.Id == upsertDto.EventId.Value))
-                {
-                    return BadRequest($"Event with id {upsertDto.EventId.Value} not found");
-                }
-
                 var damage = new Damage
                 {
                     Id = upsertDto.Id.Value,
-                    EventId = upsertDto.EventId.Value,
+                    EventId = upsertDto.EventId,
                     Description = upsertDto.Description,
                     Detail = upsertDto.Detail,
                     Location = upsertDto.Location,
@@ -161,7 +151,7 @@ namespace AutomotiveClaimsApi.Controllers
         private static DamageDto MapDamageToDto(Damage d) => new DamageDto
         {
             Id = d.Id.ToString(),
-            EventId = d.EventId.ToString(),
+            EventId = d.EventId?.ToString(),
             Description = d.Description,
             Detail = d.Detail,
             Location = d.Location,

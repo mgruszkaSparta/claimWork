@@ -9,8 +9,7 @@ namespace AutomotiveClaimsApi.Models
         [Key]
         public Guid Id { get; set; }
 
-        [Required]
-        public Guid EventId { get; set; }
+        public Guid? EventId { get; set; }
 
         [MaxLength(500)]
         public string? Description { get; set; }
@@ -42,8 +41,6 @@ namespace AutomotiveClaimsApi.Models
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
 
-        // Navigation properties
-        [ForeignKey("EventId")]
-        public virtual Event Event { get; set; } = null!;
+        // No navigation properties to avoid foreign key constraints
     }
 }

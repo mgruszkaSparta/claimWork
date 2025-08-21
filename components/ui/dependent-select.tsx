@@ -14,7 +14,7 @@ import {
 import { Loader2, AlertCircle } from "lucide-react"
 
 interface Option {
-  id: string
+  id: string | number
   name: string
   code?: string
   [key: string]: any

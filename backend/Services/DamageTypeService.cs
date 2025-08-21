@@ -50,7 +50,7 @@ namespace AutomotiveClaimsApi.Services
             }
         }
 
-        public async Task<ServiceResult<DamageTypeDto>> GetDamageTypeAsync(Guid id)
+        public async Task<ServiceResult<DamageTypeDto>> GetDamageTypeAsync(int id)
         {
             try
             {
@@ -102,7 +102,6 @@ namespace AutomotiveClaimsApi.Services
 
                 var damageType = new Models.DamageType
                 {
-                    Id = Guid.NewGuid(),
                     Name = dto.Name,
                     Code = dto.Code,
                     Description = dto.Description,
@@ -141,7 +140,7 @@ namespace AutomotiveClaimsApi.Services
             }
         }
 
-        public async Task<ServiceResult> UpdateDamageTypeAsync(Guid id, DamageTypeDto dto)
+        public async Task<ServiceResult> UpdateDamageTypeAsync(int id, DamageTypeDto dto)
         {
             try
             {
@@ -182,7 +181,7 @@ namespace AutomotiveClaimsApi.Services
             }
         }
 
-        public async Task<ServiceResult> DeleteDamageTypeAsync(Guid id)
+        public async Task<ServiceResult> DeleteDamageTypeAsync(int id)
         {
             try
             {

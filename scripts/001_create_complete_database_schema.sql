@@ -48,7 +48,7 @@ CREATE TABLE dbo.RiskTypes (
 
 -- Create DamageTypes table
 CREATE TABLE dbo.DamageTypes (
-    Id UNIQUEIDENTIFIER PRIMARY KEY DEFAULT NEWID(),
+    Id INT IDENTITY(1,1) PRIMARY KEY,
     Code NVARCHAR(20) NOT NULL,
     Name NVARCHAR(200) NOT NULL,
     Description NVARCHAR(500),

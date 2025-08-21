@@ -1858,7 +1858,7 @@ namespace AutomotiveClaimsApi.Controllers
             Damages = e.Damages.Select(d => new DamageDto
             {
                 Id = d.Id.ToString(),
-                EventId = d.EventId.ToString(),
+                EventId = d.EventId?.ToString(),
                 Description = d.Description,
                 Detail = d.Detail,
                 Location = d.Location,

@@ -97,7 +97,7 @@ export function ClaimsList({
     direction: "asc" | "desc"
   } | null>(null)
   const pageSize = 30
-  const [sortBy, setSortBy] = useState<string>("reportDate")
+  const [sortBy, setSortBy] = useState<string>("spartaNumber")
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc")
   const loaderRef = useRef<HTMLDivElement | null>(null)
   const containerRef = useRef<HTMLDivElement | null>(null)

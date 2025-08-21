@@ -7,6 +7,8 @@ import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Textarea } from '@/components/ui/textarea'
 import { Trash2, Car, FileText, Info, User, Plus } from 'lucide-react'
+import InsuranceDropdown from '@/components/insurance-dropdown'
+import { InsuranceCompaniesService } from '@/lib/insurance-companies'
 import type { ParticipantInfo, DriverInfo } from '@/types'
 
 interface DateInputProps {
@@ -91,6 +93,13 @@ export const ParticipantForm: React.FC<ParticipantFormProps> = ({
       onAddDriver()
     }
   }, [participantData.drivers, onAddDriver])
+
+  const selectedInsuranceCompanyId = React.useMemo(() => {
+    const company = InsuranceCompaniesService.getCompanies().find(
+      (c) => c.name === participantData.insuranceCompany,
+    )
+    return company?.id
+  }, [participantData.insuranceCompany])
 
   return (
     <div className="container-fluid p-4">
@@ -325,18 +334,17 @@ export const ParticipantForm: React.FC<ParticipantFormProps> = ({
                 </div>
 
                 {/* Insurance Company */}
-                <div className="space-y-1">
+                <div className="space-y-1 relative z-10">
                   <Label className="text-[#1a3a6c] text-sm font-medium block">
                     Zakład ubezpieczeń:
                   </Label>
-                  <Input
-                    type="text"
-                    className="w-full border border-[#d1d9e6] rounded px-3 py-2"
-                    disabled={disabled}
-                    autoComplete="off"
-                    value={participantData.insuranceCompany || ''}
-                    onChange={(e) => onParticipantChange("insuranceCompany", e.target.value)}
-                    name="insuranceCompany"
+                  <InsuranceDropdown
+                    selectedCompanyId={selectedInsuranceCompanyId}
+                    onCompanySelected={(event) =>
+                      onParticipantChange("insuranceCompany", event.companyName)
+                    }
+                    className="relative z-20"
+                    showClaimLink={false}
                   />
                 </div>
 

@@ -124,7 +124,7 @@ export function DamageDataSection({
               </Label>
               <Select
                 value={claimFormData.status?.toString() || ""}
-                onValueChange={(value) => handleFormChange("status", value)}
+                onValueChange={(value) => handleFormChange("status", Number(value))}
                 disabled={loadingStatuses}
               >
                 <SelectTrigger className="mt-0.5">

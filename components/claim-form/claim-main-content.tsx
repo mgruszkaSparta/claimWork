@@ -377,7 +377,9 @@ export const ClaimMainContent = ({
       )
       if (response.ok) {
         const data = await response.json()
-        setClaimStatuses(data.items ?? [])
+        setClaimStatuses(
+          (data.items ?? []).map((item: any) => ({ ...item, id: Number(item.id) })),
+        )
       } else {
         throw new Error(`HTTP error! status: ${response.status}`)
       }
@@ -628,9 +630,9 @@ export const ClaimMainContent = ({
   }
 
   // Get status label from code
-  const getStatusLabel = (statusId?: string) => {
-    const status = claimStatuses.find((s) => s.id.toString() === statusId)
-    return status ? status.name : statusId || "Nie wybrano"
+  const getStatusLabel = (statusId?: number) => {
+    const status = claimStatuses.find((s) => s.id === statusId)
+    return status ? status.name : statusId?.toString() || "Nie wybrano"
   }
 
   // Get risk type label from code

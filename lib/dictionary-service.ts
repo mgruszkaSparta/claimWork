@@ -1,5 +1,5 @@
 interface DictionaryItemDto {
-  id: string
+  id: string | number
   code?: string
   name: string
   description?: string

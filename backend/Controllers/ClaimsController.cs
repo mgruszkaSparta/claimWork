@@ -68,8 +68,8 @@ namespace AutomotiveClaimsApi.Controllers
             [FromQuery] DateTime? toDate = null,
             [FromQuery] int page = 1,
             [FromQuery] int pageSize = 50,
-            [FromQuery] string? sortBy = null,
-            [FromQuery] string? sortOrder = "asc")
+            [FromQuery] string? sortBy = "spartaNumber",
+            [FromQuery] string? sortOrder = "desc")
         {
             try
             {
@@ -156,6 +156,7 @@ namespace AutomotiveClaimsApi.Controllers
                     bool desc = sortOrder != null && sortOrder.ToLower() == "desc";
                     query = sortBy switch
                     {
+                        "spartaNumber" => desc ? query.OrderByDescending(e => e.SpartaNumber) : query.OrderBy(e => e.SpartaNumber),
                         "damageType" => desc ? query.OrderByDescending(e => e.DamageType) : query.OrderBy(e => e.DamageType),
                         "insurerClaimNumber" => desc ? query.OrderByDescending(e => e.InsurerClaimNumber) : query.OrderBy(e => e.InsurerClaimNumber),
                         "claimNumber" => desc ? query.OrderByDescending(e => e.ClaimNumber) : query.OrderBy(e => e.ClaimNumber),
@@ -165,12 +166,12 @@ namespace AutomotiveClaimsApi.Controllers
                         "reportDate" => desc ? query.OrderByDescending(e => e.ReportDate) : query.OrderBy(e => e.ReportDate),
                         "riskType" => desc ? query.OrderByDescending(e => e.RiskType) : query.OrderBy(e => e.RiskType),
                         "status" => desc ? query.OrderByDescending(e => e.Status) : query.OrderBy(e => e.Status),
-                        _ => desc ? query.OrderByDescending(e => e.CreatedAt) : query.OrderBy(e => e.CreatedAt),
+                        _ => desc ? query.OrderByDescending(e => e.SpartaNumber) : query.OrderBy(e => e.SpartaNumber),
                     };
                 }
                 else
                 {
-                    query = query.OrderByDescending(e => e.CreatedAt);
+                    query = query.OrderByDescending(e => e.SpartaNumber);
                 }
 
                 var events = await query

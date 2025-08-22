@@ -90,6 +90,7 @@ export function ClaimsList({
     { type: "reportDate" | "damageDate"; from: string; to: string }
   >([])
   const [showFilters, setShowFilters] = useState(false)
+  const [showMyClaims, setShowMyClaims] = useState(false)
   const [isRefreshing, setIsRefreshing] = useState(false)
   const [page, setPage] = useState(1)
   const [sortConfig, setSortConfig] = useState<{
@@ -136,7 +137,8 @@ export function ClaimsList({
             search: searchTerm,
             status: filterStatus !== "all" ? filterStatus : undefined,
             brand: filterRegistration || undefined,
-            handler: filterHandler || undefined,
+            handler: showMyClaims ? user?.username : filterHandler || undefined,
+            registeredById: showMyClaims ? user?.id : undefined,
             claimObjectTypeId,
             sortBy,
             sortOrder,
@@ -165,6 +167,9 @@ export function ClaimsList({
     filterStatus,
     filterRegistration,
     filterHandler,
+    showMyClaims,
+    user?.id,
+    user?.username,
     dateFilters,
     claimObjectTypeId,
     sortBy,
@@ -191,14 +196,31 @@ export function ClaimsList({
           claim.victimRegistrationNumber?.toLowerCase().includes(filterRegistration.toLowerCase())
         const matchesHandler =
           !filterHandler || claim.handler?.toLowerCase().includes(filterHandler.toLowerCase())
+        const matchesMyClaims =
+          !showMyClaims ||
+          (user?.username && claim.handler?.toLowerCase() === user.username.toLowerCase())
         const matchesClaimType =
           !allowedRiskTypes ||
           !claim.riskType ||
           allowedRiskTypes.includes(claim.riskType.toLowerCase())
 
-        return matchesFilter && matchesRegistration && matchesHandler && matchesClaimType
+        return (
+          matchesFilter &&
+          matchesRegistration &&
+          matchesHandler &&
+          matchesClaimType &&
+          matchesMyClaims
+        )
       }),
-    [claims, filterStatus, filterRegistration, filterHandler, allowedRiskTypes],
+    [
+      claims,
+      filterStatus,
+      filterRegistration,
+      filterHandler,
+      allowedRiskTypes,
+      showMyClaims,
+      user?.username,
+    ],
   )
 
   const sortedClaims = useMemo(() => {
@@ -336,7 +358,8 @@ export function ClaimsList({
           search: searchTerm,
           status: filterStatus !== "all" ? filterStatus : undefined,
           brand: filterRegistration || undefined,
-          handler: filterHandler || undefined,
+          handler: showMyClaims ? user?.username : filterHandler || undefined,
+          registeredById: showMyClaims ? user?.id : undefined,
           claimObjectTypeId,
           sortBy,
           sortOrder,
@@ -487,6 +510,17 @@ export function ClaimsList({
             >
               <Filter className="h-3 w-3 mr-1" />
               Filtry
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              className={`h-9 text-sm ${showMyClaims ? "bg-[#1a3a6c] text-white hover:bg-[#1a3a6c]/90" : "bg-white"}`}
+              onClick={() => {
+                setShowMyClaims((prev) => !prev)
+                setPage(1)
+              }}
+            >
+              Moje szkody
             </Button>
           </div>
         </div>

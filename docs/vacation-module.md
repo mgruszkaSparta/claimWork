@@ -67,21 +67,17 @@ Status: enum (Pending, Approved, Rejected)
 <!--
 settlements
 8
-Pobierz zaznaczone
 UPLOAD
 
 recourses
 7
-Pobierz zaznaczone
 UPLOAD
 
 appeals
 11
-Pobierz zaznaczone
 UPLOAD
 
 decisions
 13
-Pobierz zaznaczone
 UPLOAD
 -->

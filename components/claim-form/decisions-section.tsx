@@ -639,25 +639,56 @@ export function DecisionsSection({ claimId, onChange }: DecisionsSectionProps) {
               <div className="space-y-4">
                 <Label className="text-sm font-medium text-gray-700">Załącz dokumenty decyzji</Label>
 
-                {isEditing && currentDecision?.documents?.length ? (
+                {isEditing && (currentDecision?.documents?.length || currentDecision?.documentPath) ? (
                   <div className="space-y-2 mb-4">
-                    {currentDecision.documents.map((doc) => (
-                      <div
-                        key={doc.id}
-                        className="p-3 bg-muted rounded-lg border flex items-center justify-between"
-                      >
-                        <div className="flex items-center gap-2">
-                          <FileText className="h-4 w-4 text-primary" />
-                          <span className="text-sm font-medium">
-                            {doc.originalFileName || doc.fileName}
-                          </span>
-                        </div>
-                        <div className="flex gap-1">
-                          {isPreviewable(doc.originalFileName || doc.fileName || "") && (
+                    {currentDecision.documents?.length ? (
+                      currentDecision.documents.map((doc) => (
+                        <div
+                          key={doc.id}
+                          className="p-3 bg-muted rounded-lg border flex items-center justify-between"
+                        >
+                          <div className="flex items-center gap-2">
+                            <FileText className="h-4 w-4 text-primary" />
+                            <span className="text-sm font-medium">
+                              {doc.originalFileName || doc.fileName}
+                            </span>
+                          </div>
+                          <div className="flex gap-1">
+                            {isPreviewable(doc.originalFileName || doc.fileName || "") && (
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => previewFile(currentDecision, doc)}
+                                title="Podgląd"
+                              >
+                                <Eye className="h-4 w-4" />
+                              </Button>
+                            )}
                             <Button
                               variant="ghost"
                               size="sm"
-                              onClick={() => previewFile(currentDecision, doc)}
+                              onClick={() => downloadFile(currentDecision, doc)}
+                              title="Pobierz"
+                            >
+                              <Download className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </div>
+                      ))
+                    ) : (
+                      <div className="p-3 bg-muted rounded-lg border flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <FileText className="h-4 w-4 text-primary" />
+                          <span className="text-sm font-medium">
+                            {getDisplayFileName(currentDecision)}
+                          </span>
+                        </div>
+                        <div className="flex gap-1">
+                          {isPreviewable(getDisplayFileName(currentDecision)) && (
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => previewFile(currentDecision)}
                               title="Podgląd"
                             >
                               <Eye className="h-4 w-4" />
@@ -666,14 +697,14 @@ export function DecisionsSection({ claimId, onChange }: DecisionsSectionProps) {
                           <Button
                             variant="ghost"
                             size="sm"
-                            onClick={() => downloadFile(currentDecision, doc)}
+                            onClick={() => downloadFile(currentDecision)}
                             title="Pobierz"
                           >
                             <Download className="h-4 w-4" />
                           </Button>
                         </div>
                       </div>
-                    ))}
+                    )}
                   </div>
                 ) : null}
 

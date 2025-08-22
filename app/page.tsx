@@ -74,7 +74,7 @@ function HomePage({ user, onLogout }: PageProps) {
   useEffect(() => {
     async function loadStats() {
       try {
-        const res = await fetch("/api/dashboard/client");
+        const res = await fetch("/api/dashboard/user");
         if (!res.ok) throw new Error("Failed to fetch dashboard stats");
         const data = await res.json();
         setStats([

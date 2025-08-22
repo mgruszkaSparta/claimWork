@@ -97,6 +97,7 @@ export const DocumentsSection = React.forwardRef<
   const [dragActive, setDragActive] = useState(false)
   const [dragCategory, setDragCategory] = useState<string | null>(null)
   const [selectedDocumentIds, setSelectedDocumentIds] = useState<string[]>([])
+  const [editingDocId, setEditingDocId] = useState<string | number | null>(null)
 
   // Preview modal states
   const [previewZoom, setPreviewZoom] = useState(1)
@@ -1258,19 +1259,42 @@ export const DocumentsSection = React.forwardRef<
         )}
       </div>
       <div className="p-3">
-        <Input
-          value={doc.originalFileName}
-          onChange={(e) => updateFileName(doc.id, e.target.value)}
-          onBlur={(e) => handleFileNameChange(doc.id, e.target.value)}
-          onKeyDown={(e) => {
-            if (e.key === "Enter") {
-              e.preventDefault()
-              e.currentTarget.blur()
-            }
-          }}
-          className="text-sm mb-1"
-          title={doc.originalFileName}
-        />
+        {editingDocId === doc.id ? (
+          <Input
+            value={doc.originalFileName}
+            onChange={(e) => updateFileName(doc.id, e.target.value)}
+            onBlur={(e) => {
+              handleFileNameChange(doc.id, e.target.value)
+              setEditingDocId(null)
+            }}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                e.preventDefault()
+                e.currentTarget.blur()
+              }
+            }}
+            className="text-sm mb-1"
+            title={doc.originalFileName}
+            autoFocus
+          />
+        ) : (
+          <div className="flex items-center gap-2 mb-1">
+            <span className="text-sm truncate" title={doc.originalFileName}>
+              {doc.originalFileName}
+            </span>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-6"
+              onClick={(e) => {
+                e.stopPropagation()
+                setEditingDocId(doc.id)
+              }}
+            >
+              Edytuj
+            </Button>
+          </div>
+        )}
         <p className="text-xs text-gray-500">{new Date(doc.createdAt).toLocaleDateString()}</p>
         <p className="text-xs text-gray-400">{formatBytes(doc.fileSize)}</p>
       </div>
@@ -1607,13 +1631,38 @@ export const DocumentsSection = React.forwardRef<
                                 </td>
                                 <td className="p-3 font-medium flex items-center gap-2">
                                   {getFileIcon(doc.contentType)}
-                                  <Input
-                                    value={doc.originalFileName}
-                                    onChange={(e) =>
-                                      handleFileNameChange(doc.id, e.target.value)
-                                    }
-                                    className="text-sm h-8"
-                                  />
+                                  {editingDocId === doc.id ? (
+                                    <Input
+                                      value={doc.originalFileName}
+                                      onChange={(e) => updateFileName(doc.id, e.target.value)}
+                                      onBlur={(e) => {
+                                        handleFileNameChange(doc.id, e.target.value)
+                                        setEditingDocId(null)
+                                      }}
+                                      onKeyDown={(e) => {
+                                        if (e.key === "Enter") {
+                                          e.preventDefault()
+                                          e.currentTarget.blur()
+                                        }
+                                      }}
+                                      className="text-sm h-8"
+                                      autoFocus
+                                    />
+                                  ) : (
+                                    <div className="flex items-center gap-2">
+                                      <span className="truncate">
+                                        {doc.originalFileName}
+                                      </span>
+                                      <Button
+                                        variant="ghost"
+                                        size="icon"
+                                        className="h-7 w-7"
+                                        onClick={() => setEditingDocId(doc.id)}
+                                      >
+                                        <Pencil className="h-4 w-4" />
+                                      </Button>
+                                    </div>
+                                  )}
                                 </td>
                                 <td className="p-3">
                                   <div className="flex items-center gap-1">

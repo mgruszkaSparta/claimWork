@@ -655,7 +655,7 @@ export const SettlementsSection: React.FC<SettlementsSectionProps> = ({ eventId 
                         className="flex-1 border border-[#d1d9e6] focus:ring-2 focus:ring-[#1a3a6c]/20 focus:border-[#1a3a6c]"
                         value={formData.settlementAmount}
                         onChange={(e) => handleFormChange("settlementAmount", Number.parseFloat(e.target.value) || 0)}
-                        placeholder="0.00"
+                        placeholder="Wprowadź kwotę ugody"
                       />
                       <Select value={formData.currency} onValueChange={(value) => handleFormChange("currency", value)}>
                         <SelectTrigger className="w-20 border border-[#d1d9e6] focus:ring-2 focus:ring-[#1a3a6c]/20 focus:border-[#1a3a6c]">

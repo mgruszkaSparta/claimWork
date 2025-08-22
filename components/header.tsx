@@ -99,9 +99,13 @@ export function Header({ onMenuClick, user, onLogout }: HeaderProps) {
                   <span>Profil</span>
                 </DropdownMenuItem>
                 {user?.roles?.some((r) => r.toLowerCase() === 'admin') && (
-                  <DropdownMenuItem>
+                  <DropdownMenuItem
+                    onClick={() => {
+                      window.location.href = '/admin'
+                    }}
+                  >
                     <Settings className="mr-2 h-4 w-4" />
-                    <span>Ustawienia</span>
+                    <span>Panel administratora</span>
                   </DropdownMenuItem>
                 )}
                 <DropdownMenuSeparator />

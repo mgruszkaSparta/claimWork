@@ -14,7 +14,7 @@ import {
   DropdownMenuItem,
 } from "@/components/ui/dropdown-menu"
 import { useToast } from "@/hooks/use-toast"
-import { File, Search, Eye, Download, Upload, X, Trash2, Grid, List, Wand, Plus, FileText, Paperclip, ZoomIn, ZoomOut, ChevronLeft, ChevronRight, RotateCw, Maximize2, Minimize2, Pencil, Save } from 'lucide-react'
+import { File, Search, Eye, Download, Upload, X, Trash2, Grid, List, Wand, Plus, FileText, Paperclip, ZoomIn, ZoomOut, ChevronLeft, ChevronRight, RotateCw, Maximize2, Minimize2, Pencil, Save, Move } from 'lucide-react'
 import type { DocumentsSectionProps, UploadedFile, DocumentsSectionRef } from "@/types"
 import JSZip from "jszip"
 import { saveAs } from "file-saver"
@@ -1075,6 +1075,17 @@ export const DocumentsSection = React.forwardRef<
     )
   }
 
+  const handleMoveSelected = (targetCategory: string, fromCategory?: string) => {
+    const idsToMove = selectedDocumentIds.filter((id) => {
+      const doc = visibleDocuments.find((d) => d.id === id)
+      return doc && (!fromCategory || doc.documentType === fromCategory)
+    })
+
+    idsToMove.forEach((id) => moveDocument(id, targetCategory))
+
+    setSelectedDocumentIds((prev) => prev.filter((id) => !idsToMove.includes(id)))
+  }
+
   const handleDrop = (e: React.DragEvent, category: string) => {
     e.preventDefault()
     e.stopPropagation()
@@ -1409,6 +1420,32 @@ export const DocumentsSection = React.forwardRef<
           >
             <Download className="mr-2 h-4 w-4" /> Pobierz wszystkie
           </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => handleDownloadSelected()}
+            disabled={selectedDocumentIds.length === 0}
+          >
+            <Download className="mr-2 h-4 w-4" /> Pobierz zaznaczone
+          </Button>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="outline"
+                size="sm"
+                disabled={selectedDocumentIds.length === 0}
+              >
+                <Move className="mr-2 h-4 w-4" /> Przenieś zaznaczone
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              {documentCategories.map((c) => (
+                <DropdownMenuItem key={c} onClick={() => handleMoveSelected(c)}>
+                  {c}
+                </DropdownMenuItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
 
         {documentCategories.map((category) => {

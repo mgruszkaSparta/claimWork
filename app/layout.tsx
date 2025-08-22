@@ -27,7 +27,7 @@ html {
 }
         `}</style>
       </head>
-      <body className="min-h-screen bg-gray-50">
+      <body className="min-h-screen bg-background">
         <Providers>{children}</Providers>
       </body>
     </html>

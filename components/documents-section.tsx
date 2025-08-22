@@ -1299,23 +1299,26 @@ export const DocumentsSection = React.forwardRef<
           onChange={handleFileInputChange}
         />
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Dokumenty</CardTitle>
+        <Card className="rounded-md">
+          <CardHeader className="p-4">
+            <CardTitle className="text-xl">Dokumenty</CardTitle>
           </CardHeader>
-          <CardContent className="p-4 space-y-4">
-            <div className="flex flex-wrap items-center gap-2">
+          <CardContent className="p-3 space-y-2">
+            <div className="flex flex-wrap items-center gap-1.5">
               <span className="text-sm font-medium text-gray-600">Szybkie filtry:</span>
-              <Badge variant="secondary" className="cursor-pointer bg-blue-100 text-blue-800">
+              <Badge
+                variant="secondary"
+                className="cursor-pointer px-2 bg-blue-100 text-blue-800"
+              >
                 Wymagane
               </Badge>
-              <Badge variant="secondary" className="cursor-pointer">
+              <Badge variant="secondary" className="cursor-pointer px-2">
                 Z plikami
               </Badge>
-              <Badge variant="secondary" className="cursor-pointer">
+              <Badge variant="secondary" className="cursor-pointer px-2">
                 Puste
               </Badge>
-              <Badge variant="secondary" className="cursor-pointer">
+              <Badge variant="secondary" className="cursor-pointer px-2">
                 Ostatnie
               </Badge>
             </div>
@@ -1358,6 +1361,7 @@ export const DocumentsSection = React.forwardRef<
           return (
             <Card
               key={category}
+              className="rounded-md"
               onDragEnter={(e) => {
                 handleDrag(e)
                 setDragCategory(category)
@@ -1372,9 +1376,9 @@ export const DocumentsSection = React.forwardRef<
                 className="flex flex-row items-center justify-between p-4 cursor-pointer"
                 onClick={() => setOpenCategories((prev) => ({ ...prev, [category]: !isCategoryOpen }))}
               >
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-1.5">
                   <h3 className="font-semibold">{category}</h3>
-                  <Badge variant="secondary" className="bg-green-100 text-green-800">
+                  <Badge variant="secondary" className="px-2 bg-green-100 text-green-800">
                     {documentsForCategory.length}
                   </Badge>
                   {category !== "Inne dokumenty" && documentsForCategory.length === 0 && (
@@ -1393,7 +1397,7 @@ export const DocumentsSection = React.forwardRef<
                     </Button>
                   )}
                 </div>
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-1.5">
                   <Button
                     variant="outline"
                     size="sm"
@@ -1428,21 +1432,24 @@ export const DocumentsSection = React.forwardRef<
                 </div>
               </CardHeader>
               {isCategoryOpen && (
-                <CardContent className="p-4 space-y-4">
+                <CardContent className="p-3 space-y-2">
                   <div className="flex items-center justify-between">
                     <div className="relative w-full max-w-sm">
                       <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-                      <Input placeholder="Wyszukaj w plikach (nazwa, opis, typ, rozmiar, id)..." className="pl-10" />
+                      <Input
+                        placeholder="Wyszukaj w plikach (nazwa, opis, typ, rozmiar, id)..."
+                        className="pl-10"
+                      />
                     </div>
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-1.5">
                       <span className="text-sm font-medium text-gray-600">Szybkie filtry:</span>
-                      <Badge variant="secondary" className="cursor-pointer">
+                      <Badge variant="secondary" className="cursor-pointer px-2">
                         PDF
                       </Badge>
-                      <Badge variant="secondary" className="cursor-pointer">
+                      <Badge variant="secondary" className="cursor-pointer px-2">
                         Obrazy
                       </Badge>
-                      <Badge variant="secondary" className="cursor-pointer">
+                      <Badge variant="secondary" className="cursor-pointer px-2">
                         Dokumenty
                       </Badge>
                       <div className="flex items-center rounded-md border bg-muted">

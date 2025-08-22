@@ -272,7 +272,7 @@ export function DecisionsSection({ claimId, onChange }: DecisionsSectionProps) {
     setEditingDecisionId(decision.id!)
     setIsFormVisible(true)
     setCurrentDecision(decision)
-    setShowFileDescription(!!decision.documentPath)
+    setShowFileDescription(!!(decision.documentPath || decision.documents?.length))
 
     const decisionDate = new Date(decision.decisionDate)
     const year = decisionDate.getFullYear()
@@ -639,7 +639,7 @@ export function DecisionsSection({ claimId, onChange }: DecisionsSectionProps) {
               <div className="space-y-4">
                 <Label className="text-sm font-medium text-gray-700">Załącz dokumenty decyzji</Label>
 
-                {isEditing && selectedFiles.length === 0 && currentDecision?.documents?.length ? (
+                {isEditing && currentDecision?.documents?.length ? (
                   <div className="space-y-2 mb-4">
                     {currentDecision.documents.map((doc) => (
                       <div
@@ -674,20 +674,6 @@ export function DecisionsSection({ claimId, onChange }: DecisionsSectionProps) {
                         </div>
                       </div>
                     ))}
-                    {showFileDescription && (
-                      <div className="p-3 bg-background rounded-b-lg border-x border-b">
-                        <Label htmlFor="documentDescription" className="text-sm font-medium">
-                          Opis dokumentu
-                        </Label>
-                        <Textarea
-                          id="documentDescription"
-                          value={formData.documentDescription}
-                          onChange={(e) => handleInputChange("documentDescription", e.target.value)}
-                          rows={2}
-                          className="mt-0.5"
-                        />
-                      </div>
-                    )}
                   </div>
                 ) : null}
 
@@ -743,7 +729,7 @@ export function DecisionsSection({ claimId, onChange }: DecisionsSectionProps) {
                       {selectedFiles.map((file, index) => (
                         <div
                           key={index}
-                          className="p-3 bg-muted rounded-t-lg border flex items-center justify-between"
+                          className="p-3 bg-muted rounded-lg border flex items-center justify-between"
                         >
                           <div className="flex items-center gap-2">
                             <FileText className="h-4 w-4 text-primary" />
@@ -763,23 +749,25 @@ export function DecisionsSection({ claimId, onChange }: DecisionsSectionProps) {
                         </div>
                       ))}
                     </div>
+                  </div>
+                )}
 
-                    {showFileDescription && (
-                      <div className="p-3 bg-background rounded-b-lg border-x border-b">
-                        <Label htmlFor="documentDescription" className="text-sm font-medium">
-                          Opis dokumentu
-                        </Label>
-                        <Textarea
-                          id="documentDescription"
-                          value={formData.documentDescription}
-                          onChange={(e) => handleInputChange("documentDescription", e.target.value)}
-                          rows={2}
-                          className="mt-0.5"
-                        />
-                        <p className="text-xs text-muted-foreground mt-0.5">
-                          Opis pomoże w łatwiejszej identyfikacji dokumentu w przyszłości.
-                        </p>
-                      </div>
+                {showFileDescription && (
+                  <div className="p-3 bg-background rounded-b-lg border-x border-b">
+                    <Label htmlFor="documentDescription" className="text-sm font-medium">
+                      Opis dokumentu
+                    </Label>
+                    <Textarea
+                      id="documentDescription"
+                      value={formData.documentDescription}
+                      onChange={(e) => handleInputChange("documentDescription", e.target.value)}
+                      rows={2}
+                      className="mt-0.5"
+                    />
+                    {selectedFiles.length > 0 && (
+                      <p className="text-xs text-muted-foreground mt-0.5">
+                        Opis pomoże w łatwiejszej identyfikacji dokumentu w przyszłości.
+                      </p>
                     )}
                   </div>
                 )}

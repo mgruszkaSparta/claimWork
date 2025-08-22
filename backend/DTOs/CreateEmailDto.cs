@@ -15,23 +15,19 @@ public class CreateEmailDto
   public string? InReplyTo { get; set; }
   public string? References { get; set; }
   
-  [Required]
   [EmailAddress]
-  public string From { get; set; } = string.Empty;
-  
-  [Required]
-  public string To { get; set; } = string.Empty;
-  
+  public string? From { get; set; }
+
+  public string? To { get; set; }
+
   public string? Cc { get; set; }
-  
+
   public string? Bcc { get; set; }
-  
-  [Required]
+
   [StringLength(500)]
-  public string Subject { get; set; } = string.Empty;
-  
-  [Required]
-  public string Body { get; set; } = string.Empty;
+  public string? Subject { get; set; }
+
+  public string? Body { get; set; }
   
   public string? BodyHtml { get; set; }
   

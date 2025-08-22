@@ -11,6 +11,9 @@ export async function GET(
       `${API_BASE_URL}/appeals/${params.id}/documents/${params.docId}/preview`,
       {
         method: "GET",
+        headers: {
+          cookie: request.headers.get("cookie") || "",
+        },
       },
     )
 
@@ -28,6 +31,7 @@ export async function GET(
     const fileResponse = new NextResponse(fileData)
     fileResponse.headers.set("Content-Type", contentType)
     fileResponse.headers.set("Content-Disposition", "inline")
+    fileResponse.headers.set("Cache-Control", "no-cache")
 
     return fileResponse
   } catch (error) {

@@ -352,27 +352,28 @@ export const AppealsSection = ({ claimId }: AppealsSectionProps) => {
     return "other"
   }
 
-  const downloadFile = async (appeal: Appeal, doc: DocumentDto) => {
+  const downloadFile = async (appeal: Appeal, doc?: DocumentDto) => {
     try {
-      const response = await fetch(
-        `${API_BASE_URL}/appeals/${appeal.id}/documents/${doc.id}/download`,
-        {
-          method: "GET",
-          credentials: "include",
-        },
-      )
+      const url = doc
+        ? `${API_BASE_URL}/appeals/${appeal.id}/documents/${doc.id}/download`
+        : `${API_BASE_URL}/appeals/${appeal.id}/download`
+      const response = await fetch(url, {
+        method: "GET",
+        credentials: "include",
+      })
       if (!response.ok) {
         throw new Error("Failed to download file")
       }
       const blob = await response.blob()
-      const url = window.URL.createObjectURL(blob)
+      const objectUrl = window.URL.createObjectURL(blob)
       const a = document.createElement("a")
-      a.href = url
-      a.download = doc.originalFileName || doc.fileName || "document"
+      a.href = objectUrl
+      a.download =
+        doc?.originalFileName || doc?.fileName || appeal.documentName || "document"
       document.body.appendChild(a)
       a.click()
       a.remove()
-      window.URL.revokeObjectURL(url)
+      window.URL.revokeObjectURL(objectUrl)
     } catch (error) {
       console.error("Error downloading file:", error)
       toast({
@@ -383,25 +384,26 @@ export const AppealsSection = ({ claimId }: AppealsSectionProps) => {
     }
   }
 
-  const previewFile = async (appeal: Appeal, doc: DocumentDto) => {
+  const previewFile = async (appeal: Appeal, doc?: DocumentDto) => {
     try {
-      const response = await fetch(
-        `${API_BASE_URL}/appeals/${appeal.id}/documents/${doc.id}/preview`,
-        {
-          method: "GET",
-          credentials: "include",
-        },
-      )
+      const url = doc
+        ? `${API_BASE_URL}/appeals/${appeal.id}/documents/${doc.id}/preview`
+        : `${API_BASE_URL}/appeals/${appeal.id}/preview`
+      const response = await fetch(url, {
+        method: "GET",
+        credentials: "include",
+      })
       if (!response.ok) {
         throw new Error("Failed to preview file")
       }
       const blob = await response.blob()
-      const url = window.URL.createObjectURL(blob)
-      setPreviewUrl(url)
-      setPreviewFileType(getFileType(doc.originalFileName || doc.fileName || ""))
-      setPreviewFileName(doc.originalFileName || doc.fileName || "")
+      const objectUrl = window.URL.createObjectURL(blob)
+      const name = doc?.originalFileName || doc?.fileName || appeal.documentName || ""
+      setPreviewUrl(objectUrl)
+      setPreviewFileType(getFileType(name))
+      setPreviewFileName(name)
       setPreviewAppeal(appeal)
-      setPreviewDoc(doc)
+      setPreviewDoc(doc || null)
       setIsPreviewOpen(true)
     } catch (error) {
       console.error("Error previewing file:", error)
@@ -550,28 +552,72 @@ export const AppealsSection = ({ claimId }: AppealsSectionProps) => {
               <div className="space-y-4">
                 <Label className="text-sm font-medium text-gray-700">Załącz dokument odwołania</Label>
 
-                {isEditing && selectedFiles.length === 0 && currentAppeal?.documents?.length ? (
+                {isEditing &&
+                selectedFiles.length === 0 &&
+                (currentAppeal?.documents?.length || currentAppeal?.documentName) ? (
                   <div className="space-y-2 mb-4">
-                    {currentAppeal.documents.map((doc) => (
-                      <div
-                        key={doc.id}
-                        className="p-3 bg-gray-50 rounded-lg border flex items-center justify-between"
-                      >
+                    {currentAppeal?.documents?.length ? (
+                      currentAppeal.documents.map((doc) => (
+                        <div
+                          key={doc.id}
+                          className="p-3 bg-gray-50 rounded-lg border flex items-center justify-between"
+                        >
+                          <div className="flex items-center gap-2">
+                            <FileText className="h-4 w-4 text-[#1a3a6c]" />
+                            <span
+                              className="text-sm font-medium truncate max-w-60"
+                              title={doc.originalFileName || doc.fileName}
+                            >
+                              {doc.originalFileName || doc.fileName}
+                            </span>
+                          </div>
+                          <div className="flex gap-1">
+                            {isPreviewable(doc.originalFileName || doc.fileName) && (
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => previewFile(currentAppeal, doc)}
+                                title="Podgląd"
+                              >
+                                <Eye className="h-4 w-4" />
+                              </Button>
+                            )}
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => downloadFile(currentAppeal, doc)}
+                              title="Pobierz"
+                            >
+                              <Download className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleDeleteDocument(doc)}
+                              title="Usuń"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </div>
+                      ))
+                    ) : currentAppeal?.documentName ? (
+                      <div className="p-3 bg-gray-50 rounded-lg border flex items-center justify-between">
                         <div className="flex items-center gap-2">
                           <FileText className="h-4 w-4 text-[#1a3a6c]" />
                           <span
                             className="text-sm font-medium truncate max-w-60"
-                            title={doc.originalFileName || doc.fileName}
+                            title={currentAppeal.documentName}
                           >
-                            {doc.originalFileName || doc.fileName}
+                            {currentAppeal.documentName}
                           </span>
                         </div>
                         <div className="flex gap-1">
-                          {isPreviewable(doc.originalFileName || doc.fileName) && (
+                          {isPreviewable(currentAppeal.documentName) && (
                             <Button
                               variant="ghost"
                               size="sm"
-                              onClick={() => previewFile(currentAppeal, doc)}
+                              onClick={() => previewFile(currentAppeal)}
                               title="Podgląd"
                             >
                               <Eye className="h-4 w-4" />
@@ -580,22 +626,14 @@ export const AppealsSection = ({ claimId }: AppealsSectionProps) => {
                           <Button
                             variant="ghost"
                             size="sm"
-                            onClick={() => downloadFile(currentAppeal, doc)}
+                            onClick={() => downloadFile(currentAppeal)}
                             title="Pobierz"
                           >
                             <Download className="h-4 w-4" />
                           </Button>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handleDeleteDocument(doc)}
-                            title="Usuń"
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
                         </div>
                       </div>
-                    ))}
+                    ) : null}
                     {showFileDescription && (
                       <div className="p-3 bg-white rounded-b-lg border-x border-b">
                         <Label htmlFor="documentDescription" className="text-sm font-medium">
@@ -873,6 +911,37 @@ export const AppealsSection = ({ claimId }: AppealsSectionProps) => {
                             </span>
                           )}
                         </div>
+                      ) : appeal.documentName ? (
+                        <div className="flex items-center gap-2">
+                          <span
+                            className="text-gray-700 truncate max-w-32"
+                            title={appeal.documentName}
+                          >
+                            {appeal.documentName}
+                          </span>
+                          <div className="flex gap-1">
+                            {isPreviewable(appeal.documentName) && (
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => previewFile(appeal)}
+                                className="h-6 w-6 p-0 text-blue-600 hover:text-blue-800 hover:bg-blue-50"
+                                title="Podgląd"
+                              >
+                                <Eye className="h-3 w-3" />
+                              </Button>
+                            )}
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => downloadFile(appeal)}
+                              className="h-6 w-6 p-0 text-green-600 hover:text-green-800 hover:bg-green-50"
+                              title="Pobierz"
+                            >
+                              <Download className="h-3 w-3" />
+                            </Button>
+                          </div>
+                        </div>
                       ) : (
                         <span className="text-gray-500">Brak dokumentu</span>
                       )}
@@ -981,7 +1050,7 @@ export const AppealsSection = ({ claimId }: AppealsSectionProps) => {
           </div>
           <div className="flex justify-end pt-4 border-t border-gray-200">
             <Button
-              onClick={() => previewAppeal && previewDoc && downloadFile(previewAppeal, previewDoc)}
+              onClick={() => previewAppeal && downloadFile(previewAppeal, previewDoc || undefined)}
               className="bg-[#1a3a6c] hover:bg-[#15305a] text-white"
             >
               <Download className="h-4 w-4 mr-2" />

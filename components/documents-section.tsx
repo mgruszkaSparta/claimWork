@@ -474,12 +474,12 @@ export const DocumentsSection = React.forwardRef<
              (documentDto.contentType?.startsWith("image/") ||
                documentDto.contentType === "application/pdf" ||
                documentDto.contentType?.startsWith("video/") ||
-               documentDto.contentType ===
-                 "application/vnd.openxmlformats-officedocument.wordprocessingml.document" ||
-               documentDto.contentType === "application/msword" ||
-               documentDto.contentType === "application/vnd.ms-excel" ||
-               documentDto.contentType ===
-                 "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"),
+              documentDto.contentType ===
+                "application/vnd.openxmlformats-officedocument.wordprocessingml.document" ||
+              documentDto.contentType === "application/msword" ||
+              documentDto.contentType?.includes("ms-excel") ||
+              documentDto.contentType?.includes("spreadsheetml") ||
+              documentDto.contentType?.includes("excel")),
            previewUrl:
              documentDto.cloudUrl ||
              `${apiUrl}/documents/${documentDto.id}/preview`,
@@ -1863,9 +1863,9 @@ export const DocumentsSection = React.forwardRef<
                       title={previewDocument.originalFileName}
                     />
                   </object>
-                ) : previewDocument.contentType === "application/vnd.ms-excel" ||
-                  previewDocument.contentType ===
-                    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" ? (
+                ) : previewDocument.contentType?.includes("ms-excel") ||
+                  previewDocument.contentType?.includes("spreadsheetml") ||
+                  previewDocument.contentType?.includes("excel") ? (
                   <iframe
                     src={`https://view.officeapps.live.com/op/embed.aspx?src=${encodeURIComponent(
                       previewDocument.previewUrl || previewDocument.downloadUrl,

@@ -114,7 +114,7 @@ export const ParticipantForm: React.FC<ParticipantFormProps> = ({
                 <Car className="w-5 h-5" />
               </div>
               <div>
-                <h2 className="text-lg font-semibold text-[#1a3a6c]">Dane pojazdu</h2>
+                <h2 className="text-sm font-semibold text-[#1a3a6c]">Dane pojazdu</h2>
               </div>
             </div>
 
@@ -242,7 +242,7 @@ export const ParticipantForm: React.FC<ParticipantFormProps> = ({
                   <Info className="w-5 h-5" />
                 </div>
                 <div>
-                  <h2 className="text-lg font-semibold text-[#1a3a6c]">Dane i kontakt do oględzin</h2>
+                  <h2 className="text-sm font-semibold text-[#1a3a6c]">Dane i kontakt do oględzin</h2>
                 </div>
               </div>
 
@@ -275,7 +275,7 @@ export const ParticipantForm: React.FC<ParticipantFormProps> = ({
                 <FileText className="w-5 h-5" />
               </div>
               <div>
-                <h2 className="text-lg font-semibold text-[#1a3a6c]">Polisa</h2>
+                <h2 className="text-sm font-semibold text-[#1a3a6c]">Polisa</h2>
               </div>
             </div>
 
@@ -378,7 +378,7 @@ export const ParticipantForm: React.FC<ParticipantFormProps> = ({
                 <User className="w-5 h-5" />
               </div>
               <div>
-                <h2 className="text-lg font-semibold text-[#1a3a6c]">Dane osobowe uczestnika</h2>
+                <h2 className="text-sm font-semibold text-[#1a3a6c]">Dane osobowe uczestnika</h2>
               </div>
             </div>
             <Button
@@ -398,7 +398,7 @@ export const ParticipantForm: React.FC<ParticipantFormProps> = ({
               {participantData.drivers && participantData.drivers.map((driver, index) => (
                 <div key={driver.id} className="border border-gray-200 rounded-lg p-4 bg-gray-50">
                   <div className="flex items-center justify-between mb-4">
-                    <h4 className="text-md font-semibold text-[#1a3a6c]">
+                    <h4 className="text-sm font-semibold text-[#1a3a6c]">
                       Osoba {index + 1}
                     </h4>
                     {participantData.drivers.length > 1 && (

@@ -75,13 +75,13 @@ export default function CreateClaimPage() {
         onSubmit={handleSubmit}
         className="bg-white p-6 rounded-lg shadow-md w-full max-w-md space-y-4"
       >
-        <h2 className="text-lg font-semibold">Wybierz klienta</h2>
+        <h2 className="text-sm font-semibold">Wybierz klienta</h2>
         <ClientDropdown
           selectedClientId={clientId}
           onClientSelected={(e: ClientSelectionEvent) => setClientId(e.clientId)}
         />
 
-        <h3 className="text-md font-medium pt-2">Przedmiot szkody</h3>
+        <h3 className="text-sm font-semibold pt-2">Przedmiot szkody</h3>
         <div
           role="radiogroup"
           aria-label="Przedmiot szkody"

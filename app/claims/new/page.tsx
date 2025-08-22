@@ -1057,7 +1057,7 @@ export default function NewClaimPage() {
 
             {/* Repair Time */}
             <div className="space-y-4">
-              <h3 className="text-base font-semibold text-gray-700">Czas naprawy (roboczogodziny)</h3>
+              <h3 className="text-sm font-semibold text-gray-700">Czas naprawy (roboczogodziny)</h3>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                 <div>
                   <Label htmlFor="bodyworkHours">Prace blacharskie</Label>

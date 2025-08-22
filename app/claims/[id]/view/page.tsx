@@ -1100,7 +1100,7 @@ export default function ViewClaimPage() {
             <div>
               <div className="flex items-center mb-4">
                 <Calendar className="h-5 w-5 mr-2 text-indigo-600" />
-                <h3 className="text-lg font-semibold">Harmonogram naprawy</h3>
+                <h3 className="text-sm font-semibold">Harmonogram naprawy</h3>
               </div>
                 {repairSchedules.length === 0 ? (
                   <div className="text-center py-8 border-2 border-dashed border-gray-300 rounded-lg bg-gray-50">
@@ -1591,7 +1591,7 @@ export default function ViewClaimPage() {
 
             {/* Repair Time */}
             <div className="space-y-4">
-              <h3 className="text-base font-semibold text-gray-700">Czas naprawy (roboczogodziny)</h3>
+              <h3 className="text-sm font-semibold text-gray-700">Czas naprawy (roboczogodziny)</h3>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                 <div>
                   <Label htmlFor="bodyworkHours">Prace blacharskie</Label>

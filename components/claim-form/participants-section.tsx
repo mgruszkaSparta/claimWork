@@ -232,7 +232,7 @@ export function ParticipantsSection({
                 <div className="text-[#1a3a6c]">
                   <AlertTriangle className="h-5 w-5" />
                 </div>
-                <h2 className="text-lg font-semibold text-[#1a3a6c]">Sprawca</h2>
+                <h2 className="text-sm font-semibold text-[#1a3a6c]">Sprawca</h2>
               </div>
               <Button
                 variant="destructive"

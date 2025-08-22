@@ -1290,7 +1290,7 @@ export const ClaimMainContent = ({
               <div className="w-8 h-8 bg-red-500 rounded-lg flex items-center justify-center">
                 <AlertTriangle className="h-4 w-4" />
               </div>
-              <CardTitle className="text-lg font-semibold">Sprawca</CardTitle>
+              <CardTitle className="text-sm font-semibold">Sprawca</CardTitle>
             </CardHeader>
             <CardContent className="p-6 bg-white">
               <ParticipantForm

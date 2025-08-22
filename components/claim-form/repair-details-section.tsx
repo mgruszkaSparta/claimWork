@@ -225,7 +225,7 @@ export const RepairDetailsSection: React.FC<RepairDetailsSectionProps> = ({ even
             <form onSubmit={handleSubmit} className="space-y-8">
               {/* Basic information */}
               <div className="space-y-4">
-                <h3 className="text-lg font-semibold text-foreground flex items-center gap-2">
+                <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
                   <Car className="h-5 w-5 text-primary" />
                   Informacje podstawowe
                 </h3>
@@ -293,7 +293,7 @@ export const RepairDetailsSection: React.FC<RepairDetailsSectionProps> = ({ even
 
               {/* Dates */}
               <div className="space-y-4">
-                <h3 className="text-lg font-semibold text-foreground flex items-center gap-2">
+                <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
                   <Calendar className="h-5 w-5 text-primary" /> Daty i terminy
                 </h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -346,7 +346,7 @@ export const RepairDetailsSection: React.FC<RepairDetailsSectionProps> = ({ even
 
               {/* Damage description */}
               <div className="space-y-4">
-                <h3 className="text-lg font-semibold text-foreground flex items-center gap-2">
+                <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
                   <AlertTriangle className="h-5 w-5 text-accent" /> Opis uszkodzeń
                 </h3>
                 <Textarea
@@ -361,7 +361,7 @@ export const RepairDetailsSection: React.FC<RepairDetailsSectionProps> = ({ even
 
               {/* Vehicle options */}
               <div className="space-y-4">
-                <h3 className="text-lg font-semibold text-foreground flex items-center gap-2">
+                <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
                   <Car className="h-5 w-5 text-primary" /> Opcje pojazdów
                 </h3>
                 <div className="space-y-4">
@@ -416,7 +416,7 @@ export const RepairDetailsSection: React.FC<RepairDetailsSectionProps> = ({ even
 
               {/* Work hours */}
               <div className="space-y-4">
-                <h3 className="text-lg font-semibold text-foreground flex items-center gap-2">
+                <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
                   <Timer className="h-5 w-5 text-primary" /> Godziny pracy
                 </h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -484,7 +484,7 @@ export const RepairDetailsSection: React.FC<RepairDetailsSectionProps> = ({ even
 
               {/* Additional info */}
               <div className="space-y-4">
-                <h3 className="text-lg font-semibold text-foreground flex items-center gap-2">
+                <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
                   <FileText className="h-5 w-5 text-muted-foreground" /> Informacje dodatkowe
                 </h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

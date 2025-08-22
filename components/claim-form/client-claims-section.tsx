@@ -533,7 +533,7 @@ export function ClientClaimsSection({ clientClaims, onClientClaimsChange, claimI
             <FileSignature className="h-5 w-5" />
           </div>
           <div>
-            <h2 className="text-lg font-semibold text-[#1a3a6c]">Roszczenia</h2>
+            <h2 className="text-sm font-semibold text-[#1a3a6c]">Roszczenia</h2>
           </div>
         </div>
 
@@ -552,7 +552,7 @@ export function ClientClaimsSection({ clientClaims, onClientClaimsChange, claimI
       {isFormVisible && (
         <div className="bg-white rounded-lg border border-[#d1d9e6] overflow-hidden mb-6 shadow-sm">
           <div className="p-4 bg-[#f8fafc] border-b border-[#d1d9e6]">
-            <h3 className="text-md font-semibold text-[#1a3a6c]">
+            <h3 className="text-sm font-semibold text-[#1a3a6c]">
               {isEditing ? "Edytuj roszczenie" : "Dodaj nowe roszczenie"}
             </h3>
           </div>
@@ -854,7 +854,7 @@ export function ClientClaimsSection({ clientClaims, onClientClaimsChange, claimI
       {!isFormVisible && (
         <div className="bg-white rounded-lg border border-[#d1d9e6] overflow-hidden shadow-sm">
           <div className="p-4 bg-[#f8fafc] border-b border-[#d1d9e6] flex flex-row items-center justify-between">
-            <h3 className="text-md font-semibold text-[#1a3a6c]">Lista roszczeń</h3>
+            <h3 className="text-sm font-semibold text-[#1a3a6c]">Lista roszczeń</h3>
             <div className="text-sm text-gray-500">
               {Object.keys(totalsByCurrency).length > 0 ? (
                 <>

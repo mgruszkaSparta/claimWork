@@ -457,7 +457,7 @@ export const RepairScheduleSection: React.FC<RepairScheduleSectionProps> = ({ ev
           <CardContent className="p-8">
             <div className="space-y-8 animate-slide-up">
               <div className="space-y-4">
-                <h3 className="text-lg font-semibold text-foreground flex items-center gap-2">
+                <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
                   <Car className="h-5 w-5 text-primary" />
                   Podstawowe informacje
                 </h3>
@@ -511,7 +511,7 @@ export const RepairScheduleSection: React.FC<RepairScheduleSectionProps> = ({ ev
               </div>
 
               <div className="space-y-4">
-                <h3 className="text-lg font-semibold text-foreground flex items-center gap-2">
+                <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
                   <Calendar className="h-5 w-5 text-primary" />
                   Harmonogram napraw
                 </h3>
@@ -572,7 +572,7 @@ export const RepairScheduleSection: React.FC<RepairScheduleSectionProps> = ({ ev
               </div>
 
               <div className="space-y-4">
-                <h3 className="text-lg font-semibold text-foreground flex items-center gap-2">
+                <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
                   <AlertTriangle className="h-5 w-5 text-accent" />
                   Status operacyjny
                 </h3>
@@ -649,7 +649,7 @@ export const RepairScheduleSection: React.FC<RepairScheduleSectionProps> = ({ ev
               </div>
 
               <div className="space-y-4">
-                <h3 className="text-lg font-semibold text-foreground flex items-center gap-2">
+                <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
                   <User className="h-5 w-5 text-primary" />
                   Kontakty
                 </h3>

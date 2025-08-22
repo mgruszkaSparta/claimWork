@@ -24,7 +24,7 @@ export const DriverForm = ({ driverData, onDriverChange, onRemove, isRemovable }
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center space-x-2">
             <User className="h-5 w-5 text-blue-600" />
-            <span className="text-lg font-semibold text-gray-900">Uczestnik</span>
+            <span className="text-sm font-semibold text-gray-900">Uczestnik</span>
           </div>
           {isRemovable && (
             <Button
@@ -41,7 +41,7 @@ export const DriverForm = ({ driverData, onDriverChange, onRemove, isRemovable }
         <div className="space-y-4">
           {/* Dane podstawowe */}
           <div className="space-y-4">
-            <h4 className="text-base font-semibold text-gray-900 border-b pb-2">Dane podstawowe</h4>
+            <h4 className="text-sm font-semibold text-gray-900 border-b pb-2">Dane podstawowe</h4>
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
@@ -167,7 +167,7 @@ export const DriverForm = ({ driverData, onDriverChange, onRemove, isRemovable }
 
           {/* Adres */}
           <div className="space-y-4">
-            <h4 className="text-base font-semibold text-gray-900 border-b pb-2">Adres</h4>
+            <h4 className="text-sm font-semibold text-gray-900 border-b pb-2">Adres</h4>
                         
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
@@ -274,7 +274,7 @@ export const DriverForm = ({ driverData, onDriverChange, onRemove, isRemovable }
 
           {/* Dane kontaktowe */}
           <div className="space-y-4">
-            <h4 className="text-base font-semibold text-gray-900 border-b pb-2">Dane kontaktowe</h4>
+            <h4 className="text-sm font-semibold text-gray-900 border-b pb-2">Dane kontaktowe</h4>
                         
             <div>
               <Label htmlFor={`driver-phone-${driverData.id}`} className="text-sm font-medium text-gray-700">

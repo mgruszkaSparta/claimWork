@@ -64,7 +64,7 @@ export function TransportClaimSummary({
         <div className="px-4 py-3 bg-gradient-to-r from-blue-50 to-blue-100 border-b border-gray-200">
           <div className="flex items-center space-x-2">
             <FileText className="h-4 w-4 text-blue-600" />
-            <h3 className="text-base font-semibold text-gray-900">Dane szkody i zdarzenia</h3>
+            <h3 className="text-sm font-semibold text-gray-900">Dane szkody i zdarzenia</h3>
           </div>
         </div>
         <div className="p-4 space-y-3">

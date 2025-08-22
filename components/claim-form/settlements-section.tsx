@@ -521,7 +521,7 @@ export const SettlementsSection: React.FC<SettlementsSectionProps> = ({ eventId 
             <HandHeart className="h-5 w-5" />
           </div>
           <div>
-            <h2 className="text-lg font-semibold text-[#1a3a6c]">Ugoda</h2>
+            <h2 className="text-sm font-semibold text-[#1a3a6c]">Ugoda</h2>
           </div>
         </div>
 
@@ -540,7 +540,7 @@ export const SettlementsSection: React.FC<SettlementsSectionProps> = ({ eventId 
         {isFormVisible && (
           <div className="bg-white rounded-lg border border-[#d1d9e6] overflow-hidden mb-6">
             <div className="p-4 bg-[#f8fafc] border-b border-[#d1d9e6]">
-              <h3 className="text-md font-semibold text-[#1a3a6c]">
+              <h3 className="text-sm font-semibold text-[#1a3a6c]">
                 {isEditing ? `Edytuj ugodę #${editingSettlementId}` : "Dodaj nową ugodę"}
               </h3>
               {isEditing && (
@@ -838,7 +838,7 @@ export const SettlementsSection: React.FC<SettlementsSectionProps> = ({ eventId 
         {!isFormVisible && (
           <div className="bg-white rounded-lg border border-[#d1d9e6] overflow-hidden">
             <div className="p-4 bg-[#f8fafc] border-b border-[#d1d9e6] flex justify-between items-center">
-              <h3 className="text-md font-semibold text-[#1a3a6c]">Lista ugód</h3>
+              <h3 className="text-sm font-semibold text-[#1a3a6c]">Lista ugód</h3>
               <div className="text-sm text-gray-500">
                 {Object.keys(totalPaymentsByCurrency).length > 0 ? (
                   <>
@@ -987,7 +987,7 @@ export const SettlementsSection: React.FC<SettlementsSectionProps> = ({ eventId 
           <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] flex flex-col">
             {/* Modal header */}
             <div className="p-4 bg-[#f8fafc] border-b border-[#d1d9e6] flex justify-between items-center">
-              <h3 className="text-md font-semibold text-[#1a3a6c]">Podgląd: {previewFileName}</h3>
+              <h3 className="text-sm font-semibold text-[#1a3a6c]">Podgląd: {previewFileName}</h3>
               <Button
                 onClick={closePreview}
                 variant="ghost"

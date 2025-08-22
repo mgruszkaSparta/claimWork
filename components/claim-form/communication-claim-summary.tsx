@@ -61,7 +61,7 @@ const InfoCard = ({
       {icon && <div className="text-gray-400">{icon}</div>}
       <span className="text-xs font-medium text-gray-500 uppercase tracking-wide">{label}</span>
     </div>
-    <p className="text-sm font-medium text-gray-900 truncate">{value || "Nie określono"}</p>
+    <p className="text-sm font-medium text-gray-900 break-words">{value || "Nie określono"}</p>
   </div>
 )
 
@@ -253,6 +253,17 @@ const CommunicationClaimSummary = ({
                 <InfoCard label="Status" value={getStatusLabel(claimFormData.status)} />
                 <InfoCard label="Szkodę zarejestrował" value={claimFormData.handler} />
               </div>
+
+              {(claimFormData.handlerEmail || claimFormData.handlerPhone) && (
+                <div className="grid grid-cols-2 gap-3">
+                  {claimFormData.handlerEmail && (
+                    <InfoCard label="E-mail" value={claimFormData.handlerEmail} />
+                  )}
+                  {claimFormData.handlerPhone && (
+                    <InfoCard label="Telefon" value={claimFormData.handlerPhone} />
+                  )}
+                </div>
+              )}
 
               <InfoCard label="Rodzaj szkody" value={claimFormData.damageType} />
               <InfoCard label="Ryzyko szkody" value={getRiskTypeLabel(claimFormData.riskType)} />

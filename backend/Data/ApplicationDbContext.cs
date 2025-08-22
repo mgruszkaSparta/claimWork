@@ -54,6 +54,11 @@ namespace AutomotiveClaimsApi.Data
                       .WithMany()
                       .HasForeignKey(u => u.ClientId)
                       .OnDelete(DeleteBehavior.SetNull);
+
+                entity.HasOne(u => u.CaseHandler)
+                      .WithMany()
+                      .HasForeignKey(u => u.CaseHandlerId)
+                      .OnDelete(DeleteBehavior.SetNull);
             });
 
             // Event is the central aggregate root

@@ -111,7 +111,12 @@ namespace AutomotiveClaimsApi.Migrations
                     b.Property<DateTime?>("LastLogin")
                         .HasColumnType("datetime2");
 
+                    b.Property<int?>("CaseHandlerId")
+                        .HasColumnType("integer");
+
                     b.HasKey("Id");
+
+                    b.HasIndex("CaseHandlerId");
 
                     b.HasIndex("NormalizedEmail")
                         .HasDatabaseName("EmailIndex");
@@ -1622,6 +1627,16 @@ namespace AutomotiveClaimsApi.Migrations
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+                });
+
+            modelBuilder.Entity("AutomotiveClaimsApi.Models.ApplicationUser", b =>
+                {
+                    b.HasOne("AutomotiveClaimsApi.Models.Dictionary.CaseHandler", "CaseHandler")
+                        .WithMany()
+                        .HasForeignKey("CaseHandlerId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.Navigation("CaseHandler");
                 });
 #pragma warning restore 612, 618
         }

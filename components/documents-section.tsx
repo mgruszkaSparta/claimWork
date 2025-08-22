@@ -222,7 +222,10 @@ export const DocumentsSection = React.forwardRef<
     if (
       contentType.includes("msword") ||
       contentType.includes("wordprocessingml") ||
-      contentType.includes("doc")
+      contentType.includes("doc") ||
+      contentType.includes("ms-excel") ||
+      contentType.includes("spreadsheetml") ||
+      contentType.includes("excel")
     )
       return "doc"
     if (contentType.includes("video")) return "video"
@@ -389,7 +392,11 @@ export const DocumentsSection = React.forwardRef<
             ? "image"
             : file.type.includes("pdf")
             ? "pdf"
-            : file.type.includes("msword") || file.type.includes("wordprocessingml")
+            : file.type.includes("msword") ||
+              file.type.includes("wordprocessingml") ||
+              file.type.includes("ms-excel") ||
+              file.type.includes("spreadsheetml") ||
+              file.type.includes("excel")
             ? "doc"
             : "other",
           uploadedAt: new Date().toISOString(),
@@ -1135,6 +1142,12 @@ export const DocumentsSection = React.forwardRef<
       return <File className="h-5 w-5 text-blue-500" />
     } else if (contentType === "application/pdf") {
       return <File className="h-5 w-5 text-red-500" />
+    } else if (
+      contentType.includes("spreadsheet") ||
+      contentType.includes("ms-excel") ||
+      contentType.includes("excel")
+    ) {
+      return <File className="h-5 w-5 text-green-600" />
     } else if (contentType.includes("document") || contentType.includes("word")) {
       return <File className="h-5 w-5 text-blue-700" />
     } else if (contentType.startsWith("video/")) {
@@ -1779,6 +1792,16 @@ export const DocumentsSection = React.forwardRef<
                       title={previewDocument.originalFileName}
                     />
                   </object>
+                ) : previewDocument.contentType === "application/vnd.ms-excel" ||
+                  previewDocument.contentType ===
+                    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" ? (
+                  <iframe
+                    src={`https://view.officeapps.live.com/op/embed.aspx?src=${encodeURIComponent(
+                      previewDocument.previewUrl || previewDocument.downloadUrl,
+                    )}`}
+                    className="w-full h-full"
+                    title={previewDocument.originalFileName}
+                  />
                 ) : previewDocument.contentType === "application/msword" ? (
                   <iframe
                     src={`https://view.officeapps.live.com/op/embed.aspx?src=${encodeURIComponent(

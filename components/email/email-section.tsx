@@ -69,7 +69,15 @@ export const EmailSection = ({
   const mapAttachmentType = (type: string): UploadedFile["type"] => {
     if (type.includes("pdf")) return "pdf"
     if (type.includes("image")) return "image"
-    if (type.includes("doc")) return "doc"
+    if (
+      type.includes("doc") ||
+      type.includes("msword") ||
+      type.includes("wordprocessingml") ||
+      type.includes("ms-excel") ||
+      type.includes("spreadsheetml") ||
+      type.includes("excel")
+    )
+      return "doc"
     if (type.includes("video")) return "video"
     return "other"
   }

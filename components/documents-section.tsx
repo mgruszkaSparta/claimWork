@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Checkbox } from "@/components/ui/checkbox"
+import { renameDocument } from "@/lib/api/documents"
 import {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -643,7 +644,7 @@ export const DocumentsSection = React.forwardRef<
     }
   }
 
-  const handleFileNameChange = async (documentId: string | number, name: string) => {
+  const updateFileName = (documentId: string | number, name: string) => {
     const pendingIndex = pendingFiles.findIndex((f) => f.id === documentId)
 
     if (pendingIndex !== -1) {
@@ -661,7 +662,6 @@ export const DocumentsSection = React.forwardRef<
       return
     }
 
-    // Optimistic update
     setDocuments((prev) =>
       prev.map((doc) =>
         doc.id === documentId ? { ...doc, originalFileName: name } : doc,
@@ -675,38 +675,28 @@ export const DocumentsSection = React.forwardRef<
         f.id === documentId.toString() ? { ...f, name } : f,
       ),
     )
+  }
+
+  const handleFileNameChange = async (documentId: string | number, name: string) => {
+    updateFileName(documentId, name)
 
     try {
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/documents/${documentId}`,
-        {
-          method: "PUT",
-          credentials: "include",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ originalFileName: name }),
-        },
+      const updatedDocument = await renameDocument(documentId.toString(), name)
+      setDocuments((prev) =>
+        prev.map((doc) =>
+          doc.id === documentId ? { ...doc, ...updatedDocument } : doc,
+        ),
       )
-
-      if (response.ok) {
-        const updatedDocument = await response.json()
-        setDocuments((prev) =>
-          prev.map((doc) =>
-            doc.id === documentId ? { ...doc, ...updatedDocument } : doc,
-          ),
-        )
-        setPreviewDocument((prev) =>
-          prev?.id === documentId ? { ...prev, ...updatedDocument } : prev,
-        )
-        setUploadedFiles((prev) =>
-          prev.map((f) =>
-            f.id === documentId.toString()
-              ? { ...f, name: updatedDocument.originalFileName }
-              : f,
-          ),
-        )
-      }
+      setPreviewDocument((prev) =>
+        prev?.id === documentId ? { ...prev, ...updatedDocument } : prev,
+      )
+      setUploadedFiles((prev) =>
+        prev.map((f) =>
+          f.id === documentId.toString()
+            ? { ...f, name: updatedDocument.originalFileName }
+            : f,
+        ),
+      )
     } catch (error) {
       console.error("Error updating document name:", error)
     }
@@ -1203,7 +1193,8 @@ export const DocumentsSection = React.forwardRef<
       <div className="p-3">
         <Input
           value={doc.originalFileName}
-          onChange={(e) => handleFileNameChange(doc.id, e.target.value)}
+          onChange={(e) => updateFileName(doc.id, e.target.value)}
+          onBlur={(e) => handleFileNameChange(doc.id, e.target.value)}
           className="text-sm mb-1"
           title={doc.originalFileName}
         />

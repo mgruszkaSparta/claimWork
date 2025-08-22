@@ -156,17 +156,18 @@ function ClaimFormSidebar({ activeClaimSection, setActiveClaimSection, claimObje
                       variant="ghost"
                       className={`w-full justify-start h-auto p-3 text-left transition-all duration-200 ${
                         isActive
-                          ? "bg-blue-100 text-blue-700 border-r-2 border-blue-600 shadow-sm"
+                          ? "bg-blue-100 text-blue-700 border-l-4 border-blue-600 shadow-sm"
                           : "text-gray-700 hover:bg-gray-100 hover:text-gray-900"
                       }`}
                       onClick={() => setActiveClaimSection(item.id)}
+                      aria-current={isActive ? "page" : undefined}
                     >
                       <div className="flex items-start space-x-3 w-full">
                         <div className={`mt-0.5 ${isActive ? "text-blue-700" : "text-gray-400"}`}>
                           <Icon className="h-4 w-4" />
                         </div>
                         <div className="flex-1 min-w-0">
-                          <div className={`font-medium text-sm ${isActive ? "text-blue-700" : "text-gray-900"}`}>
+                          <div className={`text-sm font-medium ${isActive ? "text-blue-700 font-semibold" : "text-gray-900"}`}>
                             {item.label}
                           </div>
                         </div>

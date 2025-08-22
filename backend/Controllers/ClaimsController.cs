@@ -1659,7 +1659,6 @@ namespace AutomotiveClaimsApi.Controllers
                 IsArchived = dto.IsArchived,
                 Tags = dto.Tags,
                 Category = dto.Category,
-                ClaimId = dto.ClaimId,
                 ClaimNumber = dto.ClaimNumber,
                 ThreadId = dto.ThreadId,
                 MessageId = dto.MessageId,

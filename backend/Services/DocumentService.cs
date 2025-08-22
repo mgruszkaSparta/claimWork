@@ -65,16 +65,16 @@ namespace AutomotiveClaimsApi.Services
                 .Where(d => d.EventId == eventId && !d.IsDeleted)
                 .ToListAsync();
 
-            var baseUrl = _config["App:BaseUrl"];
-            return documents.Select(d => MapToDto(d, baseUrl));
+        
+            return documents.Select(d => MapToDto(d));
         }
 
         public async Task<DocumentDto?> GetDocumentByIdAsync(Guid id)
         {
             var document = await _context.Documents.FindAsync(id);
             if (document == null) return null;
-            var baseUrl = _config["App:BaseUrl"];
-            return MapToDto(document, baseUrl);
+          
+            return MapToDto(document);
         }
 
         public async Task<DocumentDto> UploadDocumentAsync(IFormFile file, string category, string entityId)
@@ -155,8 +155,8 @@ namespace AutomotiveClaimsApi.Services
             await _context.SaveChangesAsync();
 
             _logger.LogInformation("Document uploaded and created with ID {DocumentId}", document.Id);
-            var baseUrl = _config["App:BaseUrl"];
-            return MapToDto(document, baseUrl);
+      
+            return MapToDto(document);
         }
 
         public async Task<bool> DeleteDocumentAsync(Guid id)

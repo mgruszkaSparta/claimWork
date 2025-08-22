@@ -156,7 +156,7 @@ export const ParticipantForm: React.FC<ParticipantFormProps> = ({
                 {/* Vehicle Type */}
                 <div className="space-y-1">
                   <Label className="text-[#1a3a6c] text-sm font-medium block">
-                    Typ pojazdu:
+                    Rodzaj pojazdu:
                   </Label>
                   <Select
                     disabled={disabled}
@@ -164,7 +164,7 @@ export const ParticipantForm: React.FC<ParticipantFormProps> = ({
                     onValueChange={(value) => onParticipantChange("vehicleType", value)}
                   >
                     <SelectTrigger className="border border-[#d1d9e6] rounded">
-                      <SelectValue placeholder="Wybierz typ pojazdu" />
+                      <SelectValue placeholder="Wybierz rodzaj pojazdu" />
                     </SelectTrigger>
                     <SelectContent>
                       {vehicleTypes.map((type) => (

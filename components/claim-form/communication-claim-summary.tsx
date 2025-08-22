@@ -192,7 +192,7 @@ const CommunicationClaimSummary = ({
           )}
           <InfoCard label="Rejestracja" value={participant.vehicleRegistration} />
           <InfoCard label="VIN" value={participant.vehicleVin} />
-          <InfoCard label="Typ pojazdu" value={participant.vehicleType} />
+          <InfoCard label="Rodzaj pojazdu" value={participant.vehicleType} />
           <InfoCard label="Marka" value={participant.vehicleBrand} />
           <InfoCard label="Model" value={participant.vehicleModel} />
           {participant.vehicleYear && (

@@ -462,6 +462,17 @@ export function DecisionsSection({ claimId, onChange }: DecisionsSectionProps) {
     setPreviewDocs([])
   }
 
+  const previewSelectedFile = (file: File) => {
+    const objectUrl = window.URL.createObjectURL(file)
+    setPreviewUrl(objectUrl)
+    setPreviewFileName(file.name)
+    setPreviewFileType(getFileType(file.name))
+    setCurrentPreviewDecision(null)
+    setCurrentPreviewDoc(null)
+    setPreviewDocs([])
+    setIsPreviewVisible(true)
+  }
+
   const getFileNameFromPath = (path: string): string => {
     return path.split("/").pop()?.split("?")[0] || "document"
   }
@@ -769,14 +780,26 @@ export function DecisionsSection({ claimId, onChange }: DecisionsSectionProps) {
                               {formatFileSize(file.size)}
                             </span>
                           </div>
-                          <Button
-                            type="button"
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => removeSelectedFile(index)}
-                          >
-                            <X className="h-4 w-4" />
-                          </Button>
+                          <div className="flex gap-1">
+                            {isPreviewable(file.name) && (
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => previewSelectedFile(file)}
+                              >
+                                <Eye className="h-4 w-4" />
+                              </Button>
+                            )}
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => removeSelectedFile(index)}
+                            >
+                              <X className="h-4 w-4" />
+                            </Button>
+                          </div>
                         </div>
                       ))}
                     </div>
@@ -916,37 +939,34 @@ export function DecisionsSection({ claimId, onChange }: DecisionsSectionProps) {
                       {(() => {
                         const docs = decision.documents
                         if (docs && docs.length > 0) {
+                          const doc = docs[0]
                           return (
-                            <ul className="space-y-1">
-                              {docs.map((doc) => (
-                                <li key={doc.id} className="flex items-center gap-2">
-                                  <FileText className="h-4 w-4 text-primary" />
-                                  <span className="text-sm font-medium">
-                                    {doc.originalFileName || doc.fileName}
-                                  </span>
-                                  <div className="flex gap-1">
-                                    {isPreviewable(doc.originalFileName || doc.fileName || "") && (
-                                      <Button
-                                        variant="ghost"
-                                        size="sm"
-                                        onClick={() => previewFile(decision, doc)}
-                                        title="Podgląd"
-                                      >
-                                        <Eye className="h-4 w-4" />
-                                      </Button>
-                                    )}
-                                    <Button
-                                      variant="ghost"
-                                      size="sm"
-                                      onClick={() => downloadFile(decision, doc)}
-                                      title="Pobierz"
-                                    >
-                                      <Download className="h-4 w-4" />
-                                    </Button>
-                                  </div>
-                                </li>
-                              ))}
-                            </ul>
+                            <div className="flex items-center gap-2">
+                              <FileText className="h-4 w-4 text-primary" />
+                              <span className="text-sm font-medium">
+                                {doc.originalFileName || doc.fileName}
+                              </span>
+                              <div className="flex gap-1">
+                                {isPreviewable(doc.originalFileName || doc.fileName || "") && (
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => previewFile(decision, doc)}
+                                    title="Podgląd"
+                                  >
+                                    <Eye className="h-4 w-4" />
+                                  </Button>
+                                )}
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => downloadFile(decision, doc)}
+                                  title="Pobierz"
+                                >
+                                  <Download className="h-4 w-4" />
+                                </Button>
+                              </div>
+                            </div>
                           )
                         }
 

@@ -2,6 +2,8 @@
 
 import { Label } from "@/components/ui/label"
 import { Input } from "@/components/ui/input"
+import VehicleTypeDropdown from "@/components/vehicle-type-dropdown"
+import type { VehicleTypeSelectionEvent } from "@/types/vehicle-type"
 import type { Claim } from "@/types"
 
 interface DamageVehicleDetailsSectionProps {
@@ -61,12 +63,15 @@ export function DamageVehicleDetailsSection({
       </div>
       <div>
         <Label htmlFor="vehicleType" className="text-sm font-medium text-gray-700">
-          Typ pojazdu
+          Rodzaj pojazdu
         </Label>
-        <Input
-          id="vehicleType"
-          value={claimFormData.vehicleType || ""}
-          onChange={(e) => handleFormChange("vehicleType", e.target.value)}
+        <VehicleTypeDropdown
+          selectedVehicleTypeId={claimFormData.vehicleTypeId}
+          onVehicleTypeSelected={(event: VehicleTypeSelectionEvent) => {
+            handleFormChange("vehicleType", event.vehicleTypeName)
+            handleFormChange("vehicleTypeId", event.vehicleTypeId)
+            handleFormChange("vehicleTypeCode", event.vehicleTypeCode)
+          }}
           className="mt-0.5"
         />
       </div>

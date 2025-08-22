@@ -1220,6 +1220,12 @@ export const DocumentsSection = React.forwardRef<
           value={doc.originalFileName}
           onChange={(e) => updateFileName(doc.id, e.target.value)}
           onBlur={(e) => handleFileNameChange(doc.id, e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") {
+              e.preventDefault()
+              e.currentTarget.blur()
+            }
+          }}
           className="text-sm mb-1"
           title={doc.originalFileName}
         />

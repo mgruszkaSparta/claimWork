@@ -44,6 +44,7 @@ export interface Email {
   attachments: EmailAttachment[]
   labels: string[]
   claimId?: string
+  claimIds?: string[]
   threadId?: string
 }
 

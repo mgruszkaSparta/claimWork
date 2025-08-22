@@ -1,4 +1,5 @@
 import { type NextRequest, NextResponse } from "next/server"
+
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5200/api"
 
 export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
@@ -11,20 +12,25 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
     if (process.env.NEXT_PUBLIC_API_URL) {
       const response = await fetch(`${API_BASE_URL}/appeals/${id}/preview`, {
         method: "GET",
+        headers: {
+          cookie: request.headers.get("cookie") || "",
+        },
       })
 
       if (!response.ok) {
-        throw new Error(`Backend request failed: ${response.status}`)
+        const text = await response.text().catch(() => "")
+        throw new Error(`Backend request failed: ${response.status} ${text}`)
       }
 
-      const blob = await response.blob()
+      const fileData = await response.arrayBuffer()
       const contentType = response.headers.get("content-type") || "application/octet-stream"
 
-      return new NextResponse(blob, {
+      return new NextResponse(fileData, {
         status: 200,
         headers: {
           "Content-Type": contentType,
           "Cache-Control": "no-cache",
+          "Content-Disposition": "inline",
         },
       })
     }
@@ -114,6 +120,7 @@ startxref
       headers: {
         "Content-Type": "application/pdf",
         "Cache-Control": "no-cache",
+        "Content-Disposition": "inline",
       },
     })
   } catch (error) {

@@ -753,10 +753,18 @@ namespace AutomotiveClaimsApi.Controllers
 
             if (eventDto.Participants != null)
             {
-                var dtoIds = eventDto.Participants
-                    .Where(p => !string.IsNullOrEmpty(p.Id))
-                    .Select(p => Guid.Parse(p.Id!))
-                    .ToHashSet();
+                var dtoIds = new HashSet<Guid>();
+                foreach (var p in eventDto.Participants.Where(p => !string.IsNullOrEmpty(p.Id)))
+                {
+                    if (Guid.TryParse(p.Id, out var pid))
+                    {
+                        dtoIds.Add(pid);
+                    }
+                    else
+                    {
+                        throw new ArgumentException($"Invalid participant ID: {p.Id}");
+                    }
+                }
                 var toRemove = eventEntity.Participants.Where(p => !dtoIds.Contains(p.Id)).ToList();
                 foreach (var r in toRemove)
                 {
@@ -775,10 +783,18 @@ namespace AutomotiveClaimsApi.Controllers
 
             if (eventDto.Notes != null)
             {
-                var dtoIds = eventDto.Notes
-                    .Where(n => !string.IsNullOrEmpty(n.Id) && Guid.TryParse(n.Id, out _))
-                    .Select(n => Guid.Parse(n.Id!))
-                    .ToHashSet();
+                var dtoIds = new HashSet<Guid>();
+                foreach (var n in eventDto.Notes.Where(n => !string.IsNullOrEmpty(n.Id)))
+                {
+                    if (Guid.TryParse(n.Id, out var nid))
+                    {
+                        dtoIds.Add(nid);
+                    }
+                    else
+                    {
+                        throw new ArgumentException($"Invalid note ID: {n.Id}");
+                    }
+                }
 
                 var toRemove = eventEntity.Notes.Where(n => !dtoIds.Contains(n.Id)).ToList();
                 foreach (var r in toRemove)
@@ -1418,10 +1434,21 @@ namespace AutomotiveClaimsApi.Controllers
                 existing.Notes = pDto.Notes;
                 existing.UpdatedAt = DateTime.UtcNow;
 
-                var driverIds = pDto.Drivers?
-                    .Where(d => !string.IsNullOrEmpty(d.Id))
-                    .Select(d => Guid.Parse(d.Id!))
-                    .ToHashSet() ?? new HashSet<Guid>();
+                var driverIds = new HashSet<Guid>();
+                if (pDto.Drivers != null)
+                {
+                    foreach (var d in pDto.Drivers.Where(d => !string.IsNullOrEmpty(d.Id)))
+                    {
+                        if (Guid.TryParse(d.Id, out var did))
+                        {
+                            driverIds.Add(did);
+                        }
+                        else
+                        {
+                            throw new ArgumentException($"Invalid driver ID: {d.Id}");
+                        }
+                    }
+                }
                 var driversToRemove = existing.Drivers.Where(d => !driverIds.Contains(d.Id)).ToList();
                 foreach (var d in driversToRemove)
                 {
@@ -1446,7 +1473,7 @@ namespace AutomotiveClaimsApi.Controllers
                 {
                     var driver = new Driver
                     {
-                        Id = string.IsNullOrEmpty(dDto.Id) ? Guid.NewGuid() : Guid.Parse(dDto.Id),
+                        Id = string.IsNullOrEmpty(dDto.Id) ? Guid.NewGuid() : (Guid.TryParse(dDto.Id, out var parsedDriverId) ? parsedDriverId : throw new ArgumentException($"Invalid driver ID: {dDto.Id}")),
                         EventId = entity.Id,
                         ParticipantId = participant.Id,
                         FirstName = dDto.FirstName,
@@ -1527,7 +1554,7 @@ namespace AutomotiveClaimsApi.Controllers
         {
             return new Participant
             {
-                Id = string.IsNullOrEmpty(dto.Id) ? Guid.NewGuid() : Guid.Parse(dto.Id),
+                Id = string.IsNullOrEmpty(dto.Id) ? Guid.NewGuid() : (Guid.TryParse(dto.Id, out var participantId) ? participantId : throw new ArgumentException($"Invalid participant ID: {dto.Id}")),
                 EventId = eventId,
                 Role = dto.Role,
                 Name = dto.Name,
@@ -1571,7 +1598,7 @@ namespace AutomotiveClaimsApi.Controllers
         {
             return new Driver
             {
-                Id = string.IsNullOrEmpty(dto.Id) ? Guid.NewGuid() : Guid.Parse(dto.Id),
+                Id = string.IsNullOrEmpty(dto.Id) ? Guid.NewGuid() : (Guid.TryParse(dto.Id, out var driverId) ? driverId : throw new ArgumentException($"Invalid driver ID: {dto.Id}")),
                 EventId = eventId,
                 ParticipantId = participantId,
                 FirstName = dto.FirstName,

@@ -187,6 +187,30 @@ namespace AutomotiveClaimsApi.Tests
         }
 
         [Fact]
+        public async Task UpdateClaim_ReturnsBadRequest_ForInvalidParticipantId()
+        {
+            var options = new DbContextOptionsBuilder<ApplicationDbContext>()
+                .UseInMemoryDatabase(Guid.NewGuid().ToString())
+                .Options;
+
+            await using var context = new ApplicationDbContext(options);
+            var ev = new Event { Id = Guid.NewGuid(), CreatedAt = DateTime.UtcNow, UpdatedAt = DateTime.UtcNow };
+            context.Events.Add(ev);
+            await context.SaveChangesAsync();
+
+            var controller = MakeController(context);
+            var dto = new ClaimUpsertDto
+            {
+                Id = ev.Id,
+                Participants = new[] { new ParticipantUpsertDto { Id = "not-a-guid", Name = "p" } }
+            };
+
+            var result = await controller.UpdateClaim(ev.Id, dto);
+            var badRequest = Assert.IsType<BadRequestObjectResult>(result);
+            Assert.Contains("Invalid participant ID", badRequest.Value?.ToString());
+        }
+
+        [Fact]
         public async Task UpdateClaim_UpdatesDriverPersonalData_WhenModified()
         {
             var options = new DbContextOptionsBuilder<ApplicationDbContext>()

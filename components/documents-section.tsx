@@ -451,22 +451,27 @@ export const DocumentsSection = React.forwardRef<
         if (response.ok) {
           const documentDto = await response.json()
           const serverCategory = documentDto.documentType || documentDto.category
-          const doc: Document = {
-            ...documentDto,
-            documentType: serverCategory
-              ? mapCategoryCodeToName(serverCategory)
-              : categoryName || "Inne dokumenty",
-            categoryCode: serverCategory || mapCategoryNameToCode(categoryName),
-            canPreview:
-              documentDto.canPreview ??
-              (documentDto.contentType?.startsWith("image/") ||
-                documentDto.contentType === "application/pdf" ||
-                documentDto.contentType?.startsWith("video/") ||
-                documentDto.contentType ===
-                  "application/vnd.openxmlformats-officedocument.wordprocessingml.document" ||
-                documentDto.contentType === "application/msword"),
-          }
-          return doc
+         const apiUrl = process.env.NEXT_PUBLIC_API_URL || ""
+         const doc: Document = {
+           ...documentDto,
+           documentType: serverCategory
+             ? mapCategoryCodeToName(serverCategory)
+             : categoryName || "Inne dokumenty",
+           categoryCode: serverCategory || mapCategoryNameToCode(categoryName),
+           canPreview:
+             documentDto.canPreview ??
+             (documentDto.contentType?.startsWith("image/") ||
+               documentDto.contentType === "application/pdf" ||
+               documentDto.contentType?.startsWith("video/") ||
+               documentDto.contentType ===
+                 "application/vnd.openxmlformats-officedocument.wordprocessingml.document" ||
+               documentDto.contentType === "application/msword"),
+           previewUrl:
+             documentDto.cloudUrl ||
+             `${apiUrl}/documents/${documentDto.id}/preview`,
+           downloadUrl: `${apiUrl}/documents/${documentDto.id}/download`,
+         }
+         return doc
         } else {
           let errorMessage = `HTTP ${response.status}: ${response.statusText}`
           try {

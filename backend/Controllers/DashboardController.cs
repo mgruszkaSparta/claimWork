@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Identity;
 using AutomotiveClaimsApi.Data;
 using AutomotiveClaimsApi.DTOs;
 using AutomotiveClaimsApi.Models;
+using System.Linq;
 
 namespace AutomotiveClaimsApi.Controllers
 {
@@ -69,13 +70,25 @@ namespace AutomotiveClaimsApi.Controllers
                     return Unauthorized(new { error = "User not authenticated" });
                 }
 
-                var user = await _userManager.Users.FirstOrDefaultAsync(u => u.Id == userId);
-                if (user == null || user.ClientId == null)
+                var user = await _userManager.Users
+                    .Include(u => u.UserClients)
+                    .FirstOrDefaultAsync(u => u.Id == userId);
+                if (user == null)
                 {
-                    return NotFound(new { error = "User not assigned to a client" });
+                    return NotFound(new { error = "User not found" });
                 }
 
-                var query = _context.Events.Where(e => e.ClientId == user.ClientId);
+                var query = _context.Events.AsQueryable();
+
+                var clientIds = user.UserClients.Select(uc => uc.ClientId).ToList();
+                if (clientIds.Any())
+                {
+                    query = query.Where(e => e.ClientId != null && clientIds.Contains(e.ClientId.Value));
+                }
+                else if (!user.FullAccess)
+                {
+                    query = query.Where(e => false);
+                }
 
                 var total = await query.CountAsync();
                 var closed = await query.CountAsync(e => e.Status == "Closed");

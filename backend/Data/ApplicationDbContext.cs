@@ -3,7 +3,6 @@ using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using AutomotiveClaimsApi.Models;
 using AutomotiveClaimsApi.Models.Dictionary;
 
-
 namespace AutomotiveClaimsApi.Data
 {
     public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
@@ -26,6 +25,7 @@ namespace AutomotiveClaimsApi.Data
         public DbSet<EmailAttachment> EmailAttachments { get; set; }
         public DbSet<EmailClaim> EmailClaims { get; set; }
         public DbSet<Client> Clients { get; set; }
+        public DbSet<UserClient> UserClients { get; set; }
         public DbSet<RiskType> RiskTypes { get; set; }
         public DbSet<DamageType> DamageTypes { get; set; }
         public DbSet<VacationRequest> VacationRequests { get; set; }
@@ -50,15 +50,25 @@ namespace AutomotiveClaimsApi.Data
 
             modelBuilder.Entity<ApplicationUser>(entity =>
             {
-                entity.HasOne(u => u.Client)
-                      .WithMany()
-                      .HasForeignKey(u => u.ClientId)
-                      .OnDelete(DeleteBehavior.SetNull);
-
                 entity.HasOne(u => u.CaseHandler)
                       .WithMany()
                       .HasForeignKey(u => u.CaseHandlerId)
                       .OnDelete(DeleteBehavior.SetNull);
+            });
+
+            modelBuilder.Entity<UserClient>(entity =>
+            {
+                entity.HasKey(uc => new { uc.UserId, uc.ClientId });
+
+                entity.HasOne(uc => uc.User)
+                      .WithMany(u => u.UserClients)
+                      .HasForeignKey(uc => uc.UserId)
+                      .OnDelete(DeleteBehavior.Cascade);
+
+                entity.HasOne(uc => uc.Client)
+                      .WithMany(c => c.UserClients)
+                      .HasForeignKey(uc => uc.ClientId)
+                      .OnDelete(DeleteBehavior.Cascade);
             });
 
             // Event is the central aggregate root
@@ -88,7 +98,6 @@ namespace AutomotiveClaimsApi.Data
                 entity.HasMany(e => e.Recourses).WithOne(r => r.Event).HasForeignKey(r => r.EventId).OnDelete(DeleteBehavior.Cascade);
                 entity.HasMany(e => e.Settlements).WithOne(s => s.Event).HasForeignKey(s => s.EventId).OnDelete(DeleteBehavior.Cascade);
                 entity.HasMany(e => e.Participants)
-
                       .WithOne(p => p.Event)
                       .HasForeignKey(p => p.EventId)
                       .OnDelete(DeleteBehavior.Cascade);

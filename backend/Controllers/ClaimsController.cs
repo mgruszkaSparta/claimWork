@@ -76,6 +76,38 @@ namespace AutomotiveClaimsApi.Controllers
             {
                 var query = _context.Events.AsQueryable();
 
+                var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                ApplicationUser? currentUser = null;
+
+                if (!string.IsNullOrEmpty(userId))
+                {
+                    if (_userManager != null)
+                    {
+                        currentUser = await _userManager.Users
+                            .Include(u => u.UserClients)
+                            .FirstOrDefaultAsync(u => u.Id == userId);
+                    }
+                    else
+                    {
+                        currentUser = await _context.Users
+                            .Include(u => u.UserClients)
+                            .FirstOrDefaultAsync(u => u.Id == userId);
+                    }
+
+                    if (currentUser != null)
+                    {
+                        var allowedClients = currentUser.UserClients.Select(uc => uc.ClientId).ToList();
+                        if (allowedClients.Any())
+                        {
+                            query = query.Where(e => e.ClientId != null && allowedClients.Contains(e.ClientId.Value));
+                        }
+                        else if (!currentUser.FullAccess)
+                        {
+                            query = query.Where(e => false);
+                        }
+                    }
+                }
+
                 if (!string.IsNullOrWhiteSpace(search))
                 {
                     var ids = await _eventDocumentStore.SearchAsync(search);

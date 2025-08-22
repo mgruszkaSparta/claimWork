@@ -24,8 +24,8 @@ export function FormHeader({
     >
       <div className="flex items-center justify-between">
         <div className="flex items-center space-x-2">
-          {Icon && <Icon className="h-4 w-4 text-[var(--claims-form-header)]" />}
-          <h3 className="text-sm font-semibold text-[var(--claims-form-header)]">{title}</h3>
+          {Icon && <Icon className="h-5 w-5 text-[var(--claims-form-header)]" />}
+          <h3 className="text-lg font-semibold text-[var(--claims-form-header)]">{title}</h3>
         </div>
         {children}
       </div>

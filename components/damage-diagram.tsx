@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useMemo } from "react"
 
 export enum VehicleType {
   TRACTOR = "tractor",
@@ -18,13 +18,32 @@ export enum DamageLevel {
 }
 
 interface DamageDiagramProps {
-  damageData: { [key: string]: DamageLevel }
+  damageData?: { [key: string]: DamageLevel }
+  /**
+   * Backwards compatibility: some places pass a simple list of damaged part IDs
+   * without specifying a damage level. In that case we treat every part as
+   * having a light damage level.
+   */
+  damagedParts?: string[]
   onPartClick: (partName: string, newLevel: DamageLevel) => void
-  vehicleType: VehicleType
+  vehicleType?: VehicleType
 }
 
-export function DamageDiagram({ damageData, onPartClick, vehicleType }: DamageDiagramProps) {
+export function DamageDiagram({
+  damageData,
+  damagedParts = [],
+  onPartClick,
+  vehicleType = VehicleType.PASSENGER_CAR,
+}: DamageDiagramProps) {
   const [svgContent, setSvgContent] = useState<string>("")
+
+  // Ensure we always work with a valid damage map
+  const effectiveDamageData: { [key: string]: DamageLevel } = useMemo(
+    () =>
+      damageData ??
+      Object.fromEntries(damagedParts.map((p) => [p, DamageLevel.LIGHT])),
+    [damageData, damagedParts]
+  )
 
   useEffect(() => {
     const loadSvg = async () => {
@@ -61,7 +80,7 @@ export function DamageDiagram({ damageData, onPartClick, vehicleType }: DamageDi
       const handleClick = (e: Event) => {
         e.stopPropagation()
         const partId = svgElement.id
-        const currentLevel = damageData[partId] || DamageLevel.NONE
+        const currentLevel = effectiveDamageData[partId] || DamageLevel.NONE
         let newLevel: DamageLevel
 
         switch (currentLevel) {
@@ -87,7 +106,7 @@ export function DamageDiagram({ damageData, onPartClick, vehicleType }: DamageDi
       svgElement.removeEventListener("click", handleClick)
       svgElement.addEventListener("click", handleClick)
 
-      const damageLevel = damageData[svgElement.id] || DamageLevel.NONE
+      const damageLevel = effectiveDamageData[svgElement.id] || DamageLevel.NONE
       switch (damageLevel) {
         case DamageLevel.LIGHT:
           svgElement.style.fill = "#fbbf24" // Yellow for light damage
@@ -114,7 +133,7 @@ export function DamageDiagram({ damageData, onPartClick, vehicleType }: DamageDi
           svgElement.style.opacity = "1"
       }
     })
-  }, [svgContent, damageData, onPartClick])
+  }, [svgContent, effectiveDamageData, onPartClick])
 
   const getVehicleDisplayName = (type: VehicleType): string => {
     switch (type) {
@@ -134,7 +153,7 @@ export function DamageDiagram({ damageData, onPartClick, vehicleType }: DamageDi
   }
 
   const getDamagedPartsCount = () => {
-    return Object.values(damageData).filter((level) => level > DamageLevel.NONE).length
+    return Object.values(effectiveDamageData).filter((level) => level > DamageLevel.NONE).length
   }
 
   const getDamageLevelName = (level: DamageLevel): string => {
@@ -224,7 +243,7 @@ export function DamageDiagram({ damageData, onPartClick, vehicleType }: DamageDi
       [DamageLevel.HEAVY]: [] as string[],
     }
 
-    Object.entries(damageData).forEach(([partId, level]) => {
+    Object.entries(effectiveDamageData).forEach(([partId, level]) => {
       if (level > DamageLevel.NONE) {
         partsByLevel[level].push(translatePartName(partId))
       }

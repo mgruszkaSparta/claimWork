@@ -1,103 +1,323 @@
 "use client"
 
-interface DamageDiagramProps {
-  damagedParts: string[]
-  onPartClick: (partName: string) => void
+import { useState, useEffect } from "react"
+
+export enum VehicleType {
+  TRACTOR = "tractor",
+  TRAILER = "trailer",
+  PASSENGER_CAR = "passengercar",
+  SUV = "suv",
+  TRUCK = "truck",
 }
 
-export function DamageDiagram({ damagedParts, onPartClick }: DamageDiagramProps) {
-  const carParts = [
-    // Left Side
-    { id: "left-front-fender", name: "Błotnik przedni lewy", d: "M45,50 L65,55 L65,75 L45,80 Z" },
-    { id: "left-front-door", name: "Drzwi przednie lewe", d: "M67,55 L88,60 L88,80 L67,75 Z" },
-    { id: "left-rear-door", name: "Drzwi tylne lewe", d: "M90,60 L110,65 L110,85 L90,80 Z" },
-    { id: "left-rear-fender", name: "Błotnik tylny lewy", d: "M112,65 L135,70 L135,90 L112,85 Z" },
-    { id: "left-front-wheel", name: "Koło przednie lewe", d: "M50,82 A10,10 0 1,0 70,82 A10,10 0 1,0 50,82" },
-    { id: "left-rear-wheel", name: "Koło tylne lewe", d: "M105,87 A10,10 0 1,0 125,87 A10,10 0 1,0 105,87" },
-    { id: "left-front-light", name: "Reflektor przedni lewy", d: "M40,50 L45,50 L45,60 L40,60 Z" },
-    { id: "left-rear-light", name: "Lampa tylna lewa", d: "M135,70 L140,72 L140,80 L135,80 Z" },
-    { id: "left-mirror", name: "Lusterko lewe", d: "M65,50 L70,50 L70,55 L65,55 Z" },
+export enum DamageLevel {
+  NONE = 0,
+  LIGHT = 1,
+  MEDIUM = 2,
+  HEAVY = 3,
+}
 
-    // Rear
-    { id: "rear-bumper", name: "Zderzak tylny", d: "M180,130 L280,130 L275,140 L185,140 Z" },
-    { id: "trunk", name: "Pokrywa bagażnika", d: "M190,100 L270,100 L270,130 L190,130 Z" },
-    { id: "rear-window", name: "Szyba tylna", d: "M195,60 L265,60 L265,98 L195,98 Z" },
-    { id: "rear-left-light-cluster", name: "Lampa tylna lewa (tył)", d: "M180,100 L190,100 L190,130 L180,130 Z" },
-    { id: "rear-right-light-cluster", name: "Lampa tylna prawa (tył)", d: "M270,100 L280,100 L280,130 L270,130 Z" },
-    { id: "roof-rear", name: "Dach (tył)", d: "M195,50 L265,50 L265,60 L195,60 Z" },
+interface DamageDiagramProps {
+  damageData: { [key: string]: DamageLevel }
+  onPartClick: (partName: string, newLevel: DamageLevel) => void
+  vehicleType: VehicleType
+}
 
-    // Right Side
-    { id: "right-front-fender", name: "Błotnik przedni prawy", d: "M415,50 L395,55 L395,75 L415,80 Z" },
-    { id: "right-front-door", name: "Drzwi przednie prawe", d: "M393,55 L372,60 L372,80 L393,75 Z" },
-    { id: "right-rear-door", name: "Drzwi tylne prawe", d: "M370,60 L350,65 L350,85 L370,80 Z" },
-    { id: "right-rear-fender", name: "Błotnik tylny prawy", d: "M348,65 L325,70 L325,90 L348,85 Z" },
-    { id: "right-front-wheel", name: "Koło przednie prawe", d: "M410,82 A10,10 0 1,1 390,82 A10,10 0 1,1 410,82" },
-    { id: "right-rear-wheel", name: "Koło tylne prawe", d: "M355,87 A10,10 0 1,1 335,87 A10,10 0 1,1 355,87" },
-    { id: "right-front-light", name: "Reflektor przedni prawy", d: "M420,50 L415,50 L415,60 L420,60 Z" },
-    { id: "right-rear-light", name: "Lampa tylna prawa", d: "M325,70 L320,72 L320,80 L325,80 Z" },
-    { id: "right-mirror", name: "Lusterko prawe", d: "M395,50 L390,50 L390,55 L395,55 Z" },
-  ]
+export function DamageDiagram({ damageData, onPartClick, vehicleType }: DamageDiagramProps) {
+  const [svgContent, setSvgContent] = useState<string>("")
+
+  useEffect(() => {
+    const loadSvg = async () => {
+      try {
+        const response = await fetch(`/${vehicleType}.svg`)
+        const svgText = await response.text()
+        setSvgContent(svgText)
+      } catch (error) {
+        console.error("Error loading SVG:", error)
+        setSvgContent("")
+      }
+    }
+
+    loadSvg()
+  }, [vehicleType])
+
+  useEffect(() => {
+    if (!svgContent) return
+
+    const svgContainer = document.querySelector(".damage-diagram-svg")
+    if (!svgContainer) return
+
+    const elements = svgContainer.querySelectorAll("path, rect, circle, ellipse, polygon")
+
+    elements.forEach((element, index) => {
+      const svgElement = element as SVGElement
+
+      if (!svgElement.id) {
+        svgElement.id = `part-${index}`
+      }
+
+      svgElement.style.cursor = "pointer"
+
+      const handleClick = (e: Event) => {
+        e.stopPropagation()
+        const partId = svgElement.id
+        const currentLevel = damageData[partId] || DamageLevel.NONE
+        let newLevel: DamageLevel
+
+        switch (currentLevel) {
+          case DamageLevel.NONE:
+            newLevel = DamageLevel.LIGHT
+            break
+          case DamageLevel.LIGHT:
+            newLevel = DamageLevel.MEDIUM
+            break
+          case DamageLevel.MEDIUM:
+            newLevel = DamageLevel.HEAVY
+            break
+          case DamageLevel.HEAVY:
+            newLevel = DamageLevel.NONE
+            break
+          default:
+            newLevel = DamageLevel.LIGHT
+        }
+
+        onPartClick(partId, newLevel)
+      }
+
+      svgElement.removeEventListener("click", handleClick)
+      svgElement.addEventListener("click", handleClick)
+
+      const damageLevel = damageData[svgElement.id] || DamageLevel.NONE
+      switch (damageLevel) {
+        case DamageLevel.LIGHT:
+          svgElement.style.fill = "#fbbf24" // Yellow for light damage
+          svgElement.style.stroke = "#f59e0b"
+          svgElement.style.strokeWidth = "2"
+          svgElement.style.opacity = "0.8"
+          break
+        case DamageLevel.MEDIUM:
+          svgElement.style.fill = "#f97316" // Orange for medium damage
+          svgElement.style.stroke = "#ea580c"
+          svgElement.style.strokeWidth = "3"
+          svgElement.style.opacity = "0.8"
+          break
+        case DamageLevel.HEAVY:
+          svgElement.style.fill = "#dc2626" // Red for heavy damage
+          svgElement.style.stroke = "#b91c1c"
+          svgElement.style.strokeWidth = "4"
+          svgElement.style.opacity = "0.9"
+          break
+        default: // NONE
+          svgElement.style.fill = "#f8fafc"
+          svgElement.style.stroke = "#64748b"
+          svgElement.style.strokeWidth = "1"
+          svgElement.style.opacity = "1"
+      }
+    })
+  }, [svgContent, damageData, onPartClick])
+
+  const getVehicleDisplayName = (type: VehicleType): string => {
+    switch (type) {
+      case VehicleType.TRACTOR:
+        return "Traktor"
+      case VehicleType.TRAILER:
+        return "Przyczepa"
+      case VehicleType.PASSENGER_CAR:
+        return "Samochód osobowy"
+      case VehicleType.SUV:
+        return "SUV"
+      case VehicleType.TRUCK:
+        return "Ciężarówka"
+      default:
+        return "Pojazd"
+    }
+  }
+
+  const getDamagedPartsCount = () => {
+    return Object.values(damageData).filter((level) => level > DamageLevel.NONE).length
+  }
+
+  const getDamageLevelName = (level: DamageLevel): string => {
+    switch (level) {
+      case DamageLevel.LIGHT:
+        return "Lekkie"
+      case DamageLevel.MEDIUM:
+        return "Średnie"
+      case DamageLevel.HEAVY:
+        return "Duże"
+      default:
+        return "Brak"
+    }
+  }
+
+  const translatePartName = (partId: string): string => {
+    // Common vehicle part translations
+    const translations: { [key: string]: string } = {
+      // Generic parts
+      door: "Drzwi",
+      hood: "Maska",
+      trunk: "Bagażnik",
+      roof: "Dach",
+      windshield: "Przednia szyba",
+      "rear-window": "Tylna szyba",
+      "side-window": "Boczna szyba",
+      bumper: "Zderzak",
+      "front-bumper": "Przedni zderzak",
+      "rear-bumper": "Tylny zderzak",
+      fender: "Błotnik",
+      mirror: "Lusterko",
+      headlight: "Reflektor",
+      taillight: "Tylne światło",
+      wheel: "Koło",
+      tire: "Opona",
+      grille: "Grill",
+      panel: "Panel",
+      "quarter-panel": "Panel boczny",
+      pillar: "Słupek",
+      "running-board": "Stopień",
+
+      // Truck/Trailer specific
+      cab: "Kabina",
+      "trailer-body": "Naczepa",
+      "cargo-area": "Przestrzeń ładunkowa",
+      "loading-dock": "Rampa załadunkowa",
+      "mud-flap": "Chlapacz",
+
+      // Car specific
+      "front-door": "Przednie drzwi",
+      "rear-door": "Tylne drzwi",
+      "driver-door": "Drzwi kierowcy",
+      "passenger-door": "Drzwi pasażera",
+      "left-door": "Lewe drzwi",
+      "right-door": "Prawe drzwi",
+    }
+
+    // Try to find a translation based on part ID or common patterns
+    const lowerPartId = partId.toLowerCase()
+
+    // Check for exact matches first
+    if (translations[lowerPartId]) {
+      return translations[lowerPartId]
+    }
+
+    // Check for partial matches
+    for (const [key, value] of Object.entries(translations)) {
+      if (lowerPartId.includes(key) || key.includes(lowerPartId)) {
+        return value
+      }
+    }
+
+    // If no translation found, try to make it more readable
+    if (partId.startsWith("part-")) {
+      const partNumber = partId.replace("part-", "")
+      return `Część ${partNumber}`
+    }
+
+    // Return original if no translation available
+    return partId.charAt(0).toUpperCase() + partId.slice(1).replace(/[-_]/g, " ")
+  }
+
+  const getDamagedPartsByLevel = () => {
+    const partsByLevel = {
+      [DamageLevel.LIGHT]: [] as string[],
+      [DamageLevel.MEDIUM]: [] as string[],
+      [DamageLevel.HEAVY]: [] as string[],
+    }
+
+    Object.entries(damageData).forEach(([partId, level]) => {
+      if (level > DamageLevel.NONE) {
+        partsByLevel[level].push(translatePartName(partId))
+      }
+    })
+
+    return partsByLevel
+  }
+
+  const damagedPartsByLevel = getDamagedPartsByLevel()
 
   return (
-    <div className="w-full">
-      <svg viewBox="0 0 460 160" className="w-full h-auto">
-        {/* Left Car Outline */}
-        <path
-          d="M40,60 C20,60 20,80 40,80 L45,80 L45,50 L40,50 Q30,50 40,60 Z"
-          stroke="gray"
-          fill="lightgray"
-          strokeWidth="1"
-        />
-        <path
-          d="M45,50 L135,70 L140,72 L140,80 L135,80 L135,90 A15,15 0 0,0 120,105 L100,105 A15,15 0 0,0 85,90 L75,90 A15,15 0 0,0 60,105 L40,105 L45,80 L65,75 L88,80 L110,85 L112,85 L112,65 L90,60 L67,55 L45,50 Z"
-          stroke="gray"
-          fill="#f0f0f0"
-          strokeWidth="1"
-        />
-        <path d="M68,56 L88,61 L88,79 L68,74 Z" stroke="gray" fill="lightgray" strokeWidth="0.5" />
-        <path d="M90,61 L108,66 L108,84 L90,79 Z" stroke="gray" fill="lightgray" strokeWidth="0.5" />
+      <div className="w-full space-y-4">
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+          <h2 className="text-xl font-semibold text-gray-800">
+            Diagram uszkodzeń - {getVehicleDisplayName(vehicleType)}
+          </h2>
+          <p className="text-sm text-gray-600 mt-1">
+            Kliknij na części pojazdu aby oznaczyć uszkodzenia. Kolejne kliknięcia zmieniają poziom uszkodzenia.
+          </p>
+        </div>
 
-        {/* Rear Car Outline */}
-        <path
-          d="M180,100 C170,100 170,130 180,130 L185,140 L275,140 L280,130 C290,130 290,100 280,100 L270,100 L270,60 L265,50 L195,50 L190,60 L190,100 Z"
-          stroke="gray"
-          fill="#f0f0f0"
-          strokeWidth="1"
-        />
+        <div className="bg-gray-50 border rounded-lg p-4">
+          <div className="flex items-center gap-6 flex-wrap">
+            <div className="text-sm font-medium text-gray-700">Legenda:</div>
+            <div className="flex items-center gap-2">
+              <div className="w-4 h-4 border border-gray-400 bg-white rounded"></div>
+              <span className="text-sm text-gray-600">Brak uszkodzeń</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="w-4 h-4 border-2 border-amber-600 bg-yellow-400 rounded"></div>
+              <span className="text-sm text-gray-600">Lekkie uszkodzenia</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="w-4 h-4 border-2 border-orange-600 bg-orange-500 rounded"></div>
+              <span className="text-sm text-gray-600">Średnie uszkodzenia</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="w-4 h-4 border-2 border-red-700 bg-red-600 rounded"></div>
+              <span className="text-sm text-gray-600">Duże uszkodzenia</span>
+            </div>
+            <div className="ml-auto text-sm text-gray-600">
+              Uszkodzonych części: <span className="font-semibold text-blue-600">{getDamagedPartsCount()}</span>
+            </div>
+          </div>
+        </div>
 
-        {/* Right Car Outline */}
-        <path
-          d="M420,60 C440,60 440,80 420,80 L415,80 L415,50 L420,50 Q430,50 420,60 Z"
-          stroke="gray"
-          fill="lightgray"
-          strokeWidth="1"
-        />
-        <path
-          d="M415,50 L325,70 L320,72 L320,80 L325,80 L325,90 A15,15 0 0,1 340,105 L360,105 A15,15 0 0,1 375,90 L385,90 A15,15 0 0,1 400,105 L420,105 L415,80 L395,75 L372,80 L350,85 L348,85 L348,65 L370,60 L393,55 L415,50 Z"
-          stroke="gray"
-          fill="#f0f0f0"
-          strokeWidth="1"
-        />
-        <path d="M392,56 L372,61 L372,79 L392,74 Z" stroke="gray" fill="lightgray" strokeWidth="0.5" />
-        <path d="M370,61 L352,66 L352,84 L370,79 Z" stroke="gray" fill="lightgray" strokeWidth="0.5" />
+        {getDamagedPartsCount() > 0 && (
+            <div className="bg-white border border-gray-200 rounded-lg p-4">
+              <h3 className="text-lg font-semibold text-gray-800 mb-3">Lista uszkodzeń</h3>
+              <div className="space-y-3">
+                {Object.entries(damagedPartsByLevel).map(([level, parts]) => {
+                  const damageLevel = Number.parseInt(level) as DamageLevel
+                  if (parts.length === 0) return null
 
-        {/* Clickable parts */}
-        {carParts.map((part) => (
-          <path
-            key={part.id}
-            d={part.d}
-            className={`cursor-pointer transition-all duration-200 ${
-              damagedParts.includes(part.name)
-                ? "fill-yellow-400 stroke-yellow-600"
-                : "fill-transparent hover:fill-blue-300/50"
-            }`}
-            strokeWidth="0.5"
-            onClick={() => onPartClick(part.name)}
-          >
-            <title>{part.name}</title>
-          </path>
-        ))}
-      </svg>
-    </div>
+                  return (
+                      <div key={level} className="flex items-start gap-3">
+                        <div className="flex items-center gap-2 min-w-0">
+                          <div
+                              className={`w-3 h-3 rounded border-2 ${
+                                  damageLevel === DamageLevel.LIGHT
+                                      ? "bg-yellow-400 border-amber-600"
+                                      : damageLevel === DamageLevel.MEDIUM
+                                          ? "bg-orange-500 border-orange-600"
+                                          : "bg-red-600 border-red-700"
+                              }`}
+                          ></div>
+                          <span className="text-sm font-medium text-gray-700">
+                      {getDamageLevelName(damageLevel)} ({parts.length}):
+                    </span>
+                        </div>
+                        <div className="flex-1 text-sm text-gray-600">{parts.join(", ")}</div>
+                      </div>
+                  )
+                })}
+              </div>
+            </div>
+        )}
+
+        <div className="bg-white border border-gray-200 rounded-lg p-6">
+          {svgContent ? (
+              <div
+                  className="w-full damage-diagram-svg flex justify-center"
+                  dangerouslySetInnerHTML={{ __html: svgContent }}
+              />
+          ) : (
+              <div className="flex items-center justify-center h-64 text-gray-500">
+                <div className="text-center">
+                  <div className="text-2xl mb-2">🚗</div>
+                  <div>Ładowanie diagramu pojazdu...</div>
+                </div>
+              </div>
+          )}
+        </div>
+      </div>
   )
 }

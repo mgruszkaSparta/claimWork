@@ -1286,12 +1286,7 @@ export const ClaimMainContent = ({
         <div className="space-y-4">
           {/* Sprawca Card */}
           <Card className="overflow-hidden shadow-sm border-gray-200 rounded-xl">
-            <CardHeader className="flex flex-row items-center space-x-4 bg-gradient-to-r from-red-600 to-red-700 text-white p-4">
-              <div className="w-8 h-8 bg-red-500 rounded-lg flex items-center justify-center">
-                <AlertTriangle className="h-4 w-4" />
-              </div>
-              <CardTitle className="text-sm font-semibold">Sprawca</CardTitle>
-            </CardHeader>
+            <FormHeader icon={AlertTriangle} title="Sprawca" />
             <CardContent className="p-6 bg-white">
               <ParticipantForm
                 participantData={getParticipantData("perpetrator")}

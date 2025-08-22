@@ -10,8 +10,8 @@ using MailKit.Net.Smtp;
 using MailKit.Security;
 using MimeKit;
 
-using AutomotiveClaimsApi.Data;
-using AutomotiveClaimsApi.Models;
+using EmailService.Data;
+using EmailService.Models;
 using EmailService.Storage;
 
 
@@ -28,7 +28,7 @@ public class EmailClient
     private readonly int _imapPort;
     private readonly string _username;
     private readonly string _password;
-    private readonly ApplicationDbContext _db;
+    private readonly EmailDbContext _db;
     private readonly IAttachmentStorage _storage;
 
     public EmailClient(
@@ -38,7 +38,7 @@ public class EmailClient
         int imapPort,
         string username,
         string password,
-        ApplicationDbContext db,
+        EmailDbContext db,
         IAttachmentStorage storage)
 
     {

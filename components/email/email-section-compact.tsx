@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, type Dispatch, type SetStateAction } from "react"
+import { useState, useEffect, type Dispatch, type SetStateAction } from "react"
 import { useToast } from "@/hooks/use-toast"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -9,8 +9,9 @@ import { Badge } from "@/components/ui/badge"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { EmailComposeComponent } from "./email-compose"
 import { EmailView } from "./email-view"
-import { sampleEmails } from "@/lib/email-data"
 import { cn } from "@/lib/utils"
+import { emailService, type EmailDto } from "@/lib/email-service"
+import { API_BASE_URL } from "@/lib/api"
 import {
   Mail,
   MailOpen,
@@ -42,9 +43,51 @@ export const EmailSection = ({
   setRequiredDocuments,
 }: EmailSectionProps) => {
   const { toast } = useToast()
-  const [emails, setEmails] = useState<Email[]>(
-    sampleEmails.filter((email) => !claimId || (email.claimIds && email.claimIds.includes(claimId)))
-  )
+  const [emails, setEmails] = useState<Email[]>([])
+  const mapEmailDto = (dto: EmailDto): Email => ({
+    id: dto.id,
+    from: dto.from,
+    fromName: dto.from,
+    to: dto.to ? dto.to.split(/[;,]/).map((e) => e.trim()).filter(Boolean) : [],
+    subject: dto.subject,
+    body: dto.body,
+    htmlBody: dto.body,
+    isRead: dto.read ?? false,
+    isStarred: false,
+    isImportant: dto.isImportant ?? false,
+    folder: dto.direction === "Outbound" ? "sent" : "inbox",
+    date: dto.receivedDate || new Date().toISOString(),
+    attachments:
+      dto.attachments?.map((a) => ({
+        id: a.id,
+        name: a.fileName,
+        size: a.size,
+        type: a.contentType,
+        url: a.url,
+      })) || [],
+    labels: [],
+    claimId: dto.claimIds && dto.claimIds.length > 0 ? dto.claimIds[0] : undefined,
+    claimIds: dto.claimIds,
+  })
+  const loadEmails = async () => {
+    try {
+      let data: EmailDto[]
+      if (claimId) {
+        data = await emailService.getEmailsByClaimId(claimId)
+      } else {
+        data = await emailService.getAllEmails()
+      }
+      setEmails(data.map(mapEmailDto))
+    } catch (error) {
+      console.error("Error fetching emails:", error)
+      toast({ title: "Błąd", description: "Nie udało się pobrać e-maili", variant: "destructive" })
+    }
+  }
+
+  useEffect(() => {
+    loadEmails()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [claimId])
   const [activeTab, setActiveTab] = useState("inbox")
   const [currentView, setCurrentView] = useState<"list" | "view" | "compose">("list")
   const [selectedEmail, setSelectedEmail] = useState<Email | null>(null)
@@ -99,14 +142,27 @@ export const EmailSection = ({
     }
   }
 
-  const handleEmailClick = (email: Email) => {
+  const handleEmailClick = async (email: Email) => {
+    if (!email.isRead) {
+      await emailService.markAsRead(email.id)
+    }
     setEmails((prev) => prev.map((e) => (e.id === email.id ? { ...e, isRead: true } : e)))
-    setSelectedEmail(email)
+    setSelectedEmail({ ...email, isRead: true })
     setCurrentView("view")
   }
 
-  const handleStarEmail = (emailId: string) => {
-    setEmails((prev) => prev.map((email) => (email.id === emailId ? { ...email, isStarred: !email.isStarred } : email)))
+  const handleStarEmail = async (emailId: string) => {
+    try {
+      await fetch(`${API_BASE_URL}/emails/${emailId}/starred`, {
+        method: "PUT",
+        credentials: "include",
+      })
+    } catch (error) {
+      console.error("Error toggling star:", error)
+    }
+    setEmails((prev) =>
+      prev.map((email) => (email.id === emailId ? { ...email, isStarred: !email.isStarred } : email)),
+    )
   }
 
   const handleCompose = () => {
@@ -164,72 +220,50 @@ export const EmailSection = ({
     })
   }
 
-  const handleSendEmail = (emailData: EmailCompose) => {
-    const newEmail: Email = {
-      id: Math.random().toString(36).substr(2, 9),
-      from: "piotr.raniecki@spartabrokers.pl",
-      fromName: "Piotr Raniecki",
-      to: emailData.to.split(",").map((email) => email.trim()),
-      cc: emailData.cc ? emailData.cc.split(",").map((email) => email.trim()) : undefined,
-      bcc: emailData.bcc ? emailData.bcc.split(",").map((email) => email.trim()) : undefined,
+  const handleSendEmail = async (emailData: EmailCompose) => {
+    const attachments = emailData.attachments
+      .map((a) => a.file)
+      .filter((f): f is File => !!f)
+    const success = await emailService.sendEmail({
+      to: emailData.to,
+      cc: emailData.cc,
+      bcc: emailData.bcc,
       subject: emailData.subject,
       body: emailData.body,
-      htmlBody: emailData.isHtml ? emailData.body : undefined,
-      isRead: true,
-      isStarred: false,
-      isImportant: emailData.priority === "high",
-      folder: "sent",
-      date: new Date().toISOString(),
-      attachments: emailData.attachments,
-      labels: [],
-      claimId: claimId,
-    }
-
-    setEmails((prev) => [newEmail, ...prev])
-    setCurrentView("list")
-    setComposeData({})
-
-    toast({
-      title: "E-mail wysłany",
-      description: "Wiadomość została wysłana pomyślnie",
+      attachments,
+      claimId,
     })
+    if (success) {
+      toast({ title: "E-mail wysłany", description: "Wiadomość została wysłana pomyślnie" })
+      await loadEmails()
+      setCurrentView("list")
+      setComposeData({})
+    } else {
+      toast({ title: "Błąd", description: "Nie udało się wysłać wiadomości", variant: "destructive" })
+    }
   }
 
-  const handleSaveDraft = (emailData: EmailCompose) => {
-    const draftEmail: Email = {
-      id: Math.random().toString(36).substr(2, 9),
-      from: "piotr.raniecki@spartabrokers.pl",
-      fromName: "Piotr Raniecki",
-      to: emailData.to
-        .split(",")
-        .map((email) => email.trim())
-        .filter(Boolean),
-      cc: emailData.cc
-        ? emailData.cc
-            .split(",")
-            .map((email) => email.trim())
-            .filter(Boolean)
-        : undefined,
-      subject: emailData.subject || "(Bez tematu)",
+  const handleSaveDraft = async (emailData: EmailCompose) => {
+    const attachments = emailData.attachments
+      .map((a) => a.file)
+      .filter((f): f is File => !!f)
+    const success = await emailService.saveDraft({
+      to: emailData.to,
+      cc: emailData.cc,
+      bcc: emailData.bcc,
+      subject: emailData.subject,
       body: emailData.body,
-      isRead: true,
-      isStarred: false,
-      isImportant: false,
-      folder: "drafts",
-      date: new Date().toISOString(),
-      attachments: emailData.attachments,
-      labels: ["szkic"],
-      claimId: claimId,
-    }
-
-    setEmails((prev) => [draftEmail, ...prev])
-    setCurrentView("list")
-    setComposeData({})
-
-    toast({
-      title: "Szkic zapisany",
-      description: "Wiadomość została zapisana w szkicach",
+      attachments,
+      claimId,
     })
+    if (success) {
+      toast({ title: "Szkic zapisany", description: "Wiadomość została zapisana w szkicach" })
+      await loadEmails()
+      setCurrentView("list")
+      setComposeData({})
+    } else {
+      toast({ title: "Błąd", description: "Nie udało się zapisać szkicu", variant: "destructive" })
+    }
   }
 
   const handleBack = () => {
@@ -268,13 +302,23 @@ export const EmailSection = ({
         onForward={handleForward}
         onBack={handleBack}
         onStar={handleStarEmail}
-        onArchive={(id) => {
-          setEmails((prev) => prev.map((email) => (email.id === id ? { ...email, folder: "trash" } : email)))
-          toast({ title: "E-mail zarchiwizowany" })
+        onArchive={async (id) => {
+          const success = await emailService.deleteEmail(id)
+          if (success) {
+            toast({ title: "E-mail zarchiwizowany" })
+            await loadEmails()
+          } else {
+            toast({ title: "Błąd", description: "Nie udało się zarchiwizować", variant: "destructive" })
+          }
         }}
-        onDelete={(id) => {
-          setEmails((prev) => prev.map((email) => (email.id === id ? { ...email, folder: "trash" } : email)))
-          toast({ title: "E-mail usunięty" })
+        onDelete={async (id) => {
+          const success = await emailService.deleteEmail(id)
+          if (success) {
+            toast({ title: "E-mail usunięty" })
+            await loadEmails()
+          } else {
+            toast({ title: "Błąd", description: "Nie udało się usunąć", variant: "destructive" })
+          }
         }}
         requiredDocuments={docs}
         onAssignAttachment={handleAssignAttachment}

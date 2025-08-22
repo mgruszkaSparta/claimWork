@@ -174,18 +174,10 @@ export const EmailComposeComponent = ({
     }
 
     onSend(emailData)
-    toast({
-      title: "E-mail wysłany",
-      description: "Wiadomość została wysłana pomyślnie",
-    })
   }
 
   const handleSaveDraft = () => {
     onSaveDraft(emailData)
-    toast({
-      title: "Szkic zapisany",
-      description: "Wiadomość została zapisana w szkicach",
-    })
   }
 
   const formatFileSize = (bytes: number) => {

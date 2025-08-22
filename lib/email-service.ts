@@ -50,6 +50,12 @@ class EmailService {
   private apiUrl = `${API_BASE_URL}/emails`
   private defaultFrom = "noreply@automotiveclaims.com"
 
+  private isValidGuid(id: string): boolean {
+    const guidRegex =
+      /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/
+    return guidRegex.test(id)
+  }
+
   async getAllEmails(): Promise<EmailDto[]> {
     try {
       const response = await fetch(this.apiUrl, {
@@ -86,6 +92,7 @@ class EmailService {
   }
 
   async getEmailById(id: string): Promise<EmailDto | undefined> {
+    if (!this.isValidGuid(id)) return undefined
     try {
       const response = await fetch(`${this.apiUrl}/${id}`, {
         method: "GET",
@@ -121,6 +128,7 @@ class EmailService {
   }
 
   async deleteEmail(emailId: string): Promise<boolean> {
+    if (!this.isValidGuid(emailId)) return false
     try {
       const response = await fetch(`${this.apiUrl}/${emailId}`, {
         method: "DELETE",
@@ -174,6 +182,7 @@ class EmailService {
   }
 
   async markAsRead(emailId: string): Promise<boolean> {
+    if (!this.isValidGuid(emailId)) return false
     try {
       const response = await fetch(`${this.apiUrl}/${emailId}/read`, {
         method: "PUT",
@@ -237,6 +246,7 @@ class EmailService {
   }
 
   async downloadAttachment(attachmentId: string): Promise<Blob | undefined> {
+    if (!this.isValidGuid(attachmentId)) return undefined
     try {
       const response = await fetch(`${this.apiUrl}/attachment/${attachmentId}`, {
         method: "GET",
@@ -254,6 +264,7 @@ class EmailService {
     emailId: string,
     file: File,
   ): Promise<AttachmentDto | undefined> {
+    if (!this.isValidGuid(emailId)) return undefined
     try {
       const formData = new FormData()
       formData.append("file", file)
@@ -263,7 +274,7 @@ class EmailService {
         body: formData,
       })
       if (!response.ok) throw new Error("Failed to upload attachment")
-      return await response.json()
+      return (await response.json()) as AttachmentDto
     } catch (error) {
       console.error("uploadAttachment failed:", error)
       return undefined
@@ -271,6 +282,7 @@ class EmailService {
   }
 
   async deleteAttachment(attachmentId: string): Promise<boolean> {
+    if (!this.isValidGuid(attachmentId)) return false
     try {
       const response = await fetch(`${this.apiUrl}/attachment/${attachmentId}`, {
         method: "DELETE",

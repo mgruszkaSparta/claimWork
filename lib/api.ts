@@ -139,6 +139,11 @@ export interface ClaimNotificationSettings {
   events: string[]
 }
 
+export interface AdminSettings {
+  version: string
+  serverTime: string
+}
+
 export interface EventUpsertDto {
   id?: string
   rowVersion?: string
@@ -879,6 +884,17 @@ class ApiService {
     })
   }
 
+  async createUser(data: {
+    userName: string
+    email?: string
+    password: string
+  }): Promise<void> {
+    await this.request<void>("/auth/register", {
+      method: "POST",
+      body: JSON.stringify(data),
+    })
+  }
+
   async checkEmail(email: string): Promise<boolean> {
     const result = await this.request<{ isUnique?: boolean; exists?: boolean }>(
       `/auth/users/check-email?email=${encodeURIComponent(email)}`,
@@ -1190,6 +1206,11 @@ class ApiService {
       method: 'PUT',
       body: JSON.stringify(data),
     })
+  }
+
+  // Admin API
+  async getAdminSettings(): Promise<AdminSettings> {
+    return this.request<AdminSettings>('/admin/settings')
   }
 
   async forgotPassword(email: string): Promise<void> {

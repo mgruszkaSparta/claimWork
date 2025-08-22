@@ -1295,7 +1295,7 @@ export const DocumentsSection = React.forwardRef<
             <CardTitle>Dokumenty</CardTitle>
           </CardHeader>
           <CardContent className="p-4 space-y-4">
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2">
               <span className="text-sm font-medium text-gray-600">Szybkie filtry:</span>
               <Badge variant="secondary" className="cursor-pointer bg-blue-100 text-blue-800">
                 Wymagane

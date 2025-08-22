@@ -133,7 +133,7 @@ function ClaimFormSidebar({ activeClaimSection, setActiveClaimSection, claimObje
     return { ...section, items }
   })
   return (
-    <div className="sticky top-0 ml-4 mt-6 w-64 h-auto bg-white border-r border-gray-200 overflow-y-auto flex-shrink-0 rounded-md shadow-sm">
+    <div className="sticky top-0 ml-4 mt-6 w-64 h-auto bg-gray-50 border-r border-gray-200 overflow-y-auto flex-shrink-0 rounded-md shadow-md">
       <div className="p-3">
         <div className="space-y-4">
           {sections.map((section, sectionIndex) => (
@@ -156,13 +156,13 @@ function ClaimFormSidebar({ activeClaimSection, setActiveClaimSection, claimObje
                       variant="ghost"
                       className={`w-full justify-start h-auto p-3 text-left transition-all duration-200 ${
                         isActive
-                          ? "bg-blue-50 text-blue-700 border-r-2 border-blue-600 shadow-sm"
-                          : "text-gray-700 hover:bg-gray-50 hover:text-gray-900"
+                          ? "bg-blue-100 text-blue-700 border-r-2 border-blue-600 shadow-sm"
+                          : "text-gray-700 hover:bg-gray-100 hover:text-gray-900"
                       }`}
                       onClick={() => setActiveClaimSection(item.id)}
                     >
                       <div className="flex items-start space-x-3 w-full">
-                        <div className={`mt-0.5 ${isActive ? "text-blue-600" : "text-gray-400"}`}>
+                        <div className={`mt-0.5 ${isActive ? "text-blue-700" : "text-gray-400"}`}>
                           <Icon className="h-4 w-4" />
                         </div>
                         <div className="flex-1 min-w-0">

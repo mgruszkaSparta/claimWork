@@ -73,6 +73,8 @@ export const AppealsSection = ({ claimId }: AppealsSectionProps) => {
   const [previewFileType, setPreviewFileType] = useState<string>("")
   const [previewFileName, setPreviewFileName] = useState("")
   const [previewDoc, setPreviewDoc] = useState<DocumentDto | null>(null)
+  const [previewDocs, setPreviewDocs] = useState<DocumentDto[]>([])
+  const [previewIndex, setPreviewIndex] = useState(0)
 
   // Preview for newly selected files
   const [isSelectedPreviewOpen, setIsSelectedPreviewOpen] = useState(false)
@@ -197,6 +199,28 @@ export const AppealsSection = ({ claimId }: AppealsSectionProps) => {
     if (fileInputRef.current) {
       fileInputRef.current.value = ""
     }
+  }
+
+  const loadPreview = async (appeal: Appeal, doc: DocumentDto) => {
+    const url = `${API_BASE_URL}/appeals/${appeal.id}/documents/${doc.id}/preview`
+    const response = await fetch(url, {
+      method: "GET",
+      credentials: "include",
+    })
+    if (!response.ok) {
+      throw new Error("Failed to preview file")
+    }
+    const blob = await response.blob()
+    const objectUrl = window.URL.createObjectURL(blob)
+    if (previewUrl) {
+      window.URL.revokeObjectURL(previewUrl)
+    }
+    const name = doc.originalFileName || doc.fileName || appeal.documentName || ""
+    setPreviewUrl(objectUrl)
+    setPreviewFileType(getFileType(name))
+    setPreviewFileName(name)
+    setPreviewAppeal(appeal)
+    setPreviewDoc(doc)
   }
 
   const resetForm = () => {
@@ -386,25 +410,67 @@ export const AppealsSection = ({ claimId }: AppealsSectionProps) => {
 
   const previewFile = async (appeal: Appeal, doc?: DocumentDto) => {
     try {
-      const url = doc
-        ? `${API_BASE_URL}/appeals/${appeal.id}/documents/${doc.id}/preview`
-        : `${API_BASE_URL}/appeals/${appeal.id}/preview`
-      const response = await fetch(url, {
-        method: "GET",
-        credentials: "include",
-      })
-      if (!response.ok) {
-        throw new Error("Failed to preview file")
+      if (doc) {
+        setPreviewDocs(appeal.documents || [])
+        const index = appeal.documents?.findIndex((d) => d.id === doc.id) ?? 0
+        setPreviewIndex(index)
+        await loadPreview(appeal, doc)
+      } else {
+        const url = `${API_BASE_URL}/appeals/${appeal.id}/preview`
+        const response = await fetch(url, {
+          method: "GET",
+          credentials: "include",
+        })
+        if (!response.ok) {
+          throw new Error("Failed to preview file")
+        }
+        const blob = await response.blob()
+        const objectUrl = window.URL.createObjectURL(blob)
+        if (previewUrl) {
+          window.URL.revokeObjectURL(previewUrl)
+        }
+        const name = appeal.documentName || ""
+        setPreviewUrl(objectUrl)
+        setPreviewFileType(getFileType(name))
+        setPreviewFileName(name)
+        setPreviewAppeal(appeal)
+        setPreviewDoc(null)
+        setPreviewDocs([])
+        setPreviewIndex(0)
       }
-      const blob = await response.blob()
-      const objectUrl = window.URL.createObjectURL(blob)
-      const name = doc?.originalFileName || doc?.fileName || appeal.documentName || ""
-      setPreviewUrl(objectUrl)
-      setPreviewFileType(getFileType(name))
-      setPreviewFileName(name)
-      setPreviewAppeal(appeal)
-      setPreviewDoc(doc || null)
       setIsPreviewOpen(true)
+    } catch (error) {
+      console.error("Error previewing file:", error)
+      toast({
+        title: "Błąd",
+        description: "Błąd podczas wczytywania podglądu",
+        variant: "destructive",
+      })
+    }
+  }
+
+  const showNextPreview = async () => {
+    if (!previewAppeal || previewDocs.length === 0) return
+    const next = (previewIndex + 1) % previewDocs.length
+    setPreviewIndex(next)
+    try {
+      await loadPreview(previewAppeal, previewDocs[next])
+    } catch (error) {
+      console.error("Error previewing file:", error)
+      toast({
+        title: "Błąd",
+        description: "Błąd podczas wczytywania podglądu",
+        variant: "destructive",
+      })
+    }
+  }
+
+  const showPrevPreview = async () => {
+    if (!previewAppeal || previewDocs.length === 0) return
+    const prev = (previewIndex - 1 + previewDocs.length) % previewDocs.length
+    setPreviewIndex(prev)
+    try {
+      await loadPreview(previewAppeal, previewDocs[prev])
     } catch (error) {
       console.error("Error previewing file:", error)
       toast({
@@ -1023,6 +1089,8 @@ export const AppealsSection = ({ claimId }: AppealsSectionProps) => {
             setPreviewAppeal(null)
             setPreviewDoc(null)
             setPreviewFileName("")
+            setPreviewDocs([])
+            setPreviewIndex(0)
           }
         }}
       >
@@ -1048,7 +1116,19 @@ export const AppealsSection = ({ claimId }: AppealsSectionProps) => {
               </div>
             )}
           </div>
-          <div className="flex justify-end pt-4 border-t border-gray-200">
+          <div className="flex justify-between pt-4 border-t border-gray-200">
+            {previewDocs.length > 1 && (
+              <div className="flex gap-2">
+                <Button variant="ghost" size="sm" onClick={showPrevPreview}">
+                  <ChevronLeft className="h-4 w-4" />
+                  <span className="sr-only">Poprzedni</span>
+                </Button>
+                <Button variant="ghost" size="sm" onClick={showNextPreview}">
+                  <ChevronRight className="h-4 w-4" />
+                  <span className="sr-only">Następny</span>
+                </Button>
+              </div>
+            )}
             <Button
               onClick={() => previewAppeal && downloadFile(previewAppeal, previewDoc || undefined)}
               className="bg-[#1a3a6c] hover:bg-[#15305a] text-white"

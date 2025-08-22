@@ -472,7 +472,10 @@ export const DocumentsSection = React.forwardRef<
                documentDto.contentType?.startsWith("video/") ||
                documentDto.contentType ===
                  "application/vnd.openxmlformats-officedocument.wordprocessingml.document" ||
-               documentDto.contentType === "application/msword"),
+               documentDto.contentType === "application/msword" ||
+               documentDto.contentType === "application/vnd.ms-excel" ||
+               documentDto.contentType ===
+                 "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"),
            previewUrl:
              documentDto.cloudUrl ||
              `${apiUrl}/documents/${documentDto.id}/preview`,
@@ -536,7 +539,11 @@ export const DocumentsSection = React.forwardRef<
               ? "image"
               : doc.contentType.includes("pdf")
               ? "pdf"
-              : doc.contentType.includes("msword") || doc.contentType.includes("wordprocessingml")
+              : doc.contentType.includes("msword") ||
+                doc.contentType.includes("wordprocessingml") ||
+                doc.contentType.includes("ms-excel") ||
+                doc.contentType.includes("spreadsheetml") ||
+                doc.contentType.includes("excel")
               ? "doc"
               : "other",
             uploadedAt: doc.createdAt,

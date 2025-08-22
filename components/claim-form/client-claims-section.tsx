@@ -400,7 +400,16 @@ export function ClientClaimsSection({ clientClaims, onClientClaimsChange, claimI
 
   const isPreviewable = (fileName: string) => {
     const extension = fileName.split(".").pop()?.toLowerCase()
-    return ["pdf", "jpg", "jpeg", "png", "gif"].includes(extension || "")
+    return [
+      "pdf",
+      "jpg",
+      "jpeg",
+      "png",
+      "gif",
+      "docx",
+      "xls",
+      "xlsx",
+    ].includes(extension || "")
   }
 
   const loadPreview = async (claim: ClientClaim, doc: DocumentDto) => {
@@ -409,9 +418,19 @@ export function ClientClaimsSection({ clientClaims, onClientClaimsChange, claimI
     const response = await fetch(urlPath, { method: "GET", credentials: "include" })
     if (!response.ok) throw new Error("Failed to preview")
     const blob = await response.blob()
-    const url = URL.createObjectURL(blob)
+    const objectUrl = URL.createObjectURL(blob)
     const extension = fileName.split(".").pop()?.toLowerCase()
-    const fileType = extension === "pdf" ? "pdf" : "image"
+    let fileType = "other"
+    let url = objectUrl
+    if (extension === "pdf") {
+      fileType = "pdf"
+    } else if (["jpg", "jpeg", "png", "gif"].includes(extension || "")) {
+      fileType = "image"
+    } else if (extension === "xls" || extension === "xlsx") {
+      fileType = "excel"
+      url = urlPath
+      URL.revokeObjectURL(objectUrl)
+    }
     setPreviewModal({ isOpen: true, url, fileName, fileType, claim, doc })
   }
 
@@ -433,9 +452,19 @@ export function ClientClaimsSection({ clientClaims, onClientClaimsChange, claimI
         const response = await fetch(urlPath, { method: "GET", credentials: "include" })
         if (!response.ok) throw new Error("Failed to preview")
         const blob = await response.blob()
-        const url = URL.createObjectURL(blob)
+        const objectUrl = URL.createObjectURL(blob)
         const extension = fileName.split(".").pop()?.toLowerCase()
-        const fileType = extension === "pdf" ? "pdf" : "image"
+        let fileType = "other"
+        let url = objectUrl
+        if (extension === "pdf") {
+          fileType = "pdf"
+        } else if (["jpg", "jpeg", "png", "gif"].includes(extension || "")) {
+          fileType = "image"
+        } else if (extension === "xls" || extension === "xlsx") {
+          fileType = "excel"
+          url = urlPath
+          URL.revokeObjectURL(objectUrl)
+        }
         setPreviewDocs([])
         setPreviewModal({ isOpen: true, url, fileName, fileType, claim, doc: doc || null })
       } catch (error) {
@@ -511,7 +540,7 @@ export function ClientClaimsSection({ clientClaims, onClientClaimsChange, claimI
   }
 
   const closePreview = () => {
-    if (previewModal.url) {
+    if (previewModal.url && previewModal.url.startsWith("blob:")) {
       URL.revokeObjectURL(previewModal.url)
     }
     setPreviewModal({
@@ -1032,6 +1061,12 @@ export function ClientClaimsSection({ clientClaims, onClientClaimsChange, claimI
                 src={previewModal.url || "/placeholder.svg"}
                 alt="Preview"
                 className="max-w-full max-h-[70vh] object-contain"
+              />
+            ) : previewModal.fileType === "excel" ? (
+              <iframe
+                src={`https://view.officeapps.live.com/op/embed.aspx?src=${encodeURIComponent(previewModal.url)}`}
+                className="w-full h-[70vh] border-0"
+                title="Document Preview"
               />
             ) : (
               <div className="text-center p-8">

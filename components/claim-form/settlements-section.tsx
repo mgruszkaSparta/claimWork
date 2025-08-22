@@ -64,7 +64,8 @@ export const SettlementsSection: React.FC<SettlementsSectionProps> = ({ eventId 
   const [isPreviewVisible, setIsPreviewVisible] = useState(false)
   const [previewUrl, setPreviewUrl] = useState<string>("")
   const [previewFileName, setPreviewFileName] = useState<string>("")
-  const [previewFileType, setPreviewFileType] = useState<"pdf" | "image" | "docx" | "other">("other")
+  const [previewFileType, setPreviewFileType] =
+    useState<"pdf" | "image" | "docx" | "excel" | "other">("other")
   const docxPreviewRef = useRef<HTMLDivElement>(null)
   const [currentPreviewSettlement, setCurrentPreviewSettlement] = useState<Settlement | null>(null)
   const [currentPreviewDoc, setCurrentPreviewDoc] = useState<DocumentDto | null>(null)
@@ -314,7 +315,16 @@ export const SettlementsSection: React.FC<SettlementsSectionProps> = ({ eventId 
   const isPreviewable = useCallback((fileName?: string) => {
     if (!fileName) return false
     const ext = fileName.toLowerCase().split(".").pop()
-    return ["pdf", "jpg", "jpeg", "png", "gif"].includes(ext || "")
+    return [
+      "pdf",
+      "jpg",
+      "jpeg",
+      "png",
+      "gif",
+      "docx",
+      "xls",
+      "xlsx",
+    ].includes(ext || "")
   }, [])
 
   const getFileNameFromPath = (path: string): string => {
@@ -329,14 +339,17 @@ export const SettlementsSection: React.FC<SettlementsSectionProps> = ({ eventId 
     const objectUrl = window.URL.createObjectURL(blob)
     const fileName = doc.originalFileName || doc.fileName || "document"
     const ext = fileName.toLowerCase().split(".").pop()
-    setPreviewUrl(objectUrl)
     setPreviewFileName(fileName)
+
     if (ext === "pdf") {
       setPreviewFileType("pdf")
+      setPreviewUrl(objectUrl)
     } else if (["jpg", "jpeg", "png", "gif"].includes(ext || "")) {
       setPreviewFileType("image")
+      setPreviewUrl(objectUrl)
     } else if (ext === "docx") {
       setPreviewFileType("docx")
+      setPreviewUrl(objectUrl)
       try {
         const buffer = await blob.arrayBuffer()
         const { renderAsync } = await import("docx-preview")
@@ -348,8 +361,13 @@ export const SettlementsSection: React.FC<SettlementsSectionProps> = ({ eventId 
         console.error("Error rendering docx preview:", err)
         setPreviewFileType("other")
       }
+    } else if (ext === "xls" || ext === "xlsx") {
+      setPreviewFileType("excel")
+      setPreviewUrl(url)
+      window.URL.revokeObjectURL(objectUrl)
     } else {
       setPreviewFileType("other")
+      setPreviewUrl(objectUrl)
     }
     setCurrentPreviewDoc(doc)
   }
@@ -367,14 +385,16 @@ export const SettlementsSection: React.FC<SettlementsSectionProps> = ({ eventId 
           const fileName = settlement.documentName || "document"
           const ext = fileName.toLowerCase().split(".").pop()
           setPreviewDocs([])
-          setPreviewUrl(objectUrl)
           setPreviewFileName(fileName)
           if (ext === "pdf") {
             setPreviewFileType("pdf")
+            setPreviewUrl(objectUrl)
           } else if (["jpg", "jpeg", "png", "gif"].includes(ext || "")) {
             setPreviewFileType("image")
+            setPreviewUrl(objectUrl)
           } else if (ext === "docx") {
             setPreviewFileType("docx")
+            setPreviewUrl(objectUrl)
             try {
               const buffer = await blob.arrayBuffer()
               const { renderAsync } = await import("docx-preview")
@@ -386,8 +406,13 @@ export const SettlementsSection: React.FC<SettlementsSectionProps> = ({ eventId 
               console.error("Error rendering docx preview:", err)
               setPreviewFileType("other")
             }
+          } else if (ext === "xls" || ext === "xlsx") {
+            setPreviewFileType("excel")
+            setPreviewUrl(url)
+            window.URL.revokeObjectURL(objectUrl)
           } else {
             setPreviewFileType("other")
+            setPreviewUrl(objectUrl)
           }
           setCurrentPreviewSettlement(settlement)
           setCurrentPreviewDoc(null)
@@ -439,7 +464,7 @@ export const SettlementsSection: React.FC<SettlementsSectionProps> = ({ eventId 
 
   const closePreview = useCallback(() => {
     setIsPreviewVisible(false)
-    if (previewUrl) {
+    if (previewUrl && previewUrl.startsWith("blob:")) {
       window.URL.revokeObjectURL(previewUrl)
     }
     setPreviewUrl("")
@@ -1017,6 +1042,15 @@ export const SettlementsSection: React.FC<SettlementsSectionProps> = ({ eventId 
               {/* DOCX Preview */}
               {previewFileType === "docx" && (
                 <div ref={docxPreviewRef} className="w-full h-full overflow-auto bg-white"></div>
+              )}
+
+              {/* Excel Preview */}
+              {previewFileType === "excel" && (
+                <iframe
+                  src={`https://view.officeapps.live.com/op/embed.aspx?src=${encodeURIComponent(previewUrl)}`}
+                  className="w-full h-full border-0"
+                  title="Excel Preview"
+                />
               )}
 
               {/* Other File Types */}

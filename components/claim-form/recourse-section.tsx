@@ -366,10 +366,16 @@ export function RecourseSection({ eventId }: RecourseSectionProps) {
     if (!response.ok) throw new Error("Failed to preview")
     const blob = await response.blob()
     const objectUrl = window.URL.createObjectURL(blob)
-    setPreviewUrl(objectUrl)
     const name = doc.originalFileName || doc.fileName || ""
+    const fileType = getFileType(name)
     setPreviewFileName(name)
-    setPreviewFileType(getFileType(name))
+    setPreviewFileType(fileType)
+    if (fileType === "excel") {
+      setPreviewUrl(url)
+      window.URL.revokeObjectURL(objectUrl)
+    } else {
+      setPreviewUrl(objectUrl)
+    }
     setPreviewDoc(doc)
   }
 
@@ -384,10 +390,16 @@ export function RecourseSection({ eventId }: RecourseSectionProps) {
         const blob = await response.blob()
         const objectUrl = window.URL.createObjectURL(blob)
         const name = recourse.documentName || ""
+        const fileType = getFileType(name)
         setPreviewDocs([])
-        setPreviewUrl(objectUrl)
         setPreviewFileName(name)
-        setPreviewFileType(getFileType(name))
+        setPreviewFileType(fileType)
+        if (fileType === "excel") {
+          setPreviewUrl(url)
+          window.URL.revokeObjectURL(objectUrl)
+        } else {
+          setPreviewUrl(objectUrl)
+        }
         setPreviewRecourse(recourse)
         setPreviewDoc(null)
         setIsPreviewVisible(true)
@@ -440,7 +452,7 @@ export function RecourseSection({ eventId }: RecourseSectionProps) {
     setPreviewRecourse(null)
     setPreviewDoc(null)
     setPreviewDocs([])
-    if (previewUrl) {
+    if (previewUrl && previewUrl.startsWith("blob:")) {
       window.URL.revokeObjectURL(previewUrl)
     }
   }
@@ -480,7 +492,17 @@ export function RecourseSection({ eventId }: RecourseSectionProps) {
   const isPreviewable = (fileName?: string) => {
     if (!fileName) return false
     const ext = fileName.split(".").pop()?.toLowerCase()
-    return ["pdf", "jpg", "jpeg", "png", "gif", "bmp"].includes(ext || "")
+    return [
+      "pdf",
+      "jpg",
+      "jpeg",
+      "png",
+      "gif",
+      "bmp",
+      "docx",
+      "xls",
+      "xlsx",
+    ].includes(ext || "")
   }
 
   const getFileNameFromPath = (path: string): string => {
@@ -492,6 +514,7 @@ export function RecourseSection({ eventId }: RecourseSectionProps) {
     const ext = fileName.split(".").pop()?.toLowerCase()
     if (ext === "pdf") return "pdf"
     if (["jpg", "jpeg", "png", "gif", "bmp"].includes(ext || "")) return "image"
+    if (ext === "xls" || ext === "xlsx") return "excel"
     return "other"
   }
 
@@ -1010,6 +1033,14 @@ export function RecourseSection({ eventId }: RecourseSectionProps) {
                 src={previewUrl || "/placeholder.svg"}
                 className="max-w-full max-h-[70vh] object-contain"
                 alt="Preview"
+              />
+            )}
+
+            {previewFileType === "excel" && previewUrl && (
+              <iframe
+                src={`https://view.officeapps.live.com/op/embed.aspx?src=${encodeURIComponent(previewUrl)}`}
+                className="w-full h-[70vh] border-0"
+                title="Excel Preview"
               />
             )}
 

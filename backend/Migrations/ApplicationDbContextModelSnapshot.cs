@@ -114,6 +114,9 @@ namespace AutomotiveClaimsApi.Migrations
                     b.Property<int?>("CaseHandlerId")
                         .HasColumnType("integer");
 
+                    b.Property<bool>("FullAccess")
+                        .HasColumnType("boolean");
+
                     b.HasKey("Id");
 
                     b.HasIndex("CaseHandlerId");
@@ -127,6 +130,21 @@ namespace AutomotiveClaimsApi.Migrations
                         .HasFilter("[NormalizedUserName] IS NOT NULL");
 
                     b.ToTable("AspNetUsers", (string)null);
+                });
+
+            modelBuilder.Entity("AutomotiveClaimsApi.Models.UserClient", b =>
+                {
+                    b.Property<string>("UserId")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<int>("ClientId")
+                        .HasColumnType("integer");
+
+                    b.HasKey("UserId", "ClientId");
+
+                    b.HasIndex("ClientId");
+
+                    b.ToTable("UserClients");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
@@ -598,6 +616,11 @@ namespace AutomotiveClaimsApi.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("RiskTypes");
+                });
+
+            modelBuilder.Entity("AutomotiveClaimsApi.Models.Client", b =>
+                {
+                    b.Navigation("UserClients");
                 });
 
             modelBuilder.Entity("AutomotiveClaimsApi.Models.Driver", b =>
@@ -1510,6 +1533,24 @@ namespace AutomotiveClaimsApi.Migrations
                     b.Navigation("Email");
                 });
 
+            modelBuilder.Entity("AutomotiveClaimsApi.Models.UserClient", b =>
+                {
+                    b.HasOne("AutomotiveClaimsApi.Models.ApplicationUser", "User")
+                        .WithMany("UserClients")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("AutomotiveClaimsApi.Models.Client", "Client")
+                        .WithMany("UserClients")
+                        .HasForeignKey("ClientId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Client");
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("AutomotiveClaimsApi.Models.Participant", b =>
                 {
                     b.HasOne("AutomotiveClaimsApi.Models.Event", "Event")
@@ -1637,6 +1678,7 @@ namespace AutomotiveClaimsApi.Migrations
                         .OnDelete(DeleteBehavior.SetNull);
 
                     b.Navigation("CaseHandler");
+                    b.Navigation("UserClients");
                 });
 #pragma warning restore 612, 618
         }

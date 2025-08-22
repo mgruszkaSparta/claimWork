@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Identity;
 using AutomotiveClaimsApi.Models.Dictionary;
+using System.Collections.Generic;
 
 namespace AutomotiveClaimsApi.Models
 {
@@ -10,10 +11,11 @@ namespace AutomotiveClaimsApi.Models
         public DateTime CreatedAt { get; set; }
         public DateTime? LastLogin { get; set; }
 
-        public int? ClientId { get; set; }
-        public Client? Client { get; set; }
+        public bool FullAccess { get; set; } = false;
 
         public int? CaseHandlerId { get; set; }
         public CaseHandler? CaseHandler { get; set; }
+
+        public ICollection<UserClient> UserClients { get; set; } = new List<UserClient>();
     }
 }

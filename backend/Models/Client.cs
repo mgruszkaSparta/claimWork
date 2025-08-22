@@ -1,5 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.Collections.Generic;
 
 namespace AutomotiveClaimsApi.Models
 {
@@ -50,5 +51,6 @@ namespace AutomotiveClaimsApi.Models
 
         // Navigation properties
         public virtual ICollection<Damage> Damages { get; set; } = new List<Damage>();
+        public virtual ICollection<UserClient> UserClients { get; set; } = new List<UserClient>();
     }
 }

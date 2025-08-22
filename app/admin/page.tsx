@@ -1,15 +1,44 @@
 "use client"
 
+import { useEffect, useState } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
 import { Users, Shield, UserCheck, UserX, Activity, Clock, AlertTriangle } from "lucide-react"
-import { adminService } from "@/lib/services/admin-service"
+import { apiService, type AdminSettings, type UserListItemDto } from "@/lib/api"
 import Link from "next/link"
 
 export default function AdminDashboard() {
-  const users = adminService.getUsers()
-  const roles = adminService.getRoles()
+  const [users, setUsers] = useState<UserListItemDto[]>([])
+  const [roles, setRoles] = useState<string[]>([])
+  const [adminInfo, setAdminInfo] = useState<AdminSettings | null>(null)
+  const [newUser, setNewUser] = useState({ userName: "", email: "", password: "" })
+
+  useEffect(() => {
+    apiService.getAdminSettings().then(setAdminInfo).catch((err) => {
+      console.error("Failed to load admin settings", err)
+    })
+    apiService
+      .getUsers()
+      .then(({ items }) => {
+        setUsers(items)
+        setRoles(Array.from(new Set(items.map((u) => u.role).filter(Boolean))) as string[])
+      })
+      .catch((err) => console.error("Failed to load users", err))
+  }, [])
+
+  const handleAddUser = async () => {
+    try {
+      await apiService.createUser(newUser)
+      setNewUser({ userName: "", email: "", password: "" })
+      const { items } = await apiService.getUsers()
+      setUsers(items)
+      setRoles(Array.from(new Set(items.map((u) => u.role).filter(Boolean))) as string[])
+    } catch (err) {
+      console.error("Failed to add user", err)
+    }
+  }
 
   const activeUsers = users.filter((user) => user.status === "active").length
   const inactiveUsers = users.filter((user) => user.status === "inactive").length
@@ -147,15 +176,29 @@ export default function AdminDashboard() {
             <div className="space-y-4">
               <div className="flex items-center justify-between">
                 <span className="text-sm text-muted-foreground">Status serwera</span>
-                <Badge className="bg-green-100 text-green-800 hover:bg-green-100">Online</Badge>
+                <Badge
+                  className={
+                    adminInfo
+                      ? "bg-green-100 text-green-800 hover:bg-green-100"
+                      : "bg-red-100 text-red-800 hover:bg-red-100"
+                  }
+                >
+                  {adminInfo ? "Online" : "Offline"}
+                </Badge>
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-sm text-muted-foreground">Ostatnia aktualizacja</span>
-                <span className="text-sm text-foreground">2 dni temu</span>
+                <span className="text-sm text-muted-foreground">Czas serwera</span>
+                <span className="text-sm text-foreground">
+                  {adminInfo
+                    ? new Date(adminInfo.serverTime).toLocaleString()
+                    : "-"}
+                </span>
               </div>
               <div className="flex items-center justify-between">
                 <span className="text-sm text-muted-foreground">Wersja systemu</span>
-                <span className="text-sm text-foreground">v1.0.0</span>
+                <span className="text-sm text-foreground">
+                  {adminInfo?.version ?? "-"}
+                </span>
               </div>
               {suspendedUsers > 0 && (
                 <div className="flex items-center gap-2 p-3 rounded-lg bg-orange-50 border border-orange-200">
@@ -178,6 +221,36 @@ export default function AdminDashboard() {
           </CardContent>
         </Card>
       </div>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Dodaj użytkownika</CardTitle>
+          <CardDescription>Utwórz nowego użytkownika w systemie</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="grid gap-4 md:grid-cols-3">
+            <Input
+              placeholder="Nazwa użytkownika"
+              value={newUser.userName}
+              onChange={(e) => setNewUser({ ...newUser, userName: e.target.value })}
+            />
+            <Input
+              placeholder="Email"
+              value={newUser.email}
+              onChange={(e) => setNewUser({ ...newUser, email: e.target.value })}
+            />
+            <Input
+              placeholder="Hasło"
+              type="password"
+              value={newUser.password}
+              onChange={(e) => setNewUser({ ...newUser, password: e.target.value })}
+            />
+          </div>
+          <Button className="mt-4" onClick={handleAddUser}>
+            Dodaj użytkownika
+          </Button>
+        </CardContent>
+      </Card>
     </div>
   )
 }

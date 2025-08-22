@@ -1,8 +1,11 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Identity;
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.EntityFrameworkCore;
 using AutomotiveClaimsApi.Models;
 using AutomotiveClaimsApi.DTOs;
 using AutomotiveClaimsApi.Services;
@@ -110,6 +113,8 @@ namespace AutomotiveClaimsApi.Controllers
                 return Unauthorized();
             }
 
+            user.LastLogin = DateTime.UtcNow;
+            await _userManager.UpdateAsync(user);
 
             if (user.MustChangePassword)
             {
@@ -117,14 +122,6 @@ namespace AutomotiveClaimsApi.Controllers
             }
 
             return Ok(new { mustChangePassword = false });
-
-            var user = await _userManager.FindByNameAsync(dto.UserName);
-            if (user != null)
-            {
-                user.LastLogin = DateTime.UtcNow;
-                await _userManager.UpdateAsync(user);
-            }
-            return Ok();
 
         }
 
@@ -190,6 +187,85 @@ namespace AutomotiveClaimsApi.Controllers
             if (dto.Email != null) user.Email = dto.Email;
             var result = await _userManager.UpdateAsync(user);
             if (!result.Succeeded) return BadRequest(result.Errors);
+            return NoContent();
+        }
+
+        [Authorize]
+        [HttpGet("users")]
+        public async Task<ActionResult<IEnumerable<UserListItemDto>>> GetUsers([FromQuery] string? search)
+        {
+            var query = _userManager.Users.AsQueryable();
+            if (!string.IsNullOrWhiteSpace(search))
+            {
+                query = query.Where(u =>
+                    u.UserName!.Contains(search) ||
+                    (u.Email != null && u.Email.Contains(search)));
+            }
+
+            var users = await query.ToListAsync();
+            var items = new List<UserListItemDto>();
+            foreach (var u in users)
+            {
+                var roles = await _userManager.GetRolesAsync(u);
+                items.Add(new UserListItemDto
+                {
+                    Id = u.Id,
+                    FirstName = u.UserName,
+                    LastName = string.Empty,
+                    Email = u.Email,
+                    Role = roles.FirstOrDefault(),
+                    Status = u.LockoutEnd.HasValue && u.LockoutEnd.Value.UtcDateTime > DateTime.UtcNow ? "inactive" : "active",
+                    CreatedAt = u.CreatedAt,
+                    LastLogin = u.LastLogin
+                });
+            }
+
+            Response.Headers["X-Total-Count"] = items.Count.ToString();
+            return Ok(items);
+        }
+
+        [Authorize]
+        [HttpGet("users/check-email")]
+        public async Task<IActionResult> CheckEmail([FromQuery] string email)
+        {
+            var exists = await _userManager.FindByEmailAsync(email) != null;
+            return Ok(new { exists });
+        }
+
+        [Authorize]
+        [HttpPost("users/bulk")]
+        public async Task<IActionResult> UpdateUsersBulk([FromBody] UpdateUsersBulkDto dto)
+        {
+            foreach (var id in dto.UserIds)
+            {
+                var user = await _userManager.FindByIdAsync(id);
+                if (user == null) continue;
+
+                switch (dto.Action)
+                {
+                    case "activate":
+                        user.LockoutEnd = null;
+                        await _userManager.UpdateAsync(user);
+                        break;
+                    case "deactivate":
+                        user.LockoutEnd = DateTimeOffset.MaxValue;
+                        await _userManager.UpdateAsync(user);
+                        break;
+                    case "assignRole":
+                        if (!string.IsNullOrEmpty(dto.Role))
+                        {
+                            var currentRoles = await _userManager.GetRolesAsync(user);
+                            if (currentRoles.Count > 0)
+                                await _userManager.RemoveFromRolesAsync(user, currentRoles);
+                            await _userManager.AddToRoleAsync(user, dto.Role);
+                        }
+                        break;
+                    case "delete":
+                        await _userManager.DeleteAsync(user);
+                        break;
+                }
+            }
+
             return NoContent();
         }
 

@@ -1,38 +1,39 @@
 using EmailService;
-
+using EmailService.Data;
 using EmailService.Storage;
-using AutomotiveClaimsApi.Data;
 using Google.Cloud.Storage.V1;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 
-// Usage: EmailService <smtpHost> <smtpPort> <imapHost> <imapPort> <username> <password> <connectionString> [gcsBucket]
-if (args.Length < 7)
+var builder = Host.CreateApplicationBuilder(args);
+
+builder.Services.AddDbContext<EmailDbContext>(options =>
+    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+
+builder.Services.AddSingleton<IAttachmentStorage>(_ =>
+    builder.Configuration["Storage:Bucket"] is { Length: > 0 } bucket
+        ? new GoogleCloudAttachmentStorage(StorageClient.Create(), bucket)
+        : new LocalAttachmentStorage("attachments"));
+
+builder.Services.AddTransient<EmailClient>(sp =>
 {
-    Console.WriteLine("Usage: EmailService <smtpHost> <smtpPort> <imapHost> <imapPort> <username> <password> <connectionString> [gcsBucket]");
-    return;
-}
+    var cfg = builder.Configuration.GetSection("Email");
+    return new EmailClient(
+        smtpHost: cfg["SmtpHost"]!,
+        smtpPort: cfg.GetValue<int>("SmtpPort"),
+        imapHost: cfg["ImapHost"]!,
+        imapPort: cfg.GetValue<int>("ImapPort"),
+        username: cfg["Username"]!,
+        password: cfg["Password"]!,
+        db: sp.GetRequiredService<EmailDbContext>(),
+        storage: sp.GetRequiredService<IAttachmentStorage>()
+    );
+});
 
-var options = new DbContextOptionsBuilder<ApplicationDbContext>()
-    .UseSqlServer(args[6])
-    .Options;
-var db = new ApplicationDbContext(options);
+using var host = builder.Build();
 
-IAttachmentStorage storage = args.Length > 7
-    ? new GoogleCloudAttachmentStorage(StorageClient.Create(), args[7])
-    : new LocalAttachmentStorage("attachments");
-
-
-var client = new EmailClient(
-    smtpHost: args[0],
-    smtpPort: int.Parse(args[1]),
-    imapHost: args[2],
-    imapPort: int.Parse(args[3]),
-    username: args[4],
-
-    password: args[5],
-    db: db,
-    storage: storage
-);
+var client = host.Services.GetRequiredService<EmailClient>();
 var fetched = await client.FetchUnreadEmailsAsync();
 Console.WriteLine($"Fetched {fetched.Count} unread emails.");
 

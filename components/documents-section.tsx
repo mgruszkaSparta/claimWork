@@ -18,9 +18,13 @@ import type { DocumentsSectionProps, UploadedFile, DocumentsSectionRef } from "@
 import JSZip from "jszip"
 import { saveAs } from "file-saver"
 
+// Categories that have dedicated sections elsewhere and therefore should
+// not appear in the generic documents section for a claim folder.
 const DEFAULT_HIDDEN_CATEGORIES = [
   "Decyzje",
   "Decyzja",
+  "Decisions",
+  "Decision",
   "Regresy",
   "Regres",
   "Odwołania",

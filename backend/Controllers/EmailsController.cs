@@ -41,7 +41,7 @@ namespace AutomotiveClaimsApi.Controllers
         }
 
         [HttpPost]
-        public async Task<ActionResult<EmailDto>> SendEmail(SendEmailDto sendEmailDto)
+        public async Task<ActionResult<EmailDto>> SendEmail([FromForm] SendEmailDto sendEmailDto)
         {
             try
             {
@@ -55,7 +55,7 @@ namespace AutomotiveClaimsApi.Controllers
         }
 
         [HttpPost("draft")]
-        public async Task<ActionResult<EmailDto>> CreateDraft(CreateEmailDto createEmailDto)
+        public async Task<ActionResult<EmailDto>> CreateDraft([FromForm] CreateEmailDto createEmailDto)
         {
             var email = await _emailService.CreateDraftAsync(createEmailDto);
             return CreatedAtAction(nameof(GetEmail), new { id = email.Id }, email);

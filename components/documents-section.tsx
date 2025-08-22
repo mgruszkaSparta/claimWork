@@ -14,7 +14,7 @@ import {
   DropdownMenuItem,
 } from "@/components/ui/dropdown-menu"
 import { useToast } from "@/hooks/use-toast"
-import { File, Search, Eye, Download, Upload, X, Trash2, Grid, List, Wand, Plus, FileText, Paperclip, ZoomIn, ZoomOut, ChevronLeft, ChevronRight, RotateCw, Maximize2, Minimize2 } from 'lucide-react'
+import { File, Search, Eye, Download, Upload, X, Trash2, Grid, List, Wand, Plus, FileText, Paperclip, ZoomIn, ZoomOut, ChevronLeft, ChevronRight, RotateCw, Maximize2, Minimize2, Pencil, Save } from 'lucide-react'
 import type { DocumentsSectionProps, UploadedFile, DocumentsSectionRef } from "@/types"
 import JSZip from "jszip"
 import { saveAs } from "file-saver"
@@ -108,6 +108,9 @@ export const DocumentsSection = React.forwardRef<
   const previewContainerRef = React.useRef<HTMLDivElement>(null)
   const docxPreviewRef = React.useRef<HTMLDivElement>(null)
 
+  const [docxEditing, setDocxEditing] = useState(false)
+  const originalDocxHtml = React.useRef<string>("")
+
   // Persist view mode per section when storageKey provided
   useEffect(() => {
     if (storageKey) {
@@ -119,6 +122,7 @@ export const DocumentsSection = React.forwardRef<
     if (document.fullscreenElement) {
       document.exitFullscreen()
     }
+    setDocxEditing(false)
     setPreviewDocument(null)
   }, [setPreviewDocument])
 
@@ -832,6 +836,7 @@ export const DocumentsSection = React.forwardRef<
     setPreviewZoom(1)
     setPreviewRotation(0)
     setPreviewFullscreen(false)
+    setDocxEditing(false)
   }
 
   const handleDownload = (doc: Document) => {
@@ -842,6 +847,32 @@ export const DocumentsSection = React.forwardRef<
     window.document.body.appendChild(link)
     link.click()
     window.document.body.removeChild(link)
+  }
+
+  const startDocxEdit = () => {
+    if (docxPreviewRef.current) {
+      originalDocxHtml.current = docxPreviewRef.current.innerHTML
+      setDocxEditing(true)
+    }
+  }
+
+  const cancelDocxEdit = () => {
+    if (docxPreviewRef.current) {
+      docxPreviewRef.current.innerHTML = originalDocxHtml.current
+    }
+    setDocxEditing(false)
+  }
+
+  const saveDocxEdit = async () => {
+    if (!docxPreviewRef.current || !previewDocument) return
+    const html = docxPreviewRef.current.innerHTML
+    // @ts-ignore: library lacks types
+    const HTMLDocx = await import("html-docx-js/dist/html-docx")
+    const blob = HTMLDocx.default
+      ? HTMLDocx.default.asBlob(html)
+      : HTMLDocx.asBlob(html)
+    saveAs(blob, previewDocument.originalFileName)
+    setDocxEditing(false)
   }
 
   const handleDownloadAll = async (category?: string) => {
@@ -1755,6 +1786,26 @@ export const DocumentsSection = React.forwardRef<
                     {previewFullscreen ? <Minimize2 className="h-4 w-4" /> : <Maximize2 className="h-4 w-4" />}
                   </Button>
 
+                  {previewDocument.contentType ===
+                    "application/vnd.openxmlformats-officedocument.wordprocessingml.document" && (
+                    docxEditing ? (
+                      <>
+                        <Button variant="outline" size="sm" onClick={saveDocxEdit}>
+                          <Save className="h-4 w-4" />
+                          Zapisz
+                        </Button>
+                        <Button variant="ghost" size="sm" onClick={cancelDocxEdit}>
+                          Anuluj
+                        </Button>
+                      </>
+                    ) : (
+                      <Button variant="outline" size="sm" onClick={startDocxEdit}>
+                        <Pencil className="h-4 w-4" />
+                        Edytuj
+                      </Button>
+                    )
+                  )}
+
                   {/* Download button */}
                   <Button variant="outline" size="sm" onClick={() => handleDownload(previewDocument)}>
                     <Download className="h-4 w-4" />
@@ -1827,7 +1878,12 @@ export const DocumentsSection = React.forwardRef<
                 ) : previewDocument.contentType ===
                     "application/vnd.openxmlformats-officedocument.wordprocessingml.document" ? (
                   <div className="w-full h-full overflow-auto p-4">
-                    <div ref={docxPreviewRef} className="w-full" />
+                    <div
+                      ref={docxPreviewRef}
+                      className={`w-full ${docxEditing ? "border p-2" : ""}`}
+                      contentEditable={docxEditing}
+                      suppressContentEditableWarning
+                    />
                   </div>
                 ) : (
                   <div className="text-center py-8">

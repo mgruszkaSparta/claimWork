@@ -2,7 +2,12 @@ export interface Role {
   id: string;
   name: string;
   color: string;
-  permissions?: Permission[];
+  /** Indicates if the role is a built-in system role */
+  isSystem?: boolean;
+  /** Optional description displayed in the UI */
+  description?: string;
+  /** Permissions assigned to the role */
+  permissions: Permission[];
 }
 
 export interface Permission {
@@ -31,5 +36,13 @@ export interface UserFilters {
   status?: User['status'];
   roleId?: string;
   sortBy?: 'name' | 'email' | 'createdAt' | 'lastLogin';
+  sortOrder?: 'asc' | 'desc';
+}
+
+export interface RoleFilters {
+  search?: string;
+  /** Filter by system or custom roles. Undefined means all */
+  isSystem?: boolean;
+  sortBy?: 'name';
   sortOrder?: 'asc' | 'desc';
 }

@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useMemo } from "react"
+import { useState, useMemo, useEffect } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -16,31 +16,43 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { Search, Plus, MoreHorizontal, Edit, Trash2, Users, Filter } from "lucide-react"
 import { adminService } from "@/lib/services/admin-service"
-import type { RoleFilters, Role } from "@/lib/types/admin"
+import type { Role, User } from "@/lib/types/admin"
 import { RoleFormDialog } from "@/components/admin/role-form-dialog"
 
 export default function RolesPage() {
   const [searchTerm, setSearchTerm] = useState("")
   const [systemFilter, setSystemFilter] = useState<string>("all")
-  const [sortBy, setSortBy] = useState<RoleFilters["sortBy"]>("name")
-  const [sortOrder, setSortOrder] = useState<RoleFilters["sortOrder"]>("asc")
+  const [sortOrder] = useState<'asc' | 'desc'>("asc")
   const [roleDialogOpen, setRoleDialogOpen] = useState(false)
   const [selectedRole, setSelectedRole] = useState<Role | null>(null)
 
-  const filters: RoleFilters = useMemo(() => {
-    const baseFilters: RoleFilters = {
-      sortBy,
-      sortOrder,
+  const [roles, setRoles] = useState<Role[]>([])
+  const [users, setUsers] = useState<User[]>([])
+
+  useEffect(() => {
+    adminService.getRoles().then(setRoles)
+    adminService.getUsers().then(setUsers)
+  }, [])
+
+  const filteredRoles = useMemo(() => {
+    let result = [...roles]
+
+    if (searchTerm) {
+      result = result.filter((role) => role.name.toLowerCase().includes(searchTerm.toLowerCase()))
     }
 
-    if (searchTerm) baseFilters.search = searchTerm
-    if (systemFilter !== "all") baseFilters.isSystem = systemFilter === "system"
+    if (systemFilter !== "all") {
+      const isSystem = systemFilter === "system"
+      result = result.filter((role) => (role.isSystem ?? false) === isSystem)
+    }
 
-    return baseFilters
-  }, [searchTerm, systemFilter, sortBy, sortOrder])
+    result.sort((a, b) => {
+      const compare = a.name.localeCompare(b.name)
+      return sortOrder === "asc" ? compare : -compare
+    })
 
-  const roles = adminService.getRoles(filters)
-  const users = adminService.getUsers()
+    return result
+  }, [roles, searchTerm, systemFilter, sortOrder])
 
   const getUserCountForRole = (roleId: string) => {
     return users.filter((user) => user.roles.some((role) => role.id === roleId)).length
@@ -130,14 +142,14 @@ export default function RolesPage() {
 
       {/* Roles Grid */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-        {roles.length === 0 ? (
+        {filteredRoles.length === 0 ? (
           <Card className="col-span-full">
             <CardContent className="flex items-center justify-center h-24">
               <p className="text-muted-foreground">Nie znaleziono ról.</p>
             </CardContent>
           </Card>
         ) : (
-          roles.map((role) => (
+          filteredRoles.map((role) => (
             <Card key={role.id} className="relative">
               <CardHeader className="pb-3">
                 <div className="flex items-start justify-between">

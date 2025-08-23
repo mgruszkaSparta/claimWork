@@ -40,6 +40,13 @@ namespace AutomotiveClaimsApi.Controllers
             return Ok(emails);
         }
 
+        [HttpGet("event/{eventId}")]
+        public async Task<ActionResult<IEnumerable<EmailDto>>> GetEmailsByEventId(Guid eventId)
+        {
+            var emails = await _emailService.GetEmailsByEventIdAsync(eventId);
+            return Ok(emails);
+        }
+
         [HttpPost]
         public async Task<ActionResult<EmailDto>> SendEmail([FromForm] SendEmailDto sendEmailDto)
         {

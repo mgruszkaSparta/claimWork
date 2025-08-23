@@ -55,7 +55,6 @@ namespace AutomotiveClaimsApi.Services
                 var email = new Email
                 {
                     Id = Guid.NewGuid(),
-                    EventId = createEmailDto.EventId.HasValue ? new Guid(createEmailDto.EventId.Value.ToString()) : null,
                     Subject = createEmailDto.Subject ?? string.Empty,
                     Body = createEmailDto.Body ?? string.Empty,
                     From = createEmailDto.From ?? _smtpSettings.FromEmail,
@@ -69,6 +68,16 @@ namespace AutomotiveClaimsApi.Services
                     CreatedAt = DateTime.UtcNow,
                     UpdatedAt = DateTime.UtcNow
                 };
+
+                if (createEmailDto.EventId.HasValue)
+                {
+                    var evt = await _context.Events.FindAsync(createEmailDto.EventId.Value);
+                    if (evt != null)
+                    {
+                        email.EventId = evt.Id;
+                        email.Event = evt;
+                    }
+                }
 
                 _context.Emails.Add(email);
 
@@ -247,7 +256,6 @@ namespace AutomotiveClaimsApi.Services
                     Cc = sendEmailDto.Cc,
                     Bcc = sendEmailDto.Bcc,
                     IsHtml = sendEmailDto.IsHtml,
-                    EventId = sendEmailDto.EventId,
                     ClaimNumber = sendEmailDto.ClaimNumber,
                     Direction = "Outbound",
                     Status = "Pending",
@@ -255,6 +263,16 @@ namespace AutomotiveClaimsApi.Services
                     CreatedAt = DateTime.UtcNow,
                     UpdatedAt = DateTime.UtcNow
                 };
+
+                if (sendEmailDto.EventId.HasValue)
+                {
+                    var evt = await _context.Events.FindAsync(sendEmailDto.EventId.Value);
+                    if (evt != null)
+                    {
+                        email.EventId = evt.Id;
+                        email.Event = evt;
+                    }
+                }
 
                 ClientClaim? claim = null;
                 if (!string.IsNullOrWhiteSpace(sendEmailDto.ClaimId) && Guid.TryParse(sendEmailDto.ClaimId, out var claimGuid))
@@ -486,24 +504,13 @@ namespace AutomotiveClaimsApi.Services
             return true;
         }
 
-        public string? ExtractEventNumber(string message)
+        public Guid? ExtractEventId(string message)
         {
             if (string.IsNullOrWhiteSpace(message))
                 return null;
 
-            var match = Regex.Match(message, @"\b\w{3}\d{7}\b");
-            return match.Success ? match.Value : null;
-        }
-
-        private async Task<Guid?> ResolveEventIdFromEventNumberAsync(string? eventNumber)
-        {
-            if (string.IsNullOrWhiteSpace(eventNumber))
-                return null;
-
-            return await _context.Events
-                .Where(e => e.ClaimNumber != null && e.ClaimNumber == eventNumber)
-                .Select(e => (Guid?)e.Id)
-                .FirstOrDefaultAsync();
+            var match = Regex.Match(message, @"\b[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}\b");
+            return match.Success && Guid.TryParse(match.Value, out var guid) ? guid : (Guid?)null;
         }
 
         private async Task<bool> EmailExistsAsync(string messageId)
@@ -536,9 +543,16 @@ namespace AutomotiveClaimsApi.Services
                 UpdatedAt = DateTime.UtcNow
             };
 
-            var eventNumber = ExtractEventNumber(message.Subject + " " + (message.TextBody ?? string.Empty));
-            var eventId = await ResolveEventIdFromEventNumberAsync(eventNumber);
-            email.EventId = eventId;
+            var eventId = ExtractEventId(message.Subject + " " + (message.TextBody ?? string.Empty));
+            if (eventId.HasValue)
+            {
+                var evt = await _context.Events.FindAsync(eventId.Value);
+                if (evt != null)
+                {
+                    email.EventId = evt.Id;
+                    email.Event = evt;
+                }
+            }
 
             foreach (var attachment in message.Attachments)
             {

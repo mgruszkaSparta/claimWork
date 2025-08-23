@@ -10,7 +10,7 @@ export default function ResetPasswordPage() {
   const params = useParams<{ token: string }>()
   const token = Array.isArray(params.token) ? params.token[0] : params.token
   const [email, setEmail] = useState("")
-  const [password, setPassword] = useState("")
+  const [newPassword, setNewPassword] = useState("")
   const [message, setMessage] = useState("")
   const [error, setError] = useState("")
 
@@ -26,7 +26,7 @@ export default function ResetPasswordPage() {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ email, token, password }),
+        body: JSON.stringify({ email, token, newPassword }),
       })
 
       if (!res.ok) {
@@ -35,7 +35,7 @@ export default function ResetPasswordPage() {
 
       setMessage("Hasło zostało zresetowane")
       setEmail("")
-      setPassword("")
+      setNewPassword("")
     } catch {
       setError("Nie udało się zresetować hasła.")
     }
@@ -57,12 +57,12 @@ export default function ResetPasswordPage() {
           />
         </div>
         <div className="space-y-2">
-          <Label htmlFor="password">Nowe hasło</Label>
+          <Label htmlFor="newPassword">Nowe hasło</Label>
           <Input
-            id="password"
+            id="newPassword"
             type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
+            value={newPassword}
+            onChange={(e) => setNewPassword(e.target.value)}
             required
           />
         </div>

@@ -1224,12 +1224,12 @@ class ApiService {
   async resetPassword(
     email: string,
     token: string,
-    password: string,
+    newPassword: string,
   ): Promise<void> {
     return this.request<void>("/auth/reset-password", {
       method: "POST",
       credentials: "include",
-      body: JSON.stringify({ email, token, password }),
+      body: JSON.stringify({ email, token, newPassword }),
     })
   }
 }

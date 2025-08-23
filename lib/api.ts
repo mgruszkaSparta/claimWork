@@ -233,6 +233,8 @@ export interface UserListItemDto {
   status: "active" | "inactive"
   createdAt?: string
   lastLogin?: string
+  fullAccess?: boolean
+  clientIds?: number[]
 }
 
 export interface UpdateUsersBulkDto {

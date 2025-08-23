@@ -7,6 +7,9 @@ import { Label } from "@/components/ui/label"
 import { Button } from "@/components/ui/button"
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select"
 import type { Role, User } from "@/lib/types/admin"
+import { Checkbox } from "@/components/ui/checkbox"
+import { apiService, type ClientDto } from "@/lib/api"
+import { adminService } from "@/lib/services/admin-service"
 
 interface UserFormDialogProps {
   open: boolean
@@ -24,6 +27,13 @@ export function UserFormDialog({ open, onOpenChange, user, roles, onSave }: User
   const [roleId, setRoleId] = useState(roles[0]?.id ?? "")
   const [status, setStatus] = useState<User["status"]>("active")
   const [password, setPassword] = useState("")
+  const [fullAccess, setFullAccess] = useState(false)
+  const [clients, setClients] = useState<ClientDto[]>([])
+  const [clientIds, setClientIds] = useState<number[]>([])
+
+  useEffect(() => {
+    apiService.getClients().then(setClients)
+  }, [])
 
   useEffect(() => {
     if (user) {
@@ -32,6 +42,10 @@ export function UserFormDialog({ open, onOpenChange, user, roles, onSave }: User
       setEmail(user.email)
       setRoleId(user.roles[0]?.id ?? roles[0]?.id ?? "")
       setStatus(user.status)
+      adminService.getUser(user.id).then((u) => {
+        setFullAccess(u.fullAccess ?? false)
+        setClientIds(u.clientIds ?? [])
+      })
     } else {
       setFirstName("")
       setLastName("")
@@ -39,6 +53,8 @@ export function UserFormDialog({ open, onOpenChange, user, roles, onSave }: User
       setRoleId(roles[0]?.id ?? "")
       setStatus("active")
       setPassword("")
+      setFullAccess(false)
+      setClientIds([])
     }
   }, [user, roles])
 
@@ -57,6 +73,8 @@ export function UserFormDialog({ open, onOpenChange, user, roles, onSave }: User
       lastLogin: user?.lastLogin,
       avatar: user?.avatar,
       password: isEdit ? undefined : password,
+      fullAccess,
+      clientIds,
     })
   }
 
@@ -118,6 +136,42 @@ export function UserFormDialog({ open, onOpenChange, user, roles, onSave }: User
               </SelectContent>
             </Select>
           </div>
+          <div className="flex items-center space-x-2">
+            <Checkbox
+              id="fullAccess"
+              checked={fullAccess}
+              onCheckedChange={(v) => setFullAccess(v === true)}
+            />
+            <Label htmlFor="fullAccess">Pełny dostęp</Label>
+          </div>
+          {!fullAccess && (
+            <div>
+              <Label>Klienci</Label>
+              <div className="max-h-48 overflow-auto border rounded">
+                <table className="w-full text-sm">
+                  <tbody>
+                    {clients.map((c) => (
+                      <tr key={c.id} className="border-b last:border-0">
+                        <td className="p-2">
+                          <Checkbox
+                            checked={clientIds.includes(c.id)}
+                            onCheckedChange={(checked) =>
+                              setClientIds((prev) =>
+                                checked === true
+                                  ? [...prev, c.id]
+                                  : prev.filter((id) => id !== c.id),
+                              )
+                            }
+                          />
+                        </td>
+                        <td className="p-2">{c.name}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
           <Button type="submit">{isEdit ? "Zapisz" : "Utwórz"}</Button>
         </form>
       </DialogContent>

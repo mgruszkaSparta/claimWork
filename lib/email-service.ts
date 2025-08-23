@@ -197,21 +197,20 @@ class EmailService {
 
   async sendEmail(sendRequest: SendEmailRequestDto): Promise<boolean> {
     try {
+      const formData = new FormData()
+      formData.append("to", sendRequest.to)
+      if (sendRequest.cc) formData.append("cc", sendRequest.cc)
+      if (sendRequest.bcc) formData.append("bcc", sendRequest.bcc)
+      formData.append("subject", sendRequest.subject)
+      formData.append("body", sendRequest.body)
+      formData.append("isHtml", "false")
+      if (sendRequest.claimId) formData.append("claimId", sendRequest.claimId)
+      sendRequest.attachments?.forEach((file) => formData.append("attachments", file))
+
       const response = await fetch(this.apiUrl, {
         method: "POST",
         credentials: "include",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          from: this.defaultFrom,
-          to: sendRequest.to,
-          cc: sendRequest.cc,
-          bcc: sendRequest.bcc,
-          subject: sendRequest.subject,
-          body: sendRequest.body,
-          isHtml: false,
-          direction: "Outbound",
-          claimId: sendRequest.claimId,
-        }),
+        body: formData,
       })
       return response.ok
     } catch (error) {
@@ -222,21 +221,21 @@ class EmailService {
 
   async saveDraft(sendRequest: SendEmailRequestDto): Promise<boolean> {
     try {
+      const formData = new FormData()
+      formData.append("to", sendRequest.to)
+      if (sendRequest.cc) formData.append("cc", sendRequest.cc)
+      if (sendRequest.bcc) formData.append("bcc", sendRequest.bcc)
+      formData.append("subject", sendRequest.subject)
+      formData.append("body", sendRequest.body)
+      formData.append("isHtml", "false")
+      formData.append("direction", "Outbound")
+      if (sendRequest.claimId) formData.append("claimIds", sendRequest.claimId)
+      sendRequest.attachments?.forEach((file) => formData.append("attachments", file))
+
       const response = await fetch(`${this.apiUrl}/draft`, {
         method: "POST",
         credentials: "include",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          from: this.defaultFrom,
-          to: sendRequest.to,
-          cc: sendRequest.cc,
-          bcc: sendRequest.bcc,
-          subject: sendRequest.subject,
-          body: sendRequest.body,
-          isHtml: false,
-          direction: "Outbound",
-          claimIds: sendRequest.claimId ? [sendRequest.claimId] : undefined,
-        }),
+        body: formData,
       })
       return response.ok
     } catch (error) {

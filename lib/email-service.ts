@@ -25,6 +25,7 @@ export interface EmailDto {
   receivedDate?: string
   read?: boolean
   claimIds?: string[]
+  eventId?: string
   attachments: AttachmentDto[]
   direction?: string
   status?: string
@@ -39,6 +40,7 @@ export interface SendEmailRequestDto {
   body: string
   attachments?: File[]
   claimId?: string
+  eventId?: string
 }
 
 export interface AssignEmailToClaimDto {
@@ -73,6 +75,7 @@ class EmailService {
         receivedDate: e.receivedAt || e.sentAt || e.createdAt,
         read: e.isRead,
         claimIds: e.claimIds,
+        eventId: e.eventId,
         direction: e.direction,
         status: e.status,
         isImportant: e.isImportant,
@@ -109,6 +112,7 @@ class EmailService {
         receivedDate: e.receivedAt || e.sentAt || e.createdAt,
         read: e.isRead,
         claimIds: e.claimIds,
+        eventId: e.eventId,
         direction: e.direction,
         status: e.status,
         isImportant: e.isImportant,
@@ -181,6 +185,43 @@ class EmailService {
     return emails.filter((e) => e.claimIds?.includes(claimId))
   }
 
+  async getEmailsByEventId(eventId: string): Promise<EmailDto[]> {
+    if (!this.isValidGuid(eventId)) return []
+    try {
+      const response = await fetch(`${this.apiUrl}/event/${eventId}`, {
+        method: "GET",
+        credentials: "include",
+      })
+      if (!response.ok) throw new Error("Failed to fetch emails")
+      const data = await response.json()
+      return (data as any[]).map((e) => ({
+        id: e.id,
+        from: e.from,
+        to: e.to,
+        subject: e.subject,
+        body: e.body,
+        receivedDate: e.receivedAt || e.sentAt || e.createdAt,
+        read: e.isRead,
+        claimIds: e.claimIds,
+        eventId: e.eventId,
+        direction: e.direction,
+        status: e.status,
+        isImportant: e.isImportant,
+        attachments:
+          e.attachments?.map((a: any) => ({
+            id: a.id,
+            fileName: a.fileName,
+            contentType: a.contentType,
+            size: a.fileSize,
+            url: `/api/emails/attachment/${a.id}`,
+          })) || [],
+      }))
+    } catch (error) {
+      console.error(`getEmailsByEventId eventId=${eventId} failed:`, error)
+      return []
+    }
+  }
+
   async markAsRead(emailId: string): Promise<boolean> {
     if (!this.isValidGuid(emailId)) return false
     try {
@@ -205,6 +246,7 @@ class EmailService {
       formData.append("body", sendRequest.body)
       formData.append("isHtml", "false")
       if (sendRequest.claimId) formData.append("claimId", sendRequest.claimId)
+      if (sendRequest.eventId) formData.append("eventId", sendRequest.eventId)
       sendRequest.attachments?.forEach((file) => formData.append("attachments", file))
 
       const response = await fetch(this.apiUrl, {
@@ -230,6 +272,7 @@ class EmailService {
       formData.append("isHtml", "false")
       formData.append("direction", "Outbound")
       if (sendRequest.claimId) formData.append("claimIds", sendRequest.claimId)
+      if (sendRequest.eventId) formData.append("eventId", sendRequest.eventId)
       sendRequest.attachments?.forEach((file) => formData.append("attachments", file))
 
       const response = await fetch(`${this.apiUrl}/draft`, {

@@ -2,19 +2,24 @@
 
 import React from "react"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Search, Lock, Users, Shield, Settings } from "lucide-react"
 import { adminService } from "@/lib/services/admin-service"
+import type { Role } from "@/lib/types/admin"
 
 export default function PermissionsPage() {
   const [searchTerm, setSearchTerm] = useState("")
 
   const permissionsByCategory = adminService.getPermissionsByCategory()
-  const roles = adminService.getRoles()
+  const [roles, setRoles] = useState<Role[]>([])
+
+  useEffect(() => {
+    adminService.getRoles().then(setRoles).catch(() => setRoles([]))
+  }, [])
 
   const filteredPermissionsByCategory = Object.entries(permissionsByCategory).reduce(
     (acc, [category, permissions]) => {
@@ -36,7 +41,9 @@ export default function PermissionsPage() {
   )
 
   const getRolesWithPermission = (permissionId: string) => {
-    return roles.filter((role) => role.permissions.some((permission) => permission.id === permissionId))
+    return roles.filter((role) =>
+      role.permissions?.some((permission) => permission.id === permissionId),
+    )
   }
 
   const getCategoryIcon = (category: string) => {

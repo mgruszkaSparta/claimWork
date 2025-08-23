@@ -1,13 +1,14 @@
 'use client'
 
 import { useEffect, useState, FormEvent } from 'react'
-import { apiService } from '@/lib/api'
+import { apiService, type ClientDto } from '@/lib/api'
 import { useRouter } from 'next/navigation'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
 import { SearchableSelect } from '@/components/ui/searchable-select'
 import { Switch } from '@/components/ui/switch'
+import { Checkbox } from '@/components/ui/checkbox'
 import { Badge } from '@/components/ui/badge'
 import { FormHeader } from '@/components/ui/form-header'
 import { User } from 'lucide-react'
@@ -30,8 +31,12 @@ export default function UserForm({ userId }: UserFormProps) {
   const [roleValue, setRoleValue] = useState('')
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [originalEmail, setOriginalEmail] = useState('')
+  const [fullAccess, setFullAccess] = useState(false)
+  const [clients, setClients] = useState<ClientDto[]>([])
+  const [clientIds, setClientIds] = useState<number[]>([])
 
   useEffect(() => {
+    apiService.getClients().then(setClients)
     if (isEdit && userId) {
       apiService.getUser(userId).then((u) => {
         setUserName(u.userName)
@@ -42,6 +47,8 @@ export default function UserForm({ userId }: UserFormProps) {
         setStatus(u.status !== 'inactive')
         setRoles(u.roles ?? [])
         setOriginalEmail(u.email ?? '')
+        setFullAccess(u.fullAccess ?? false)
+        setClientIds(u.clientIds ? Array.from(u.clientIds) : [])
       })
     }
   }, [isEdit, userId])
@@ -76,6 +83,7 @@ export default function UserForm({ userId }: UserFormProps) {
     if (!isEdit && !password.trim()) newErrors.password = 'Hasło jest wymagane'
     if (!phone.trim()) newErrors.phone = 'Telefon jest wymagany'
     if (roles.length === 0) newErrors.roles = 'Wybierz co najmniej jedną rolę'
+    if (!fullAccess && clientIds.length === 0) newErrors.clientIds = 'Wybierz co najmniej jednego klienta'
     if (email && email !== originalEmail) {
       const unique = await apiService.checkEmail(email)
       if (!unique) newErrors.email = 'Email jest już używany'
@@ -95,6 +103,8 @@ export default function UserForm({ userId }: UserFormProps) {
       phone,
       roles,
       status: status ? 'active' : 'inactive',
+      fullAccess,
+      clientIds,
     }
     if (isEdit && userId) {
       await apiService.updateUser(userId, payload)
@@ -173,6 +183,41 @@ export default function UserForm({ userId }: UserFormProps) {
           </div>
         )}
       </div>
+      <div className="flex items-center gap-2">
+        <Checkbox
+          id="fullAccess"
+          checked={fullAccess}
+          onCheckedChange={(checked) => setFullAccess(checked === true)}
+        />
+        <Label htmlFor="fullAccess">Pełny dostęp</Label>
+      </div>
+      {!fullAccess && (
+        <div>
+          <Label>Klienci</Label>
+          <div className="max-h-48 overflow-auto border rounded">
+            <table className="w-full text-sm">
+              <tbody>
+                {clients.map((c) => (
+                  <tr key={c.id} className="border-b last:border-0">
+                    <td className="p-2">
+                      <Checkbox
+                        checked={clientIds.includes(c.id)}
+                        onCheckedChange={(checked) =>
+                          setClientIds((prev) =>
+                            checked === true ? [...prev, c.id] : prev.filter((id) => id !== c.id),
+                          )
+                        }
+                      />
+                    </td>
+                    <td className="p-2">{c.name}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          {errors.clientIds && <p className="text-sm text-red-500">{errors.clientIds}</p>}
+        </div>
+      )}
         <Button type="submit">{isEdit ? 'Zapisz' : 'Utwórz'} użytkownika</Button>
       </form>
     </div>

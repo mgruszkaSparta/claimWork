@@ -32,6 +32,8 @@ namespace AutomotiveClaimsApi.DTOs
     {
         public string? UserName { get; set; }
         public string? Email { get; set; }
+        public bool? FullAccess { get; set; }
+        public IEnumerable<int>? ClientIds { get; set; }
     }
 
     public class UserDto
@@ -42,6 +44,8 @@ namespace AutomotiveClaimsApi.DTOs
         public IEnumerable<string>? Roles { get; set; }
         public DateTime CreatedAt { get; set; }
         public DateTime? LastLogin { get; set; }
+        public bool FullAccess { get; set; }
+        public IEnumerable<int> ClientIds { get; set; } = Array.Empty<int>();
     }
 
     public class UserListItemDto

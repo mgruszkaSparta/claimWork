@@ -810,6 +810,8 @@ class ApiService {
     roles: string[]
     status: "active" | "inactive"
     phone?: string
+    fullAccess?: boolean
+    clientIds?: number[]
   }): Promise<void> {
     await this.request<void>("/auth/register", {
       method: "POST",
@@ -861,8 +863,36 @@ class ApiService {
   }
 
 
-  async getUser(id: string): Promise<{ id: string; userName: string; email?: string; createdAt?: string; lastLogin?: string }> {
-    return await this.request<{ id: string; userName: string; email?: string; createdAt?: string; lastLogin?: string }>(`/auth/users/${id}`)
+  async getUser(
+    id: string,
+  ): Promise<{
+    id: string
+    userName: string
+    email?: string
+    createdAt?: string
+    lastLogin?: string
+    roles?: string[]
+    firstName?: string
+    lastName?: string
+    phone?: string
+    status?: string
+    fullAccess?: boolean
+    clientIds?: number[]
+  }> {
+    return await this.request<{
+      id: string
+      userName: string
+      email?: string
+      createdAt?: string
+      lastLogin?: string
+      roles?: string[]
+      firstName?: string
+      lastName?: string
+      phone?: string
+      status?: string
+      fullAccess?: boolean
+      clientIds?: number[]
+    }>(`/auth/users/${id}`)
 
   }
 
@@ -876,6 +906,8 @@ class ApiService {
       roles?: string[]
       status?: "active" | "inactive"
       phone?: string
+      fullAccess?: boolean
+      clientIds?: number[]
     },
   ): Promise<void> {
     await this.request<void>(`/auth/users/${id}`, {
@@ -888,6 +920,8 @@ class ApiService {
     userName: string
     email?: string
     password: string
+    fullAccess?: boolean
+    clientIds?: number[]
   }): Promise<void> {
     await this.request<void>("/auth/register", {
       method: "POST",

@@ -1,0 +1,100 @@
+import { apiService, type UserListItemDto } from "../api";
+import type { Role, User, UserFilters, Permission } from "../types/admin";
+
+// Predefined role colors for display
+const ROLE_COLORS: Record<string, string> = {
+  admin: "#e11d48", // rose-600
+  user: "#2563eb",  // blue-600
+};
+
+export const adminService = {
+  async getRoles(): Promise<Role[]> {
+    const res = await fetch("/api/roles");
+    const data = (await res.json()) as { value: string; label: string }[];
+    return data.map((r) => ({
+      id: r.value,
+      name: r.label,
+      color: ROLE_COLORS[r.value] ?? "#6b7280",
+      permissions: [],
+    }));
+  },
+
+  async getUsers(filters: UserFilters = {}): Promise<User[]> {
+    const { items } = await apiService.getUsers({
+      search: filters.search,
+      role: filters.roleId,
+      status: filters.status,
+      sortBy:
+        filters.sortBy === "name"
+          ? "lastName"
+          : filters.sortBy === "email"
+            ? "email"
+            : filters.sortBy === "createdAt"
+              ? "createdAt"
+              : filters.sortBy === "lastLogin"
+                ? "lastLogin"
+                : undefined,
+      sortOrder: filters.sortOrder,
+    });
+
+    return items.map(mapUserDto);
+  },
+
+  async updateUser(id: string, data: Partial<User>): Promise<void> {
+    await apiService.updateUser(id, {
+      userName: undefined,
+      email: data.email,
+      firstName: data.firstName,
+      lastName: data.lastName,
+      roles: data.roles?.map((r) => r.id),
+      status: data.status,
+      phone: undefined,
+    });
+  },
+
+  async createUser(data: User & { password: string }): Promise<void> {
+    await apiService.createUser({
+      userName: data.email,
+      email: data.email,
+      password: data.password,
+    });
+  },
+
+  async deleteUser(id: string): Promise<void> {
+    await apiService.updateUsersBulk({ action: "delete", userIds: [id] });
+  },
+
+  getPermissionsByCategory(): Record<string, Permission[]> {
+    return {
+      System: [
+        {
+          id: "manage_users",
+          name: "Zarządzanie użytkownikami",
+          description: "Dodawanie i edycja użytkowników",
+          resource: "users",
+          action: "manage",
+        },
+      ],
+    };
+  },
+};
+
+function mapUserDto(dto: UserListItemDto): User {
+  return {
+    id: dto.id,
+    firstName: dto.firstName,
+    lastName: dto.lastName,
+    email: dto.email,
+    roles: [
+      {
+        id: dto.role,
+        name: dto.role,
+        color: ROLE_COLORS[dto.role] ?? "#6b7280",
+      },
+    ],
+    status: dto.status as User["status"],
+    createdAt: dto.createdAt ? new Date(dto.createdAt) : new Date(),
+    lastLogin: dto.lastLogin ? new Date(dto.lastLogin) : null,
+    avatar: undefined,
+  };
+}

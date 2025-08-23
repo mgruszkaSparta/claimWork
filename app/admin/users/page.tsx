@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useMemo } from "react"
+import { useState, useMemo, useEffect } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -18,7 +18,7 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Search, Plus, MoreHorizontal, Edit, Trash2, UserCheck, UserX, Ban, ArrowUpDown, Filter } from "lucide-react"
 import { adminService } from "@/lib/services/admin-service"
-import type { User, UserFilters } from "@/lib/types/admin"
+import type { User, UserFilters, Role } from "@/lib/types/admin"
 import { UserFormDialog } from "@/components/admin/user-form-dialog"
 
 export default function UsersPage() {
@@ -29,8 +29,12 @@ export default function UsersPage() {
   const [sortOrder, setSortOrder] = useState<UserFilters["sortOrder"]>("asc")
   const [userDialogOpen, setUserDialogOpen] = useState(false)
   const [selectedUser, setSelectedUser] = useState<User | null>(null)
+  const [roles, setRoles] = useState<Role[]>([])
+  const [users, setUsers] = useState<User[]>([])
 
-  const roles = adminService.getRoles()
+  useEffect(() => {
+    adminService.getRoles().then(setRoles)
+  }, [])
 
   const filters: UserFilters = useMemo(() => {
     const baseFilters: UserFilters = {
@@ -45,7 +49,9 @@ export default function UsersPage() {
     return baseFilters
   }, [searchTerm, statusFilter, roleFilter, sortBy, sortOrder])
 
-  const users = adminService.getUsers(filters)
+  useEffect(() => {
+    adminService.getUsers(filters).then(setUsers)
+  }, [filters])
 
   const handleSort = (field: UserFilters["sortBy"]) => {
     if (sortBy === field) {
@@ -56,15 +62,19 @@ export default function UsersPage() {
     }
   }
 
-  const handleStatusChange = (userId: string, newStatus: User["status"]) => {
-    adminService.updateUser(userId, { status: newStatus })
-    window.location.reload()
+  const refreshUsers = () => {
+    adminService.getUsers(filters).then(setUsers)
   }
 
-  const handleDeleteUser = (userId: string) => {
+  const handleStatusChange = async (userId: string, newStatus: User["status"]) => {
+    await adminService.updateUser(userId, { status: newStatus })
+    refreshUsers()
+  }
+
+  const handleDeleteUser = async (userId: string) => {
     if (confirm("Czy na pewno chcesz usunąć tego użytkownika?")) {
-      adminService.deleteUser(userId)
-      window.location.reload()
+      await adminService.deleteUser(userId)
+      refreshUsers()
     }
   }
 
@@ -78,13 +88,14 @@ export default function UsersPage() {
     setUserDialogOpen(true)
   }
 
-  const handleSaveUser = (userData: User) => {
+  const handleSaveUser = async (userData: User & { password?: string }) => {
     if (selectedUser) {
-      adminService.updateUser(userData.id, userData)
-    } else {
-      console.log("Dodawanie nowego użytkownika:", userData)
+      await adminService.updateUser(userData.id, userData)
+    } else if (userData.password) {
+      await adminService.createUser({ ...userData, password: userData.password })
     }
-    window.location.reload()
+    setUserDialogOpen(false)
+    refreshUsers()
   }
 
   const getStatusBadge = (status: User["status"]) => {
@@ -330,6 +341,7 @@ export default function UsersPage() {
         open={userDialogOpen}
         onOpenChange={setUserDialogOpen}
         user={selectedUser}
+        roles={roles}
         onSave={handleSaveUser}
       />
     </div>

@@ -9,6 +9,7 @@ using Microsoft.EntityFrameworkCore;
 using AutomotiveClaimsApi.Models;
 using AutomotiveClaimsApi.DTOs;
 using AutomotiveClaimsApi.Services;
+using AutomotiveClaimsApi.Data;
 namespace AutomotiveClaimsApi.Controllers
 {
     [ApiController]
@@ -19,16 +20,19 @@ namespace AutomotiveClaimsApi.Controllers
         private readonly SignInManager<ApplicationUser> _signInManager;
         private readonly IEmailSender? _emailSender;
         private readonly ILogger<AuthController> _logger;
+        private readonly ApplicationDbContext _context;
 
         public AuthController(
             UserManager<ApplicationUser> userManager,
             SignInManager<ApplicationUser> signInManager,
             ILogger<AuthController> logger,
+            ApplicationDbContext context,
             IEmailSender? emailSender = null)
         {
             _userManager = userManager;
             _signInManager = signInManager;
             _logger = logger;
+            _context = context;
             _emailSender = emailSender;
         }
 
@@ -161,20 +165,45 @@ namespace AutomotiveClaimsApi.Controllers
         [HttpGet("me")]
         public async Task<ActionResult<UserDto>> Me()
         {
-            var user = await _userManager.GetUserAsync(User);
+            var userId = _userManager.GetUserId(User);
+            var user = await _userManager.Users
+                .Include(u => u.UserClients)
+                .FirstOrDefaultAsync(u => u.Id == userId);
             if (user == null) return Unauthorized();
             var roles = await _userManager.GetRolesAsync(user);
-            return new UserDto { Id = user.Id, UserName = user.UserName, Email = user.Email, Roles = roles, CreatedAt = user.CreatedAt, LastLogin = user.LastLogin };
+            return new UserDto
+            {
+                Id = user.Id,
+                UserName = user.UserName,
+                Email = user.Email,
+                Roles = roles,
+                CreatedAt = user.CreatedAt,
+                LastLogin = user.LastLogin,
+                FullAccess = user.FullAccess,
+                ClientIds = user.UserClients.Select(uc => uc.ClientId)
+            };
         }
 
         [Authorize]
         [HttpGet("users/{id}")]
         public async Task<ActionResult<UserDto>> GetUser(string id)
         {
-            var user = await _userManager.FindByIdAsync(id);
+            var user = await _userManager.Users
+                .Include(u => u.UserClients)
+                .FirstOrDefaultAsync(u => u.Id == id);
             if (user == null) return NotFound();
             var roles = await _userManager.GetRolesAsync(user);
-            return new UserDto { Id = user.Id, UserName = user.UserName, Email = user.Email, Roles = roles, CreatedAt = user.CreatedAt, LastLogin = user.LastLogin };
+            return new UserDto
+            {
+                Id = user.Id,
+                UserName = user.UserName,
+                Email = user.Email,
+                Roles = roles,
+                CreatedAt = user.CreatedAt,
+                LastLogin = user.LastLogin,
+                FullAccess = user.FullAccess,
+                ClientIds = user.UserClients.Select(uc => uc.ClientId)
+            };
         }
 
         [Authorize]
@@ -185,8 +214,21 @@ namespace AutomotiveClaimsApi.Controllers
             if (user == null) return NotFound();
             if (dto.UserName != null) user.UserName = dto.UserName;
             if (dto.Email != null) user.Email = dto.Email;
+            if (dto.FullAccess.HasValue) user.FullAccess = dto.FullAccess.Value;
+
+            if (dto.ClientIds != null)
+            {
+                var existing = _context.UserClients.Where(uc => uc.UserId == user.Id);
+                _context.UserClients.RemoveRange(existing);
+                foreach (var clientId in dto.ClientIds.Distinct())
+                {
+                    _context.UserClients.Add(new UserClient { UserId = user.Id, ClientId = clientId });
+                }
+            }
+
             var result = await _userManager.UpdateAsync(user);
             if (!result.Succeeded) return BadRequest(result.Errors);
+            await _context.SaveChangesAsync();
             return NoContent();
         }
 

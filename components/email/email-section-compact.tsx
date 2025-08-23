@@ -29,7 +29,6 @@ import type { UploadedFile, RequiredDocument } from "@/types"
 
 interface EmailSectionProps {
   claimId?: string
-  eventId?: string
   uploadedFiles?: UploadedFile[]
   setUploadedFiles?: Dispatch<SetStateAction<UploadedFile[]>>
   requiredDocuments?: RequiredDocument[]
@@ -38,7 +37,6 @@ interface EmailSectionProps {
 
 export const EmailSection = ({
   claimId,
-  eventId,
   uploadedFiles,
   setUploadedFiles,
   requiredDocuments,
@@ -70,14 +68,11 @@ export const EmailSection = ({
     labels: [],
     claimId: dto.claimIds && dto.claimIds.length > 0 ? dto.claimIds[0] : undefined,
     claimIds: dto.claimIds,
-    eventId: dto.eventId,
   })
   const loadEmails = async () => {
     try {
       let data: EmailDto[]
-      if (eventId) {
-        data = await emailService.getEmailsByEventId(eventId)
-      } else if (claimId) {
+      if (claimId) {
         data = await emailService.getEmailsByClaimId(claimId)
       } else {
         data = await emailService.getAllEmails()
@@ -92,7 +87,7 @@ export const EmailSection = ({
   useEffect(() => {
     loadEmails()
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [eventId])
+  }, [claimId])
   const [activeTab, setActiveTab] = useState("inbox")
   const [currentView, setCurrentView] = useState<"list" | "view" | "compose">("list")
   const [selectedEmail, setSelectedEmail] = useState<Email | null>(null)
@@ -237,7 +232,6 @@ export const EmailSection = ({
       body: emailData.body,
       attachments,
       claimId,
-      eventId,
     })
     if (success) {
       toast({ title: "E-mail wysłany", description: "Wiadomość została wysłana pomyślnie" })
@@ -261,7 +255,6 @@ export const EmailSection = ({
       body: emailData.body,
       attachments,
       claimId,
-      eventId,
     })
     if (success) {
       toast({ title: "Szkic zapisany", description: "Wiadomość została zapisana w szkicach" })

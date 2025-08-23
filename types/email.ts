@@ -45,7 +45,6 @@ export interface Email {
   labels: string[]
   claimId?: string
   claimIds?: string[]
-  eventId?: string
   threadId?: string
 }
 

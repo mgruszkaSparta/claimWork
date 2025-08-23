@@ -107,8 +107,16 @@ public class EmailClient
                 UpdatedAt = DateTime.UtcNow
             };
 
-            var eventNumber = ExtractEventNumber((message.Subject ?? string.Empty) + " " + (message.TextBody ?? string.Empty));
-            emailEntity.EventId = await ResolveEventIdFromEventNumberAsync(eventNumber);
+            var eventId = ExtractEventId((message.Subject ?? string.Empty) + " " + (message.TextBody ?? string.Empty));
+            if (eventId.HasValue)
+            {
+                var evt = await _db.Events.FindAsync(eventId.Value);
+                if (evt != null)
+                {
+                    emailEntity.EventId = evt.Id;
+                    emailEntity.Event = evt;
+                }
+            }
 
             foreach (var attachment in message.Attachments.OfType<MimePart>())
             {
@@ -204,24 +212,12 @@ public class EmailClient
         return processed;
     }
 
-    private static string? ExtractEventNumber(string message)
+    private static Guid? ExtractEventId(string message)
     {
         if (string.IsNullOrWhiteSpace(message))
             return null;
 
-        var match = Regex.Match(message, @"\b\w{3}\d{7}\b");
-        return match.Success ? match.Value : null;
-    }
-
-    private async Task<Guid?> ResolveEventIdFromEventNumberAsync(string? eventNumber)
-    {
-        if (string.IsNullOrWhiteSpace(eventNumber))
-            return null;
-
-        return await _db.Events
-            .Where(e => e.ClaimNumber != null && e.ClaimNumber == eventNumber)
-            .Select(e => (Guid?)e.Id)
-            .FirstOrDefaultAsync();
-
+        var match = Regex.Match(message, @"\b[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}\b");
+        return match.Success && Guid.TryParse(match.Value, out var guid) ? guid : (Guid?)null;
     }
 }

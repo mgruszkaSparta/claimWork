@@ -7,6 +7,7 @@ import {
   Search,
   Mail,
   Send,
+  FileEdit,
   AlertCircle,
   Plus,
   RefreshCw,
@@ -66,6 +67,7 @@ export default function EmailInbox({ claimId, claimNumber, claimInsuranceNumber 
   const [folderCounts, setFolderCounts] = useState({
     inbox: 0,
     sent: 0,
+    drafts: 0,
     unassigned: 0,
   })
 
@@ -130,24 +132,28 @@ export default function EmailInbox({ claimId, claimNumber, claimInsuranceNumber 
   // Update folder counts
   const updateFolderCounts = useCallback(async () => {
     try {
-      const [inboxEmails, sentEmails, unassignedEmails] = await Promise.all([
+      const [inboxEmails, sentEmails, draftEmails, unassignedEmails] = await Promise.all([
         claimId
           ? emailService.getAssignedEmailsByFolderAndClaim(EmailFolder.Inbox, claimId)
           : emailService.getEmailsByFolder(EmailFolder.Inbox),
         claimId
           ? emailService.getAssignedEmailsByFolderAndClaim(EmailFolder.Sent, claimId)
           : emailService.getEmailsByFolder(EmailFolder.Sent),
+        claimId
+          ? emailService.getAssignedEmailsByFolderAndClaim(EmailFolder.Drafts, claimId)
+          : emailService.getEmailsByFolder(EmailFolder.Drafts),
         emailService.getUnassignedEmails(),
       ])
 
       setFolderCounts({
         inbox: inboxEmails.length,
         sent: sentEmails.length,
+        drafts: draftEmails.length,
         unassigned: unassignedEmails.length,
       })
     } catch (error) {
       console.error("Error fetching folder counts:", error)
-      setFolderCounts({ inbox: 0, sent: 0, unassigned: 0 })
+      setFolderCounts({ inbox: 0, sent: 0, drafts: 0, unassigned: 0 })
     }
   }, [claimId])
 
@@ -282,6 +288,9 @@ export default function EmailInbox({ claimId, claimNumber, claimInsuranceNumber 
         setIsComposing(false)
         resetComposeForm()
         updateFolderCounts()
+        if (selectedFolder === EmailFolder.Drafts) {
+          loadEmailsForCurrentFolder()
+        }
       } else {
         setErrorMessage("Błąd podczas zapisywania szkicu. Spróbuj ponownie.")
       }
@@ -299,6 +308,8 @@ export default function EmailInbox({ claimId, claimNumber, claimInsuranceNumber 
     claimId,
     claimInsuranceNumber,
     updateFolderCounts,
+    selectedFolder,
+    loadEmailsForCurrentFolder,
   ])
 
   // Reset compose form
@@ -629,6 +640,23 @@ export default function EmailInbox({ claimId, claimNumber, claimInsuranceNumber 
                 {folderCounts.sent > 0 && (
                   <span className="bg-[#1a3a6c] text-white text-xs px-2 py-0.5 rounded-full min-w-[1.5rem] text-center">
                     {folderCounts.sent}
+                  </span>
+                )}
+              </button>
+
+              <button
+                className={`email-tab flex items-center gap-2 px-4 py-3 border-b-2 transition-colors ${
+                  selectedFolder === EmailFolder.Drafts
+                    ? "active border-[#1a3a6c] text-[#1a3a6c]"
+                    : "border-transparent text-[#64748b]"
+                }`}
+                onClick={() => selectFolder(EmailFolder.Drafts)}
+              >
+                <FileEdit className="w-4 h-4" />
+                <span className="font-medium">Szkice</span>
+                {folderCounts.drafts > 0 && (
+                  <span className="bg-[#1a3a6c] text-white text-xs px-2 py-0.5 rounded-full min-w-[1.5rem] text-center">
+                    {folderCounts.drafts}
                   </span>
                 )}
               </button>

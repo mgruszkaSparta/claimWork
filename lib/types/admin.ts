@@ -24,6 +24,8 @@ export interface User {
   lastLogin?: Date | null;
   avatar?: string;
   password?: string;
+  fullAccess?: boolean;
+  clientIds?: number[];
 }
 
 export interface UserFilters {

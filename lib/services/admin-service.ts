@@ -40,6 +40,23 @@ export const adminService = {
     return items.map(mapUserDto);
   },
 
+  async getUser(id: string): Promise<User> {
+    const dto = await apiService.getUser(id);
+    return {
+      id: dto.id,
+      firstName: dto.firstName ?? "",
+      lastName: dto.lastName ?? "",
+      email: dto.email ?? "",
+      roles: (dto.roles ?? []).map((r) => ({ id: r, name: r, color: ROLE_COLORS[r] ?? "#6b7280" })),
+      status: (dto.status ?? "active") as User["status"],
+      createdAt: dto.createdAt ? new Date(dto.createdAt) : new Date(),
+      lastLogin: dto.lastLogin ? new Date(dto.lastLogin) : null,
+      avatar: undefined,
+      fullAccess: dto.fullAccess ?? false,
+      clientIds: dto.clientIds ?? [],
+    };
+  },
+
   async updateUser(id: string, data: Partial<User>): Promise<void> {
     await apiService.updateUser(id, {
       userName: undefined,
@@ -49,6 +66,8 @@ export const adminService = {
       roles: data.roles?.map((r) => r.id),
       status: data.status,
       phone: undefined,
+      fullAccess: data.fullAccess,
+      clientIds: data.clientIds,
     });
   },
 
@@ -57,6 +76,8 @@ export const adminService = {
       userName: data.email,
       email: data.email,
       password: data.password,
+      fullAccess: data.fullAccess,
+      clientIds: data.clientIds,
     });
   },
 
@@ -96,5 +117,7 @@ function mapUserDto(dto: UserListItemDto): User {
     createdAt: dto.createdAt ? new Date(dto.createdAt) : new Date(),
     lastLogin: dto.lastLogin ? new Date(dto.lastLogin) : null,
     avatar: undefined,
+    fullAccess: dto.fullAccess,
+    clientIds: dto.clientIds,
   };
 }

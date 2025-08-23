@@ -1839,6 +1839,7 @@ export const ClaimMainContent = ({
             <CardContent className="p-0 bg-white">
               <EmailSection
                 claimId={claimFormData.id}
+                eventId={claimFormData.eventId}
                 uploadedFiles={uploadedFiles}
                 setUploadedFiles={setUploadedFiles}
                 requiredDocuments={requiredDocuments}

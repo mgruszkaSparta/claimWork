@@ -32,7 +32,7 @@ export function useDictionary(type: string) {
 
 // Specific hooks for each dictionary type
 export function useCaseHandlers() {
-  return useDictionary('case-handlers')
+  return useDictionary('casehandlers')
 }
 
 export function useCountries() {

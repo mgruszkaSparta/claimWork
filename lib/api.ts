@@ -1209,25 +1209,25 @@ class ApiService {
 
   // Case Handlers API
   async getCaseHandlers(): Promise<CaseHandlerDto[]> {
-    return this.request<CaseHandlerDto[]>('/case-handlers')
+    return this.request<CaseHandlerDto[]>('/casehandlers')
   }
 
   async createCaseHandler(data: CreateCaseHandlerDto): Promise<CaseHandlerDto> {
-    return this.request<CaseHandlerDto>('/case-handlers', {
+    return this.request<CaseHandlerDto>('/casehandlers', {
       method: 'POST',
       body: JSON.stringify(data),
     })
   }
 
   async updateCaseHandler(id: number, data: UpdateCaseHandlerDto): Promise<void> {
-    await this.request<void>(`/case-handlers/${id}`, {
+    await this.request<void>(`/casehandlers/${id}`, {
       method: 'PUT',
       body: JSON.stringify(data),
     })
   }
 
   async deleteCaseHandler(id: number): Promise<void> {
-    await this.request<void>(`/case-handlers/${id}`, {
+    await this.request<void>(`/casehandlers/${id}`, {
       method: 'DELETE',
     })
   }

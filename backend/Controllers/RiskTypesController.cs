@@ -41,7 +41,7 @@ namespace AutomotiveClaimsApi.Controllers
         }
 
         [HttpGet("{id}")]
-        public async Task<IActionResult> GetRiskType(Guid id)
+        public async Task<IActionResult> GetRiskType(int id)
         {
             var result = await _service.GetRiskTypeAsync(id);
         
@@ -63,7 +63,7 @@ namespace AutomotiveClaimsApi.Controllers
         }
 
         [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateRiskType(Guid id, RiskTypeDto dto)
+        public async Task<IActionResult> UpdateRiskType(int id, RiskTypeDto dto)
         {
 
             var result = await _service.UpdateRiskTypeAsync(id, dto);
@@ -77,7 +77,7 @@ namespace AutomotiveClaimsApi.Controllers
         }
 
         [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteRiskType(Guid id)
+        public async Task<IActionResult> DeleteRiskType(int id)
         {
 
             var result = await _service.DeleteRiskTypeAsync(id);

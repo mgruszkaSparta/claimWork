@@ -222,7 +222,7 @@ export function PropertyDamageSection({
                 onValueChange={(value) => handleFormChange("damageType", value)}
                 placeholder="Wybierz rodzaj szkody..."
                 apiUrl={`${API_BASE_URL}/damage-types`}
-                riskTypeId={claimFormData.riskType}
+                riskTypeId={claimFormData.riskType ? Number(claimFormData.riskType) : undefined}
                 disabled={!claimFormData.riskType}
               />
             </div>

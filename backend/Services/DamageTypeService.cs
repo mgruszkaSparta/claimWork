@@ -13,7 +13,7 @@ namespace AutomotiveClaimsApi.Services
             _context = context;
         }
 
-        public async Task<ServiceResult<IEnumerable<DamageTypeDto>>> GetDamageTypesAsync(Guid? riskTypeId)
+        public async Task<ServiceResult<IEnumerable<DamageTypeDto>>> GetDamageTypesAsync(int? riskTypeId)
         {
             try
             {

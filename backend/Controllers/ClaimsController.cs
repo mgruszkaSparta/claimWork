@@ -186,7 +186,8 @@ namespace AutomotiveClaimsApi.Controllers
 
                 if (!string.IsNullOrEmpty(sortBy))
                 {
-                    bool desc = sortOrder != null && sortOrder.ToLower() == "desc";
+                    // Treat any sort order other than an explicit "asc" as descending.
+                    bool desc = sortOrder == null || sortOrder.ToLower() != "asc";
                     query = sortBy switch
                     {
                         "spartaNumber" => desc ? query.OrderByDescending(e => e.SpartaNumber) : query.OrderBy(e => e.SpartaNumber),

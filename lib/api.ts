@@ -293,6 +293,7 @@ export interface RiskTypeDto {
   code: string
   name: string
   description?: string
+  claimObjectTypeId?: number
   isActive: boolean
 }
 
@@ -340,6 +341,7 @@ export interface CreateRiskTypeDto {
   code: string
   name: string
   description?: string
+  claimObjectTypeId?: number
   isActive?: boolean
 }
 
@@ -347,6 +349,7 @@ export interface UpdateRiskTypeDto {
   code?: string
   name?: string
   description?: string
+  claimObjectTypeId?: number
   isActive?: boolean
 }
 

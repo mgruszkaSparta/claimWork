@@ -32,6 +32,7 @@ namespace AutomotiveClaimsApi.Services
                         Code = rt.Code,
                         Name = rt.Name,
                         Description = rt.Description,
+                        ClaimObjectTypeId = rt.ClaimObjectTypeId,
                         IsActive = rt.IsActive,
                         CreatedAt = rt.CreatedAt,
                         UpdatedAt = rt.UpdatedAt
@@ -65,6 +66,7 @@ namespace AutomotiveClaimsApi.Services
                     Code = riskType.Code,
                     Name = riskType.Name,
                     Description = riskType.Description,
+                    ClaimObjectTypeId = riskType.ClaimObjectTypeId,
                     IsActive = riskType.IsActive,
                     CreatedAt = riskType.CreatedAt,
                     UpdatedAt = riskType.UpdatedAt
@@ -92,6 +94,7 @@ namespace AutomotiveClaimsApi.Services
                     Code = dto.Code,
                     Name = dto.Name,
                     Description = dto.Description,
+                    ClaimObjectTypeId = dto.ClaimObjectTypeId,
                     IsActive = dto.IsActive,
                     CreatedAt = DateTime.UtcNow,
                     UpdatedAt = DateTime.UtcNow
@@ -106,6 +109,7 @@ namespace AutomotiveClaimsApi.Services
                     Code = riskType.Code,
                     Name = riskType.Name,
                     Description = riskType.Description,
+                    ClaimObjectTypeId = riskType.ClaimObjectTypeId,
                     IsActive = riskType.IsActive,
                     CreatedAt = riskType.CreatedAt,
                     UpdatedAt = riskType.UpdatedAt
@@ -137,6 +141,7 @@ namespace AutomotiveClaimsApi.Services
                 riskType.Code = dto.Code;
                 riskType.Name = dto.Name;
                 riskType.Description = dto.Description;
+                riskType.ClaimObjectTypeId = dto.ClaimObjectTypeId;
                 riskType.IsActive = dto.IsActive;
                 riskType.UpdatedAt = DateTime.UtcNow;
 

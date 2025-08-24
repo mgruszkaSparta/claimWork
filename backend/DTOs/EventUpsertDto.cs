@@ -128,8 +128,8 @@ namespace AutomotiveClaimsApi.DTOs
 
         public bool? PerpetratorFined { get; set; }
 
-        [StringLength(500)]
-        public string? ServicesCalled { get; set; }
+        [MaxLength(500)]
+        public string[]? ServicesCalled { get; set; }
 
         [StringLength(500)]
         public string? PoliceUnitDetails { get; set; }
@@ -188,8 +188,8 @@ namespace AutomotiveClaimsApi.DTOs
         [StringLength(2000)]
         public string? CargoDescription { get; set; }
 
-        [StringLength(500)]
-        public string? Losses { get; set; }
+        [MaxLength(500)]
+        public string[]? Losses { get; set; }
 
         [StringLength(200)]
         public string? Carrier { get; set; }

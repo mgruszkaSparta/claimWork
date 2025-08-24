@@ -119,6 +119,7 @@ app.UseCors("Frontend");
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
+app.MapGet("/api", () => Results.Ok(new { status = "Automotive Claims API is running" }));
 
 // Ensure database is created and seed default roles/users
 using (var scope = app.Services.CreateScope())
@@ -149,3 +150,5 @@ using (var scope = app.Services.CreateScope())
 }
 
 app.Run();
+
+public partial class Program { }

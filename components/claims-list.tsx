@@ -216,7 +216,7 @@ export function ClaimsList({
     () =>
       claims.filter((claim: any) => {
         const matchesFilter =
-          filterStatus === "all" || claim.claimStatusId?.toString() === filterStatus
+          filterStatus === "all" || claim.claimStatusId === filterStatus
         const matchesRegistration =
           !filterRegistration ||
           claim.victimRegistrationNumber?.toLowerCase().includes(filterRegistration.toLowerCase())

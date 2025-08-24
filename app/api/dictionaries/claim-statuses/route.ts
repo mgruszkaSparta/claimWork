@@ -16,10 +16,7 @@ export async function GET(request: NextRequest) {
     }
 
     const data = await response.json()
-    const items = (data.items ?? []).map((item: any) => ({
-      ...item,
-      id: Number(item.id),
-    }))
+    const items = (data.items ?? [])
     return NextResponse.json({ ...data, items })
   } catch (error) {
     console.error('Error fetching claim statuses:', error)

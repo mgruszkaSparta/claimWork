@@ -24,7 +24,7 @@ import type {
 } from "@/types"
 
 interface ClaimStatus {
-  id: number
+  id: string
   name: string
   description: string
 }
@@ -132,9 +132,9 @@ const CommunicationClaimSummary = ({
 }: CommunicationClaimSummaryProps) => {
   const visibleNotes = notes.filter((note) => !note.type || note.type === "note")
 
-  const getStatusLabel = (statusId?: number) => {
+  const getStatusLabel = (statusId?: string) => {
     const status = claimStatuses.find((s) => s.id === statusId)
-    return status ? status.name : statusId?.toString() || "Nie wybrano"
+    return status ? status.name : statusId || "Nie wybrano"
   }
 
   const getRiskTypeLabel = (riskTypeCode?: string) => {
@@ -250,7 +250,7 @@ const CommunicationClaimSummary = ({
               </div>
 
               <div className="grid grid-cols-2 gap-3">
-                <InfoCard label="Status" value={getStatusLabel(claimFormData.status)} />
+                <InfoCard label="Status" value={getStatusLabel(claimFormData.claimStatusId)} />
                 <InfoCard label="Szkodę zarejestrował" value={claimFormData.handler} />
               </div>
 

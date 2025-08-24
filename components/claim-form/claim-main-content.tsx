@@ -58,7 +58,7 @@ interface RiskType {
 }
 
 interface ClaimStatus {
-  id: number
+  id: string
   name: string
   description: string
 }
@@ -353,9 +353,7 @@ export const ClaimMainContent = ({
       )
       if (response.ok) {
         const data = await response.json()
-        setClaimStatuses(
-          (data.items ?? []).map((item: any) => ({ ...item, id: Number(item.id) })),
-        )
+        setClaimStatuses((data.items ?? []) as ClaimStatus[])
       } else {
         throw new Error(`HTTP error! status: ${response.status}`)
       }
@@ -606,9 +604,9 @@ export const ClaimMainContent = ({
   }
 
   // Get status label from code
-  const getStatusLabel = (statusId?: number) => {
+  const getStatusLabel = (statusId?: string) => {
     const status = claimStatuses.find((s) => s.id === statusId)
-    return status ? status.name : statusId?.toString() || "Nie wybrano"
+    return status ? status.name : statusId || "Nie wybrano"
   }
 
   // Get risk type label from code

@@ -36,6 +36,7 @@ export function ClaimForm({ initialData, mode }: ClaimFormProps) {
     claimNumber: '',
     insurerClaimNumber: '',
     status: 'Nowa',
+    claimStatusId: '',
     riskType: '',
     damageType: '',
     damageDate: '',

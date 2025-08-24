@@ -14,10 +14,7 @@ export function useDictionary(type: string) {
       setLoading(true)
       setError(null)
       const result = await dictionaryService.getDictionary(type)
-      const items =
-        type === 'claim-statuses'
-          ? result.items.map((item) => ({ ...item, id: Number(item.id) }))
-          : result.items
+      const items = result.items
       setData(items)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Unknown error')

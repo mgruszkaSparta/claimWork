@@ -18,7 +18,7 @@ export async function GET() {
 
     // Transform the data to match frontend expectations
     const transformedData = data.map((item: any) => ({
-      id: Number(item.id),
+      id: item.id,
       code: item.code,
       name: item.name,
       label: item.name,

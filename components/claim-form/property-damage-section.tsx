@@ -13,6 +13,7 @@ import InsuranceDropdown from "@/components/insurance-dropdown"
 import LeasingDropdown from "@/components/leasing-dropdown"
 import { Textarea } from "@/components/ui/textarea"
 import { Checkbox } from "@/components/ui/checkbox"
+import { API_BASE_URL } from "@/lib/api"
 import { FileText } from "lucide-react"
 import type { Claim } from "@/types"
 import type { ClientSelectionEvent } from "@/types/client"
@@ -218,7 +219,7 @@ export function PropertyDamageSection({
                 value={claimFormData.damageType || ""}
                 onValueChange={(value) => handleFormChange("damageType", value)}
                 placeholder="Wybierz rodzaj szkody..."
-                apiUrl="/api/damage-types"
+                apiUrl={`${API_BASE_URL}/damage-types`}
                 riskTypeId={claimFormData.riskType}
                 disabled={!claimFormData.riskType}
               />

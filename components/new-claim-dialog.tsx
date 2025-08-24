@@ -69,9 +69,12 @@ export function NewClaimDialog({ open, onOpenChange }: NewClaimDialogProps) {
   } = useQuery<DamageType[]>({
     queryKey: ["damage-types", riskTypeId],
     queryFn: async () => {
-      const res = await fetch(`/api/damage-types?riskTypeId=${riskTypeId}`, {
-        credentials: "include",
-      })
+      const res = await fetch(
+        `${API_BASE_URL}/damage-types?riskTypeId=${riskTypeId}`,
+        {
+          credentials: "include",
+        },
+      )
       return res.json()
     },
     enabled: !!riskTypeId,

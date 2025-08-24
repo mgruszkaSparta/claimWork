@@ -22,7 +22,7 @@ namespace AutomotiveClaimsApi.Controllers
             _logger = logger;
         }
 
-        [HttpGet("case-handlers")]
+        [HttpGet("casehandlers")]
         public async Task<ActionResult<DictionaryResponseDto>> GetCaseHandlers()
         {
             try

@@ -4,7 +4,7 @@ const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5200/a
 
 export async function GET(request: NextRequest) {
   try {
-    const response = await fetch(`${API_BASE_URL}/dictionaries/case-handlers`, {
+    const response = await fetch(`${API_BASE_URL}/dictionaries/casehandlers`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',

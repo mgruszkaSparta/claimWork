@@ -25,7 +25,7 @@ async function getJson<T>(url: string): Promise<T> {
 }
 
 async function fetchCaseHandlers(): Promise<Handler[]> {
-  const data = await getJson<DictionaryResponseDto>('/api/dictionaries/case-handlers')
+  const data = await getJson<DictionaryResponseDto>('/api/dictionaries/casehandlers')
   return data.items.map(({ id, name, code, isActive }) => ({
     id,
     name,
@@ -38,7 +38,7 @@ async function fetchCaseHandlers(): Promise<Handler[]> {
 export function useCaseHandlers() {
 
   const { data, error, isLoading, mutate } = useSWR(
-    'case-handlers',
+    'casehandlers',
     fetchCaseHandlers,
     {
       dedupingInterval: 5 * 60_000,

@@ -79,7 +79,7 @@ class DictionaryService {
 
   // Specific methods for each dictionary type
   async getCaseHandlers(): Promise<DictionaryResponseDto> {
-    return this.getDictionary('case-handlers')
+    return this.getDictionary('casehandlers')
   }
 
   async getCountries(): Promise<DictionaryResponseDto> {

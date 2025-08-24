@@ -373,7 +373,7 @@ export const ClaimMainContent = ({
     setLoadingHandlers(true)
     try {
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/dictionaries/case-handlers`,
+        `${process.env.NEXT_PUBLIC_API_URL}/dictionaries/casehandlers`,
         {
           method: "GET",
           credentials: "include",

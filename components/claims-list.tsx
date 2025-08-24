@@ -212,13 +212,13 @@ export function ClaimsList({
   const riskTypeMap = useMemo(() => {
     const map: Record<string, string> = {}
     riskTypes.forEach((r) => {
-      map[r.code.toLowerCase()] = r.name
+      map[r.id.toLowerCase()] = r.name
     })
     return map
   }, [riskTypes])
 
-  const riskTypeCodes = useMemo(
-    () => riskTypes.map((r) => r.code.toLowerCase()),
+  const riskTypeIds = useMemo(
+    () => riskTypes.map((r) => r.id.toLowerCase()),
     [riskTypes],
   )
 
@@ -236,9 +236,9 @@ export function ClaimsList({
           !showMyClaims ||
           (user?.username && claim.handler?.toLowerCase() === user.username.toLowerCase())
         const matchesAllowedRisk =
-          riskTypeCodes.length === 0 ||
+          riskTypeIds.length === 0 ||
           !claim.riskType ||
-          riskTypeCodes.includes(claim.riskType.toLowerCase())
+          riskTypeIds.includes(claim.riskType.toLowerCase())
         const matchesRiskFilter =
           filterRisk === "all" ||
           claim.riskType?.toLowerCase() === filterRisk.toLowerCase()
@@ -257,7 +257,7 @@ export function ClaimsList({
       filterStatus,
       filterRegistration,
       filterHandler,
-      riskTypeCodes,
+      riskTypeIds,
       filterRisk,
       showMyClaims,
       user?.username,
@@ -551,7 +551,7 @@ export function ClaimsList({
             >
               <option value="all">Wszystkie ryzyka</option>
               {riskTypes.map((risk) => (
-                <option key={risk.id} value={risk.code}>
+                <option key={risk.id} value={risk.id}>
                   {risk.name}
                 </option>
               ))}

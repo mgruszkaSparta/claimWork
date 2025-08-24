@@ -181,6 +181,42 @@ class EmailService {
     return emails.filter((e) => e.claimIds?.includes(claimId))
   }
 
+  async getEmailsByEventId(eventId: string): Promise<EmailDto[]> {
+    if (!this.isValidGuid(eventId)) return []
+    try {
+      const response = await fetch(`${this.apiUrl}/event/${eventId}`, {
+        method: "GET",
+        credentials: "include",
+      })
+      if (!response.ok) throw new Error("Failed to fetch emails by event")
+      const data = await response.json()
+      return (data as any[]).map((e) => ({
+        id: e.id,
+        from: e.from,
+        to: e.to,
+        subject: e.subject,
+        body: e.body,
+        receivedDate: e.receivedAt || e.sentAt || e.createdAt,
+        read: e.isRead,
+        claimIds: e.claimIds,
+        direction: e.direction,
+        status: e.status,
+        isImportant: e.isImportant,
+        attachments:
+          e.attachments?.map((a: any) => ({
+            id: a.id,
+            fileName: a.fileName,
+            contentType: a.contentType,
+            size: a.fileSize,
+            url: `/api/emails/attachment/${a.id}`,
+          })) || [],
+      }))
+    } catch (error) {
+      console.error(`getEmailsByEventId eventId=${eventId} failed:`, error)
+      return []
+    }
+  }
+
   async markAsRead(emailId: string): Promise<boolean> {
     if (!this.isValidGuid(emailId)) return false
     try {

@@ -27,7 +27,7 @@ interface RiskType {
 }
 
 interface ClaimStatus {
-  id: string
+  id: number
   name: string
   description: string
 }
@@ -136,8 +136,10 @@ export function PropertyDamageSection({
                 Status szkody
               </Label>
               <Select
-                value={claimFormData.claimStatusId || ""}
-                onValueChange={(value) => handleFormChange("claimStatusId", value)}
+                value={claimFormData.claimStatusId?.toString() ?? ""}
+                onValueChange={(value) =>
+                  handleFormChange("claimStatusId", value ? parseInt(value) : undefined)
+                }
                 disabled={loadingStatuses}
               >
                 <SelectTrigger className="mt-0.5">
@@ -147,7 +149,7 @@ export function PropertyDamageSection({
                 </SelectTrigger>
                 <SelectContent>
                   {claimStatuses.map((status) => (
-                    <SelectItem key={status.id} value={status.id}>
+                    <SelectItem key={status.id} value={status.id.toString()}>
                       {status.name}
                     </SelectItem>
                   ))}

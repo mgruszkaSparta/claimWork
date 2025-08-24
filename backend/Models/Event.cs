@@ -55,7 +55,7 @@ namespace AutomotiveClaimsApi.Models
         [MaxLength(50)]
         public string? Status { get; set; }
 
-        public Guid? ClaimStatusId { get; set; }
+        public int? ClaimStatusId { get; set; }
 
         public ClaimStatus? ClaimStatus { get; set; }
 

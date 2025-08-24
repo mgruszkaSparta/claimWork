@@ -112,7 +112,7 @@ CREATE INDEX IF NOT EXISTS idx_payment_methods_is_active ON PaymentMethods(IsAct
 
 -- Claim Statuses table
 CREATE TABLE IF NOT EXISTS ClaimStatuses (
-    Id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    Id SERIAL PRIMARY KEY,
     Code VARCHAR(50) NOT NULL UNIQUE,
     Name VARCHAR(200) NOT NULL,
     Description VARCHAR(500),

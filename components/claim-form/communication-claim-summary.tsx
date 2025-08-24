@@ -24,7 +24,7 @@ import type {
 } from "@/types"
 
 interface ClaimStatus {
-  id: string
+  id: number
   name: string
   description: string
 }
@@ -132,9 +132,9 @@ const CommunicationClaimSummary = ({
 }: CommunicationClaimSummaryProps) => {
   const visibleNotes = notes.filter((note) => !note.type || note.type === "note")
 
-  const getStatusLabel = (statusId?: string) => {
+  const getStatusLabel = (statusId?: number) => {
     const status = claimStatuses.find((s) => s.id === statusId)
-    return status ? status.name : statusId || "Nie wybrano"
+    return status ? status.name : statusId?.toString() || "Nie wybrano"
   }
 
   const getRiskTypeLabel = (riskTypeCode?: string) => {

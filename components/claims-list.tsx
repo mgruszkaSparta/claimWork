@@ -71,7 +71,7 @@ export function ClaimsList({
   const [searchInput, setSearchInput] = useState("")
   const [filterStatus, setFilterStatus] = useState("all")
   const [claimStatuses, setClaimStatuses] = useState<
-    { id: string; name: string }[]
+    { id: number; name: string }[]
   >([])
   const [filterRisk, setFilterRisk] = useState("all")
   const [riskTypes, setRiskTypes] = useState<
@@ -124,7 +124,7 @@ export function ClaimsList({
           { credentials: "include" },
         )
         const data = await res.json()
-        setClaimStatuses((data.items ?? []) as { id: string; name: string }[])
+        setClaimStatuses((data.items ?? []) as { id: number; name: string }[])
       } catch (error) {
         console.error("Error loading claim statuses:", error)
       }
@@ -226,7 +226,7 @@ export function ClaimsList({
     () =>
       claims.filter((claim: any) => {
         const matchesFilter =
-          filterStatus === "all" || claim.claimStatusId === filterStatus
+          filterStatus === "all" || claim.claimStatusId?.toString() === filterStatus
         const matchesRegistration =
           !filterRegistration ||
           claim.victimRegistrationNumber?.toLowerCase().includes(filterRegistration.toLowerCase())
@@ -539,7 +539,7 @@ export function ClaimsList({
             >
               <option value="all">Wszystkie statusy</option>
               {claimStatuses.map((status) => (
-                <option key={status.id} value={status.id}>
+                <option key={status.id} value={status.id.toString()}>
                   {status.name}
                 </option>
               ))}

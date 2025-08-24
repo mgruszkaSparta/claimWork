@@ -226,7 +226,7 @@ export function ClaimsList({
     () =>
       claims.filter((claim: any) => {
         const matchesFilter =
-          filterStatus === "all" || claim.claimStatusId?.toString() === filterStatus
+          filterStatus === "all" || claim.claimStatusId === filterStatus
         const matchesRegistration =
           !filterRegistration ||
           claim.victimRegistrationNumber?.toLowerCase().includes(filterRegistration.toLowerCase())
@@ -756,8 +756,9 @@ export function ClaimsList({
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       {claim.riskType
+
                         ? riskTypeMap[claim.riskType.toLowerCase()] || "-"
-                        : "-"}
+                      }
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <Badge className={`text-xs border ${getStatusColor(claim.status ?? "")}`}>

@@ -40,7 +40,7 @@ export interface EventListItemDto {
   liquidator?: string
   brand?: string
   status?: string
-  claimStatusId?: number
+  claimStatusId?: string
   damageDate?: string
   totalClaim?: number
   payout?: number
@@ -157,7 +157,7 @@ export interface EventUpsertDto {
   liquidator?: string
   brand?: string
   status?: string
-  claimStatusId?: number
+  claimStatusId?: string
   riskType?: string
   damageType?: string
   objectTypeId?: number

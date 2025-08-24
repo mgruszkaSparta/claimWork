@@ -73,6 +73,10 @@ export function ClaimsList({
   const [claimStatuses, setClaimStatuses] = useState<
     { id: string; name: string }[]
   >([])
+  const [filterRisk, setFilterRisk] = useState("all")
+  const [riskTypes, setRiskTypes] = useState<
+    { id: string; name: string }[]
+  >([])
   const [filterRegistration, setFilterRegistration] = useState("")
   const [filterHandler, setFilterHandler] = useState("")
   const [dateFilters, setDateFilters] = useState<
@@ -129,6 +133,25 @@ export function ClaimsList({
   }, [])
 
   useEffect(() => {
+    const loadRiskTypes = async () => {
+      try {
+        const res = await fetch(
+          `${API_BASE_URL}/dictionaries/risk-types${
+            claimObjectTypeId ? `?claimObjectTypeId=${claimObjectTypeId}` : ""
+          }`,
+          { credentials: "include" },
+        )
+        const data = await res.json()
+        setRiskTypes((data.items ?? []) as { id: string; name: string }[])
+      } catch (error) {
+        console.error("Error loading risk types:", error)
+        setRiskTypes([])
+      }
+    }
+    loadRiskTypes()
+  }, [claimObjectTypeId])
+
+  useEffect(() => {
     if (initialClaims?.length) return
 
     const loadClaims = async () => {
@@ -141,6 +164,7 @@ export function ClaimsList({
             pageSize,
             search: searchTerm,
             status: filterStatus !== "all" ? filterStatus : undefined,
+            riskType: filterRisk !== "all" ? filterRisk : undefined,
             brand: filterRegistration || undefined,
             handler: showMyClaims ? user?.username : filterHandler || undefined,
             registeredById: showMyClaims ? user?.id : undefined,
@@ -170,6 +194,7 @@ export function ClaimsList({
     pageSize,
     searchTerm,
     filterStatus,
+    filterRisk,
     filterRegistration,
     filterHandler,
     showMyClaims,
@@ -182,41 +207,16 @@ export function ClaimsList({
     initialClaims,
 
   ])
-
-  const [allowedRiskTypes, setAllowedRiskTypes] = useState<string[] | undefined>(
-    undefined,
+  const riskTypeNames = useMemo(
+    () => riskTypes.map((r) => r.name.toLowerCase()),
+    [riskTypes],
   )
 
-  useEffect(() => {
-    if (!claimObjectTypeId) {
-      setAllowedRiskTypes(undefined)
-      return
-    }
-
-    const loadRiskTypes = async () => {
-      try {
-        const res = await fetch(
-          `${API_BASE_URL}/dictionaries/risk-types?claimObjectTypeId=${claimObjectTypeId}`,
-          { credentials: "include" },
-        )
-        const data = await res.json()
-        setAllowedRiskTypes(
-          (data.items || []).map((item: any) => item.name.toLowerCase()),
-        )
-      } catch (error) {
-        console.error("Error loading risk types:", error)
-        setAllowedRiskTypes(undefined)
-      }
-    }
-
-    loadRiskTypes()
-  }, [claimObjectTypeId])
-
   const filteredClaims = useMemo(
-      () =>
-        claims.filter((claim: any) => {
-          const matchesFilter =
-            filterStatus === "all" || claim.claimStatusId?.toString() === filterStatus
+    () =>
+      claims.filter((claim: any) => {
+        const matchesFilter =
+          filterStatus === "all" || claim.claimStatusId?.toString() === filterStatus
         const matchesRegistration =
           !filterRegistration ||
           claim.victimRegistrationNumber?.toLowerCase().includes(filterRegistration.toLowerCase())
@@ -225,17 +225,21 @@ export function ClaimsList({
         const matchesMyClaims =
           !showMyClaims ||
           (user?.username && claim.handler?.toLowerCase() === user.username.toLowerCase())
-        const matchesClaimType =
-          !allowedRiskTypes ||
+        const matchesAllowedRisk =
+          riskTypeNames.length === 0 ||
           !claim.riskType ||
-          allowedRiskTypes.includes(claim.riskType.toLowerCase())
+          riskTypeNames.includes(claim.riskType.toLowerCase())
+        const matchesRiskFilter =
+          filterRisk === "all" ||
+          claim.riskType?.toLowerCase() === filterRisk.toLowerCase()
 
         return (
           matchesFilter &&
           matchesRegistration &&
           matchesHandler &&
-          matchesClaimType &&
-          matchesMyClaims
+          matchesAllowedRisk &&
+          matchesMyClaims &&
+          matchesRiskFilter
         )
       }),
     [
@@ -243,7 +247,8 @@ export function ClaimsList({
       filterStatus,
       filterRegistration,
       filterHandler,
-      allowedRiskTypes,
+      riskTypeNames,
+      filterRisk,
       showMyClaims,
       user?.username,
     ],
@@ -383,6 +388,7 @@ export function ClaimsList({
           pageSize,
           search: searchTerm,
           status: filterStatus !== "all" ? filterStatus : undefined,
+          riskType: filterRisk !== "all" ? filterRisk : undefined,
           brand: filterRegistration || undefined,
           handler: showMyClaims ? user?.username : filterHandler || undefined,
           registeredById: showMyClaims ? user?.id : undefined,
@@ -525,6 +531,18 @@ export function ClaimsList({
               {claimStatuses.map((status) => (
                 <option key={status.id} value={status.id}>
                   {status.name}
+                </option>
+              ))}
+            </select>
+            <select
+              value={filterRisk}
+              onChange={(e) => setFilterRisk(e.target.value)}
+              className="px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#1a3a6c] focus:border-[#1a3a6c] bg-white"
+            >
+              <option value="all">Wszystkie ryzyka</option>
+              {riskTypes.map((risk) => (
+                <option key={risk.id} value={risk.name}>
+                  {risk.name}
                 </option>
               ))}
             </select>
@@ -787,14 +805,16 @@ export function ClaimsList({
                   <Search className="h-8 w-8 text-gray-400" />
                 </div>
                 <h3 className="text-sm font-medium text-gray-900 mb-1">
-                  {searchTerm || filterStatus !== "all" ? "Brak szkód spełniających kryteria" : "Brak szkód w systemie"}
+                  {searchTerm || filterStatus !== "all" || filterRisk !== "all"
+                    ? "Brak szkód spełniających kryteria"
+                    : "Brak szkód w systemie"}
                 </h3>
                 <p className="text-sm text-gray-500 mb-4">
-                  {searchTerm || filterStatus !== "all"
+                  {searchTerm || filterStatus !== "all" || filterRisk !== "all"
                     ? "Spróbuj zmienić kryteria wyszukiwania"
                     : "Dodaj pierwszą szkodę, aby rozpocząć"}
                 </p>
-                {!searchTerm && filterStatus === "all" && (
+                {!searchTerm && filterStatus === "all" && filterRisk === "all" && (
                   <Button className="bg-[#1a3a6c] hover:bg-[#1a3a6c]/90" onClick={onNewClaim || handleNewClaimDirect}>
                     <Plus className="h-4 w-4 mr-2" />
                     Dodaj pierwszą szkodę

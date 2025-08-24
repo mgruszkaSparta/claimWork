@@ -86,10 +86,6 @@ export function ClaimsList({
   const [showMyClaims, setShowMyClaims] = useState(false)
   const [isRefreshing, setIsRefreshing] = useState(false)
   const [page, setPage] = useState(1)
-  const [sortConfig, setSortConfig] = useState<{
-    field: string
-    direction: "asc" | "desc"
-  } | null>(null)
   const pageSize = 50
   const [sortBy, setSortBy] = useState<string>("spartaNumber")
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc")
@@ -217,65 +213,6 @@ export function ClaimsList({
     return map
   }, [riskTypes])
 
-  const riskTypeCodes = useMemo(
-    () => riskTypes.map((r) => r.code.toLowerCase()),
-    [riskTypes],
-  )
-
-  const filteredClaims = useMemo(
-    () =>
-      claims.filter((claim: any) => {
-        const matchesFilter =
-          filterStatus === "all" || claim.claimStatusId?.toString() === filterStatus
-        const matchesRegistration =
-          !filterRegistration ||
-          claim.victimRegistrationNumber?.toLowerCase().includes(filterRegistration.toLowerCase())
-        const matchesHandler =
-          !filterHandler || claim.handler?.toLowerCase().includes(filterHandler.toLowerCase())
-        const matchesMyClaims =
-          !showMyClaims ||
-          (user?.username && claim.handler?.toLowerCase() === user.username.toLowerCase())
-        const matchesAllowedRisk =
-          riskTypeCodes.length === 0 ||
-          !claim.riskType ||
-          riskTypeCodes.includes(claim.riskType.toLowerCase())
-        const matchesRiskFilter =
-          filterRisk === "all" ||
-          claim.riskType?.toLowerCase() === filterRisk.toLowerCase()
-
-        return (
-          matchesFilter &&
-          matchesRegistration &&
-          matchesHandler &&
-          matchesAllowedRisk &&
-          matchesMyClaims &&
-          matchesRiskFilter
-        )
-      }),
-    [
-      claims,
-      filterStatus,
-      filterRegistration,
-      filterHandler,
-      riskTypeCodes,
-      filterRisk,
-      showMyClaims,
-      user?.username,
-    ],
-  )
-
-  const sortedClaims = useMemo(() => {
-    if (!sortConfig) return filteredClaims
-    const { field, direction } = sortConfig
-    return [...filteredClaims].sort((a: any, b: any) => {
-      const aVal = a?.[field] ?? 0
-      const bVal = b?.[field] ?? 0
-      if (aVal < bVal) return direction === "asc" ? -1 : 1
-      if (aVal > bVal) return direction === "asc" ? 1 : -1
-      return 0
-    })
-  }, [filteredClaims, sortConfig])
-
   const totalClaimAmount = useMemo(
     () => claims.reduce((sum, claim) => sum + (claim.totalClaim || 0), 0),
     [claims],
@@ -328,22 +265,18 @@ export function ClaimsList({
   }
 
   const handleSort = (field: string) => {
-
-    setSortConfig((prev) => {
-      if (prev?.field === field) {
-        return {
-          field,
-          direction: prev.direction === "asc" ? "desc" : "asc",
-        }
-      }
-      return { field, direction: "asc" }
-    })
-
+    setPage(1)
+    if (sortBy === field) {
+      setSortOrder((prev) => (prev === "asc" ? "desc" : "asc"))
+    } else {
+      setSortBy(field)
+      setSortOrder("asc")
+    }
   }
 
   const renderSortIcon = (field: string) => {
-    if (sortConfig?.field !== field) return null
-    return sortConfig.direction === "asc" ? (
+    if (sortBy !== field) return null
+    return sortOrder === "asc" ? (
       <ChevronUp className="inline h-3 w-3 ml-1" />
     ) : (
       <ChevronDown className="inline h-3 w-3 ml-1" />
@@ -670,13 +603,7 @@ export function ClaimsList({
                     onClick={() => handleSort("objectTypeId")}
                   >
                     Typ
-                    {sortConfig?.field === "objectTypeId" && (
-                      sortConfig.direction === "asc" ? (
-                        <ChevronUp className="inline h-3 w-3 ml-1" />
-                      ) : (
-                        <ChevronDown className="inline h-3 w-3 ml-1" />
-                      )
-                    )}
+                    {renderSortIcon("objectTypeId")}
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Nr szkody TU
@@ -723,7 +650,7 @@ export function ClaimsList({
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200">
-                {sortedClaims.map((claim) => (
+                {claims.map((claim) => (
                   <tr
                     key={claim.id}
                     className="odd:bg-white even:bg-gray-50 hover:bg-gray-100 transition-colors"
@@ -812,7 +739,7 @@ export function ClaimsList({
           </div>
 
           {/* Empty State */}
-          {sortedClaims.length === 0 && !loading && (
+          {claims.length === 0 && !loading && (
             <div className="flex-1 flex items-center justify-center">
               <div className="text-center py-12">
                 <div className="mx-auto w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mb-4">
@@ -841,11 +768,11 @@ export function ClaimsList({
       </div>
 
       {/* Summary */}
-      {sortedClaims.length > 0 && (
+      {claims.length > 0 && (
         <div className="px-6 pb-6 flex-shrink-0">
           <div className="flex justify-between items-center text-sm text-gray-500 bg-gray-50 px-4 py-2 rounded-lg">
             <span>
-              Wyświetlono {sortedClaims.length} z {totalCount} szkód
+              Wyświetlono {claims.length} z {totalCount} szkód
               {error && " (sprawdź połączenie z API)"}
             </span>
             <span>

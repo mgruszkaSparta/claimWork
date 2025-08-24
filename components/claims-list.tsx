@@ -38,6 +38,7 @@ import { useClaims } from "@/hooks/use-claims"
 import { useToast } from "@/hooks/use-toast"
 import { useAuth } from "@/hooks/use-auth"
 import type { Claim } from "@/types"
+import { API_BASE_URL } from "@/lib/api"
 
 
 const typeLabelMap: Record<number, string> = {
@@ -176,7 +177,7 @@ export function ClaimsList({
     const loadRiskTypes = async () => {
       try {
         const res = await fetch(
-          `/api/dictionaries/risk-types?claimObjectTypeId=${claimObjectTypeId}`,
+          `${API_BASE_URL}/dictionaries/risk-types?claimObjectTypeId=${claimObjectTypeId}`,
           { credentials: "include" },
         )
         const data = await res.json()

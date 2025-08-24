@@ -333,7 +333,11 @@ namespace AutomotiveClaimsApi.Controllers
                 }
 
                 CaseHandler? handler = null;
-                if (currentUser?.CaseHandlerId != null)
+                if (eventDto.HandlerId.HasValue)
+                {
+                    handler = await _context.CaseHandlers.FindAsync(eventDto.HandlerId.Value);
+                }
+                else if (currentUser?.CaseHandlerId != null)
                 {
                     handler = await _context.CaseHandlers.FindAsync(currentUser.CaseHandlerId.Value);
                 }
@@ -360,20 +364,17 @@ namespace AutomotiveClaimsApi.Controllers
                         existingEvent.RegisteredById = userId;
                     }
 
-                    if (isHandler)
+                    if (handler != null)
                     {
-                        if (handler != null)
-                        {
-                            existingEvent.HandlerId = handler.Id;
-                            existingEvent.Handler = handler.Name;
-                            existingEvent.HandlerEmail = handler.Email;
-                            existingEvent.HandlerPhone = handler.Phone;
-                        }
-                        else if (currentUser != null)
-                        {
-                            existingEvent.Handler = currentUser.UserName;
-                            existingEvent.HandlerEmail = currentUser.Email;
-                        }
+                        existingEvent.HandlerId = handler.Id;
+                        existingEvent.Handler = handler.Name;
+                        existingEvent.HandlerEmail = handler.Email;
+                        existingEvent.HandlerPhone = handler.Phone;
+                    }
+                    else if (isHandler && currentUser != null)
+                    {
+                        existingEvent.Handler = currentUser.UserName;
+                        existingEvent.HandlerEmail = currentUser.Email;
                     }
 
                     if (string.IsNullOrEmpty(existingEvent.SpartaNumber))
@@ -403,20 +404,17 @@ namespace AutomotiveClaimsApi.Controllers
 
                 await UpsertClaimAsync(eventEntity, eventDto);
 
-                if (isHandler)
+                if (handler != null)
                 {
-                    if (handler != null)
-                    {
-                        eventEntity.HandlerId = handler.Id;
-                        eventEntity.Handler = handler.Name;
-                        eventEntity.HandlerEmail = handler.Email;
-                        eventEntity.HandlerPhone = handler.Phone;
-                    }
-                    else if (currentUser != null)
-                    {
-                        eventEntity.Handler = currentUser.UserName;
-                        eventEntity.HandlerEmail = currentUser.Email;
-                    }
+                    eventEntity.HandlerId = handler.Id;
+                    eventEntity.Handler = handler.Name;
+                    eventEntity.HandlerEmail = handler.Email;
+                    eventEntity.HandlerPhone = handler.Phone;
+                }
+                else if (isHandler && currentUser != null)
+                {
+                    eventEntity.Handler = currentUser.UserName;
+                    eventEntity.HandlerEmail = currentUser.Email;
                 }
 
                 if (string.IsNullOrEmpty(eventEntity.SpartaNumber))
@@ -488,7 +486,11 @@ namespace AutomotiveClaimsApi.Controllers
                 }
 
                 CaseHandler? handler = null;
-                if (currentUser?.CaseHandlerId != null)
+                if (eventDto.HandlerId.HasValue)
+                {
+                    handler = await _context.CaseHandlers.FindAsync(eventDto.HandlerId.Value);
+                }
+                else if (currentUser?.CaseHandlerId != null)
                 {
                     handler = await _context.CaseHandlers.FindAsync(currentUser.CaseHandlerId.Value);
                 }
@@ -613,20 +615,17 @@ namespace AutomotiveClaimsApi.Controllers
 
                 await UpsertClaimAsync(existing, eventDto);
 
-                if (isHandler)
+                if (handler != null)
                 {
-                    if (handler != null)
-                    {
-                        existing.HandlerId = handler.Id;
-                        existing.Handler = handler.Name;
-                        existing.HandlerEmail = handler.Email;
-                        existing.HandlerPhone = handler.Phone;
-                    }
-                    else if (currentUser != null)
-                    {
-                        existing.Handler = currentUser.UserName;
-                        existing.HandlerEmail = currentUser.Email;
-                    }
+                    existing.HandlerId = handler.Id;
+                    existing.Handler = handler.Name;
+                    existing.HandlerEmail = handler.Email;
+                    existing.HandlerPhone = handler.Phone;
+                }
+                else if (isHandler && currentUser != null)
+                {
+                    existing.Handler = currentUser.UserName;
+                    existing.HandlerEmail = currentUser.Email;
                 }
 
                 await _context.SaveChangesAsync();

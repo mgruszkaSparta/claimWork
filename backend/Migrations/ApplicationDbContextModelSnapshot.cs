@@ -1063,8 +1063,8 @@ namespace AutomotiveClaimsApi.Migrations
                         .HasMaxLength(50)
                         .HasColumnType("character varying(50)");
 
-                    b.Property<Guid?>("ClaimStatusId")
-                        .HasColumnType("uuid");
+                    b.Property<int?>("ClaimStatusId")
+                        .HasColumnType("integer");
 
                     b.Property<decimal?>("TotalClaim")
                         .HasColumnType("decimal(18,2)");

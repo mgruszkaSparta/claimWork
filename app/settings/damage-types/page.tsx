@@ -45,7 +45,7 @@ export default function DamageTypesPage() {
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc")
   const [page, setPage] = useState(1)
   const pageSize = 10
-  const [editingId, setEditingId] = useState<string | null>(null)
+  const [editingId, setEditingId] = useState<number | null>(null)
   const [error, setError] = useState("")
   const [formData, setFormData] = useState<CreateDamageTypeDto>({
     code: "",
@@ -78,7 +78,7 @@ export default function DamageTypesPage() {
       return
     }
     try {
-      if (editingId) {
+      if (editingId !== null) {
         await apiService.updateDamageType(editingId, formData)
       } else {
         await apiService.createDamageType(formData)
@@ -108,7 +108,7 @@ export default function DamageTypesPage() {
     setEditingId(dt.id)
   }
 
-  const handleDelete = async (id: string) => {
+  const handleDelete = async (id: number) => {
     setError("")
     try {
       await apiService.deleteDamageType(id)
@@ -212,8 +212,8 @@ export default function DamageTypesPage() {
           <Label htmlFor="isActive">Aktywny</Label>
         </div>
         <div className="flex space-x-2">
-          <Button type="submit">{editingId ? "Aktualizuj" : "Dodaj"}</Button>
-          {editingId && (
+          <Button type="submit">{editingId !== null ? "Aktualizuj" : "Dodaj"}</Button>
+          {editingId !== null && (
             <Button
               type="button"
               variant="outline"

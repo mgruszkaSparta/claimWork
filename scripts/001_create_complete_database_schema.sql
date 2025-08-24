@@ -48,7 +48,7 @@ CREATE TABLE dbo.RiskTypes (
 
 -- Create DamageTypes table
 CREATE TABLE dbo.DamageTypes (
-    Id UNIQUEIDENTIFIER PRIMARY KEY DEFAULT NEWID(),
+    Id INT IDENTITY(1,1) PRIMARY KEY,
     Code NVARCHAR(20) NOT NULL,
     Name NVARCHAR(200) NOT NULL,
     Description NVARCHAR(500),
@@ -379,59 +379,59 @@ CREATE INDEX IX_Settlements_EventId ON dbo.Settlements(EventId);
 
 -- Insert sample risk types
 INSERT INTO dbo.RiskTypes (Id, Code, Name, Description) VALUES
-(NEWID(), 'OC_DZIAL', 'OC DZIAŁALNOŚCI', 'Odpowiedzialność cywilna z tytułu prowadzenia działalności gospodarczej'),
-(NEWID(), 'OC_SPRAWCY', 'OC SPRAWCY', 'Odpowiedzialność cywilna sprawcy szkody'),
-(NEWID(), 'MAJATKOWE', 'MAJĄTKOWE', 'Ubezpieczenie majątkowe'),
-(NEWID(), 'KOMUNIKACYJNE', 'KOMUNIKACYJNE', 'Ubezpieczenie komunikacyjne'),
-(NEWID(), 'BUDOWLANE', 'BUDOWLANE', 'Ubezpieczenie budowlane'),
-(NEWID(), 'CARGO', 'CARGO', 'Ubezpieczenie ładunku'),
-(NEWID(), 'CASCO', 'CASCO', 'Ubezpieczenie autocasco'),
-(NEWID(), 'NNWP', 'NNWP', 'Następstwa nieszczęśliwych wypadków przy pracy');
+('OC_DZIAL', 'OC DZIAŁALNOŚCI', 'Odpowiedzialność cywilna z tytułu prowadzenia działalności gospodarczej'),
+('OC_SPRAWCY', 'OC SPRAWCY', 'Odpowiedzialność cywilna sprawcy szkody'),
+('MAJATKOWE', 'MAJĄTKOWE', 'Ubezpieczenie majątkowe'),
+('KOMUNIKACYJNE', 'KOMUNIKACYJNE', 'Ubezpieczenie komunikacyjne'),
+('BUDOWLANE', 'BUDOWLANE', 'Ubezpieczenie budowlane'),
+('CARGO', 'CARGO', 'Ubezpieczenie ładunku'),
+('CASCO', 'CASCO', 'Ubezpieczenie autocasco'),
+('NNWP', 'NNWP', 'Następstwa nieszczęśliwych wypadków przy pracy');
 
 -- Insert sample damage types
 DECLARE @RiskTypeId UNIQUEIDENTIFIER;
 
 -- OC DZIAŁALNOŚCI damage types
 SELECT @RiskTypeId = Id FROM dbo.RiskTypes WHERE Code = 'OC_DZIAL';
-INSERT INTO dbo.DamageTypes (Id, Code, Name, RiskTypeId) VALUES
-(NEWID(), 'SZKODA_OSOB', 'Szkoda osobowa', @RiskTypeId),
-(NEWID(), 'SZKODA_RZECZ', 'Szkoda rzeczowa', @RiskTypeId),
-(NEWID(), 'SZKODA_CZYST_MAJ', 'Szkoda czysto majątkowa', @RiskTypeId);
+INSERT INTO dbo.DamageTypes (Code, Name, RiskTypeId) VALUES
+('SZKODA_OSOB', 'Szkoda osobowa', @RiskTypeId),
+('SZKODA_RZECZ', 'Szkoda rzeczowa', @RiskTypeId),
+('SZKODA_CZYST_MAJ', 'Szkoda czysto majątkowa', @RiskTypeId);
 
 -- OC SPRAWCY damage types
 SELECT @RiskTypeId = Id FROM dbo.RiskTypes WHERE Code = 'OC_SPRAWCY';
-INSERT INTO dbo.DamageTypes (Id, Code, Name, RiskTypeId) VALUES
-(NEWID(), 'USZKODZ_CIALA', 'Uszkodzenie ciała', @RiskTypeId),
-(NEWID(), 'ROZSTROJ_ZDROW', 'Rozstrój zdrowia', @RiskTypeId),
-(NEWID(), 'SMIERC', 'Śmierć', @RiskTypeId),
-(NEWID(), 'USZKODZ_RZECZY', 'Uszkodzenie rzeczy', @RiskTypeId);
+INSERT INTO dbo.DamageTypes (Code, Name, RiskTypeId) VALUES
+('USZKODZ_CIALA', 'Uszkodzenie ciała', @RiskTypeId),
+('ROZSTROJ_ZDROW', 'Rozstrój zdrowia', @RiskTypeId),
+('SMIERC', 'Śmierć', @RiskTypeId),
+('USZKODZ_RZECZY', 'Uszkodzenie rzeczy', @RiskTypeId);
 
 -- MAJĄTKOWE damage types
 SELECT @RiskTypeId = Id FROM dbo.RiskTypes WHERE Code = 'MAJATKOWE';
-INSERT INTO dbo.DamageTypes (Id, Code, Name, RiskTypeId) VALUES
-(NEWID(), 'POZAR', 'Pożar', @RiskTypeId),
-(NEWID(), 'WYBUCH', 'Wybuch', @RiskTypeId),
-(NEWID(), 'UDERZENIE_PIORUNA', 'Uderzenie pioruna', @RiskTypeId),
-(NEWID(), 'ZALANIE', 'Zalanie', @RiskTypeId),
-(NEWID(), 'KRADZIEZ', 'Kradzież', @RiskTypeId),
-(NEWID(), 'ROZBOJ', 'Rozbój', @RiskTypeId),
-(NEWID(), 'WANDALIZM', 'Wandalizm', @RiskTypeId);
+INSERT INTO dbo.DamageTypes (Code, Name, RiskTypeId) VALUES
+('POZAR', 'Pożar', @RiskTypeId),
+('WYBUCH', 'Wybuch', @RiskTypeId),
+('UDERZENIE_PIORUNA', 'Uderzenie pioruna', @RiskTypeId),
+('ZALANIE', 'Zalanie', @RiskTypeId),
+('KRADZIEZ', 'Kradzież', @RiskTypeId),
+('ROZBOJ', 'Rozbój', @RiskTypeId),
+('WANDALIZM', 'Wandalizm', @RiskTypeId);
 
 -- KOMUNIKACYJNE damage types
 SELECT @RiskTypeId = Id FROM dbo.RiskTypes WHERE Code = 'KOMUNIKACYJNE';
-INSERT INTO dbo.DamageTypes (Id, Code, Name, RiskTypeId) VALUES
-(NEWID(), 'KOLIZJA', 'Kolizja', @RiskTypeId),
-(NEWID(), 'WYPADEK', 'Wypadek', @RiskTypeId),
-(NEWID(), 'SZKODA_PARKINGOWA', 'Szkoda parkingowa', @RiskTypeId);
+INSERT INTO dbo.DamageTypes (Code, Name, RiskTypeId) VALUES
+('KOLIZJA', 'Kolizja', @RiskTypeId),
+('WYPADEK', 'Wypadek', @RiskTypeId),
+('SZKODA_PARKINGOWA', 'Szkoda parkingowa', @RiskTypeId);
 
 -- CASCO damage types
 SELECT @RiskTypeId = Id FROM dbo.RiskTypes WHERE Code = 'CASCO';
-INSERT INTO dbo.DamageTypes (Id, Code, Name, RiskTypeId) VALUES
-(NEWID(), 'KOLIZJA_CASCO', 'Kolizja', @RiskTypeId),
-(NEWID(), 'KRADZIEZ_POJAZDU', 'Kradzież pojazdu', @RiskTypeId),
-(NEWID(), 'POZAR_POJAZDU', 'Pożar pojazdu', @RiskTypeId),
-(NEWID(), 'GRAD', 'Grad', @RiskTypeId),
-(NEWID(), 'POWODZ', 'Powódź', @RiskTypeId);
+INSERT INTO dbo.DamageTypes (Code, Name, RiskTypeId) VALUES
+('KOLIZJA_CASCO', 'Kolizja', @RiskTypeId),
+('KRADZIEZ_POJAZDU', 'Kradzież pojazdu', @RiskTypeId),
+('POZAR_POJAZDU', 'Pożar pojazdu', @RiskTypeId),
+('GRAD', 'Grad', @RiskTypeId),
+('POWODZ', 'Powódź', @RiskTypeId);
 
 -- Insert sample clients
 INSERT INTO dbo.Clients (Id, Name, Code, Email, Phone, Address, City, Country) VALUES
@@ -447,15 +447,15 @@ INSERT INTO dbo.Events (
     InsuranceCompany, PolicyNumber, Status, DamageDate, TotalClaim, 
     Payout, Currency, Client, EventLocation, EventDescription
 ) VALUES
-(NEWID(), 'CLM-2024-001', 'SP-001-2024', 'WZ12345', 'Toyota', 'Corolla', 'Jan Kowalski', 
+('CLM-2024-001', 'SP-001-2024', 'WZ12345', 'Toyota', 'Corolla', 'Jan Kowalski', 
  'PZU S.A.', 'POL123456789', 'Open', '2024-01-15', 15000.00, 
  0.00, 'PLN', 'PZU S.A.', 'ul. Marszałkowska 1, Warszawa', 'Kolizja na skrzyżowaniu'),
 
-(NEWID(), 'CLM-2024-002', 'SP-002-2024', 'KR67890', 'BMW', 'X3', 'Anna Nowak', 
+('CLM-2024-002', 'SP-002-2024', 'KR67890', 'BMW', 'X3', 'Anna Nowak', 
  'Warta S.A.', 'POL987654321', 'In Progress', '2024-01-20', 25000.00, 
  12000.00, 'PLN', 'Warta S.A.', 'A4, km 120', 'Wypadek na autostradzie'),
 
-(NEWID(), 'CLM-2024-003', 'SP-003-2024', 'GD11111', 'Audi', 'A4', 'Piotr Wiśniewski', 
+('CLM-2024-003', 'SP-003-2024', 'GD11111', 'Audi', 'A4', 'Piotr Wiśniewski', 
  'Allianz Polska S.A.', 'POL111222333', 'Closed', '2024-01-25', 8000.00, 
  8000.00, 'PLN', 'Allianz Polska S.A.', 'ul. Długa 15, Gdańsk', 'Szkoda parkingowa');
 

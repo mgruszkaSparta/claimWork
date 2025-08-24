@@ -32,7 +32,7 @@ namespace AutomotiveClaimsApi.Controllers
         }
 
         [HttpGet("{id}")]
-        public async Task<IActionResult> GetDamageType(Guid id)
+        public async Task<IActionResult> GetDamageType(int id)
         {
             var result = await _service.GetDamageTypeAsync(id);
             if (!result.Success)
@@ -56,7 +56,7 @@ namespace AutomotiveClaimsApi.Controllers
         }
 
         [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateDamageType(Guid id, DamageTypeDto dto)
+        public async Task<IActionResult> UpdateDamageType(int id, DamageTypeDto dto)
         {
             var result = await _service.UpdateDamageTypeAsync(id, dto);
             if (!result.Success)
@@ -68,7 +68,7 @@ namespace AutomotiveClaimsApi.Controllers
         }
 
         [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteDamageType(Guid id)
+        public async Task<IActionResult> DeleteDamageType(int id)
         {
             var result = await _service.DeleteDamageTypeAsync(id);
             if (!result.Success)

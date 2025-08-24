@@ -4,7 +4,7 @@ namespace AutomotiveClaimsApi.Models
 {
     public class DamageType
     {
-        public Guid Id { get; set; }
+        public int Id { get; set; }
         
         [Required]
         [MaxLength(20)]

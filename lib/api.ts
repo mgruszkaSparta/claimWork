@@ -297,7 +297,7 @@ export interface RiskTypeDto {
 }
 
 export interface DamageTypeDto {
-  id: string
+  id: number
   code: string
   name: string
   description?: string
@@ -1194,14 +1194,14 @@ class ApiService {
     })
   }
 
-  async updateDamageType(id: string, data: UpdateDamageTypeDto): Promise<void> {
+  async updateDamageType(id: number, data: UpdateDamageTypeDto): Promise<void> {
     await this.request<void>(`/damage-types/${id}`, {
       method: 'PUT',
       body: JSON.stringify(data),
     })
   }
 
-  async deleteDamageType(id: string): Promise<void> {
+  async deleteDamageType(id: number): Promise<void> {
     await this.request<void>(`/damage-types/${id}`, {
       method: 'DELETE',
     })

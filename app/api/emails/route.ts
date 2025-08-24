@@ -2,9 +2,14 @@ import { type NextRequest, NextResponse } from "next/server"
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5200/api"
 
-export async function GET(_request: NextRequest) {
+export async function GET(request: NextRequest) {
   try {
-    const response = await fetch(`${API_BASE_URL}/emails`, { cache: "no-store" })
+    const cookie = request.headers.get("cookie") ?? ""
+    const response = await fetch(`${API_BASE_URL}/emails`, {
+      cache: "no-store",
+      credentials: "include",
+      headers: { Cookie: cookie },
+    })
 
     if (!response.ok) {
       const errorText = await response.text()
@@ -25,10 +30,13 @@ export async function GET(_request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const formData = await request.formData()
+    const cookie = request.headers.get("cookie") ?? ""
 
     const response = await fetch(`${API_BASE_URL}/emails`, {
       method: "POST",
       body: formData,
+      credentials: "include",
+      headers: { Cookie: cookie },
     })
 
     if (!response.ok) {

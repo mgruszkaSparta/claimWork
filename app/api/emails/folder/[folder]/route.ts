@@ -3,14 +3,17 @@ import { type NextRequest, NextResponse } from "next/server"
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5200/api"
 
 export async function GET(
-  _request: NextRequest,
+  request: NextRequest,
   { params }: { params: { folder: string } },
 ) {
   try {
     const folder = params.folder
+    const cookie = request.headers.get("cookie") ?? ""
 
     const response = await fetch(`${API_BASE_URL}/emails/folder/${folder}`, {
       cache: "no-store",
+      credentials: "include",
+      headers: { Cookie: cookie },
     })
 
     if (!response.ok) {

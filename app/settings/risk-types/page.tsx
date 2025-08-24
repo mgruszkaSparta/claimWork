@@ -49,8 +49,15 @@ export default function RiskTypesPage() {
     code: "",
     name: "",
     description: "",
+    claimObjectTypeId: 1,
     isActive: true,
   })
+
+  const objectTypes = [
+    { id: 1, name: "Szkoda komunikacyjna" },
+    { id: 2, name: "Szkoda mienia" },
+    { id: 3, name: "Szkoda transportowa" },
+  ]
 
   const loadRiskTypes = async () => {
     const data = await apiService.getRiskTypes()
@@ -64,8 +71,12 @@ export default function RiskTypesPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError("")
-    if (!formData.code.trim() || !formData.name.trim()) {
-      setError("Kod i nazwa są wymagane")
+    if (
+      !formData.code.trim() ||
+      !formData.name.trim() ||
+      !formData.claimObjectTypeId
+    ) {
+      setError("Kod, nazwa i rodzaj szkody są wymagane")
       return
     }
     try {
@@ -74,7 +85,13 @@ export default function RiskTypesPage() {
       } else {
         await apiService.createRiskType(formData)
       }
-      setFormData({ code: "", name: "", description: "", isActive: true })
+      setFormData({
+        code: "",
+        name: "",
+        description: "",
+        claimObjectTypeId: 1,
+        isActive: true,
+      })
       setEditingId(null)
       loadRiskTypes()
     } catch (err: any) {
@@ -87,6 +104,7 @@ export default function RiskTypesPage() {
       code: rt.code,
       name: rt.name,
       description: rt.description ?? "",
+      claimObjectTypeId: rt.claimObjectTypeId ?? 1,
       isActive: rt.isActive,
     })
     setEditingId(rt.id)
@@ -171,6 +189,29 @@ export default function RiskTypesPage() {
             }
           />
         </div>
+        <div>
+          <Label htmlFor="claimObjectTypeId">Rodzaj szkody</Label>
+          <Select
+            value={formData.claimObjectTypeId?.toString()}
+            onValueChange={(v) =>
+              setFormData({
+                ...formData,
+                claimObjectTypeId: parseInt(v, 10),
+              })
+            }
+          >
+            <SelectTrigger id="claimObjectTypeId">
+              <SelectValue placeholder="Wybierz rodzaj szkody" />
+            </SelectTrigger>
+            <SelectContent>
+              {objectTypes.map((ot) => (
+                <SelectItem key={ot.id} value={ot.id.toString()}>
+                  {ot.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
         <div className="flex items-center space-x-2">
           <Checkbox
             id="isActive"
@@ -193,6 +234,7 @@ export default function RiskTypesPage() {
                   code: "",
                   name: "",
                   description: "",
+                  claimObjectTypeId: 1,
                   isActive: true,
                 })
               }}
@@ -246,6 +288,7 @@ export default function RiskTypesPage() {
             >
               Nazwa <ArrowUpDown className="inline h-4 w-4 ml-2" />
             </TableHead>
+            <TableHead>Rodzaj szkody</TableHead>
             <TableHead>Opis</TableHead>
             <TableHead>Status</TableHead>
             <TableHead>Akcje</TableHead>
@@ -256,6 +299,10 @@ export default function RiskTypesPage() {
             <TableRow key={rt.id}>
               <TableCell>{rt.code}</TableCell>
               <TableCell>{rt.name}</TableCell>
+              <TableCell>
+                {objectTypes.find((o) => o.id === rt.claimObjectTypeId)?.name ||
+                  "-"}
+              </TableCell>
               <TableCell>{rt.description}</TableCell>
               <TableCell>{rt.isActive ? "Aktywny" : "Nieaktywny"}</TableCell>
               <TableCell className="space-x-2">

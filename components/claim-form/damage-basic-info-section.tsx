@@ -9,6 +9,7 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { DependentSelect } from "@/components/ui/dependent-select"
+import { API_BASE_URL } from "@/lib/api"
 import type { Claim } from "@/types"
 
 interface DamageBasicInfoSectionProps {
@@ -85,7 +86,7 @@ export function DamageBasicInfoSection({
           value={claimFormData.damageType || ""}
           onValueChange={(value) => handleFormChange("damageType", value)}
           placeholder="Wybierz rodzaj szkody..."
-          apiUrl="/api/damage-types"
+          apiUrl={`${API_BASE_URL}/damage-types`}
           riskTypeId={claimFormData.riskType}
           disabled={!claimFormData.riskType}
         />

@@ -11,6 +11,7 @@ import ClientDropdown from "@/components/client-dropdown"
 import HandlerDropdown from "@/components/handler-dropdown"
 import InsuranceDropdown from "@/components/insurance-dropdown"
 import LeasingDropdown from "@/components/leasing-dropdown"
+import { API_BASE_URL } from "@/lib/api"
 import { FileText } from "lucide-react"
 import type { Claim } from "@/types"
 import type { ClientSelectionEvent } from "@/types/client"
@@ -202,7 +203,7 @@ export function DamageDataSection({
                 value={claimFormData.damageType || ""}
                 onValueChange={(value) => handleFormChange("damageType", value)}
                 placeholder="Wybierz rodzaj szkody..."
-                apiUrl="/api/damage-types"
+                apiUrl={`${API_BASE_URL}/damage-types`}
                 riskTypeId={claimFormData.riskType}
                 disabled={!claimFormData.riskType}
               />

@@ -289,7 +289,7 @@ export interface UpdateClientDto {
 }
 
 export interface RiskTypeDto {
-  id: string
+  id: number
   code: string
   name: string
   description?: string
@@ -301,7 +301,7 @@ export interface DamageTypeDto {
   code: string
   name: string
   description?: string
-  riskTypeId: string
+  riskTypeId: number
   riskTypeName?: string
   isActive: boolean
   createdAt: string
@@ -354,7 +354,7 @@ export interface CreateDamageTypeDto {
   code: string
   name: string
   description?: string
-  riskTypeId: string
+  riskTypeId: number
   isActive?: boolean
 }
 
@@ -1150,14 +1150,14 @@ class ApiService {
     })
   }
 
-  async updateRiskType(id: string, data: UpdateRiskTypeDto): Promise<void> {
+  async updateRiskType(id: number, data: UpdateRiskTypeDto): Promise<void> {
     await this.request<void>(`/RiskTypes/${id}`, {
       method: 'PUT',
       body: JSON.stringify(data),
     })
   }
 
-  async deleteRiskType(id: string): Promise<void> {
+  async deleteRiskType(id: number): Promise<void> {
     const token = this.getToken()
     const response = await fetch(`${API_BASE_URL}/RiskTypes/${id}`, {
       method: 'DELETE',
@@ -1176,7 +1176,7 @@ class ApiService {
   }
 
   // Damage Types API
-  async getDamageTypes(params: { riskTypeId?: string; isActive?: boolean } = {}): Promise<DamageTypeDto[]> {
+  async getDamageTypes(params: { riskTypeId?: number; isActive?: boolean } = {}): Promise<DamageTypeDto[]> {
     const searchParams = new URLSearchParams()
     Object.entries(params).forEach(([key, value]) => {
       if (value !== undefined) {

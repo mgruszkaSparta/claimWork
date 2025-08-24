@@ -18,7 +18,7 @@ namespace AutomotiveClaimsApi.Models
         public string? Description { get; set; }
         
         [Required]
-        public Guid RiskTypeId { get; set; }
+        public int RiskTypeId { get; set; }
         
         public bool IsActive { get; set; } = true;
         

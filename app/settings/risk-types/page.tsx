@@ -43,7 +43,7 @@ export default function RiskTypesPage() {
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc")
   const [page, setPage] = useState(1)
   const pageSize = 10
-  const [editingId, setEditingId] = useState<string | null>(null)
+  const [editingId, setEditingId] = useState<number | null>(null)
   const [error, setError] = useState("")
   const [formData, setFormData] = useState<CreateRiskTypeDto>({
     code: "",
@@ -92,7 +92,7 @@ export default function RiskTypesPage() {
     setEditingId(rt.id)
   }
 
-  const handleDelete = async (id: string) => {
+  const handleDelete = async (id: number) => {
     setError("")
     try {
       await apiService.deleteRiskType(id)

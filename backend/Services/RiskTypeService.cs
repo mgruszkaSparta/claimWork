@@ -46,7 +46,7 @@ namespace AutomotiveClaimsApi.Services
             }
         }
 
-        public async Task<ServiceResult<RiskTypeDto>> GetRiskTypeAsync(Guid id)
+        public async Task<ServiceResult<RiskTypeDto>> GetRiskTypeAsync(int id)
         {
             try
             {
@@ -89,7 +89,6 @@ namespace AutomotiveClaimsApi.Services
 
                 var riskType = new Models.RiskType
                 {
-                    Id = Guid.NewGuid(),
                     Code = dto.Code,
                     Name = dto.Name,
                     Description = dto.Description,
@@ -120,7 +119,7 @@ namespace AutomotiveClaimsApi.Services
             }
         }
 
-        public async Task<ServiceResult> UpdateRiskTypeAsync(Guid id, RiskTypeDto dto)
+        public async Task<ServiceResult> UpdateRiskTypeAsync(int id, RiskTypeDto dto)
         {
             try
             {
@@ -150,7 +149,7 @@ namespace AutomotiveClaimsApi.Services
             }
         }
 
-        public async Task<ServiceResult> DeleteRiskTypeAsync(Guid id)
+        public async Task<ServiceResult> DeleteRiskTypeAsync(int id)
         {
             try
             {

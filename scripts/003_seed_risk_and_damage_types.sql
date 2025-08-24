@@ -6,20 +6,20 @@ DELETE FROM dbo.DamageTypes;
 DELETE FROM dbo.RiskTypes;
 
 -- Insert Risk Types
-INSERT INTO dbo.RiskTypes (Id, Code, Name, Description, IsActive) VALUES
-(NEWID(), 'OC_DZIAL', 'OC DZIAŁALNOŚCI', 'Odpowiedzialność cywilna z tytułu prowadzenia działalności gospodarczej', 1),
-(NEWID(), 'OC_SPRAWCY', 'OC SPRAWCY', 'Odpowiedzialność cywilna sprawcy szkody', 1),
-(NEWID(), 'MAJATKOWE', 'MAJĄTKOWE', 'Ubezpieczenie majątkowe', 1),
-(NEWID(), 'KOMUNIKACYJNE', 'KOMUNIKACYJNE', 'Ubezpieczenie komunikacyjne', 1),
-(NEWID(), 'BUDOWLANE', 'BUDOWLANE', 'Ubezpieczenie budowlane', 1),
-(NEWID(), 'CARGO', 'CARGO', 'Ubezpieczenie ładunku', 1),
-(NEWID(), 'CASCO', 'CASCO', 'Ubezpieczenie autocasco', 1),
-(NEWID(), 'NNWP', 'NNWP', 'Następstwa nieszczęśliwych wypadków przy pracy', 1),
-(NEWID(), 'CYBER', 'CYBER', 'Ubezpieczenie cyber ryzyk', 1),
-(NEWID(), 'D_O', 'D&O', 'Ubezpieczenie odpowiedzialności cywilnej członków organów zarządzających', 1);
+INSERT INTO dbo.RiskTypes (Code, Name, Description, IsActive) VALUES
+('OC_DZIAL', 'OC DZIAŁALNOŚCI', 'Odpowiedzialność cywilna z tytułu prowadzenia działalności gospodarczej', 1),
+('OC_SPRAWCY', 'OC SPRAWCY', 'Odpowiedzialność cywilna sprawcy szkody', 1),
+('MAJATKOWE', 'MAJĄTKOWE', 'Ubezpieczenie majątkowe', 1),
+('KOMUNIKACYJNE', 'KOMUNIKACYJNE', 'Ubezpieczenie komunikacyjne', 1),
+('BUDOWLANE', 'BUDOWLANE', 'Ubezpieczenie budowlane', 1),
+('CARGO', 'CARGO', 'Ubezpieczenie ładunku', 1),
+('CASCO', 'CASCO', 'Ubezpieczenie autocasco', 1),
+('NNWP', 'NNWP', 'Następstwa nieszczęśliwych wypadków przy pracy', 1),
+('CYBER', 'CYBER', 'Ubezpieczenie cyber ryzyk', 1),
+('D_O', 'D&O', 'Ubezpieczenie odpowiedzialności cywilnej członków organów zarządzających', 1);
 
 -- Insert Damage Types for each Risk Type
-DECLARE @RiskTypeId UNIQUEIDENTIFIER;
+DECLARE @RiskTypeId INT;
 
 -- OC DZIAŁALNOŚCI damage types
 SELECT @RiskTypeId = Id FROM dbo.RiskTypes WHERE Code = 'OC_DZIAL';

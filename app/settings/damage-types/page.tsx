@@ -51,7 +51,7 @@ export default function DamageTypesPage() {
     code: "",
     name: "",
     description: "",
-    riskTypeId: "",
+    riskTypeId: 0,
     isActive: true,
   })
 
@@ -87,7 +87,7 @@ export default function DamageTypesPage() {
         code: "",
         name: "",
         description: "",
-        riskTypeId: "",
+        riskTypeId: 0,
         isActive: true,
       })
       setEditingId(null)
@@ -186,15 +186,15 @@ export default function DamageTypesPage() {
         <div>
           <Label htmlFor="riskType">Typ ryzyka</Label>
           <Select
-            value={formData.riskTypeId}
-            onValueChange={(v) => setFormData({ ...formData, riskTypeId: v })}
+            value={formData.riskTypeId ? formData.riskTypeId.toString() : ""}
+            onValueChange={(v) => setFormData({ ...formData, riskTypeId: Number(v) })}
           >
             <SelectTrigger id="riskType" className="w-full">
               <SelectValue placeholder="Wybierz" />
             </SelectTrigger>
             <SelectContent>
               {riskTypes.map((rt) => (
-                <SelectItem key={rt.id} value={rt.id}>
+                <SelectItem key={rt.id} value={rt.id.toString()}>
                   {rt.name}
                 </SelectItem>
               ))}
@@ -223,7 +223,7 @@ export default function DamageTypesPage() {
                   code: "",
                   name: "",
                   description: "",
-                  riskTypeId: "",
+                  riskTypeId: 0,
                   isActive: true,
                 })
               }}

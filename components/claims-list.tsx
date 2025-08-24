@@ -73,10 +73,8 @@ export function ClaimsList({
   const [claimStatuses, setClaimStatuses] = useState<
     { id: string; name: string }[]
   >([])
-  const [filterRisk, setFilterRisk] = useState("all")
-  const [riskTypes, setRiskTypes] = useState<
-    { id: string; name: string }[]
-  >([])
+  const [filterRisk, setFilterRisk] = useState<number | "all">("all")
+  const [riskTypes, setRiskTypes] = useState<{ id: number; name: string }[]>([])
   const [filterRegistration, setFilterRegistration] = useState("")
   const [filterHandler, setFilterHandler] = useState("")
   const [dateFilters, setDateFilters] = useState<
@@ -142,7 +140,14 @@ export function ClaimsList({
           { credentials: "include" },
         )
         const data = await res.json()
-        setRiskTypes((data.items ?? []) as { id: string; name: string }[])
+        setRiskTypes(
+          (data.items ?? []).map(
+            (item: { id: string | number; name: string }) => ({
+              id: Number(item.id),
+              name: item.name,
+            }),
+          ),
+        )
       } catch (error) {
         console.error("Error loading risk types:", error)
         setRiskTypes([])
@@ -164,7 +169,7 @@ export function ClaimsList({
             pageSize,
             search: searchTerm,
             status: filterStatus !== "all" ? filterStatus : undefined,
-            riskType: filterRisk !== "all" ? filterRisk : undefined,
+            riskTypeId: filterRisk !== "all" ? filterRisk : undefined,
             brand: filterRegistration || undefined,
             handler: showMyClaims ? user?.username : filterHandler || undefined,
             registeredById: showMyClaims ? user?.id : undefined,
@@ -207,10 +212,15 @@ export function ClaimsList({
     initialClaims,
 
   ])
-  const riskTypeNames = useMemo(
-    () => riskTypes.map((r) => r.name.toLowerCase()),
-    [riskTypes],
-  )
+  const riskTypeMap = useMemo(() => {
+    const map: Record<number, string> = {}
+    riskTypes.forEach((r) => {
+      map[r.id] = r.name
+    })
+    return map
+  }, [riskTypes])
+
+  const riskTypeIds = useMemo(() => riskTypes.map((r) => r.id), [riskTypes])
 
   const filteredClaims = useMemo(
     () =>
@@ -226,12 +236,11 @@ export function ClaimsList({
           !showMyClaims ||
           (user?.username && claim.handler?.toLowerCase() === user.username.toLowerCase())
         const matchesAllowedRisk =
-          riskTypeNames.length === 0 ||
-          !claim.riskType ||
-          riskTypeNames.includes(claim.riskType.toLowerCase())
+          riskTypeIds.length === 0 ||
+          !claim.riskTypeId ||
+          riskTypeIds.includes(claim.riskTypeId)
         const matchesRiskFilter =
-          filterRisk === "all" ||
-          claim.riskType?.toLowerCase() === filterRisk.toLowerCase()
+          filterRisk === "all" || claim.riskTypeId === filterRisk
 
         return (
           matchesFilter &&
@@ -247,7 +256,7 @@ export function ClaimsList({
       filterStatus,
       filterRegistration,
       filterHandler,
-      riskTypeNames,
+      riskTypeIds,
       filterRisk,
       showMyClaims,
       user?.username,
@@ -388,7 +397,7 @@ export function ClaimsList({
           pageSize,
           search: searchTerm,
           status: filterStatus !== "all" ? filterStatus : undefined,
-          riskType: filterRisk !== "all" ? filterRisk : undefined,
+          riskTypeId: filterRisk !== "all" ? filterRisk : undefined,
           brand: filterRegistration || undefined,
           handler: showMyClaims ? user?.username : filterHandler || undefined,
           registeredById: showMyClaims ? user?.id : undefined,
@@ -535,13 +544,17 @@ export function ClaimsList({
               ))}
             </select>
             <select
-              value={filterRisk}
-              onChange={(e) => setFilterRisk(e.target.value)}
+              value={filterRisk === "all" ? "all" : filterRisk}
+              onChange={(e) =>
+                setFilterRisk(
+                  e.target.value === "all" ? "all" : Number(e.target.value),
+                )
+              }
               className="px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#1a3a6c] focus:border-[#1a3a6c] bg-white"
             >
               <option value="all">Wszystkie ryzyka</option>
               {riskTypes.map((risk) => (
-                <option key={risk.id} value={risk.name}>
+                <option key={risk.id} value={risk.id}>
                   {risk.name}
                 </option>
               ))}
@@ -695,9 +708,9 @@ export function ClaimsList({
                     </div>
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    <div className="flex items-center cursor-pointer" onClick={() => handleSort("riskType")}>
+                    <div className="flex items-center cursor-pointer" onClick={() => handleSort("riskTypeId")}> 
                       Ryzyko
-                      {renderSortIcon("riskType")}
+                      {renderSortIcon("riskTypeId")}
                     </div>
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -744,7 +757,11 @@ export function ClaimsList({
                       {claim.reportDate ? new Date(claim.reportDate).toLocaleDateString("pl-PL") : "-"}
 
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap">{claim.riskType || "-"}</td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      {claim.riskTypeId
+                        ? riskTypeMap[claim.riskTypeId] || "-"
+                        : "-"}
+                    </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <Badge className={`text-xs border ${getStatusColor(claim.status ?? "")}`}>
                         {claim.status || "-"}

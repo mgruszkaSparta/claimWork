@@ -410,6 +410,12 @@ export function useClaims() {
           insuranceCompanyId: claim.insuranceCompanyId?.toString(),
           leasingCompanyId: claim.leasingCompanyId?.toString(),
           handlerId: claim.handlerId?.toString(),
+          riskTypeId:
+            claim.riskTypeId !== undefined
+              ? claim.riskTypeId
+              : claim.riskType !== undefined
+                ? Number(claim.riskType)
+                : undefined,
         })) as Claim[]
 
         setClaims((prev) =>

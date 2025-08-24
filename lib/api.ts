@@ -855,7 +855,7 @@ class ApiService {
 
   async checkHealth(): Promise<void> {
     try {
-      await fetch(API_BASE_URL, { method: "HEAD" })
+      await fetch(API_BASE_URL, { method: "GET" })
     } catch {
       throw new Error("API unavailable")
     }

@@ -10,6 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import ClientDropdown from "@/components/client-dropdown"
 import { Button } from "@/components/ui/button"
 import type { ClientSelectionEvent } from "@/types/client"
+import { API_BASE_URL } from "@/lib/api"
 
 interface RiskType {
   value: string
@@ -50,9 +51,12 @@ export function NewClaimDialog({ open, onOpenChange }: NewClaimDialogProps) {
   } = useQuery<RiskType[]>({
     queryKey: ["risk-types", claimObjectTypeId],
     queryFn: async () => {
-      const res = await fetch(`/api/dictionaries/risk-types?claimObjectTypeId=${claimObjectTypeId}`, {
-        credentials: "include",
-      })
+      const res = await fetch(
+        `${API_BASE_URL}/dictionaries/risk-types?claimObjectTypeId=${claimObjectTypeId}`,
+        {
+          credentials: "include",
+        },
+      )
       const data = await res.json()
       return (data.items || []).map((item: any) => ({ value: String(item.id), label: item.name }))
     },

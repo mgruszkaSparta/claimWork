@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace AutomotiveClaimsApi.Controllers
 {
     [ApiController]
-    [Route("api/[controller]")]
+    [Route("api/damage-types")]
     public class DamageTypesController : ControllerBase
     {
         private readonly IDamageTypeService _service;

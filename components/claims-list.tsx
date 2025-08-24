@@ -38,6 +38,7 @@ import { useClaims } from "@/hooks/use-claims"
 import { useToast } from "@/hooks/use-toast"
 import { useAuth } from "@/hooks/use-auth"
 import type { Claim } from "@/types"
+import { API_BASE_URL } from "@/lib/api"
 
 
 const typeLabelMap: Record<number, string> = {
@@ -69,6 +70,9 @@ export function ClaimsList({
   const [searchTerm, setSearchTerm] = useState("")
   const [searchInput, setSearchInput] = useState("")
   const [filterStatus, setFilterStatus] = useState("all")
+  const [claimStatuses, setClaimStatuses] = useState<
+    { id: string; name: string }[]
+  >([])
   const [filterRegistration, setFilterRegistration] = useState("")
   const [filterHandler, setFilterHandler] = useState("")
   const [dateFilters, setDateFilters] = useState<
@@ -107,6 +111,22 @@ export function ClaimsList({
   useEffect(() => {
     setSearchInput(searchTerm)
   }, [searchTerm])
+
+  useEffect(() => {
+    const loadStatuses = async () => {
+      try {
+        const res = await fetch(
+          `${API_BASE_URL}/dictionaries/claim-statuses`,
+          { credentials: "include" },
+        )
+        const data = await res.json()
+        setClaimStatuses((data.items ?? []) as { id: string; name: string }[])
+      } catch (error) {
+        console.error("Error loading claim statuses:", error)
+      }
+    }
+    loadStatuses()
+  }, [])
 
   useEffect(() => {
     if (initialClaims?.length) return
@@ -193,9 +213,10 @@ export function ClaimsList({
   }, [claimObjectTypeId])
 
   const filteredClaims = useMemo(
-    () =>
-      claims.filter((claim) => {
-        const matchesFilter = filterStatus === "all" || claim.status === filterStatus
+      () =>
+        claims.filter((claim: any) => {
+          const matchesFilter =
+            filterStatus === "all" || claim.claimStatusId?.toString() === filterStatus
         const matchesRegistration =
           !filterRegistration ||
           claim.victimRegistrationNumber?.toLowerCase().includes(filterRegistration.toLowerCase())
@@ -501,11 +522,11 @@ export function ClaimsList({
               className="px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#1a3a6c] focus:border-[#1a3a6c] bg-white"
             >
               <option value="all">Wszystkie statusy</option>
-              <option value="NOWA SZKODA">Nowa szkoda</option>
-              <option value="W TRAKCIE">W trakcie</option>
-              <option value="ZAKOŃCZONA">Zakończona</option>
-              <option value="ODRZUCONA">Odrzucona</option>
-              <option value="ZAWIESZONA">Zawieszona</option>
+              {claimStatuses.map((status) => (
+                <option key={status.id} value={status.id}>
+                  {status.name}
+                </option>
+              ))}
             </select>
             <Button
               variant="outline"

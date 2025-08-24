@@ -1018,7 +1018,7 @@ namespace AutomotiveClaimsApi.Controllers
             entity.WereInjured = dto.WereInjured;
             entity.StatementWithPerpetrator = dto.StatementWithPerpetrator;
             entity.PerpetratorFined = dto.PerpetratorFined;
-            entity.ServicesCalled = dto.ServicesCalled;
+            entity.ServicesCalled = dto.ServicesCalled != null ? string.Join(",", dto.ServicesCalled) : null;
             entity.PoliceUnitDetails = dto.PoliceUnitDetails;
             entity.PropertyDamageSubject = dto.PropertyDamageSubject;
             entity.DamageListing = dto.DamageListing;
@@ -1040,7 +1040,7 @@ namespace AutomotiveClaimsApi.Controllers
             entity.ComplaintResponse = dto.ComplaintResponse;
             entity.ComplaintResponseDate = dto.ComplaintResponseDate;
             entity.CargoDescription = dto.CargoDescription;
-            entity.Losses = dto.Losses;
+            entity.Losses = dto.Losses != null ? string.Join(",", dto.Losses) : null;
             entity.Carrier = dto.Carrier;
             entity.CarrierPolicyNumber = dto.CarrierPolicyNumber;
             entity.InspectionContactName = dto.InspectionContactName;

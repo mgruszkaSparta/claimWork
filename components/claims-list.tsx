@@ -756,9 +756,8 @@ export function ClaimsList({
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       {claim.riskType
-
                         ? riskTypeMap[claim.riskType.toLowerCase()] || "-"
-                      }
+                        : "-"}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <Badge className={`text-xs border ${getStatusColor(claim.status ?? "")}`}>

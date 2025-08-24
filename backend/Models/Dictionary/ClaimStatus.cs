@@ -4,7 +4,7 @@ namespace AutomotiveClaimsApi.Models.Dictionary
 {
     public class ClaimStatus
     {
-        public Guid Id { get; set; }
+        public int Id { get; set; }
         
         [Required]
         [MaxLength(50)]

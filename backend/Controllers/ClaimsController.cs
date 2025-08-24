@@ -124,9 +124,9 @@ namespace AutomotiveClaimsApi.Controllers
                     query = query.Where(e => e.ClientId == clientIdValue);
                 }
 
-                if (!string.IsNullOrEmpty(status) && Guid.TryParse(status, out var statusGuid))
+                if (!string.IsNullOrEmpty(status) && int.TryParse(status, out var statusId))
                 {
-                    query = query.Where(e => e.ClaimStatusId == statusGuid);
+                    query = query.Where(e => e.ClaimStatusId == statusId);
                 }
 
                 if (!string.IsNullOrEmpty(policyNumber))

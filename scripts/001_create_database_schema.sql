@@ -37,7 +37,7 @@ CREATE TABLE dbo.Clients (
 
 -- Create RiskTypes table
 CREATE TABLE dbo.RiskTypes (
-    Id UNIQUEIDENTIFIER PRIMARY KEY DEFAULT NEWID(),
+    Id INT IDENTITY(1,1) PRIMARY KEY,
     Code NVARCHAR(20) NOT NULL,
     Name NVARCHAR(200) NOT NULL,
     Description NVARCHAR(500),
@@ -52,7 +52,7 @@ CREATE TABLE dbo.DamageTypes (
     Code NVARCHAR(20) NOT NULL,
     Name NVARCHAR(200) NOT NULL,
     Description NVARCHAR(500),
-    RiskTypeId UNIQUEIDENTIFIER NOT NULL,
+    RiskTypeId INT NOT NULL,
     IsActive BIT NOT NULL DEFAULT 1,
     CreatedAt DATETIME2 NOT NULL DEFAULT GETUTCDATE(),
     UpdatedAt DATETIME2 NOT NULL DEFAULT GETUTCDATE(),
@@ -76,8 +76,8 @@ CREATE TABLE dbo.Events (
     WitnessName NVARCHAR(100),
     WitnessPhone NVARCHAR(20),
     WitnessEmail NVARCHAR(100),
-    RiskTypeId UNIQUEIDENTIFIER,
     DamageTypeId INT,
+    RiskTypeId INT,
     Status NVARCHAR(50) DEFAULT 'Open',
     Priority NVARCHAR(20) DEFAULT 'Medium',
     AssignedTo NVARCHAR(100),

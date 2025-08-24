@@ -25,7 +25,7 @@ interface DependentSelectProps {
   onValueChange?: (value: string) => void
   placeholder?: string
   apiUrl: string
-  riskTypeId?: string
+  riskTypeId?: number
   disabled?: boolean
   className?: string
 }
@@ -46,8 +46,8 @@ export function DependentSelect({
   const fetchOptions = async (): Promise<Option[]> => {
     let url = apiUrl
     const params = new URLSearchParams()
-    if (riskTypeId) {
-      params.set("riskTypeId", riskTypeId)
+    if (riskTypeId !== undefined) {
+      params.set("riskTypeId", String(riskTypeId))
     }
     if (debouncedSearch) {
       params.set("search", debouncedSearch)
@@ -87,7 +87,7 @@ export function DependentSelect({
   } = useQuery({
     queryKey: ["dependent-select", apiUrl, riskTypeId, debouncedSearch],
     queryFn: fetchOptions,
-    enabled: !!riskTypeId && (open || !!value),
+    enabled: riskTypeId !== undefined && (open || !!value),
   })
 
   useEffect(() => {
@@ -98,7 +98,7 @@ export function DependentSelect({
     <Select
       value={value}
       onValueChange={onValueChange}
-      disabled={disabled || !riskTypeId}
+      disabled={disabled || riskTypeId === undefined}
       open={open}
       onOpenChange={setOpen}
     >

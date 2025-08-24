@@ -19,7 +19,7 @@ namespace AutomotiveClaimsApi.DTOs
         public string? Description { get; set; }
         
         [Required]
-        public Guid RiskTypeId { get; set; }
+        public int RiskTypeId { get; set; }
         
         public string? RiskTypeName { get; set; }
         public bool IsActive { get; set; }

@@ -7,6 +7,7 @@ DELETE FROM dbo.RiskTypes;
 
 -- Insert Risk Types
 INSERT INTO dbo.RiskTypes (Id, Code, Name, Description, IsActive) VALUES
+
 ('OC_DZIAL', 'OC DZIAŁALNOŚCI', 'Odpowiedzialność cywilna z tytułu prowadzenia działalności gospodarczej', 1),
 ('OC_SPRAWCY', 'OC SPRAWCY', 'Odpowiedzialność cywilna sprawcy szkody', 1),
 ('MAJATKOWE', 'MAJĄTKOWE', 'Ubezpieczenie majątkowe', 1),
@@ -19,7 +20,7 @@ INSERT INTO dbo.RiskTypes (Id, Code, Name, Description, IsActive) VALUES
 ('D_O', 'D&O', 'Ubezpieczenie odpowiedzialności cywilnej członków organów zarządzających', 1);
 
 -- Insert Damage Types for each Risk Type
-DECLARE @RiskTypeId UNIQUEIDENTIFIER;
+DECLARE @RiskTypeId INT;
 
 -- OC DZIAŁALNOŚCI damage types
 SELECT @RiskTypeId = Id FROM dbo.RiskTypes WHERE Code = 'OC_DZIAL';

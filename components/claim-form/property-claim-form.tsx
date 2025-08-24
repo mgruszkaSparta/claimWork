@@ -17,7 +17,7 @@ interface RiskType {
 }
 
 interface ClaimStatus {
-  id: string
+  id: number
   name: string
   description: string
 }

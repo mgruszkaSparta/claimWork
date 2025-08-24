@@ -21,7 +21,7 @@ namespace AutomotiveClaimsApi.DTOs
         public string? InsuranceCompanyEmail { get; set; }
         public string? PolicyNumber { get; set; }
         public string? Status { get; set; }
-        public Guid? ClaimStatusId { get; set; }
+        public int? ClaimStatusId { get; set; }
         public DateTime? DamageDate { get; set; }
         public DateTime? ReportDate { get; set; }
         public DateTime? ReportDateToInsurer { get; set; }

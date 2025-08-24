@@ -17,7 +17,7 @@ namespace AutomotiveClaimsApi.Controllers
 
         [HttpGet]
 
-        public async Task<IActionResult> GetDamageTypes([FromQuery] Guid? riskTypeId = null)
+        public async Task<IActionResult> GetDamageTypes([FromQuery] int? riskTypeId = null)
 
         {
             var result = await _service.GetDamageTypesAsync(riskTypeId);

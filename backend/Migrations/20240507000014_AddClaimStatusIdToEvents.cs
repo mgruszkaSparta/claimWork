@@ -11,10 +11,10 @@ namespace AutomotiveClaimsApi.Migrations
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.AddColumn<Guid>(
+            migrationBuilder.AddColumn<int>(
                 name: "ClaimStatusId",
                 table: "Events",
-                type: "uuid",
+                type: "int",
                 nullable: true);
 
             migrationBuilder.CreateIndex(

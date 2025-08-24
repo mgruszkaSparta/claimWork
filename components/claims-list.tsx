@@ -40,21 +40,6 @@ import { useAuth } from "@/hooks/use-auth"
 import type { Claim } from "@/types"
 
 
-const RISK_TYPE_GROUPS: Record<string, string[]> = {
-  "1": [
-    "OC DZIAŁALNOŚCI",
-    "OC SPRAWCY",
-    "OC PPM",
-    "AC",
-    "NAPRAWA WŁASNA",
-    "OC W ŻYCIU PRYWATNYM",
-    "OC ROLNIKA",
-    "INNE",
-  ],
-  "2": ["MAJĄTKOWE", "NNW", "CPM", "CAR/EAR", "BI", "GWARANCJIE"],
-  "3": ["OCPD", "CARGO"],
-}
-
 const typeLabelMap: Record<number, string> = {
   1: "Komunikacyjna",
   2: "Majątkowa",
@@ -178,14 +163,34 @@ export function ClaimsList({
 
   ])
 
-  // TODO: consider moving this filtering to use-claims or the API to reduce client workload
-  const allowedRiskTypes = useMemo(
-    () =>
-      claimObjectTypeId
-        ? RISK_TYPE_GROUPS[claimObjectTypeId]?.map((type) => type.toLowerCase())
-        : undefined,
-    [claimObjectTypeId],
+  const [allowedRiskTypes, setAllowedRiskTypes] = useState<string[] | undefined>(
+    undefined,
   )
+
+  useEffect(() => {
+    if (!claimObjectTypeId) {
+      setAllowedRiskTypes(undefined)
+      return
+    }
+
+    const loadRiskTypes = async () => {
+      try {
+        const res = await fetch(
+          `/api/dictionaries/risk-types?claimObjectTypeId=${claimObjectTypeId}`,
+          { credentials: "include" },
+        )
+        const data = await res.json()
+        setAllowedRiskTypes(
+          (data.items || []).map((item: any) => item.name.toLowerCase()),
+        )
+      } catch (error) {
+        console.error("Error loading risk types:", error)
+        setAllowedRiskTypes(undefined)
+      }
+    }
+
+    loadRiskTypes()
+  }, [claimObjectTypeId])
 
   const filteredClaims = useMemo(
     () =>

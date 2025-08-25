@@ -78,6 +78,9 @@ public class EmailClient
     public async Task<IList<Email>> FetchUnreadEmailsAsync()
 
     {
+        if (string.IsNullOrWhiteSpace(_imapHost) || _imapPort <= 0)
+            return new List<Email>();
+
         using var client = new ImapClient();
         await client.ConnectAsync(_imapHost, _imapPort, SecureSocketOptions.SslOnConnect);
         await client.AuthenticateAsync(_username, _password);

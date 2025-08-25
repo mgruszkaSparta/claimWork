@@ -1,4 +1,4 @@
-import { apiService, type UserListItemDto } from "../api";
+import { apiService, API_BASE_URL, type UserListItemDto } from "../api";
 import type { Role, User, UserFilters, Permission } from "../types/admin";
 
 // Predefined role colors for display
@@ -9,7 +9,7 @@ const ROLE_COLORS: Record<string, string> = {
 
 export const adminService = {
   async getRoles(): Promise<Role[]> {
-    const res = await fetch("/api/roles");
+    const res = await fetch(`${API_BASE_URL}/roles`);
     const data = (await res.json()) as { value: string; label: string }[];
     return data.map((r) => ({
       id: r.value,

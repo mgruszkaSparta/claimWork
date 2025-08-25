@@ -9,6 +9,7 @@ import { EmailComposeComponent } from "./email-compose"
 import { emailFolders, sampleEmails } from "@/lib/email-data"
 import type { Email, EmailCompose, EmailAttachment } from "@/types/email"
 import type { UploadedFile, RequiredDocument } from "@/types"
+import { API_BASE_URL } from "@/lib/api"
 
 interface EmailSectionProps {
   claimId?: string
@@ -137,7 +138,7 @@ export const EmailSection = ({
   const handleAssignAttachment = (attachment: EmailAttachment, documentId: string) => {
     const doc = reqDocuments.find((d) => d.id === documentId)
 
-    const url = attachment.url || `/api/emails/attachment/${attachment.id}`
+    const url = attachment.url || `${API_BASE_URL}/emails/attachment/${attachment.id}`
     const type = attachment.type || (attachment as any).contentType || ""
 
     const newFile: UploadedFile = {

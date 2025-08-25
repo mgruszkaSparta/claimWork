@@ -24,7 +24,7 @@ import {
   Flag,
   MoreVertical,
 } from "lucide-react"
-import type { Email, EmailCompose, EmailAttachment } from "@/types/email"
+import { EmailFolder, type Email, type EmailCompose, type EmailAttachment } from "@/types/email"
 import type { UploadedFile, RequiredDocument } from "@/types"
 
 interface EmailSectionProps {
@@ -69,13 +69,14 @@ export const EmailSection = ({
     claimId: dto.claimIds && dto.claimIds.length > 0 ? dto.claimIds[0] : undefined,
     claimIds: dto.claimIds,
   })
-  const loadEmails = async () => {
+  const loadEmails = async (folder: string) => {
     try {
       let data: EmailDto[]
+      const folderEnum = folder as EmailFolder
       if (claimId) {
-        data = await emailService.getEmailsByClaimId(claimId)
+        data = await emailService.getAssignedEmailsByFolderAndClaim(folderEnum, claimId)
       } else {
-        data = await emailService.getAllEmails()
+        data = await emailService.getEmailsByFolder(folderEnum)
       }
       setEmails(data.map(mapEmailDto))
     } catch (error) {
@@ -84,11 +85,11 @@ export const EmailSection = ({
     }
   }
 
-  useEffect(() => {
-    loadEmails()
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [claimId])
   const [activeTab, setActiveTab] = useState("inbox")
+  useEffect(() => {
+    loadEmails(activeTab)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeTab, claimId])
   const [currentView, setCurrentView] = useState<"list" | "view" | "compose">("list")
   const [selectedEmail, setSelectedEmail] = useState<Email | null>(null)
   const [composeData, setComposeData] = useState<{
@@ -120,12 +121,8 @@ export const EmailSection = ({
     return "other"
   }
 
-  const filteredEmails = emails.filter((email) => {
-    if (activeTab === "sent") return email.folder === "sent"
-    if (activeTab === "drafts") return email.folder === "drafts"
-    if (activeTab === "starred") return email.isStarred
-    return email.folder === "inbox"
-  })
+  const filteredEmails =
+    activeTab === "starred" ? emails.filter((email) => email.isStarred) : emails
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString)

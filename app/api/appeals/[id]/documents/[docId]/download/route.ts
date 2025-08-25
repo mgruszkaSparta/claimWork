@@ -11,6 +11,7 @@ export async function GET(
       `${API_BASE_URL}/appeals/${params.id}/documents/${params.docId}/download`,
       {
         method: "GET",
+        headers: { authorization: request.headers.get("authorization") ?? "" },
       },
     )
 

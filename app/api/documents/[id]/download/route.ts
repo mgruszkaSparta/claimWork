@@ -6,6 +6,7 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
   try {
     const response = await fetch(`${API_BASE_URL}/documents/${params.id}/download`, {
       method: "GET",
+      headers: { authorization: request.headers.get("authorization") ?? "" },
     })
 
     if (!response.ok) {

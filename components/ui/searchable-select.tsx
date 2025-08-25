@@ -6,6 +6,7 @@ import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
+import { authFetch } from "@/lib/auth-fetch"
 
 interface Option {
   value: string
@@ -39,15 +40,9 @@ export function SearchableSelect({
     const fetchOptions = async () => {
       setLoading(true)
       try {
-        const token =
-          typeof window !== "undefined" ? localStorage.getItem("token") : null
-        const response = await fetch(apiEndpoint, {
-          method: "GET",
-          credentials: "omit",
 
-          headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+        const response = await authFetch(apiEndpoint, { method: "GET" })
 
-        })
         if (response.ok) {
           const data = await response.json()
           // Handle both array format and object format with options property

@@ -19,6 +19,7 @@ import { useToast } from '@/hooks/use-toast'
 import { useUnsavedChangesWarning, UNSAVED_CHANGES_MESSAGE } from '@/hooks/use-unsaved-changes-warning'
 import type { Claim, ParticipantInfo, UploadedFile, RequiredDocument } from '@/types'
 import { getRequiredDocumentsByObjectType } from '@/lib/required-documents'
+import { authFetch } from '@/lib/auth-fetch'
 
 interface ClaimFormProps {
   initialData?: Claim
@@ -192,11 +193,10 @@ export function ClaimForm({ initialData, mode }: ClaimFormProps) {
               formDataFile.append('eventId', saved!.id.toString())
               formDataFile.append('category', file.categoryCode || mapCategoryNameToCode(file.category || 'Inne dokumenty'))
               formDataFile.append('uploadedBy', 'Current User')
-              await fetch(`${process.env.NEXT_PUBLIC_API_URL}/documents/upload`, {
-                method: 'POST',
-                credentials: 'omit',
-                body: formDataFile,
-              })
+              await authFetch(
+                `${process.env.NEXT_PUBLIC_API_URL}/documents/upload`,
+                { method: 'POST', body: formDataFile },
+              )
             })
           )
         }

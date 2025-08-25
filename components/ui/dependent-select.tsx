@@ -12,6 +12,7 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { Loader2, AlertCircle } from "lucide-react"
+import { authFetch } from "@/lib/auth-fetch"
 
 interface Option {
   id: string
@@ -57,15 +58,9 @@ export function DependentSelect({
       url += `?${query}`
     }
 
-    const token =
-      typeof window !== "undefined" ? localStorage.getItem("token") : null
-    const response = await fetch(url, {
-      method: "GET",
-      credentials: "omit",
 
-      headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+    const response = await authFetch(url, { method: "GET" })
 
-    })
 
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`)

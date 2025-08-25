@@ -48,6 +48,7 @@ import {
 } from "@/lib/api/appeals"
 import { API_BASE_URL, DocumentDto } from "@/lib/api"
 import { deleteDocument } from "@/lib/api/documents"
+import { authFetch } from "@/lib/auth-fetch"
 
 interface AppealsSectionProps {
   claimId: string
@@ -357,10 +358,7 @@ export const AppealsSection = ({ claimId }: AppealsSectionProps) => {
       const url = doc
         ? `${API_BASE_URL}/appeals/${appeal.id}/documents/${doc.id}/download`
         : `${API_BASE_URL}/appeals/${appeal.id}/download`
-      const response = await fetch(url, {
-        method: "GET",
-        credentials: "omit",
-      })
+      const response = await authFetch(url, { method: "GET" })
       if (!response.ok) {
         throw new Error("Failed to download file")
       }
@@ -389,10 +387,7 @@ export const AppealsSection = ({ claimId }: AppealsSectionProps) => {
       const url = doc
         ? `${API_BASE_URL}/appeals/${appeal.id}/documents/${doc.id}/preview`
         : `${API_BASE_URL}/appeals/${appeal.id}/preview`
-      const response = await fetch(url, {
-        method: "GET",
-        credentials: "omit",
-      })
+      const response = await authFetch(url, { method: "GET" })
       if (!response.ok) {
         throw new Error("Failed to preview file")
       }

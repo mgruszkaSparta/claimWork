@@ -6,6 +6,7 @@ import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
+import { authFetch } from "@/lib/auth-fetch"
 
 export interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
   apiEndpoint?: string
@@ -35,10 +36,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
             url.searchParams.set("sortable", "true")
           }
 
-          const response = await fetch(url.toString(), {
-            method: "GET",
-            credentials: "omit",
-          })
+          const response = await authFetch(url.toString(), { method: "GET" })
           if (response.ok) {
             const data = await response.json()
             let fetchedOptions = Array.isArray(data) ? data : data.options || []

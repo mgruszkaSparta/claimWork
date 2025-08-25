@@ -39,7 +39,6 @@ export function useDamages(eventId?: string) {
     const response = await authFetch(API_ENDPOINTS.DAMAGES_INIT, {
       method: "POST",
 
-
     })
 
     if (!response.ok) {

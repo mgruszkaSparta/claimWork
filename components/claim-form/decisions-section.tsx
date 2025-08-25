@@ -20,6 +20,7 @@ import {
   deleteDecision as apiDeleteDecision,
 } from "@/lib/api/decisions"
 import { API_BASE_URL } from "@/lib/api"
+import { authFetch } from "@/lib/auth-fetch"
 import {
   AlertDialog,
   AlertDialogAction,
@@ -332,10 +333,7 @@ export function DecisionsSection({ claimId, onChange }: DecisionsSectionProps) {
           ? `${API_BASE_URL}/documents/${doc.id}/download`
           : `${API_BASE_URL}/claims/${claimId}/decisions/${decision.id}/download`)
 
-      const response = await fetch(url, {
-        method: "GET",
-        credentials: "omit",
-      })
+      const response = await authFetch(url, { method: "GET" })
       if (response.ok) {
         const blob = await response.blob()
         const objectUrl = window.URL.createObjectURL(blob)
@@ -362,7 +360,7 @@ export function DecisionsSection({ claimId, onChange }: DecisionsSectionProps) {
   const loadPreview = async (decision: Decision, doc: DocumentDto) => {
     if (!claimId) return
     const url = doc.previewUrl ?? `${API_BASE_URL}/documents/${doc.id}/preview`
-    const response = await fetch(url, { method: "GET", credentials: "omit" })
+    const response = await authFetch(url, { method: "GET" })
     if (!response.ok) throw new Error("Failed to preview file")
     const blob = await response.blob()
     const objectUrl = window.URL.createObjectURL(blob)
@@ -388,7 +386,7 @@ export function DecisionsSection({ claimId, onChange }: DecisionsSectionProps) {
       // fallback for single file
       try {
         const url = `${API_BASE_URL}/claims/${claimId}/decisions/${decision.id}/preview`
-        const response = await fetch(url, { method: "GET", credentials: "omit" })
+        const response = await authFetch(url, { method: "GET" })
         if (!response.ok) throw new Error("Failed to preview file")
         const blob = await response.blob()
         const objectUrl = window.URL.createObjectURL(blob)

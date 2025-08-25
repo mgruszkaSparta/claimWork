@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Checkbox } from "@/components/ui/checkbox"
 import { renameDocument } from "@/lib/api/documents"
+import { authFetch } from "@/lib/auth-fetch"
 import {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -161,11 +162,8 @@ export const DocumentsSection = React.forwardRef<
     ) {
       const load = async () => {
         try {
-          const response = await fetch(
+          const response = await authFetch(
             previewDocument.previewUrl || previewDocument.downloadUrl,
-            {
-              credentials: "omit",
-            },
           )
           if (!response.ok) {
             throw new Error(`HTTP ${response.status}`)
@@ -293,10 +291,9 @@ export const DocumentsSection = React.forwardRef<
     setLoading(true)
     try {
       const params = new URLSearchParams({ eventId })
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/documents?${params.toString()}`, {
-        method: "GET",
-        credentials: "omit",
-      })
+      const response = await authFetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/documents?${params.toString()}`,
+      )
 
       if (response.status === 404) {
         setDocuments([])
@@ -454,11 +451,13 @@ export const DocumentsSection = React.forwardRef<
       formData.append("uploadedBy", "Current User")
 
       try {
-        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/documents/upload`, {
-          method: "POST",
-          credentials: "omit",
-          body: formData,
-        })
+        const response = await authFetch(
+          `${process.env.NEXT_PUBLIC_API_URL}/documents/upload`,
+          {
+            method: "POST",
+            body: formData,
+          },
+        )
 
         if (response.ok) {
           const documentDto = await response.json()
@@ -637,10 +636,10 @@ export const DocumentsSection = React.forwardRef<
     }
 
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/documents/${documentId}`, {
-        method: "DELETE",
-        credentials: "omit",
-      })
+      const response = await authFetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/documents/${documentId}`,
+        { method: "DELETE" },
+      )
 
       if (response.ok) {
         setDocuments((prev) => prev.filter((doc) => doc.id !== documentId))
@@ -753,14 +752,14 @@ export const DocumentsSection = React.forwardRef<
     )
 
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/documents/${documentId}`, {
-        method: "PUT",
-        credentials: "omit",
-        headers: {
-          "Content-Type": "application/json",
+      const response = await authFetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/documents/${documentId}`,
+        {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ description }),
         },
-        body: JSON.stringify({ description }),
-      })
+      )
 
       if (response.ok) {
         const updatedDocument = await response.json()
@@ -793,10 +792,10 @@ export const DocumentsSection = React.forwardRef<
         description: `Rozpoczęto generowanie opisu dla pliku: ${doc.originalFileName}`,
       })
 
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/documents/${documentId}/generate-description`, {
-        method: "POST",
-        credentials: "omit",
-      })
+      const response = await authFetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/documents/${documentId}/generate-description`,
+        { method: "POST" },
+      )
 
       if (response.ok) {
         const updatedDocument = await response.json()
@@ -903,10 +902,7 @@ export const DocumentsSection = React.forwardRef<
       const zip = new JSZip()
 
       for (const doc of documentsForCategory) {
-        const response = await fetch(doc.downloadUrl, {
-          method: "GET",
-          credentials: "omit",
-        })
+        const response = await authFetch(doc.downloadUrl, { method: "GET" })
         const blob = await response.blob()
         zip.file(doc.originalFileName, blob)
       }
@@ -972,10 +968,7 @@ export const DocumentsSection = React.forwardRef<
       const zip = new JSZip()
 
       for (const doc of documentsForCategory) {
-        const response = await fetch(doc.downloadUrl, {
-          method: "GET",
-          credentials: "omit",
-        })
+        const response = await authFetch(doc.downloadUrl, { method: "GET" })
         const blob = await response.blob()
         zip.file(doc.originalFileName, blob)
       }
@@ -1037,12 +1030,14 @@ export const DocumentsSection = React.forwardRef<
 
       if (isGuid(documentId) && eventId) {
         try {
-          await fetch(`${process.env.NEXT_PUBLIC_API_URL}/documents/${documentId}`, {
-            method: "PUT",
-            credentials: "omit",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ documentType: targetCode }),
-          })
+          await authFetch(
+            `${process.env.NEXT_PUBLIC_API_URL}/documents/${documentId}`,
+            {
+              method: "PUT",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ documentType: targetCode }),
+            },
+          )
         } catch (error) {
           console.error("Error moving document:", error)
           toast({

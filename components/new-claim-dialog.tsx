@@ -11,6 +11,7 @@ import ClientDropdown from "@/components/client-dropdown"
 import { Button } from "@/components/ui/button"
 import type { ClientSelectionEvent } from "@/types/client"
 import { API_BASE_URL } from "@/lib/api"
+import { authFetch } from "@/lib/auth-fetch"
 
 interface RiskType {
   value: string
@@ -51,16 +52,10 @@ export function NewClaimDialog({ open, onOpenChange }: NewClaimDialogProps) {
   } = useQuery<RiskType[]>({
     queryKey: ["risk-types", claimObjectTypeId],
     queryFn: async () => {
-      const token =
-        typeof window !== "undefined" ? localStorage.getItem("token") : null
-      const res = await fetch(
+
+      const res = await authFetch(
         `${API_BASE_URL}/dictionaries/risk-types?claimObjectTypeId=${claimObjectTypeId}`,
-        {
-          credentials: "omit",
 
-          headers: token ? { Authorization: `Bearer ${token}` } : undefined,
-
-        },
       )
       const data = await res.json()
       return (data.items || []).map((item: any) => ({ value: String(item.id), label: item.name }))
@@ -74,16 +69,10 @@ export function NewClaimDialog({ open, onOpenChange }: NewClaimDialogProps) {
   } = useQuery<DamageType[]>({
     queryKey: ["damage-types", riskTypeId],
     queryFn: async () => {
-      const token =
-        typeof window !== "undefined" ? localStorage.getItem("token") : null
-      const res = await fetch(
+
+      const res = await authFetch(
         `${API_BASE_URL}/damage-types?riskTypeId=${riskTypeId}`,
-        {
-          credentials: "omit",
 
-          headers: token ? { Authorization: `Bearer ${token}` } : undefined,
-
-        },
       )
       return res.json()
     },

@@ -34,6 +34,7 @@ import {
 import type { ClientClaim, ClaimStatus } from "@/types"
 import type { DocumentDto } from "@/lib/api"
 import { API_BASE_URL } from "@/lib/api"
+import { authFetch } from "@/lib/auth-fetch"
 import {
   AlertDialog,
   AlertDialogAction,
@@ -415,7 +416,7 @@ export function ClientClaimsSection({ clientClaims, onClientClaimsChange, claimI
   const loadPreview = async (claim: ClientClaim, doc: DocumentDto) => {
     const fileName = doc.originalFileName || doc.fileName || "document"
     const urlPath = `${API_BASE_URL}/clientclaims/${claim.id}/documents/${doc.id}/preview`
-    const response = await fetch(urlPath, { method: "GET", credentials: "omit" })
+    const response = await authFetch(urlPath, { method: "GET" })
     if (!response.ok) throw new Error("Failed to preview")
     const blob = await response.blob()
     const objectUrl = URL.createObjectURL(blob)
@@ -449,7 +450,7 @@ export function ClientClaimsSection({ clientClaims, onClientClaimsChange, claimI
       }
       try {
         const urlPath = `${API_BASE_URL}/clientclaims/${claim.id}/preview`
-        const response = await fetch(urlPath, { method: "GET", credentials: "omit" })
+        const response = await authFetch(urlPath, { method: "GET" })
         if (!response.ok) throw new Error("Failed to preview")
         const blob = await response.blob()
         const objectUrl = URL.createObjectURL(blob)
@@ -523,7 +524,7 @@ export function ClientClaimsSection({ clientClaims, onClientClaimsChange, claimI
       const urlPath = doc
         ? `${API_BASE_URL}/clientclaims/${claim.id}/documents/${doc.id}/download`
         : `${API_BASE_URL}/clientclaims/${claim.id}/download`
-      const response = await fetch(urlPath, { method: "GET", credentials: "omit" })
+      const response = await authFetch(urlPath, { method: "GET" })
       if (!response.ok) throw new Error("Failed to download")
       const blob = await response.blob()
       const url = URL.createObjectURL(blob)

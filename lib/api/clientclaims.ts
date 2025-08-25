@@ -1,5 +1,6 @@
 import { API_BASE_URL, ClientClaimDto } from "../api"
 import type { ClientClaim, ClaimStatus } from "@/types"
+import { authFetch } from "../auth-fetch"
 
 export interface ClientClaimUpsert {
   eventId?: string
@@ -59,9 +60,8 @@ export async function createClientClaim(
   documents: File[] = [],
 ): Promise<ClientClaim> {
   const body = buildFormData(data, documents)
-  const response = await fetch(CLIENT_CLAIMS_URL, {
+  const response = await authFetch(CLIENT_CLAIMS_URL, {
     method: "POST",
-    credentials: "omit",
     body,
   })
   if (!response.ok) {
@@ -78,9 +78,8 @@ export async function updateClientClaim(
   documents: File[] = [],
 ): Promise<ClientClaim> {
   const body = buildFormData(data, documents)
-  const response = await fetch(`${CLIENT_CLAIMS_URL}/${id}`, {
+  const response = await authFetch(`${CLIENT_CLAIMS_URL}/${id}`, {
     method: "PUT",
-    credentials: "omit",
     body,
   })
   if (!response.ok) {
@@ -92,9 +91,8 @@ export async function updateClientClaim(
 }
 
 export async function deleteClientClaim(id: string): Promise<void> {
-  const response = await fetch(`${CLIENT_CLAIMS_URL}/${id}`, {
+  const response = await authFetch(`${CLIENT_CLAIMS_URL}/${id}`, {
     method: "DELETE",
-    credentials: "omit",
   })
   if (!response.ok) {
     const text = await response.text()
@@ -103,9 +101,8 @@ export async function deleteClientClaim(id: string): Promise<void> {
 }
 
 export async function downloadClientClaimDocument(id: string): Promise<Blob> {
-  const response = await fetch(`${CLIENT_CLAIMS_URL}/${id}/download`, {
+  const response = await authFetch(`${CLIENT_CLAIMS_URL}/${id}/download`, {
     method: "GET",
-    credentials: "omit",
   })
   if (!response.ok) {
     throw new Error("Failed to download document")
@@ -114,9 +111,8 @@ export async function downloadClientClaimDocument(id: string): Promise<Blob> {
 }
 
 export async function previewClientClaimDocument(id: string): Promise<Blob> {
-  const response = await fetch(`${CLIENT_CLAIMS_URL}/${id}/preview`, {
+  const response = await authFetch(`${CLIENT_CLAIMS_URL}/${id}/preview`, {
     method: "GET",
-    credentials: "omit",
   })
   if (!response.ok) {
     throw new Error("Failed to preview document")

@@ -1,5 +1,6 @@
 import type { VehicleType } from "@/types/vehicle-type"
 import { API_BASE_URL } from "./api"
+import { authFetch } from "./auth-fetch"
 
 const VEHICLE_TYPES_URL = `${API_BASE_URL}/dictionaries/vehicle-types`
 
@@ -16,9 +17,8 @@ export const vehicleTypeService = {
       }`
       console.log("Fetching vehicle types from:", url)
 
-      const response = await fetch(url, {
+      const response = await authFetch(url, {
         method: "GET",
-        credentials: "omit",
       })
 
       if (!response.ok) {
@@ -53,9 +53,8 @@ export const vehicleTypeService = {
 
   async getVehicleTypeById(id: string): Promise<VehicleType | null> {
     try {
-      const response = await fetch(`${VEHICLE_TYPES_URL}/${id}`, {
+      const response = await authFetch(`${VEHICLE_TYPES_URL}/${id}`, {
         method: "GET",
-        credentials: "omit",
       })
 
       if (!response.ok) {

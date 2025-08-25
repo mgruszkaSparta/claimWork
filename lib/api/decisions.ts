@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { API_BASE_URL } from "../api";
+import { authFetch } from "../auth-fetch";
 
 const documentSchema = z.object({
   id: z.string(),
@@ -40,10 +41,7 @@ export const decisionUpsertSchema = decisionSchema.pick({
 export type DecisionUpsert = z.infer<typeof decisionUpsertSchema>;
 
 async function request<T>(url: string, options: RequestInit = {}): Promise<T> {
-  const response = await fetch(`${API_BASE_URL}${url}`, {
-    credentials: "omit",
-    ...options,
-  });
+  const response = await authFetch(`${API_BASE_URL}${url}`, options);
   const text = await response.text();
   const data = text ? JSON.parse(text) : undefined;
   if (!response.ok) {

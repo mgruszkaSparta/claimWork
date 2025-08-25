@@ -1,4 +1,5 @@
 import { API_BASE_URL } from "../api";
+import { authFetch } from "../auth-fetch";
 
 export interface ReportMetadata {
   [entity: string]: string[];
@@ -13,9 +14,7 @@ export interface ReportRequest {
 }
 
 export async function getReportMetadata(): Promise<ReportMetadata> {
-  const res = await fetch(`${API_BASE_URL}/report/metadata`, {
-    credentials: "omit",
-  });
+  const res = await authFetch(`${API_BASE_URL}/report/metadata`);
   if (!res.ok) {
     throw new Error("Failed to fetch report metadata");
   }
@@ -23,9 +22,8 @@ export async function getReportMetadata(): Promise<ReportMetadata> {
 }
 
 export async function exportReport(request: ReportRequest): Promise<Blob> {
-  const res = await fetch(`${API_BASE_URL}/report/export`, {
+  const res = await authFetch(`${API_BASE_URL}/report/export`, {
     method: "POST",
-    credentials: "omit",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(request),
   });
@@ -39,11 +37,10 @@ export async function getFilterValues(
   entity: string,
   field: string,
 ): Promise<string[]> {
-  const res = await fetch(
+  const res = await authFetch(
     `${API_BASE_URL}/report/values?entity=${encodeURIComponent(
       entity,
     )}&field=${encodeURIComponent(field)}`,
-    { credentials: "omit" },
   );
   if (!res.ok) {
     throw new Error("Failed to fetch filter values");

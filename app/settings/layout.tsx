@@ -21,6 +21,7 @@ export default function SettingsLayout({ children }: { children: ReactNode }) {
     { href: '/settings/casehandlers', label: 'Likwidatorzy' },
     { href: '/settings/risk-types', label: 'Typy ryzyka' },
     { href: '/settings/damage-types', label: 'Typy szkód' },
+    { href: '/settings/required-documents', label: 'Wymagane dokumenty' },
     { href: '/settings/notifications', label: 'Powiadomienia' },
     { href: '/admin', label: 'Panel administracyjny' },
   ]

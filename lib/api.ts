@@ -309,6 +309,29 @@ export interface DamageTypeDto {
   updatedAt?: string
 }
 
+export interface RequiredDocumentTypeDto {
+  id: number
+  name: string
+  description?: string
+  category?: string
+  claimObjectTypeId?: number
+  isRequired: boolean
+  isActive: boolean
+  createdAt: string
+  updatedAt?: string
+}
+
+export interface CreateRequiredDocumentDto {
+  name: string
+  description?: string
+  category?: string
+  claimObjectTypeId?: number
+  isRequired: boolean
+  isActive: boolean
+}
+
+export type UpdateRequiredDocumentDto = CreateRequiredDocumentDto
+
 export interface CaseHandlerDto {
   id: number
   name: string
@@ -1206,6 +1229,36 @@ class ApiService {
 
   async deleteDamageType(id: number): Promise<void> {
     await this.request<void>(`/damage-types/${id}`, {
+      method: 'DELETE',
+    })
+  }
+
+  // Required Documents API
+  async getRequiredDocuments(params: { objectTypeId?: number } = {}): Promise<RequiredDocumentTypeDto[]> {
+    const searchParams = new URLSearchParams()
+    if (params.objectTypeId !== undefined) {
+      searchParams.append('claimObjectTypeId', String(params.objectTypeId))
+    }
+    const url = `/required-documents${searchParams.toString() ? `?${searchParams.toString()}` : ''}`
+    return this.request<RequiredDocumentTypeDto[]>(url)
+  }
+
+  async createRequiredDocument(data: CreateRequiredDocumentDto): Promise<RequiredDocumentTypeDto> {
+    return this.request<RequiredDocumentTypeDto>('/required-documents', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    })
+  }
+
+  async updateRequiredDocument(id: number, data: UpdateRequiredDocumentDto): Promise<void> {
+    await this.request<void>(`/required-documents/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    })
+  }
+
+  async deleteRequiredDocument(id: number): Promise<void> {
+    await this.request<void>(`/required-documents/${id}`, {
       method: 'DELETE',
     })
   }

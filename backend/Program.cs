@@ -106,6 +106,7 @@ builder.Services.AddScoped<INotificationService, NotificationService>();
 builder.Services.AddScoped<IDocumentService, DocumentService>();
 builder.Services.AddScoped<IRiskTypeService, RiskTypeService>();
 builder.Services.AddScoped<IDamageTypeService, DamageTypeService>();
+builder.Services.AddScoped<IRequiredDocumentService, RequiredDocumentService>();
 builder.Services.AddScoped<ICaseHandlerService, CaseHandlerService>();
 builder.Services.AddEventDocumentStore(builder.Configuration);
 

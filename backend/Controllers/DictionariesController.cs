@@ -164,13 +164,14 @@ namespace AutomotiveClaimsApi.Controllers
             {
                 var vehicleTypes = await _context.VehicleTypes
                     .Where(v => v.IsActive)
-                    .OrderBy(v => v.Name)
+                    .OrderBy(v => v.SortOrder)
                     .Select(v => new DictionaryItemDto
                     {
                         Id = v.Id.ToString(),
                         Name = v.Name,
                         Code = v.Code,
-                        IsActive = v.IsActive
+                        IsActive = v.IsActive,
+                        SortOrder = v.SortOrder
                     })
                     .ToListAsync();
 

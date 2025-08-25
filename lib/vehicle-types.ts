@@ -46,6 +46,7 @@ export const vehicleTypeService = {
           label: type.label ?? type.name,
           value: type.value ?? type.code,
           isActive: type.isActive,
+          sortOrder: type.sortOrder,
         }))
     } catch (error) {
       console.error("Error fetching vehicle types:", error)
@@ -75,6 +76,7 @@ export const vehicleTypeService = {
           label: item.label ?? item.name,
           value: item.value ?? item.code,
           isActive: item.isActive,
+          sortOrder: item.sortOrder,
         }
       }
 

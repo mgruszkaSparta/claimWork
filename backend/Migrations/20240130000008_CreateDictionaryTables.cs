@@ -170,6 +170,8 @@ namespace AutomotiveClaimsApi.Migrations
                     Code = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
                     Name = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: false),
                     Description = table.Column<string>(type: "nvarchar(1000)", maxLength: 1000, nullable: true),
+                    SortOrder = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
                     IsActive = table.Column<bool>(type: "bit", nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
                     UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: false)
@@ -315,6 +317,11 @@ namespace AutomotiveClaimsApi.Migrations
                 name: "IX_VehicleTypes_IsActive",
                 table: "VehicleTypes",
                 column: "IsActive");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_VehicleTypes_SortOrder",
+                table: "VehicleTypes",
+                column: "SortOrder");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Priorities_Code",

@@ -99,10 +99,13 @@ CREATE TABLE VehicleTypes (
     Code NVARCHAR(50) NOT NULL UNIQUE,
     Name NVARCHAR(255) NOT NULL,
     Description NVARCHAR(1000),
+    SortOrder INT IDENTITY(1,1) NOT NULL,
     IsActive BIT NOT NULL DEFAULT 1,
     CreatedAt DATETIME2 NOT NULL DEFAULT GETUTCDATE(),
     UpdatedAt DATETIME2 NOT NULL DEFAULT GETUTCDATE()
 );
+
+CREATE INDEX IX_VehicleTypes_SortOrder ON VehicleTypes(SortOrder);
 
 -- Priorities table
 CREATE TABLE Priorities (

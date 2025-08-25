@@ -183,10 +183,16 @@ class EmailService {
     return emails.filter((e) => e.claimIds?.includes(claimId))
   }
 
-  async getEmailsByEventId(eventId: string): Promise<EmailDto[]> {
+  async getEmailsByEventId(
+    eventId: string,
+    folder?: EmailFolder,
+  ): Promise<EmailDto[]> {
     if (!this.isValidGuid(eventId)) return []
     try {
-      const response = await authFetch(`${this.apiUrl}/event/${eventId}`, {
+      const url = folder
+        ? `${this.apiUrl}/event/${eventId}?folder=${folder}`
+        : `${this.apiUrl}/event/${eventId}`
+      const response = await authFetch(url, {
         method: "GET",
       })
       if (!response.ok) throw new Error("Failed to fetch emails by event")

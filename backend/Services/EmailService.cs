@@ -137,12 +137,36 @@ namespace AutomotiveClaimsApi.Services
             return true;
         }
 
-        public async Task<IEnumerable<EmailDto>> GetEmailsByEventIdAsync(Guid eventId)
+        public async Task<IEnumerable<EmailDto>> GetEmailsByEventIdAsync(Guid eventId, string? folder = null)
         {
-            var emails = await _context.Emails
+            var query = _context.Emails
                 .Where(e => e.EventId == eventId)
                 .Include(e => e.EmailClaims)
-                .Include(e => e.Attachments)
+                .Include(e => e.Attachments);
+
+            if (!string.IsNullOrWhiteSpace(folder))
+            {
+                switch (folder.ToLowerInvariant())
+                {
+                    case "inbox":
+                        query = query.Where(e => e.Direction == "Inbound");
+                        break;
+                    case "sent":
+                        query = query.Where(e => e.Direction == "Outbound");
+                        break;
+                    case "drafts":
+                        query = query.Where(e => e.Status == "Draft");
+                        break;
+                    case "important":
+                        query = query.Where(e => e.IsImportant);
+                        break;
+                    case "unassigned":
+                        query = query.Where(e => !e.EmailClaims.Any());
+                        break;
+                }
+            }
+
+            var emails = await query
                 .OrderByDescending(e => e.CreatedAt)
                 .ToListAsync();
 

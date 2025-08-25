@@ -220,8 +220,6 @@ export const ClaimMainContent = ({
             method: "GET",
             credentials: "omit",
 
-            headers: token ? { Authorization: `Bearer ${token}` } : {},
-          },
 
         )
         if (response.ok) {

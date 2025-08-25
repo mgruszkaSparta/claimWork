@@ -28,10 +28,19 @@ export function createDamageDraft(params: Partial<Damage> = {}): Damage {
 }
 
 export function useDamages(eventId?: string) {
+  const getAuthHeaders = () => {
+    const token =
+      typeof window !== "undefined" ? localStorage.getItem("token") : null
+    return token ? { Authorization: `Bearer ${token}` } : {}
+  }
+
   const initDamage = useCallback(async (): Promise<DamageInit> => {
     const response = await fetch(API_ENDPOINTS.DAMAGES_INIT, {
       method: "POST",
       credentials: "omit",
+
+      headers: getAuthHeaders(),
+
     })
 
     if (!response.ok) {
@@ -51,7 +60,9 @@ export function useDamages(eventId?: string) {
 
       const response = await fetch(
         `${API_ENDPOINTS.DAMAGES}/event/${targetId}`,
-        { method: "GET", credentials: "omit" },
+
+        { method: "GET", credentials: "omit", headers: getAuthHeaders() },
+
       )
 
       if (!response.ok) {
@@ -73,7 +84,12 @@ export function useDamages(eventId?: string) {
       const response = await fetch(API_ENDPOINTS.DAMAGES, {
         method: "POST",
         credentials: "omit",
-        headers: { "Content-Type": "application/json" },
+
+        headers: {
+          "Content-Type": "application/json",
+          ...getAuthHeaders(),
+        },
+
         body: JSON.stringify({
           ...damage,
           eventId: (damage as any).eventId || eventId,
@@ -95,7 +111,12 @@ export function useDamages(eventId?: string) {
       const response = await fetch(`${API_ENDPOINTS.DAMAGES}/${id}`, {
         method: "PUT",
         credentials: "omit",
-        headers: { "Content-Type": "application/json" },
+
+        headers: {
+          "Content-Type": "application/json",
+          ...getAuthHeaders(),
+        },
+
         body: JSON.stringify({ ...damage, eventId }),
       })
 
@@ -111,6 +132,9 @@ export function useDamages(eventId?: string) {
     const response = await fetch(`${API_ENDPOINTS.DAMAGES}/${id}`, {
       method: "DELETE",
       credentials: "omit",
+
+      headers: getAuthHeaders(),
+
     })
 
     if (!response.ok) {

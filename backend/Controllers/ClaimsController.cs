@@ -1785,7 +1785,8 @@ namespace AutomotiveClaimsApi.Controllers
 
         private ClaimDto MapEventToDto(Event e)
         {
-            var baseUrl = _config["App:BaseUrl"];
+            var baseUrl = (_config["App:BaseUrl"] ?? string.Empty).TrimEnd('/');
+            var apiBaseUrl = baseUrl.EndsWith("/api") ? baseUrl : $"{baseUrl}/api";
             return new ClaimDto
             {
             Id = e.Id.ToString(),
@@ -1933,8 +1934,8 @@ namespace AutomotiveClaimsApi.Controllers
                 IsActive = !d.IsDeleted,
                 CreatedAt = d.CreatedAt,
                 UpdatedAt = d.UpdatedAt,
-                DownloadUrl = $"{baseUrl}/api/documents/{d.Id}/download",
-                PreviewUrl = $"{baseUrl}/api/documents/{d.Id}/preview",
+                DownloadUrl = $"{apiBaseUrl}/documents/{d.Id}/download",
+                PreviewUrl = $"{apiBaseUrl}/documents/{d.Id}/preview",
                 CanPreview = true
 
             }).ToList(),

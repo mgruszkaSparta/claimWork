@@ -336,7 +336,8 @@ namespace AutomotiveClaimsApi.Services
         private DocumentDto MapToDto(Document doc)
 
         {
-            var baseUrl = _config["App:BaseUrl"] ?? string.Empty;
+            var baseUrl = (_config["App:BaseUrl"] ?? string.Empty).TrimEnd('/');
+            var apiBaseUrl = baseUrl.EndsWith("/api") ? baseUrl : $"{baseUrl}/api";
             return new DocumentDto
             {
                 Id = doc.Id,
@@ -354,8 +355,8 @@ namespace AutomotiveClaimsApi.Services
                 Status = doc.Status,
                 CreatedAt = doc.CreatedAt,
                 UpdatedAt = doc.UpdatedAt,
-                DownloadUrl = $"{baseUrl}/api/documents/{doc.Id}/download",
-                PreviewUrl = $"{baseUrl}/api/documents/{doc.Id}/preview",
+                DownloadUrl = $"{apiBaseUrl}/documents/{doc.Id}/download",
+                PreviewUrl = $"{apiBaseUrl}/documents/{doc.Id}/preview",
                 CanPreview = true
             };
         }

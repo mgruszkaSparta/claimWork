@@ -68,13 +68,14 @@ export const EmailSection = ({
     labels: [],
     claimId: dto.claimIds && dto.claimIds.length > 0 ? dto.claimIds[0] : undefined,
     claimIds: dto.claimIds,
+    eventId: dto.eventId,
   })
   const loadEmails = async (folder: string) => {
     try {
       let data: EmailDto[]
       const folderEnum = folder as EmailFolder
       if (claimId) {
-        data = await emailService.getAssignedEmailsByFolderAndClaim(folderEnum, claimId)
+        data = await emailService.getEmailsByEventId(claimId)
       } else {
         data = await emailService.getEmailsByFolder(folderEnum)
       }
@@ -229,6 +230,7 @@ export const EmailSection = ({
       body: emailData.body,
       attachments,
       claimId,
+      eventId: claimId,
     })
     if (success) {
       toast({ title: "E-mail wysłany", description: "Wiadomość została wysłana pomyślnie" })
@@ -252,6 +254,7 @@ export const EmailSection = ({
       body: emailData.body,
       attachments,
       claimId,
+      eventId: claimId,
     })
     if (success) {
       toast({ title: "Szkic zapisany", description: "Wiadomość została zapisana w szkicach" })

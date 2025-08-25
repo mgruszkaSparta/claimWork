@@ -10,6 +10,7 @@ import { Trash2, Car, FileText, Info, User, Plus } from 'lucide-react'
 import InsuranceDropdown from '@/components/insurance-dropdown'
 import { InsuranceCompaniesService } from '@/lib/insurance-companies'
 import type { ParticipantInfo, DriverInfo } from '@/types'
+import VehicleTypeDropdown from '@/components/vehicle-type-dropdown'
 
 interface DateInputProps {
   value: string
@@ -50,14 +51,6 @@ interface ParticipantFormProps {
   isVictim?: boolean
   disabled?: boolean
 }
-
-const vehicleTypes = [
-  { id: 'car', name: 'Samochód osobowy' },
-  { id: 'truck', name: 'Samochód ciężarowy' },
-  { id: 'motorcycle', name: 'Motocykl' },
-  { id: 'bus', name: 'Autobus' },
-  { id: 'trailer', name: 'Przyczepa' },
-]
 
 const countries = [
   { id: 'PL', displayName: 'Polska' },
@@ -158,22 +151,14 @@ export const ParticipantForm: React.FC<ParticipantFormProps> = ({
                   <Label className="text-[#1a3a6c] text-sm font-medium block">
                     Rodzaj pojazdu:
                   </Label>
-                  <Select
+                  <VehicleTypeDropdown
+                    selectedVehicleTypeName={participantData.vehicleType}
+                    onVehicleTypeSelected={(event) =>
+                      onParticipantChange('vehicleType', event.vehicleTypeName)
+                    }
+                    className="mt-0.5"
                     disabled={disabled}
-                    value={participantData.vehicleType || ''}
-                    onValueChange={(value) => onParticipantChange("vehicleType", value)}
-                  >
-                    <SelectTrigger className="border border-[#d1d9e6] rounded">
-                      <SelectValue placeholder="Wybierz rodzaj pojazdu" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {vehicleTypes.map((type) => (
-                        <SelectItem key={type.id} value={type.id}>
-                          {type.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  />
                 </div>
 
                 {/* Vehicle Make */}

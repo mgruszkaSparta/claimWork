@@ -5,6 +5,7 @@ using Google.Cloud.Storage.V1;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 
 var builder = Host.CreateApplicationBuilder(args);
 
@@ -31,12 +32,9 @@ builder.Services.AddTransient<EmailClient>(sp =>
     );
 });
 
+builder.Services.AddHostedService<EmailBackgroundService>();
+
 using var host = builder.Build();
 
-var client = host.Services.GetRequiredService<EmailClient>();
-var fetched = await client.FetchUnreadEmailsAsync();
-Console.WriteLine($"Fetched {fetched.Count} unread emails.");
-
-var sent = await client.SendPendingEmailsAsync();
-Console.WriteLine($"Sent {sent} pending emails.");
+await host.RunAsync();
 

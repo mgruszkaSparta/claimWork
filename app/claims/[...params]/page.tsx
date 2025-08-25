@@ -66,9 +66,7 @@ export default function ClaimPage() {
     },
   ])
 
-  const [requiredDocuments, setRequiredDocuments] = useState<RequiredDocument[]>(() =>
-    getRequiredDocumentsByObjectType()
-  )
+  const [requiredDocuments, setRequiredDocuments] = useState<RequiredDocument[]>([])
 
   useEffect(() => {
     if (user?.roles) {
@@ -96,9 +94,7 @@ export default function ClaimPage() {
 
   useEffect(() => {
     const objectType = claim?.objectTypeId || claimFormData.objectTypeId
-    if (objectType) {
-      setRequiredDocuments(getRequiredDocumentsByObjectType(objectType))
-    }
+    getRequiredDocumentsByObjectType(objectType).then(setRequiredDocuments)
   }, [claim?.objectTypeId, claimFormData.objectTypeId])
 
   // Load claim data for existing claims

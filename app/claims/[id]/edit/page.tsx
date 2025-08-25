@@ -53,9 +53,7 @@ export default function EditClaimPage() {
     },
   ])
 
-  const [requiredDocuments, setRequiredDocuments] = useState<RequiredDocument[]>(() =>
-    getRequiredDocumentsByObjectType()
-  )
+  const [requiredDocuments, setRequiredDocuments] = useState<RequiredDocument[]>([])
 
   const {
     claimFormData,
@@ -68,9 +66,7 @@ export default function EditClaimPage() {
   } = useClaimForm()
 
   useEffect(() => {
-    if (claimFormData.objectTypeId) {
-      setRequiredDocuments(getRequiredDocumentsByObjectType(claimFormData.objectTypeId))
-    }
+    getRequiredDocumentsByObjectType(claimFormData.objectTypeId).then(setRequiredDocuments)
   }, [claimFormData.objectTypeId])
 
   // Stable function to load claim data

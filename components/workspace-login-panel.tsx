@@ -9,6 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Eye, EyeOff, Lock, User, LogIn, AlertCircle } from 'lucide-react'
 import { useToast } from '@/hooks/use-toast'
+import { getBranding } from '@/lib/branding'
 
 interface WorkspaceLoginPanelProps {
   onLogin: (credentials: { username: string; password: string }) => void
@@ -16,11 +17,12 @@ interface WorkspaceLoginPanelProps {
   error?: string
 }
 
-export const WorkspaceLoginPanel: React.FC<WorkspaceLoginPanelProps> = ({ 
-  onLogin, 
-  isLoading = false, 
-  error 
+export const WorkspaceLoginPanel: React.FC<WorkspaceLoginPanelProps> = ({
+  onLogin,
+  isLoading = false,
+  error
 }) => {
+  const { logo, name } = getBranding()
   const [credentials, setCredentials] = useState({
     username: '',
     password: ''
@@ -64,10 +66,8 @@ export const WorkspaceLoginPanel: React.FC<WorkspaceLoginPanelProps> = ({
               </div>
               <div className="text-center space-y-2">
                 <div className="flex items-center justify-center space-x-2 mb-4">
-                  <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center">
-                    <span className="text-white font-bold text-sm">S</span>
-                  </div>
-                  <span className="text-xl font-bold text-gray-900">SPARTA BROKERS</span>
+                  <img src={logo} alt={name} className="h-8 w-8 object-contain" />
+                  <span className="text-xl font-bold text-gray-900">{name.toUpperCase()}</span>
                 </div>
                 <CardTitle className="text-2xl font-bold text-gray-900">
                   Zaloguj się
@@ -189,7 +189,7 @@ export const WorkspaceLoginPanel: React.FC<WorkspaceLoginPanelProps> = ({
 
           <div className="mt-8 text-center text-xs text-gray-500">
             <p>System zarządzania szkodami samochodowymi</p>
-            <p className="mt-1">© 2025 Sparta Brokers. Wszystkie prawa zastrzeżone</p>
+            <p className="mt-1">© 2025 {name}. Wszystkie prawa zastrzeżone</p>
           </div>
         </div>
       </div>

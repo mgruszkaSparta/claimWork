@@ -4,13 +4,15 @@ import type React from "react"
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Eye, EyeOff, Shield } from "lucide-react"
+import { Eye, EyeOff } from "lucide-react"
+import { getBranding } from '@/lib/branding'
 
 interface LoginFormProps {
   onLogin: (username: string, password: string, rememberMe: boolean) => Promise<void>
 }
 
 export function LoginForm({ onLogin }: LoginFormProps) {
+  const { logo, name } = getBranding()
   const [username, setUsername] = useState("")
   const [password, setPassword] = useState("")
   const [rememberMe, setRememberMe] = useState(false)
@@ -38,11 +40,9 @@ export function LoginForm({ onLogin }: LoginFormProps) {
       <div className="flex items-center justify-center px-4 sm:px-6 lg:px-12 bg-white" style={{ flex: "0 0 35%" }}>
         <div className="mx-auto w-full max-w-xs">
           <div className="mb-6">
-            <div className="flex items-center mb-4">
-              <div className="w-8 h-8 bg-[#1a3a6c] rounded-lg flex items-center justify-center mr-2">
-                <Shield className="h-4 w-4 text-white" />
-              </div>
-              <h1 className="text-lg font-bold text-[#1a3a6c]">SPARTA BROKERS</h1>
+            <div className="flex items-center mb-4 space-x-2">
+              <img src={logo} alt={name} className="h-8 w-8 object-contain" />
+              <h1 className="text-lg font-bold text-[#1a3a6c]">{name.toUpperCase()}</h1>
             </div>
             <h2 className="text-xl font-bold text-gray-900 mb-2">Zaloguj się</h2>
 
@@ -146,7 +146,7 @@ export function LoginForm({ onLogin }: LoginFormProps) {
           </form>
 
           <div className="mt-6 text-center">
-            <p className="text-xs text-gray-500">© 2025 Sparta Brokers. Wszelkie prawa zastrzeżone.</p>
+            <p className="text-xs text-gray-500">© 2025 {name}. Wszelkie prawa zastrzeżone.</p>
           </div>
         </div>
       </div>

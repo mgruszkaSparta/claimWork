@@ -1144,15 +1144,16 @@ export const ClaimMainContent = ({
                         Rodzaj pojazdu
                       </Label>
                       <div className="relative">
-                        <VehicleTypeDropdown
-                          selectedVehicleTypeId={claimFormData.vehicleTypeId}
-                          onVehicleTypeSelected={(event: VehicleTypeSelectionEvent) => {
-                            handleFormChange("vehicleType", event.vehicleTypeName)
-                            handleFormChange("vehicleTypeId", event.vehicleTypeId)
-                            handleFormChange("vehicleTypeCode", event.vehicleTypeCode)
-                          }}
-                          className="relative z-20"
-                        />
+                          <VehicleTypeDropdown
+                            selectedVehicleTypeId={claimFormData.vehicleTypeId}
+                            selectedVehicleTypeName={claimFormData.vehicleType}
+                            onVehicleTypeSelected={(event: VehicleTypeSelectionEvent) => {
+                              handleFormChange("vehicleType", event.vehicleTypeName)
+                              handleFormChange("vehicleTypeId", event.vehicleTypeId)
+                              handleFormChange("vehicleTypeCode", event.vehicleTypeCode)
+                            }}
+                            className="relative z-20"
+                          />
                       </div>
                     </div>
                   </div>

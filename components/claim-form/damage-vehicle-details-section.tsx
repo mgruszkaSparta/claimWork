@@ -67,6 +67,7 @@ export function DamageVehicleDetailsSection({
         </Label>
         <VehicleTypeDropdown
           selectedVehicleTypeId={claimFormData.vehicleTypeId}
+          selectedVehicleTypeName={claimFormData.vehicleType}
           onVehicleTypeSelected={(event: VehicleTypeSelectionEvent) => {
             handleFormChange("vehicleType", event.vehicleTypeName)
             handleFormChange("vehicleTypeId", event.vehicleTypeId)

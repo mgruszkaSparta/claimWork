@@ -5,11 +5,10 @@ const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5200/a
 export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
   try {
     const attachmentId = params.id
-    const cookie = request.headers.get("cookie") ?? ""
+    const auth = request.headers.get("authorization") ?? ""
 
     const response = await fetch(`${API_BASE_URL}/emails/attachment/${attachmentId}`, {
-      credentials: "include",
-      headers: { Cookie: cookie },
+      headers: { Authorization: auth },
     })
 
     if (!response.ok) {

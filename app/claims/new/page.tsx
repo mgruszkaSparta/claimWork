@@ -85,9 +85,7 @@ export default function NewClaimPage() {
     },
   ])
 
-  const [requiredDocuments, setRequiredDocuments] = useState<RequiredDocument[]>(() =>
-    getRequiredDocumentsByObjectType(claimObjectTypeParam)
-  )
+  const [requiredDocuments, setRequiredDocuments] = useState<RequiredDocument[]>([])
 
   const {
     claimFormData,
@@ -156,7 +154,11 @@ export default function NewClaimPage() {
   }, [claimFormData.objectTypeId])
 
   useEffect(() => {
-    setRequiredDocuments(getRequiredDocumentsByObjectType(claimObjectType))
+    getRequiredDocumentsByObjectType(claimObjectTypeParam).then(setRequiredDocuments)
+  }, [claimObjectTypeParam])
+
+  useEffect(() => {
+    getRequiredDocumentsByObjectType(claimObjectType).then(setRequiredDocuments)
   }, [claimObjectType])
 
 

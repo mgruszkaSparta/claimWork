@@ -88,9 +88,7 @@ export function ClaimForm({ initialData, mode }: ClaimFormProps) {
 
   const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([])
   const [pendingFiles, setPendingFiles] = useState<UploadedFile[]>([])
-  const [requiredDocuments, setRequiredDocuments] = useState<RequiredDocument[]>(() =>
-    getRequiredDocumentsByObjectType(initialData?.objectTypeId)
-  )
+  const [requiredDocuments, setRequiredDocuments] = useState<RequiredDocument[]>([])
 
   const isDisabled = mode === 'view'
   const { createDamage } = useDamages(formData.id)
@@ -117,7 +115,11 @@ export function ClaimForm({ initialData, mode }: ClaimFormProps) {
   }
 
   useEffect(() => {
-    setRequiredDocuments(getRequiredDocumentsByObjectType(formData.objectTypeId))
+    getRequiredDocumentsByObjectType(initialData?.objectTypeId).then(setRequiredDocuments)
+  }, [initialData?.objectTypeId])
+
+  useEffect(() => {
+    getRequiredDocumentsByObjectType(formData.objectTypeId).then(setRequiredDocuments)
   }, [formData.objectTypeId])
 
   const handleInjuredPartyChange = (participant: ParticipantInfo | undefined) => {

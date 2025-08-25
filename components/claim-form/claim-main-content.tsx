@@ -219,8 +219,10 @@ export const ClaimMainContent = ({
           {
             method: "GET",
             credentials: "omit",
+
             headers: token ? { Authorization: `Bearer ${token}` } : {},
           },
+
         )
         if (response.ok) {
           const data = await response.json()
@@ -315,12 +317,14 @@ export const ClaimMainContent = ({
   const loadRiskTypes = async () => {
     setLoadingRiskTypes(true)
     try {
+
       const data = await dictionaryService.getRiskTypes(claimObjectType)
       const riskTypeOptions = (data.items || []).map((item: any) => ({
         value: String(item.id),
         label: item.name,
       }))
       setRiskTypes(riskTypeOptions)
+
     } catch (error) {
       console.error("Error loading risk types:", error)
       setRiskTypes([])
@@ -337,8 +341,10 @@ export const ClaimMainContent = ({
   const loadClaimStatuses = async () => {
     setLoadingStatuses(true)
     try {
+
       const data = await dictionaryService.getClaimStatuses()
       setClaimStatuses((data.items ?? []) as ClaimStatus[])
+
     } catch (error) {
       console.error("Error loading claim statuses:", error)
       toast({
@@ -354,8 +360,10 @@ export const ClaimMainContent = ({
   const loadCaseHandlers = async () => {
     setLoadingHandlers(true)
     try {
+
       const data = await dictionaryService.getCaseHandlers()
       setCaseHandlers(data.items ?? [])
+
     } catch (error) {
       console.error("Error loading case handlers:", error)
       // Fallback data

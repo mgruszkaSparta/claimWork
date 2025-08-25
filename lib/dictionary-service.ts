@@ -38,7 +38,9 @@ class DictionaryService {
       {
         method: "GET",
         credentials: "omit",
+
         headers: token ? { Authorization: `Bearer ${token}` } : {},
+
       },
     )
     const text = await response.text()

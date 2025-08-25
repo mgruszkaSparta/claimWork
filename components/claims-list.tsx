@@ -115,7 +115,9 @@ export function ClaimsList({
   useEffect(() => {
     const loadStatuses = async () => {
       try {
+
         const data = await dictionaryService.getClaimStatuses()
+
         setClaimStatuses(
           (data.items ?? []) as {
             id: number
@@ -134,7 +136,9 @@ export function ClaimsList({
   useEffect(() => {
     const loadRiskTypes = async () => {
       try {
+
         const data = await dictionaryService.getRiskTypes(claimObjectTypeId)
+
         setRiskTypes(
           (data.items ?? []) as { id: string; code: string; name: string }[],
         )

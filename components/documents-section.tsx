@@ -193,29 +193,41 @@ export const DocumentsSection = React.forwardRef<
     /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/.test(value)
 
 
-  const uploadedFileToDocument = (file: UploadedFile): Document => ({
-    id: file.id,
-    fileName: file.name,
-    originalFileName: file.name,
-    contentType: file.file?.type || "",
-    fileSize: file.size,
-    filePath: file.cloudUrl || file.url,
-    cloudUrl: file.cloudUrl,
-    description: file.description,
-    status: "pending",
-    uploadedBy: "Current User",
-    createdAt: file.uploadedAt,
-    updatedAt: file.uploadedAt,
-    canPreview:
-      file.type === "image" ||
-      file.type === "pdf" ||
-      file.type === "video" ||
-      file.type === "doc",
-    previewUrl: file.cloudUrl || file.url,
-    downloadUrl: file.cloudUrl || file.url,
-    documentType: file.category || "Inne dokumenty",
-    categoryCode: file.categoryCode,
-  })
+  const uploadedFileToDocument = (file: UploadedFile): Document => {
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL || ""
+    const isPersisted = isGuid(file.id)
+    const previewUrl = isPersisted
+      ? `${apiUrl}/documents/${file.id}/preview`
+      : file.cloudUrl || file.url
+    const downloadUrl = isPersisted
+      ? `${apiUrl}/documents/${file.id}/download`
+      : file.cloudUrl || file.url
+
+    return {
+      id: file.id,
+      fileName: file.name,
+      originalFileName: file.name,
+      contentType: file.file?.type || "",
+      fileSize: file.size,
+      filePath: downloadUrl,
+      cloudUrl: file.cloudUrl,
+      description: file.description,
+      status: "pending",
+      uploadedBy: "Current User",
+      createdAt: file.uploadedAt,
+      updatedAt: file.uploadedAt,
+      canPreview:
+        file.type === "image" ||
+        file.type === "pdf" ||
+        file.type === "video" ||
+        file.type === "doc",
+      previewUrl,
+      downloadUrl,
+      documentType: file.category || "Inne dokumenty",
+      categoryCode: file.categoryCode,
+    }
+  }
+
 
   const mapContentTypeToFileType = (
     contentType: string,
@@ -308,8 +320,10 @@ export const DocumentsSection = React.forwardRef<
           ...d,
           documentType: mapCategoryCodeToName(d.documentType || d.category),
           categoryCode: d.documentType || d.category,
-          previewUrl: d.cloudUrl || `${apiUrl}/documents/${d.id}/preview`,
-          downloadUrl: d.cloudUrl || `${apiUrl}/documents/${d.id}/download`,
+
+          previewUrl: `${apiUrl}/documents/${d.id}/preview`,
+          downloadUrl: `${apiUrl}/documents/${d.id}/download`,
+
         }))
         setDocuments(mappedDocs)
         setUploadedFiles(
@@ -480,15 +494,13 @@ export const DocumentsSection = React.forwardRef<
               documentDto.contentType?.includes("ms-excel") ||
               documentDto.contentType?.includes("spreadsheetml") ||
               documentDto.contentType?.includes("excel")),
-           previewUrl:
-             documentDto.cloudUrl ||
-             `${apiUrl}/documents/${documentDto.id}/preview`,
-           downloadUrl:
-             documentDto.cloudUrl ||
-             `${apiUrl}/documents/${documentDto.id}/download`,
-         }
-         return doc
-        } else {
+
+          previewUrl: `${apiUrl}/documents/${documentDto.id}/preview`,
+          downloadUrl: `${apiUrl}/documents/${documentDto.id}/download`,
+        }
+        return doc
+       } else {
+
           let errorMessage = `HTTP ${response.status}: ${response.statusText}`
           try {
             const errorData = await response.json()

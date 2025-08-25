@@ -445,22 +445,13 @@ export function useClaims() {
     }
   }
 
-  const initializeClaim = useCallback(async (): Promise<string | null> => {
-    try {
-      setError(null)
-      const { id } = await apiService.initializeClaim()
-      return id
-    } catch (err) {
-      const message = err instanceof Error ? err.message : "An unknown error occurred"
-      setError(`Failed to initialize claim: ${message}`)
-      return null
-    }
-  }, [])
-
   const createClaim = async (claimData: Claim): Promise<Claim | null> => {
     try {
       setError(null)
       const payload = transformFrontendClaimToApiPayload(claimData)
+      if (!payload.id) {
+        payload.id = crypto.randomUUID()
+      }
       const newApiClaim = await apiService.createClaim(payload)
       const newClaim = transformApiClaimToFrontend(newApiClaim)
       setClaims((prev) => [newClaim, ...prev])
@@ -527,7 +518,6 @@ export function useClaims() {
     totalCount,
     fetchClaims,
     getClaim,
-    initializeClaim,
     createClaim,
     updateClaim,
     deleteClaim,

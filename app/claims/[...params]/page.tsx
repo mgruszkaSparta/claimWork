@@ -315,6 +315,12 @@ export default function ClaimPage() {
             activeClaimSection={activeClaimSection}
             setActiveClaimSection={setActiveClaimSection}
             claimObjectType={claim?.objectTypeId?.toString()}
+            counts={{
+              roszczenia:
+                (mode === "view"
+                  ? claim?.clientClaims?.length
+                  : claimFormData.clientClaims?.length) || 0,
+            }}
           />
           <div ref={contentRef} className="flex-1 overflow-y-auto bg-gray-50">
             <div className="p-6 min-h-full">

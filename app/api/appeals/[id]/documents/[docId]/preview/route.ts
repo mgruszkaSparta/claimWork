@@ -12,7 +12,7 @@ export async function GET(
       {
         method: "GET",
         headers: {
-          cookie: request.headers.get("cookie") || "",
+          authorization: request.headers.get("authorization") || "",
         },
       },
     )

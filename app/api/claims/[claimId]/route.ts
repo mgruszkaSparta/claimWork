@@ -13,9 +13,12 @@ export async function GET(
     const { claimId } = params
     console.log(`Fetching claim ${claimId} from backend`)
 
+    const auth = request.headers.get("authorization") ?? ""
+
     const response = await fetch(`${API_BASE_URL}/claims/${claimId}`, {
       headers: {
         "Content-Type": "application/json",
+        ...(auth ? { Authorization: auth } : {}),
       },
       cache: "no-store",
     })
@@ -49,10 +52,13 @@ export async function PUT(
     const body = await request.json()
     console.log(`Updating claim ${claimId}:`, body)
 
+    const auth = request.headers.get("authorization") ?? ""
+
     const response = await fetch(`${API_BASE_URL}/claims/${claimId}`, {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
+        ...(auth ? { Authorization: auth } : {}),
       },
       body: JSON.stringify(body),
     })
@@ -82,14 +88,14 @@ export async function DELETE(
   { params }: { params: { claimId: string } },
 ) {
   try {
-    const token = request.cookies.get("token")?.value
-    if (!token) {
+    const auth = request.headers.get("authorization")
+    if (!auth) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
     const userResp = await fetch(`${API_BASE_URL}/auth/me`, {
       headers: {
-        Authorization: `Bearer ${token}`,
+        Authorization: auth,
       },
     })
 
@@ -111,7 +117,7 @@ export async function DELETE(
       method: "DELETE",
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
+        Authorization: auth,
       },
     })
 

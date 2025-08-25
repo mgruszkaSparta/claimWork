@@ -20,7 +20,7 @@ export async function GET(
       `${API_BASE_URL}/claims/${claimId}/decisions/${decisionId}/preview`,
       {
         headers: {
-          cookie: request.headers.get("cookie") ?? "",
+          authorization: request.headers.get("authorization") ?? "",
         },
       },
     )

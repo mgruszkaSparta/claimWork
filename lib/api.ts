@@ -729,19 +729,18 @@ export interface SettlementUpsertDto {
 // API Service
 class ApiService {
   private getToken(): string | null {
-    if (typeof document !== "undefined") {
-      const match = document.cookie.match(/(?:^|; )token=([^;]+)/)
-      return match ? decodeURIComponent(match[1]) : null
+    if (typeof window !== "undefined") {
+      return localStorage.getItem("token")
     }
     return null
   }
 
   private setToken(token: string | null) {
-    if (typeof document !== "undefined") {
+    if (typeof window !== "undefined") {
       if (token) {
-        document.cookie = `token=${token}; path=/`
+        localStorage.setItem("token", token)
       } else {
-        document.cookie = "token=; Max-Age=0; path=/"
+        localStorage.removeItem("token")
       }
     }
   }
@@ -761,7 +760,7 @@ class ApiService {
     }
 
     const response = await fetch(url, {
-      credentials: "include",
+      credentials: "omit",
       headers,
       ...options,
     })
@@ -828,13 +827,14 @@ class ApiService {
     username: string,
     password: string,
   ): Promise<{ mustChangePassword: boolean }> {
-    const data = await this.request<{ mustChangePassword: boolean }>(
+    const data = await this.request<{ token: string; mustChangePassword: boolean }>(
       "/auth/login",
       {
         method: "POST",
         body: JSON.stringify({ userName: username, password }),
       },
     )
+    this.setToken(data.token)
     return { mustChangePassword: data.mustChangePassword }
   }
 

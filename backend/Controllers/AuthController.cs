@@ -10,6 +10,11 @@ using AutomotiveClaimsApi.Models;
 using AutomotiveClaimsApi.DTOs;
 using AutomotiveClaimsApi.Services;
 using AutomotiveClaimsApi.Data;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
+using Microsoft.IdentityModel.Tokens;
+using Microsoft.Extensions.Configuration;
+using System.Text;
 namespace AutomotiveClaimsApi.Controllers
 {
     [ApiController]
@@ -17,22 +22,22 @@ namespace AutomotiveClaimsApi.Controllers
     public class AuthController : ControllerBase
     {
         private readonly UserManager<ApplicationUser> _userManager;
-        private readonly SignInManager<ApplicationUser> _signInManager;
         private readonly IEmailSender? _emailSender;
         private readonly ILogger<AuthController> _logger;
         private readonly ApplicationDbContext _context;
+        private readonly IConfiguration _configuration;
 
         public AuthController(
             UserManager<ApplicationUser> userManager,
-            SignInManager<ApplicationUser> signInManager,
             ILogger<AuthController> logger,
             ApplicationDbContext context,
+            IConfiguration configuration,
             IEmailSender? emailSender = null)
         {
             _userManager = userManager;
-            _signInManager = signInManager;
             _logger = logger;
             _context = context;
+            _configuration = configuration;
             _emailSender = emailSender;
         }
 
@@ -106,13 +111,7 @@ namespace AutomotiveClaimsApi.Controllers
                 return BadRequest(new { message = "Username and password are required." });
             }
             var user = await _userManager.FindByNameAsync(dto.UserName);
-            if (user == null)
-            {
-                return Unauthorized();
-            }
-
-            var result = await _signInManager.PasswordSignInAsync(dto.UserName, dto.Password, true, true);
-            if (!result.Succeeded)
+            if (user == null || !await _userManager.CheckPasswordAsync(user, dto.Password))
             {
                 return Unauthorized();
             }
@@ -120,20 +119,26 @@ namespace AutomotiveClaimsApi.Controllers
             user.LastLogin = DateTime.UtcNow;
             await _userManager.UpdateAsync(user);
 
-            if (user.MustChangePassword)
+            var roles = await _userManager.GetRolesAsync(user);
+            var claims = new List<Claim>
             {
-                return Ok(new { mustChangePassword = true });
-            }
+                new Claim(ClaimTypes.NameIdentifier, user.Id),
+                new Claim(ClaimTypes.Name, user.UserName ?? string.Empty),
+            };
+            claims.AddRange(roles.Select(r => new Claim(ClaimTypes.Role, r)));
 
-            return Ok(new { mustChangePassword = false });
+            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["Jwt:Key"]!));
+            var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+            var token = new JwtSecurityToken(claims: claims, expires: DateTime.UtcNow.AddHours(1), signingCredentials: creds);
+            var tokenString = new JwtSecurityTokenHandler().WriteToken(token);
 
+            return Ok(new { token = tokenString, mustChangePassword = user.MustChangePassword });
         }
 
         [Authorize]
         [HttpPost("logout")]
-        public async Task<IActionResult> Logout()
+        public IActionResult Logout()
         {
-            await _signInManager.SignOutAsync();
             return Ok();
         }
 

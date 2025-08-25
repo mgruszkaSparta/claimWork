@@ -41,9 +41,11 @@ namespace AutomotiveClaimsApi.Controllers
         }
 
         [HttpGet("event/{eventId}")]
-        public async Task<ActionResult<IEnumerable<EmailDto>>> GetEmailsByEventId(Guid eventId)
+        public async Task<ActionResult<IEnumerable<EmailDto>>> GetEmailsByEventId(
+            Guid eventId,
+            [FromQuery] string? folder)
         {
-            var emails = await _emailService.GetEmailsByEventIdAsync(eventId);
+            var emails = await _emailService.GetEmailsByEventIdAsync(eventId, folder);
             return Ok(emails);
         }
 

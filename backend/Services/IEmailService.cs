@@ -9,7 +9,7 @@ namespace AutomotiveClaimsApi.Services
         Task<IEnumerable<EmailDto>> GetEmailsAsync();
         Task<EmailDto?> GetEmailByIdAsync(Guid id);
         Task<IEnumerable<EmailDto>> GetEmailsByClaimNumberAsync(string claimNumber);
-        Task<IEnumerable<EmailDto>> GetEmailsByEventIdAsync(Guid eventId);
+        Task<IEnumerable<EmailDto>> GetEmailsByEventIdAsync(Guid eventId, string? folder = null);
         Task<EmailDto> SendEmailAsync(SendEmailDto sendEmailDto);
         Task<EmailDto> CreateDraftAsync(CreateEmailDto createEmailDto);
         Task<bool> MarkAsReadAsync(Guid id);

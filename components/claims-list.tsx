@@ -75,7 +75,7 @@ export function ClaimsList({
   >([])
   const [filterRisk, setFilterRisk] = useState("all")
   const [riskTypes, setRiskTypes] = useState<
-    { id: string; code: string; name: string }[]
+    { id: number; code: string; name: string }[]
   >([])
   const [filterRegistration, setFilterRegistration] = useState("")
   const [filterHandler, setFilterHandler] = useState("")
@@ -140,7 +140,7 @@ export function ClaimsList({
         const data = await dictionaryService.getRiskTypes(claimObjectTypeId)
 
         setRiskTypes(
-          (data.items ?? []) as { id: string; code: string; name: string }[],
+          (data.items ?? []) as { id: number; code: string; name: string }[],
         )
       } catch (error) {
         console.error("Error loading risk types:", error)
@@ -217,7 +217,7 @@ export function ClaimsList({
   const riskTypeMap = useMemo(() => {
     const map: Record<string, string> = {}
     riskTypes.forEach((r) => {
-      map[r.code.toLowerCase()] = r.name
+      map[String(r.id)] = r.name
     })
     return map
   }, [riskTypes])
@@ -475,7 +475,7 @@ export function ClaimsList({
             >
               <option value="all">Wszystkie ryzyka</option>
               {riskTypes.map((risk) => (
-                <option key={risk.id} value={risk.code}>
+                <option key={risk.id} value={risk.id.toString()}>
                   {risk.name}
                 </option>
               ))}
@@ -674,7 +674,7 @@ export function ClaimsList({
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       {claim.riskType
-                        ? riskTypeMap[String(claim.riskType).toLowerCase()] ||
+                        ? riskTypeMap[String(claim.riskType)] ||
                           String(claim.riskType)
                         : "-"}
                     </td>

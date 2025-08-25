@@ -193,29 +193,41 @@ export const DocumentsSection = React.forwardRef<
     /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/.test(value)
 
 
-  const uploadedFileToDocument = (file: UploadedFile): Document => ({
-    id: file.id,
-    fileName: file.name,
-    originalFileName: file.name,
-    contentType: file.file?.type || "",
-    fileSize: file.size,
-    filePath: file.url,
-    cloudUrl: file.cloudUrl,
-    description: file.description,
-    status: "pending",
-    uploadedBy: "Current User",
-    createdAt: file.uploadedAt,
-    updatedAt: file.uploadedAt,
-    canPreview:
-      file.type === "image" ||
-      file.type === "pdf" ||
-      file.type === "video" ||
-      file.type === "doc",
-    previewUrl: file.url,
-    downloadUrl: file.url,
-    documentType: file.category || "Inne dokumenty",
-    categoryCode: file.categoryCode,
-  })
+  const uploadedFileToDocument = (file: UploadedFile): Document => {
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL || ""
+    const isPersisted = isGuid(file.id)
+    const previewUrl = isPersisted
+      ? `${apiUrl}/documents/${file.id}/preview`
+      : file.cloudUrl || file.url
+    const downloadUrl = isPersisted
+      ? `${apiUrl}/documents/${file.id}/download`
+      : file.cloudUrl || file.url
+
+    return {
+      id: file.id,
+      fileName: file.name,
+      originalFileName: file.name,
+      contentType: file.file?.type || "",
+      fileSize: file.size,
+      filePath: downloadUrl,
+      cloudUrl: file.cloudUrl,
+      description: file.description,
+      status: "pending",
+      uploadedBy: "Current User",
+      createdAt: file.uploadedAt,
+      updatedAt: file.uploadedAt,
+      canPreview:
+        file.type === "image" ||
+        file.type === "pdf" ||
+        file.type === "video" ||
+        file.type === "doc",
+      previewUrl,
+      downloadUrl,
+      documentType: file.category || "Inne dokumenty",
+      categoryCode: file.categoryCode,
+    }
+  }
+
 
   const mapContentTypeToFileType = (
     contentType: string,
@@ -308,8 +320,10 @@ export const DocumentsSection = React.forwardRef<
           ...d,
           documentType: mapCategoryCodeToName(d.documentType || d.category),
           categoryCode: d.documentType || d.category,
-          previewUrl: d.cloudUrl || `${apiUrl}/documents/${d.id}/preview`,
+
+          previewUrl: `${apiUrl}/documents/${d.id}/preview`,
           downloadUrl: `${apiUrl}/documents/${d.id}/download`,
+
         }))
         setDocuments(mappedDocs)
         setUploadedFiles(
@@ -480,13 +494,13 @@ export const DocumentsSection = React.forwardRef<
               documentDto.contentType?.includes("ms-excel") ||
               documentDto.contentType?.includes("spreadsheetml") ||
               documentDto.contentType?.includes("excel")),
-           previewUrl:
-             documentDto.cloudUrl ||
-             `${apiUrl}/documents/${documentDto.id}/preview`,
-           downloadUrl: `${apiUrl}/documents/${documentDto.id}/download`,
-         }
-         return doc
-        } else {
+
+          previewUrl: `${apiUrl}/documents/${documentDto.id}/preview`,
+          downloadUrl: `${apiUrl}/documents/${documentDto.id}/download`,
+        }
+        return doc
+       } else {
+
           let errorMessage = `HTTP ${response.status}: ${response.statusText}`
           try {
             const errorData = await response.json()
@@ -1909,7 +1923,7 @@ export const DocumentsSection = React.forwardRef<
                       Twoja przeglądarka nie obsługuje odtwarzania wideo.
                     </video>
                   </div>
-                ) : previewDocument.contentType === "application/pdf" ? (
+                ) : previewDocument.contentType?.startsWith("application/pdf") ? (
                   <object
                     data={previewDocument.previewUrl || previewDocument.downloadUrl}
                     type="application/pdf"
@@ -1931,7 +1945,7 @@ export const DocumentsSection = React.forwardRef<
                     className="w-full h-full"
                     title={previewDocument.originalFileName}
                   />
-                ) : previewDocument.contentType === "application/msword" ? (
+                ) : previewDocument.contentType?.startsWith("application/msword") ? (
                   <iframe
                     src={`https://view.officeapps.live.com/op/embed.aspx?src=${encodeURIComponent(
                       previewDocument.previewUrl || previewDocument.downloadUrl,
@@ -1939,8 +1953,9 @@ export const DocumentsSection = React.forwardRef<
                     className="w-full h-full"
                     title={previewDocument.originalFileName}
                   />
-                ) : previewDocument.contentType ===
-                    "application/vnd.openxmlformats-officedocument.wordprocessingml.document" ? (
+                ) : previewDocument.contentType?.startsWith(
+                    "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+                  ) ? (
                   <div className="w-full h-full overflow-auto p-4">
                     <div
                       ref={docxPreviewRef}

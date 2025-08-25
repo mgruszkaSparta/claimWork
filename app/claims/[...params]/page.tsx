@@ -320,6 +320,7 @@ export default function ClaimPage() {
                 (mode === "view"
                   ? claim?.clientClaims?.length
                   : claimFormData.clientClaims?.length) || 0,
+
               decyzje:
                 (mode === "view"
                   ? claim?.decisions?.length
@@ -340,6 +341,7 @@ export default function ClaimPage() {
                 (mode === "view"
                   ? claim?.notes?.length
                   : claimFormData.notes?.length) || 0,
+
             }}
           />
           <div ref={contentRef} className="flex-1 overflow-y-auto bg-gray-50">

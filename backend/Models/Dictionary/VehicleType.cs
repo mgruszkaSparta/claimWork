@@ -18,7 +18,9 @@ namespace AutomotiveClaimsApi.Models.Dictionary
         public string? Description { get; set; }
         
         public bool IsActive { get; set; } = true;
-        
+
+        public int? SortOrder { get; set; }
+
         public DateTime CreatedAt { get; set; }
         public DateTime UpdatedAt { get; set; }
     }

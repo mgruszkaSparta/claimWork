@@ -7,14 +7,14 @@ import { transformFrontendClaimToApiPayload } from '../use-claims'
 
 test('includes dropdown selections in payload', () => {
   const payload = transformFrontendClaimToApiPayload({
-    riskType: 'RT',
+    riskType: '5',
     damageType: { code: 'DT', name: 'Damage' } as any,
     insuranceCompanyId: '5',
     clientId: '7',
     handlerId: '9',
   } as any)
 
-  assert.equal(payload.riskType, 'RT')
+  assert.equal(payload.riskType, '5')
   assert.equal(payload.damageType, 'DT')
   assert.equal(payload.insuranceCompanyId, 5)
   assert.equal(payload.clientId, 7)
@@ -72,6 +72,16 @@ test('participant and driver ids include only GUID strings', () => {
   assert.equal(invalidDriver?.id, undefined)
   assert.equal(perpetrator?.id, undefined)
   assert.equal(perpetrator?.drivers?.[0]?.id, guid)
+})
+
+test('maps registration numbers from participants', () => {
+  const payload = transformFrontendClaimToApiPayload({
+    injuredParty: { vehicleRegistration: 'ABC123' },
+    perpetrator: { vehicleRegistration: 'DEF456' },
+  } as any)
+
+  assert.equal(payload.victimRegistrationNumber, 'ABC123')
+  assert.equal(payload.perpetratorRegistrationNumber, 'DEF456')
 })
 
 test('settlement ids are validated and converted', () => {

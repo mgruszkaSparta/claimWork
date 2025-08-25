@@ -130,12 +130,14 @@ CREATE TABLE IF NOT EXISTS VehicleTypes (
     Code VARCHAR(50) NOT NULL UNIQUE,
     Name VARCHAR(200) NOT NULL,
     Description VARCHAR(500),
+    SortOrder SERIAL NOT NULL,
     IsActive BOOLEAN NOT NULL DEFAULT TRUE,
     CreatedAt TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     UpdatedAt TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 CREATE INDEX IF NOT EXISTS idx_vehicle_types_code ON VehicleTypes(Code);
 CREATE INDEX IF NOT EXISTS idx_vehicle_types_is_active ON VehicleTypes(IsActive);
+CREATE INDEX IF NOT EXISTS idx_vehicle_types_sort_order ON VehicleTypes(SortOrder);
 
 -- Priorities table
 CREATE TABLE IF NOT EXISTS Priorities (

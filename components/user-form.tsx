@@ -11,6 +11,7 @@ import { Switch } from '@/components/ui/switch'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Badge } from '@/components/ui/badge'
 import { FormHeader } from '@/components/ui/form-header'
+import { API_BASE_URL } from '@/lib/api'
 import { User } from 'lucide-react'
 
 interface UserFormProps {
@@ -169,7 +170,7 @@ export default function UserForm({ userId }: UserFormProps) {
       <div>
         <Label htmlFor="roles">Role</Label>
         <SearchableSelect
-          apiEndpoint="/api/roles"
+          apiEndpoint={`${API_BASE_URL}/roles`}
           value={roleValue}
           onValueChange={handleRoleSelect}
           placeholder="Wybierz rolę..."

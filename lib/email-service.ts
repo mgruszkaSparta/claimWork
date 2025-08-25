@@ -82,7 +82,7 @@ class EmailService {
             fileName: a.fileName,
             contentType: a.contentType,
             size: a.fileSize,
-            url: `/api/emails/attachment/${a.id}`,
+            url: `${API_BASE_URL}/emails/attachment/${a.id}`,
           })) || [],
       }))
     } catch (error) {
@@ -118,7 +118,7 @@ class EmailService {
             fileName: a.fileName,
             contentType: a.contentType,
             size: a.fileSize,
-            url: `/api/emails/attachment/${a.id}`,
+            url: `${API_BASE_URL}/emails/attachment/${a.id}`,
           })) || [],
       }
     } catch (error) {
@@ -208,7 +208,7 @@ class EmailService {
             fileName: a.fileName,
             contentType: a.contentType,
             size: a.fileSize,
-            url: `/api/emails/attachment/${a.id}`,
+            url: `${API_BASE_URL}/emails/attachment/${a.id}`,
           })) || [],
       }))
     } catch (error) {

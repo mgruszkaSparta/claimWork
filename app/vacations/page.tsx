@@ -6,6 +6,7 @@ import HandlerDropdown from "@/components/handler-dropdown";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import type { HandlerSelectionEvent } from "@/types/handler";
+import { API_BASE_URL } from "@/lib/api";
 
 export default function VacationPage() {
   const { user } = useAuth();
@@ -17,7 +18,7 @@ export default function VacationPage() {
   const [managers, setManagers] = useState<{ id: string; name: string }[]>([]);
 
   const submit = async () => {
-    await fetch("/api/vacations", {
+    await fetch(`${API_BASE_URL}/vacations`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({

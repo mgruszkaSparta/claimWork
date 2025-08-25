@@ -25,6 +25,7 @@ import {
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import type { Email } from "@/types/email"
 import type { RequiredDocument } from "@/types"
+import { API_BASE_URL } from "@/lib/api"
 
 interface EmailViewProps {
   email: Email
@@ -233,7 +234,7 @@ export const EmailView = ({
                             className="h-8 w-8 p-0"
                           >
                             <a
-                              href={attachment.url || `/api/emails/attachment/${attachment.id}`}
+                              href={attachment.url || `${API_BASE_URL}/emails/attachment/${attachment.id}`}
                               target="_blank"
                               rel="noopener noreferrer"
                             >
@@ -247,7 +248,7 @@ export const EmailView = ({
                             className="h-8 w-8 p-0"
                           >
                             <a
-                              href={attachment.url || `/api/emails/attachment/${attachment.id}`}
+                              href={attachment.url || `${API_BASE_URL}/emails/attachment/${attachment.id}`}
                               download
                             >
                               <Download className="h-4 w-4" />
@@ -275,7 +276,7 @@ export const EmailView = ({
                                             ...attachment,
                                             url:
                                               attachment.url ||
-                                              `/api/emails/attachment/${attachment.id}`,
+                                              `${API_BASE_URL}/emails/attachment/${attachment.id}`,
                                           },
                                           doc.id,
                                         )

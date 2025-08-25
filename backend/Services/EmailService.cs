@@ -142,11 +142,11 @@ namespace AutomotiveClaimsApi.Services
             var emails = await _context.Emails
                 .Where(e => e.EventId == eventId)
                 .Include(e => e.EmailClaims)
-                .Select(e => MapEmailToDto(e))
+                .Include(e => e.Attachments)
                 .OrderByDescending(e => e.CreatedAt)
                 .ToListAsync();
 
-            return emails;
+            return emails.Select(MapEmailToDto);
         }
 
         public async Task<EmailDto?> GetEmailByIdAsync(Guid id)
@@ -154,10 +154,10 @@ namespace AutomotiveClaimsApi.Services
             var email = await _context.Emails
                 .Where(e => e.Id == id)
                 .Include(e => e.EmailClaims)
-                .Select(e => MapEmailToDto(e))
+                .Include(e => e.Attachments)
                 .FirstOrDefaultAsync();
 
-            return email;
+            return email != null ? MapEmailToDto(email) : null;
         }
         
         private static EmailDto MapEmailToDto(Email email) =>

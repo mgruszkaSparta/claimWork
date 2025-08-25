@@ -10,7 +10,19 @@ const ROLE_COLORS: Record<string, string> = {
 export const adminService = {
   async getRoles(): Promise<Role[]> {
     const res = await fetch(`${API_BASE_URL}/roles`);
-    const data = (await res.json()) as { value: string; label: string }[];
+
+    // Handle cases where the response has no body or invalid JSON
+    const text = await res.text();
+    let data: { value: string; label: string }[] = [];
+
+    if (text) {
+      try {
+        data = JSON.parse(text) as { value: string; label: string }[];
+      } catch {
+        data = [];
+      }
+    }
+
     return data.map((r) => ({
       id: r.value,
       name: r.label,
@@ -76,23 +88,13 @@ export const adminService = {
       userName: data.email,
       email: data.email,
       password: data.password,
+      firstName: data.firstName,
+      lastName: data.lastName,
+      roles: data.roles.map((r) => r.id),
+      status: data.status,
       fullAccess: data.fullAccess,
       clientIds: data.clientIds,
-    });
-
-    // try to locate the newly created user and update remaining fields
-    const { items } = await apiService.getUsers({ search: data.email })
-    const created = items.find((u) => u.email === data.email)
-    if (created) {
-      await apiService.updateUser(created.id, {
-        firstName: data.firstName,
-        lastName: data.lastName,
-        roles: data.roles.map((r) => r.id),
-        status: data.status,
-        fullAccess: data.fullAccess,
-        clientIds: data.clientIds,
-      });
-    }
+    })
   },
 
   async deleteUser(id: string): Promise<void> {

@@ -6,7 +6,9 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
   try {
     const { id } = params
 
-    const response = await fetch(`${API_BASE_URL}/clientclaims/${id}/preview`)
+    const response = await fetch(`${API_BASE_URL}/clientclaims/${id}/preview`, {
+      headers: { authorization: request.headers.get("authorization") ?? "" },
+    })
 
     if (!response.ok) {
       const errorText = await response.text()

@@ -228,6 +228,7 @@ export const DocumentsSection = React.forwardRef<
     }
   }
 
+
   const mapContentTypeToFileType = (
     contentType: string,
   ): UploadedFile["type"] => {
@@ -319,8 +320,10 @@ export const DocumentsSection = React.forwardRef<
           ...d,
           documentType: mapCategoryCodeToName(d.documentType || d.category),
           categoryCode: d.documentType || d.category,
+
           previewUrl: `${apiUrl}/documents/${d.id}/preview`,
           downloadUrl: `${apiUrl}/documents/${d.id}/download`,
+
         }))
         setDocuments(mappedDocs)
         setUploadedFiles(
@@ -491,11 +494,13 @@ export const DocumentsSection = React.forwardRef<
               documentDto.contentType?.includes("ms-excel") ||
               documentDto.contentType?.includes("spreadsheetml") ||
               documentDto.contentType?.includes("excel")),
+
           previewUrl: `${apiUrl}/documents/${documentDto.id}/preview`,
           downloadUrl: `${apiUrl}/documents/${documentDto.id}/download`,
         }
         return doc
        } else {
+
           let errorMessage = `HTTP ${response.status}: ${response.statusText}`
           try {
             const errorData = await response.json()

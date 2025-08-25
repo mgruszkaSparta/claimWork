@@ -1,5 +1,8 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
+using System.Security.Claims;
 using AutomotiveClaimsApi.Data;
 using AutomotiveClaimsApi.Models;
 using AutomotiveClaimsApi.DTOs;
@@ -12,19 +15,45 @@ namespace AutomotiveClaimsApi.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
+    [Authorize(Roles = "Admin,User")]
     public class ClientsController : ControllerBase
     {
         private readonly ApplicationDbContext _context;
+        private readonly UserManager<ApplicationUser> _userManager;
 
-        public ClientsController(ApplicationDbContext context)
+        public ClientsController(ApplicationDbContext context, UserManager<ApplicationUser> userManager)
         {
             _context = context;
+            _userManager = userManager;
         }
 
         [HttpGet]
         public async Task<ActionResult<IEnumerable<ClientDto>>> GetClients([FromQuery] string? search = null)
         {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            ApplicationUser? currentUser = null;
+
+            if (!string.IsNullOrEmpty(userId))
+            {
+                currentUser = await _userManager.Users
+                    .Include(u => u.UserClients)
+                    .FirstOrDefaultAsync(u => u.Id == userId);
+            }
+
             var query = _context.Clients.AsQueryable();
+
+            if (currentUser != null)
+            {
+                var allowedClients = currentUser.UserClients.Select(uc => uc.ClientId).ToList();
+                if (allowedClients.Any())
+                {
+                    query = query.Where(c => allowedClients.Contains(c.Id));
+                }
+                else if (!currentUser.FullAccess)
+                {
+                    return Ok(new List<ClientDto>());
+                }
+            }
 
             if (!string.IsNullOrEmpty(search))
             {

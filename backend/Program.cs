@@ -24,11 +24,14 @@ builder.Services.AddControllersWithViews(options =>
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-// Configure CORS to allow any origin
+// Configure CORS to allow specific origins
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowAll", policy =>
-        policy.AllowAnyOrigin()
+        policy.WithOrigins(
+            "http://34.118.17.116",
+            "http://localhost:3000"
+        )
               .AllowAnyHeader()
               .AllowAnyMethod());
 });

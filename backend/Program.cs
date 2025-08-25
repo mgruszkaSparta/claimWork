@@ -93,18 +93,6 @@ builder.Services.AddEventDocumentStore(builder.Configuration);
 builder.Services.AddHostedService<EmailBackgroundService>();
 builder.Services.AddHostedService<AppealReminderService>();
 
-// Add CORS
-builder.Services.AddCors(options =>
-{
-    options.AddPolicy("Frontend", policy =>
-    {
-        policy.WithOrigins("http://localhost:3000")
-              .AllowAnyMethod()
-              .AllowAnyHeader()
-              .AllowCredentials();
-    });
-});
-
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -115,7 +103,6 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
-app.UseCors("Frontend");
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();

@@ -547,7 +547,7 @@ export const RepairDetailsSection: React.FC<RepairDetailsSectionProps> = ({ even
           <Card className="border-2 border-dashed border-border bg-muted/20 rounded-2xl">
             <CardContent className="text-center py-16">
               <div className="space-y-4">
-                <div className="p-6 bg-primary/10 rounded-2xl w-fit mx-auto border border-border">
+                <div className="p-6 bg-primary/10 rounded-2xl w-fit mx-auto">
                   <FileText className="h-16 w-16 text-primary" />
                 </div>
               <p className="text-xl font-semibold text-foreground">Brak opisów naprawy</p>

@@ -71,7 +71,7 @@ export function ClaimsList({
   const [searchInput, setSearchInput] = useState("")
   const [filterStatus, setFilterStatus] = useState("all")
   const [claimStatuses, setClaimStatuses] = useState<
-    { id: number; name: string }[]
+    { id: number; code: string; name: string; color?: string }[]
   >([])
   const [filterRisk, setFilterRisk] = useState("all")
   const [riskTypes, setRiskTypes] = useState<
@@ -120,7 +120,14 @@ export function ClaimsList({
           { credentials: "include" },
         )
         const data = await res.json()
-        setClaimStatuses((data.items ?? []) as { id: number; name: string }[])
+        setClaimStatuses(
+          (data.items ?? []) as {
+            id: number
+            code: string
+            name: string
+            color?: string
+          }[],
+        )
       } catch (error) {
         console.error("Error loading claim statuses:", error)
       }
@@ -205,6 +212,14 @@ export function ClaimsList({
     initialClaims,
 
   ])
+  const claimStatusMap = useMemo(() => {
+    const map: Record<number, { name: string; color?: string }> = {}
+    claimStatuses.forEach((s) => {
+      map[s.id] = { name: s.name, color: s.color }
+    })
+    return map
+  }, [claimStatuses])
+
   const riskTypeMap = useMemo(() => {
     const map: Record<string, string> = {}
     riskTypes.forEach((r) => {
@@ -245,24 +260,6 @@ export function ClaimsList({
     }
 
   }, [loading, claims.length, totalRecords, initialClaims])
-
-
-  const getStatusColor = (status: string) => {
-    switch (status?.toUpperCase()) {
-      case "NOWA SZKODA":
-        return "bg-blue-100 text-blue-800 border-blue-200"
-      case "W TRAKCIE":
-        return "bg-yellow-100 text-yellow-800 border-yellow-200"
-      case "ZAKOŃCZONA":
-        return "bg-green-100 text-green-800 border-green-200"
-      case "ODRZUCONA":
-        return "bg-red-100 text-red-800 border-red-200"
-      case "ZAWIESZONA":
-        return "bg-orange-100 text-orange-800 border-orange-200"
-      default:
-        return "bg-gray-100 text-gray-800 border-gray-200"
-    }
-  }
 
   const handleSort = (field: string) => {
     setPage(1)
@@ -683,13 +680,24 @@ export function ClaimsList({
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       {claim.riskType
-                        ? riskTypeMap[claim.riskType.toLowerCase()] || "-"
+                        ? riskTypeMap[String(claim.riskType).toLowerCase()] ||
+                          String(claim.riskType)
                         : "-"}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <Badge className={`text-xs border ${getStatusColor(claim.status ?? "")}`}>
-                        {claim.status || "-"}
-                      </Badge>
+                      {(() => {
+                        const statusInfo = claim.claimStatusId
+                          ? claimStatusMap[claim.claimStatusId]
+                          : undefined
+                        const colorClass =
+                          statusInfo?.color ||
+                          "bg-gray-100 text-gray-800 border-gray-200"
+                        return (
+                          <Badge className={`text-xs border ${colorClass}`}>
+                            {statusInfo?.name || "-"}
+                          </Badge>
+                        )
+                      })()}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                       <div className="flex items-center justify-end space-x-2">

@@ -743,7 +743,7 @@ export const RepairScheduleSection: React.FC<RepairScheduleSectionProps> = ({ ev
           <Card className="col-span-full w-full border-2 border-dashed border-border bg-muted/20 rounded-2xl animate-fade-in">
             <CardContent className="text-center py-16">
               <div className="space-y-4">
-                <div className="p-6 bg-primary/10 rounded-2xl w-fit mx-auto border border-border">
+                <div className="p-6 bg-primary/10 rounded-2xl w-fit mx-auto">
                   <Calendar className="h-16 w-16 text-primary" />
                 </div>
                 <div className="space-y-2">

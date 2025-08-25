@@ -421,7 +421,16 @@ export default function NewClaimPage() {
           activeClaimSection={activeClaimSection}
           setActiveClaimSection={setActiveClaimSection}
           claimObjectType={claimObjectType}
-          counts={{ roszczenia: claimFormData.clientClaims?.length || 0 }}
+
+          counts={{
+            roszczenia: claimFormData.clientClaims?.length || 0,
+            decyzje: claimFormData.decisions?.length || 0,
+            odwolanie: claimFormData.appeals?.length || 0,
+            regres: claimFormData.recourses?.length || 0,
+            ugody: claimFormData.settlements?.length || 0,
+            notatki: claimFormData.notes?.length || 0,
+          }}
+
         />
 
         <div ref={contentRef} className="flex-1 overflow-y-auto bg-gray-50">

@@ -25,6 +25,7 @@ export interface EmailDto {
   receivedDate?: string
   read?: boolean
   claimIds?: string[]
+  eventId?: string
   attachments: AttachmentDto[]
   direction?: string
   status?: string
@@ -39,6 +40,7 @@ export interface SendEmailRequestDto {
   body: string
   attachments?: File[]
   claimId?: string
+  eventId?: string
 }
 
 export interface AssignEmailToClaimDto {
@@ -73,6 +75,7 @@ class EmailService {
         receivedDate: e.receivedAt || e.sentAt || e.createdAt,
         read: e.isRead,
         claimIds: e.claimIds,
+        eventId: e.eventId,
         direction: e.direction,
         status: e.status,
         isImportant: e.isImportant,
@@ -109,6 +112,7 @@ class EmailService {
         receivedDate: e.receivedAt || e.sentAt || e.createdAt,
         read: e.isRead,
         claimIds: e.claimIds,
+        eventId: e.eventId,
         direction: e.direction,
         status: e.status,
         isImportant: e.isImportant,
@@ -199,6 +203,7 @@ class EmailService {
         receivedDate: e.receivedAt || e.sentAt || e.createdAt,
         read: e.isRead,
         claimIds: e.claimIds,
+        eventId: e.eventId,
         direction: e.direction,
         status: e.status,
         isImportant: e.isImportant,
@@ -241,6 +246,7 @@ class EmailService {
       formData.append("body", sendRequest.body)
       formData.append("isHtml", "false")
       if (sendRequest.claimId) formData.append("claimId", sendRequest.claimId)
+      if (sendRequest.eventId) formData.append("eventId", sendRequest.eventId)
       sendRequest.attachments?.forEach((file) => formData.append("attachments", file))
 
       const response = await fetch(this.apiUrl, {
@@ -266,6 +272,7 @@ class EmailService {
       formData.append("isHtml", "false")
       formData.append("direction", "Outbound")
       if (sendRequest.claimId) formData.append("claimIds", sendRequest.claimId)
+      if (sendRequest.eventId) formData.append("eventId", sendRequest.eventId)
       sendRequest.attachments?.forEach((file) => formData.append("attachments", file))
 
       const response = await fetch(`${this.apiUrl}/draft`, {

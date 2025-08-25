@@ -44,6 +44,7 @@ export interface Email {
   attachments: EmailAttachment[]
   labels: string[]
   claimId?: string
+  eventId?: string
   claimIds?: string[]
   threadId?: string
 }
@@ -60,6 +61,7 @@ export interface EmailCompose {
   replyTo?: string
   inReplyTo?: string
   claimId?: string
+  eventId?: string
 }
 
 export type { EmailFolderItem as EmailFolderDefinition }

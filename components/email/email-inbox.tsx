@@ -257,6 +257,7 @@ export default function EmailInbox({ claimId, claimNumber, claimInsuranceNumber 
       body: composeBody,
       attachments: composeAttachments,
       claimId,
+      eventId: claimId,
     }
 
     try {
@@ -303,6 +304,7 @@ export default function EmailInbox({ claimId, claimNumber, claimInsuranceNumber 
       body: composeBody,
       attachments: composeAttachments,
       claimId,
+      eventId: claimId,
     }
 
     try {

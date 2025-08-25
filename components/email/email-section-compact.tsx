@@ -153,7 +153,7 @@ export const EmailSection = ({
     try {
       await fetch(`${API_BASE_URL}/emails/${emailId}/starred`, {
         method: "PUT",
-        credentials: "include",
+        credentials: "omit",
       })
     } catch (error) {
       console.error("Error toggling star:", error)

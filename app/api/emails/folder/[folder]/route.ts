@@ -8,12 +8,11 @@ export async function GET(
 ) {
   try {
     const folder = params.folder
-    const cookie = request.headers.get("cookie") ?? ""
+    const auth = request.headers.get("authorization") ?? ""
 
     const response = await fetch(`${API_BASE_URL}/emails/folder/${folder}`, {
       cache: "no-store",
-      credentials: "include",
-      headers: { Cookie: cookie },
+      headers: { Authorization: auth },
     })
 
     if (!response.ok) {

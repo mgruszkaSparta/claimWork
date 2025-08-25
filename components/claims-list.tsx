@@ -117,7 +117,7 @@ export function ClaimsList({
       try {
         const res = await fetch(
           `${API_BASE_URL}/dictionaries/claim-statuses`,
-          { credentials: "include" },
+          { credentials: "omit" },
         )
         const data = await res.json()
         setClaimStatuses(
@@ -142,7 +142,7 @@ export function ClaimsList({
           `${API_BASE_URL}/dictionaries/risk-types${
             claimObjectTypeId ? `?claimObjectTypeId=${claimObjectTypeId}` : ""
           }`,
-          { credentials: "include" },
+          { credentials: "omit" },
         )
         const data = await res.json()
         setRiskTypes(

@@ -54,7 +54,7 @@ export function NewClaimDialog({ open, onOpenChange }: NewClaimDialogProps) {
       const res = await fetch(
         `${API_BASE_URL}/dictionaries/risk-types?claimObjectTypeId=${claimObjectTypeId}`,
         {
-          credentials: "include",
+          credentials: "omit",
         },
       )
       const data = await res.json()
@@ -72,7 +72,7 @@ export function NewClaimDialog({ open, onOpenChange }: NewClaimDialogProps) {
       const res = await fetch(
         `${API_BASE_URL}/damage-types?riskTypeId=${riskTypeId}`,
         {
-          credentials: "include",
+          credentials: "omit",
         },
       )
       return res.json()

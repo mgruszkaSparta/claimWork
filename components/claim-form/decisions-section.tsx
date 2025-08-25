@@ -334,7 +334,7 @@ export function DecisionsSection({ claimId, onChange }: DecisionsSectionProps) {
 
       const response = await fetch(url, {
         method: "GET",
-        credentials: "include",
+        credentials: "omit",
       })
       if (response.ok) {
         const blob = await response.blob()
@@ -362,7 +362,7 @@ export function DecisionsSection({ claimId, onChange }: DecisionsSectionProps) {
   const loadPreview = async (decision: Decision, doc: DocumentDto) => {
     if (!claimId) return
     const url = doc.previewUrl ?? `${API_BASE_URL}/documents/${doc.id}/preview`
-    const response = await fetch(url, { method: "GET", credentials: "include" })
+    const response = await fetch(url, { method: "GET", credentials: "omit" })
     if (!response.ok) throw new Error("Failed to preview file")
     const blob = await response.blob()
     const objectUrl = window.URL.createObjectURL(blob)
@@ -388,7 +388,7 @@ export function DecisionsSection({ claimId, onChange }: DecisionsSectionProps) {
       // fallback for single file
       try {
         const url = `${API_BASE_URL}/claims/${claimId}/decisions/${decision.id}/preview`
-        const response = await fetch(url, { method: "GET", credentials: "include" })
+        const response = await fetch(url, { method: "GET", credentials: "omit" })
         if (!response.ok) throw new Error("Failed to preview file")
         const blob = await response.blob()
         const objectUrl = window.URL.createObjectURL(blob)

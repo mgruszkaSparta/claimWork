@@ -167,7 +167,7 @@ const DependentSelect = React.forwardRef<React.ElementRef<typeof SelectPrimitive
 
           const response = await fetch(url, {
             method: "GET",
-            credentials: "include",
+            credentials: "omit",
           })
 
           if (!response.ok) {

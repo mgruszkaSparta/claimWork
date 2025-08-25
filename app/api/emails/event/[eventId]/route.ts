@@ -7,11 +7,10 @@ export async function GET(
   { params }: { params: { eventId: string } },
 ) {
   try {
-    const cookie = request.headers.get("cookie") ?? ""
+    const auth = request.headers.get("authorization") ?? ""
     const response = await fetch(`${API_BASE_URL}/emails/event/${params.eventId}`, {
       cache: "no-store",
-      credentials: "include",
-      headers: { Cookie: cookie },
+      headers: { Authorization: auth },
     })
 
     if (!response.ok) {

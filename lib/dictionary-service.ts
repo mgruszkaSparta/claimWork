@@ -29,7 +29,7 @@ class DictionaryService {
       `${process.env.NEXT_PUBLIC_API_URL}/dictionaries/${endpoint}`,
       {
         method: "GET",
-        credentials: "include",
+        credentials: "omit",
       },
     )
     const text = await response.text()

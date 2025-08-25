@@ -5,13 +5,12 @@ const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5200/a
 export async function POST(request: NextRequest) {
   try {
     const { emailId, claimId } = await request.json()
-    const cookie = request.headers.get("cookie") ?? ""
+    const auth = request.headers.get("authorization") ?? ""
 
     const response = await fetch(`${API_BASE_URL}/emails/assign-to-claim`, {
       method: "POST",
-      headers: { "Content-Type": "application/json", Cookie: cookie },
+      headers: { "Content-Type": "application/json", Authorization: auth },
       body: JSON.stringify({ emailId, claimId }),
-      credentials: "include",
     })
 
     if (!response.ok) {

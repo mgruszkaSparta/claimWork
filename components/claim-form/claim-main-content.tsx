@@ -215,7 +215,9 @@ export const ClaimMainContent = ({
       try {
         const response = await authFetch(
           `${process.env.NEXT_PUBLIC_API_URL}/repair-details?eventId=${eventId}`,
+
           { method: "GET" },
+
         )
         if (response.ok) {
           const data = await response.json()

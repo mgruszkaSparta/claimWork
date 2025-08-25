@@ -58,7 +58,9 @@ export function DependentSelect({
       url += `?${query}`
     }
 
+
     const response = await authFetch(url, { method: "GET" })
+
 
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`)

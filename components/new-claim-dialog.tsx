@@ -52,8 +52,10 @@ export function NewClaimDialog({ open, onOpenChange }: NewClaimDialogProps) {
   } = useQuery<RiskType[]>({
     queryKey: ["risk-types", claimObjectTypeId],
     queryFn: async () => {
+
       const res = await authFetch(
         `${API_BASE_URL}/dictionaries/risk-types?claimObjectTypeId=${claimObjectTypeId}`,
+
       )
       const data = await res.json()
       return (data.items || []).map((item: any) => ({ value: String(item.id), label: item.name }))
@@ -67,8 +69,10 @@ export function NewClaimDialog({ open, onOpenChange }: NewClaimDialogProps) {
   } = useQuery<DamageType[]>({
     queryKey: ["damage-types", riskTypeId],
     queryFn: async () => {
+
       const res = await authFetch(
         `${API_BASE_URL}/damage-types?riskTypeId=${riskTypeId}`,
+
       )
       return res.json()
     },

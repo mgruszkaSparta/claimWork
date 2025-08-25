@@ -40,7 +40,9 @@ export function SearchableSelect({
     const fetchOptions = async () => {
       setLoading(true)
       try {
+
         const response = await authFetch(apiEndpoint, { method: "GET" })
+
         if (response.ok) {
           const data = await response.json()
           // Handle both array format and object format with options property

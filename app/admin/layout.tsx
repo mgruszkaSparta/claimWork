@@ -6,8 +6,7 @@ import { useState } from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
-import { Users, Shield, BarChart3, Menu, X, UserCheck, Lock } from "lucide-react"
+import { Users, Shield, BarChart3, Menu, X, Lock } from "lucide-react"
 import { cn } from "@/lib/utils"
 
 const navigation = [
@@ -58,7 +57,18 @@ export default function AdminLayout({
       >
         <div className="flex h-full flex-col">
           {/* Header */}
-          
+          <div className="flex h-16 items-center justify-between border-b px-4">
+            <span className="font-semibold">Admin</span>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="lg:hidden"
+              onClick={() => setSidebarOpen(false)}
+            >
+              <X className="h-5 w-5" />
+              <span className="sr-only">Close sidebar</span>
+            </Button>
+          </div>
 
           {/* Navigation */}
           <nav className="flex-1 space-y-1 px-4 py-4">
@@ -94,7 +104,18 @@ export default function AdminLayout({
       {/* Main content */}
       <div className="lg:pl-64">
         {/* Top bar */}
-        
+        <div className="flex h-16 items-center border-b px-4 lg:px-6">
+          <Button
+            variant="ghost"
+            size="icon"
+            className="lg:hidden"
+            onClick={() => setSidebarOpen(true)}
+          >
+            <Menu className="h-5 w-5" />
+            <span className="sr-only">Open sidebar</span>
+          </Button>
+          <h1 className="ml-2 text-lg font-semibold">Panel administratora</h1>
+        </div>
 
         {/* Page content */}
         <main className="flex-1 p-6">{children}</main>

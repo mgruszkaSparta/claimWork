@@ -1,27 +1,46 @@
 import { type NextRequest, NextResponse } from "next/server"
 
-export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
+const API_BASE_URL =
+  process.env.NEXT_PUBLIC_API_URL || "http://localhost:5200/api"
+
+export async function GET(
+  request: NextRequest,
+  { params }: { params: { id: string } },
+) {
   try {
-    const recourseId = Number.parseInt(params.id)
-
-    // Mock file content for development
-    const mockFileContent = `Mock Recourse Document ${recourseId}
-    
-This is a mock document for recourse ID: ${recourseId}
-Generated on: ${new Date().toISOString()}
-
-This would normally be the actual document content from your file storage system.`
-
-    const blob = new Blob([mockFileContent], { type: "text/plain" })
-
-    return new NextResponse(blob, {
-      headers: {
-        "Content-Type": "text/plain",
-        "Content-Disposition": `inline; filename="recourse-${recourseId}.txt"`,
+    const response = await fetch(
+      `${API_BASE_URL}/recourses/${params.id}/preview`,
+      {
+        headers: {
+          authorization: request.headers.get("authorization") ?? "",
+        },
       },
-    })
+    )
+
+    if (!response.ok) {
+      const errorText = await response.text()
+      return NextResponse.json(
+        { error: "Failed to preview recourse", details: errorText },
+        { status: response.status },
+      )
+    }
+
+    const headers = new Headers()
+    headers.set(
+      "Content-Type",
+      response.headers.get("content-type") || "application/octet-stream",
+    )
+    headers.set(
+      "Content-Disposition",
+      response.headers.get("content-disposition") || "inline",
+    )
+
+    return new NextResponse(response.body, { headers })
   } catch (error) {
     console.error("Error previewing recourse file:", error)
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 })
+    return NextResponse.json(
+      { error: "Internal server error" },
+      { status: 500 },
+    )
   }
 }

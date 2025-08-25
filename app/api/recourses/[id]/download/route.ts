@@ -1,27 +1,42 @@
 import { type NextRequest, NextResponse } from "next/server"
 
-export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
+const API_BASE_URL =
+  process.env.NEXT_PUBLIC_API_URL || "http://localhost:5200/api"
+
+export async function GET(
+  request: NextRequest,
+  { params }: { params: { id: string } },
+) {
   try {
-    const recourseId = Number.parseInt(params.id)
-
-    // Mock file content for development
-    const mockFileContent = `Mock Recourse Document ${recourseId}
-    
-This is a mock document for recourse ID: ${recourseId}
-Generated on: ${new Date().toISOString()}
-
-This would normally be the actual document content from your file storage system.`
-
-    const blob = new Blob([mockFileContent], { type: "text/plain" })
-
-    return new NextResponse(blob, {
-      headers: {
-        "Content-Type": "application/octet-stream",
-        "Content-Disposition": `attachment; filename="recourse-${recourseId}.txt"`,
+    const response = await fetch(
+      `${API_BASE_URL}/recourses/${params.id}/download`,
+      {
+        headers: {
+          authorization: request.headers.get("authorization") ?? "",
+        },
       },
+    )
+
+    if (!response.ok || !response.body) {
+      const errorText = await response.text().catch(() => "")
+      return NextResponse.json(
+        { error: "Failed to download recourse", details: errorText },
+        { status: response.status },
+      )
+    }
+
+    const headers = new Headers()
+    response.headers.forEach((value, key) => headers.set(key, value))
+
+    return new NextResponse(response.body, {
+      status: response.status,
+      headers,
     })
   } catch (error) {
     console.error("Error downloading recourse file:", error)
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 })
+    return NextResponse.json(
+      { error: "Internal server error" },
+      { status: 500 },
+    )
   }
 }

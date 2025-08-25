@@ -21,12 +21,12 @@ builder.Services.AddTransient<EmailClient>(sp =>
 {
     var cfg = builder.Configuration.GetSection("Email");
     return new EmailClient(
-        smtpHost: cfg["SmtpHost"]!,
-        smtpPort: cfg.GetValue<int>("SmtpPort"),
-        imapHost: cfg["ImapHost"]!,
-        imapPort: cfg.GetValue<int>("ImapPort"),
-        username: cfg["Username"]!,
-        password: cfg["Password"]!,
+        smtpHost: cfg["SmtpHost"] ?? string.Empty,
+        smtpPort: cfg.GetValue<int?>("SmtpPort") ?? 0,
+        imapHost: cfg["ImapHost"] ?? string.Empty,
+        imapPort: cfg.GetValue<int?>("ImapPort") ?? 0,
+        username: cfg["Username"] ?? string.Empty,
+        password: cfg["Password"] ?? string.Empty,
         db: sp.GetRequiredService<EmailDbContext>(),
         storage: sp.GetRequiredService<IAttachmentStorage>()
     );

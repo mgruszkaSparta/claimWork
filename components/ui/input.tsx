@@ -37,7 +37,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
 
           const response = await fetch(url.toString(), {
             method: "GET",
-            credentials: "include",
+            credentials: "omit",
           })
           if (response.ok) {
             const data = await response.json()

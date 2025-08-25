@@ -13,7 +13,7 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
       const response = await fetch(`${API_BASE_URL}/appeals/${id}/preview`, {
         method: "GET",
         headers: {
-          cookie: request.headers.get("cookie") || "",
+          authorization: request.headers.get("authorization") || "",
         },
       })
 

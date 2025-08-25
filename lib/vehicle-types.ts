@@ -16,9 +16,12 @@ export const vehicleTypeService = {
       }`
       console.log("Fetching vehicle types from:", url)
 
+      const token =
+        typeof window !== "undefined" ? localStorage.getItem("token") : null
       const response = await fetch(url, {
         method: "GET",
-        credentials: "include",
+        credentials: "omit",
+        headers: token ? { Authorization: `Bearer ${token}` } : undefined,
       })
 
       if (!response.ok) {
@@ -53,9 +56,12 @@ export const vehicleTypeService = {
 
   async getVehicleTypeById(id: string): Promise<VehicleType | null> {
     try {
+      const token =
+        typeof window !== "undefined" ? localStorage.getItem("token") : null
       const response = await fetch(`${VEHICLE_TYPES_URL}/${id}`, {
         method: "GET",
-        credentials: "include",
+        credentials: "omit",
+        headers: token ? { Authorization: `Bearer ${token}` } : undefined,
       })
 
       if (!response.ok) {

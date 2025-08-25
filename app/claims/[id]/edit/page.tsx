@@ -14,6 +14,7 @@ import { useClaims, transformApiClaimToFrontend } from "@/hooks/use-claims"
 import { useAuth } from "@/hooks/use-auth"
 import type { UploadedFile, RequiredDocument } from "@/types"
 import { getRequiredDocumentsByObjectType } from "@/lib/required-documents"
+import { apiService } from "@/lib/api"
 
 export default function EditClaimPage() {
   const params = useParams()
@@ -84,20 +85,9 @@ export default function EditClaimPage() {
       setIsLoading(true)
       setLoadError(null)
 
-      // Direct API call instead of using the hook to avoid loops
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/claims/${id}`, {
-        method: "GET",
-        credentials: "include",
-      })
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status}: ${response.statusText}`)
-      }
-
-      const claimData = await response.json()
+      const claimData = await apiService.getClaim(id)
       if (claimData) {
-
         const transformedData = transformApiClaimToFrontend(claimData)
-
         setClaimFormData(transformedData)
       } else {
         throw new Error("Nie znaleziono danych szkody")

@@ -9,9 +9,9 @@ export async function apiFetch(
 ): Promise<Response> {
   const url = `${API_BASE_URL}${endpoint}`
   const headers = new Headers(init.headers)
-  const cookie = request.headers.get("cookie")
-  if (cookie) {
-    headers.set("cookie", cookie)
+  const auth = request.headers.get("authorization")
+  if (auth) {
+    headers.set("authorization", auth)
   }
   return fetch(url, {
     ...init,

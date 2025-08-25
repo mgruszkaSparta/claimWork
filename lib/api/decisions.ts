@@ -41,7 +41,7 @@ export type DecisionUpsert = z.infer<typeof decisionUpsertSchema>;
 
 async function request<T>(url: string, options: RequestInit = {}): Promise<T> {
   const response = await fetch(`${API_BASE_URL}${url}`, {
-    credentials: "include",
+    credentials: "omit",
     ...options,
   });
   const text = await response.text();

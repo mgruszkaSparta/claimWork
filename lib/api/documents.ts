@@ -4,7 +4,7 @@ import type { DocumentDto } from "../api";
 export async function deleteDocument(id: string): Promise<void> {
   const res = await fetch(`${API_BASE_URL}/documents/${id}`, {
     method: "DELETE",
-    credentials: "include",
+    credentials: "omit",
   });
   if (!res.ok) {
     const text = await res.text();
@@ -18,7 +18,7 @@ export async function renameDocument(
 ): Promise<DocumentDto> {
   const res = await fetch(`${API_BASE_URL}/documents/${id}`, {
     method: "PUT",
-    credentials: "include",
+    credentials: "omit",
     headers: {
       "Content-Type": "application/json",
     },

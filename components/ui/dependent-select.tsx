@@ -57,9 +57,12 @@ export function DependentSelect({
       url += `?${query}`
     }
 
+    const token =
+      typeof window !== "undefined" ? localStorage.getItem("token") : null
     const response = await fetch(url, {
       method: "GET",
-      credentials: "include",
+      credentials: "omit",
+      headers: token ? { Authorization: `Bearer ${token}` } : undefined,
     })
 
     if (!response.ok) {

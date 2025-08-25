@@ -60,7 +60,7 @@ function buildFormData(data: AppealUpsert, documents: File[] = []) {
 export async function getAppeals(claimId: string): Promise<Appeal[]> {
   const response = await fetch(`${APPEALS_URL}/event/${claimId}`, {
     method: "GET",
-    credentials: "include",
+    credentials: "omit",
   });
   if (!response.ok) {
     throw new Error("Failed to fetch appeals");
@@ -76,7 +76,7 @@ export async function createAppeal(
   const body = buildFormData(data, documents);
   const response = await fetch(APPEALS_URL, {
     method: "POST",
-    credentials: "include",
+    credentials: "omit",
     body,
   });
   if (!response.ok) {
@@ -94,7 +94,7 @@ export async function updateAppeal(
   const body = buildFormData(data, documents);
   const response = await fetch(`${APPEALS_URL}/${id}`, {
     method: "PUT",
-    credentials: "include",
+    credentials: "omit",
     body,
   });
   if (!response.ok) {
@@ -107,7 +107,7 @@ export async function updateAppeal(
 export async function deleteAppeal(id: string): Promise<void> {
   const response = await fetch(`${APPEALS_URL}/${id}`, {
     method: "DELETE",
-    credentials: "include",
+    credentials: "omit",
   });
   if (!response.ok) {
     throw new Error("Failed to delete appeal");

@@ -335,7 +335,7 @@ export default function NewClaimPage() {
       for (const schedule of repairSchedules) {
         const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/repair-schedules`, {
           method: "POST",
-          credentials: "include",
+          credentials: "omit",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ ...schedule, claimId: currentClaimId }),
         })
@@ -350,7 +350,7 @@ export default function NewClaimPage() {
       for (const detail of repairDetails) {
         const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/repair-details`, {
           method: "POST",
-          credentials: "include",
+          credentials: "omit",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ ...detail, claimId: currentClaimId }),
         })
@@ -378,7 +378,7 @@ export default function NewClaimPage() {
       for (const id of savedDetailIds) {
         await fetch(`${process.env.NEXT_PUBLIC_API_URL}/repair-details/${id}`, {
           method: "DELETE",
-          credentials: "include",
+          credentials: "omit",
         }).catch(
           () => {},
         )
@@ -386,7 +386,7 @@ export default function NewClaimPage() {
       for (const id of savedScheduleIds) {
         await fetch(`${process.env.NEXT_PUBLIC_API_URL}/repair-schedules/${id}`, {
           method: "DELETE",
-          credentials: "include",
+          credentials: "omit",
         }).catch(
           () => {},
         )

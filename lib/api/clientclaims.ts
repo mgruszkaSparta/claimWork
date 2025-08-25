@@ -61,7 +61,7 @@ export async function createClientClaim(
   const body = buildFormData(data, documents)
   const response = await fetch(CLIENT_CLAIMS_URL, {
     method: "POST",
-    credentials: "include",
+    credentials: "omit",
     body,
   })
   if (!response.ok) {
@@ -80,7 +80,7 @@ export async function updateClientClaim(
   const body = buildFormData(data, documents)
   const response = await fetch(`${CLIENT_CLAIMS_URL}/${id}`, {
     method: "PUT",
-    credentials: "include",
+    credentials: "omit",
     body,
   })
   if (!response.ok) {
@@ -94,7 +94,7 @@ export async function updateClientClaim(
 export async function deleteClientClaim(id: string): Promise<void> {
   const response = await fetch(`${CLIENT_CLAIMS_URL}/${id}`, {
     method: "DELETE",
-    credentials: "include",
+    credentials: "omit",
   })
   if (!response.ok) {
     const text = await response.text()
@@ -105,7 +105,7 @@ export async function deleteClientClaim(id: string): Promise<void> {
 export async function downloadClientClaimDocument(id: string): Promise<Blob> {
   const response = await fetch(`${CLIENT_CLAIMS_URL}/${id}/download`, {
     method: "GET",
-    credentials: "include",
+    credentials: "omit",
   })
   if (!response.ok) {
     throw new Error("Failed to download document")
@@ -116,7 +116,7 @@ export async function downloadClientClaimDocument(id: string): Promise<Blob> {
 export async function previewClientClaimDocument(id: string): Promise<Blob> {
   const response = await fetch(`${CLIENT_CLAIMS_URL}/${id}/preview`, {
     method: "GET",
-    credentials: "include",
+    credentials: "omit",
   })
   if (!response.ok) {
     throw new Error("Failed to preview document")

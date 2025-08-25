@@ -1,5 +1,6 @@
 using AutomotiveClaimsApi.Models;
 using Google.Apis.Auth.OAuth2;
+using Google.Apis.Storage.v1.Data;
 using Google.Cloud.Storage.V1;
 using Microsoft.Extensions.Options;
 
@@ -21,6 +22,26 @@ namespace AutomotiveClaimsApi.Services
             _storageClient = storageClient ?? CreateStorageClient();
         }
 
+        private async Task EnsureBucketExistsAsync()
+        {
+            try
+            {
+                await _storageClient.GetBucketAsync(_settings.BucketName);
+            }
+            catch (Google.GoogleApiException e) when (e.Error.Code == 404)
+            {
+                if (string.IsNullOrWhiteSpace(_settings.ProjectId))
+                {
+                    throw new InvalidOperationException("Google Cloud Storage ProjectId is not configured");
+                }
+
+                await _storageClient.CreateBucketAsync(_settings.ProjectId, new Bucket
+                {
+                    Name = _settings.BucketName
+                });
+            }
+        }
+
         private StorageClient CreateStorageClient()
         {
             if (!string.IsNullOrEmpty(_settings.CredentialsPath))
@@ -40,6 +61,9 @@ namespace AutomotiveClaimsApi.Services
                 {
                     throw new InvalidOperationException("Google Cloud Storage is not enabled");
                 }
+
+                await EnsureBucketExistsAsync();
+                fileStream.Seek(0, SeekOrigin.Begin);
 
                 await _storageClient.UploadObjectAsync(
                     _settings.BucketName,
@@ -69,6 +93,7 @@ namespace AutomotiveClaimsApi.Services
                 }
 
                 var fileName = ExtractFileName(fileUrl);
+                await EnsureBucketExistsAsync();
                 await _storageClient.DeleteObjectAsync(_settings.BucketName, fileName);
                 _logger.LogInformation("File deleted from cloud storage: {Url}", fileUrl);
             }
@@ -89,6 +114,7 @@ namespace AutomotiveClaimsApi.Services
                 }
 
                 var fileName = ExtractFileName(fileUrl);
+                await EnsureBucketExistsAsync();
                 var memoryStream = new MemoryStream();
                 await _storageClient.DownloadObjectAsync(_settings.BucketName, fileName, memoryStream);
                 memoryStream.Position = 0;

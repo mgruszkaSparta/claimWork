@@ -40,7 +40,7 @@ export type RecourseUpsert = z.infer<typeof recourseUpsertSchema>
 
 async function request<T>(url: string, options: RequestInit = {}): Promise<T> {
   const response = await fetch(`${API_BASE_URL}${url}`, {
-    credentials: "include",
+    credentials: "omit",
     ...options,
   })
   const text = await response.text()
@@ -95,7 +95,7 @@ export async function deleteRecourse(id: string): Promise<void> {
 export async function downloadRecourseDocument(id: string): Promise<Blob> {
   const response = await fetch(`${API_BASE_URL}/recourses/${id}/download`, {
     method: "GET",
-    credentials: "include",
+    credentials: "omit",
   })
   if (!response.ok) {
     throw new Error("Failed to download document")
@@ -106,7 +106,7 @@ export async function downloadRecourseDocument(id: string): Promise<Blob> {
 export async function previewRecourseDocument(id: string): Promise<Blob> {
   const response = await fetch(`${API_BASE_URL}/recourses/${id}/preview`, {
     method: "GET",
-    credentials: "include",
+    credentials: "omit",
   })
   if (!response.ok) {
     throw new Error("Failed to preview document")

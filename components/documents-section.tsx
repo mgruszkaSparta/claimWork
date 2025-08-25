@@ -164,7 +164,7 @@ export const DocumentsSection = React.forwardRef<
           const response = await fetch(
             previewDocument.previewUrl || previewDocument.downloadUrl,
             {
-              credentials: "include",
+              credentials: "omit",
             },
           )
           if (!response.ok) {
@@ -295,7 +295,7 @@ export const DocumentsSection = React.forwardRef<
       const params = new URLSearchParams({ eventId })
       const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/documents?${params.toString()}`, {
         method: "GET",
-        credentials: "include",
+        credentials: "omit",
       })
 
       if (response.status === 404) {
@@ -456,7 +456,7 @@ export const DocumentsSection = React.forwardRef<
       try {
         const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/documents/upload`, {
           method: "POST",
-          credentials: "include",
+          credentials: "omit",
           body: formData,
         })
 
@@ -639,7 +639,7 @@ export const DocumentsSection = React.forwardRef<
     try {
       const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/documents/${documentId}`, {
         method: "DELETE",
-        credentials: "include",
+        credentials: "omit",
       })
 
       if (response.ok) {
@@ -755,7 +755,7 @@ export const DocumentsSection = React.forwardRef<
     try {
       const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/documents/${documentId}`, {
         method: "PUT",
-        credentials: "include",
+        credentials: "omit",
         headers: {
           "Content-Type": "application/json",
         },
@@ -795,7 +795,7 @@ export const DocumentsSection = React.forwardRef<
 
       const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/documents/${documentId}/generate-description`, {
         method: "POST",
-        credentials: "include",
+        credentials: "omit",
       })
 
       if (response.ok) {
@@ -905,7 +905,7 @@ export const DocumentsSection = React.forwardRef<
       for (const doc of documentsForCategory) {
         const response = await fetch(doc.downloadUrl, {
           method: "GET",
-          credentials: "include",
+          credentials: "omit",
         })
         const blob = await response.blob()
         zip.file(doc.originalFileName, blob)
@@ -974,7 +974,7 @@ export const DocumentsSection = React.forwardRef<
       for (const doc of documentsForCategory) {
         const response = await fetch(doc.downloadUrl, {
           method: "GET",
-          credentials: "include",
+          credentials: "omit",
         })
         const blob = await response.blob()
         zip.file(doc.originalFileName, blob)
@@ -1039,7 +1039,7 @@ export const DocumentsSection = React.forwardRef<
         try {
           await fetch(`${process.env.NEXT_PUBLIC_API_URL}/documents/${documentId}`, {
             method: "PUT",
-            credentials: "include",
+            credentials: "omit",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ documentType: targetCode }),
           })

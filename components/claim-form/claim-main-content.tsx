@@ -215,7 +215,7 @@ export const ClaimMainContent = ({
           `${process.env.NEXT_PUBLIC_API_URL}/repair-details?eventId=${eventId}`,
           {
             method: "GET",
-            credentials: "include",
+            credentials: "omit",
           }
         )
         if (response.ok) {
@@ -315,7 +315,7 @@ export const ClaimMainContent = ({
         `${process.env.NEXT_PUBLIC_API_URL}/dictionaries/risk-types?claimObjectTypeId=${claimObjectType}`,
         {
           method: "GET",
-          credentials: "include",
+          credentials: "omit",
         },
       )
       if (response.ok) {
@@ -348,7 +348,7 @@ export const ClaimMainContent = ({
         `${process.env.NEXT_PUBLIC_API_URL}/dictionaries/claim-statuses`,
         {
           method: "GET",
-          credentials: "include",
+          credentials: "omit",
         },
       )
       if (response.ok) {
@@ -376,7 +376,7 @@ export const ClaimMainContent = ({
         `${process.env.NEXT_PUBLIC_API_URL}/dictionaries/casehandlers`,
         {
           method: "GET",
-          credentials: "include",
+          credentials: "omit",
         },
       )
       if (response.ok) {

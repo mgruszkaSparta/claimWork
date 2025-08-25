@@ -965,7 +965,7 @@ class ApiService {
 
     const token = this.getToken()
     const response = await fetch(`${API_BASE_URL}${url}`, {
-      credentials: "include",
+      credentials: "omit",
       headers: {
         "Content-Type": "application/json",
         ...(token ? { Authorization: `Bearer ${token}` } : {}),
@@ -1010,7 +1010,7 @@ class ApiService {
 
     const token = this.getToken()
     const response = await fetch(`${API_BASE_URL}${url}`, {
-      credentials: "include",
+      credentials: "omit",
       headers: {
         "Content-Type": "application/json",
         ...(token ? { Authorization: `Bearer ${token}` } : {}),
@@ -1164,7 +1164,7 @@ class ApiService {
     const token = this.getToken()
     const response = await fetch(`${API_BASE_URL}/RiskTypes/${id}`, {
       method: 'DELETE',
-      credentials: 'include',
+      credentials: 'omit',
       headers: {
         'Content-Type': 'application/json',
         ...(token ? { Authorization: `Bearer ${token}` } : {}),
@@ -1255,7 +1255,7 @@ class ApiService {
   async forgotPassword(email: string): Promise<void> {
     return this.request<void>("/auth/forgot-password", {
       method: "POST",
-      credentials: "include",
+      credentials: "omit",
       body: JSON.stringify({ email }),
     })
   }
@@ -1267,7 +1267,7 @@ class ApiService {
   ): Promise<void> {
     return this.request<void>("/auth/reset-password", {
       method: "POST",
-      credentials: "include",
+      credentials: "omit",
       body: JSON.stringify({ email, token, newPassword }),
     })
   }

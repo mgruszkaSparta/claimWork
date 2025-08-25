@@ -194,7 +194,7 @@ export function ClaimForm({ initialData, mode }: ClaimFormProps) {
               formDataFile.append('uploadedBy', 'Current User')
               await fetch(`${process.env.NEXT_PUBLIC_API_URL}/documents/upload`, {
                 method: 'POST',
-                credentials: 'include',
+                credentials: 'omit',
                 body: formDataFile,
               })
             })

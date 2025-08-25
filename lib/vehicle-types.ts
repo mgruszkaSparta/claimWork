@@ -18,7 +18,7 @@ export const vehicleTypeService = {
 
       const response = await fetch(url, {
         method: "GET",
-        credentials: "include",
+        credentials: "omit",
       })
 
       if (!response.ok) {
@@ -55,7 +55,7 @@ export const vehicleTypeService = {
     try {
       const response = await fetch(`${VEHICLE_TYPES_URL}/${id}`, {
         method: "GET",
-        credentials: "include",
+        credentials: "omit",
       })
 
       if (!response.ok) {

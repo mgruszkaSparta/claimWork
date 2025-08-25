@@ -333,7 +333,7 @@ export const SettlementsSection: React.FC<SettlementsSectionProps> = ({ eventId 
 
   const loadPreview = async (settlement: Settlement, doc: DocumentDto) => {
     const url = `${API_BASE_URL}/settlements/${settlement.id}/documents/${doc.id}/preview`
-    const response = await fetch(url, { method: "GET", credentials: "include" })
+    const response = await fetch(url, { method: "GET", credentials: "omit" })
     if (!response.ok) throw new Error("Failed to preview file")
     const blob = await response.blob()
     const objectUrl = window.URL.createObjectURL(blob)
@@ -378,7 +378,7 @@ export const SettlementsSection: React.FC<SettlementsSectionProps> = ({ eventId 
       if (docs.length === 0) {
         try {
           const url = `${API_BASE_URL}/settlements/${settlement.id}/preview`
-          const response = await fetch(url, { method: "GET", credentials: "include" })
+          const response = await fetch(url, { method: "GET", credentials: "omit" })
           if (!response.ok) throw new Error("Failed to preview file")
           const blob = await response.blob()
           const objectUrl = window.URL.createObjectURL(blob)
@@ -486,7 +486,7 @@ export const SettlementsSection: React.FC<SettlementsSectionProps> = ({ eventId 
 
         const response = await fetch(downloadUrl, {
           method: "GET",
-          credentials: "include",
+          credentials: "omit",
         })
         if (!response.ok) {
           throw new Error("Failed to download file")

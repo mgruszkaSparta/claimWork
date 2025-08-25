@@ -59,7 +59,7 @@ export function DependentSelect({
 
     const response = await fetch(url, {
       method: "GET",
-      credentials: "include",
+      credentials: "omit",
     })
 
     if (!response.ok) {

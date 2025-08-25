@@ -44,7 +44,9 @@ export function SearchableSelect({
         const response = await fetch(apiEndpoint, {
           method: "GET",
           credentials: "omit",
+
           headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+
         })
         if (response.ok) {
           const data = await response.json()

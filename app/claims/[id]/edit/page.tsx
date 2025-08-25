@@ -85,7 +85,9 @@ export default function EditClaimPage() {
       setIsLoading(true)
       setLoadError(null)
 
+
       const claimData = await apiService.getClaim(id)
+
       if (claimData) {
         const transformedData = transformApiClaimToFrontend(claimData)
         setClaimFormData(transformedData)

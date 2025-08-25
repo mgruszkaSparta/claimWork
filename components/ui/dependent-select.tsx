@@ -62,7 +62,9 @@ export function DependentSelect({
     const response = await fetch(url, {
       method: "GET",
       credentials: "omit",
+
       headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+
     })
 
     if (!response.ok) {

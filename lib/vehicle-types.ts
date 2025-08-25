@@ -21,7 +21,9 @@ export const vehicleTypeService = {
       const response = await fetch(url, {
         method: "GET",
         credentials: "omit",
+
         headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+
       })
 
       if (!response.ok) {
@@ -61,7 +63,9 @@ export const vehicleTypeService = {
       const response = await fetch(`${VEHICLE_TYPES_URL}/${id}`, {
         method: "GET",
         credentials: "omit",
+
         headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+
       })
 
       if (!response.ok) {

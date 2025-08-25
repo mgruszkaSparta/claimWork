@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
+import { API_BASE_URL } from "@/lib/api";
 
 interface VacationRequest {
   id: string;
@@ -16,13 +17,13 @@ export default function VacationManagePage() {
   const [requests, setRequests] = useState<VacationRequest[]>([]);
 
   useEffect(() => {
-    fetch("/api/vacations/pending")
+    fetch(`${API_BASE_URL}/vacations/pending`)
       .then((r) => r.json())
       .then((data) => setRequests(data));
   }, []);
 
   const act = async (id: string, action: "approve" | "reject") => {
-    await fetch(`/api/vacations/${id}/${action}`, { method: "PUT" });
+    await fetch(`${API_BASE_URL}/vacations/${id}/${action}`, { method: "PUT" });
     setRequests((r) => r.filter((x) => x.id !== id));
   };
 

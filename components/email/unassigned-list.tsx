@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { SearchableSelect } from "@/components/ui/searchable-select"
 import { emailService, type EmailDto } from "@/lib/email-service"
+import { API_BASE_URL } from "@/lib/api"
 
 export function UnassignedEmailList() {
   const [emails, setEmails] = useState<EmailDto[]>([])
@@ -85,7 +86,7 @@ export function UnassignedEmailList() {
           </DialogHeader>
 
           <SearchableSelect
-            apiEndpoint="/api/claims/options"
+            apiEndpoint={`${API_BASE_URL}/claims/options`}
             value={selectedClaim}
             onValueChange={setSelectedClaim}
             placeholder="Wybierz szkodę"

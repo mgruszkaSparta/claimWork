@@ -9,6 +9,7 @@ import { ProtectedRoute } from '@/components/protected-route'
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { FileText, Clock, TrendingUp, Users, Search, Filter, CheckSquare } from 'lucide-react';
+import { API_BASE_URL } from "@/lib/api";
 
 interface User {
   username: string
@@ -40,7 +41,7 @@ function HomePage({ user, onLogout }: PageProps) {
   useEffect(() => {
     async function loadTasks() {
       try {
-        const res = await fetch("/api/notes?category=task")
+        const res = await fetch(`${API_BASE_URL}/notes?category=task`)
         if (!res.ok) {
           console.warn(
             "Failed to fetch tasks:",
@@ -74,7 +75,7 @@ function HomePage({ user, onLogout }: PageProps) {
   useEffect(() => {
     async function loadStats() {
       try {
-        const res = await fetch("/api/dashboard/user");
+        const res = await fetch(`${API_BASE_URL}/dashboard/user`);
         if (!res.ok) throw new Error("Failed to fetch dashboard stats");
         const data = await res.json();
         setStats([

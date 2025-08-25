@@ -3,6 +3,7 @@
 
 import useSWR from 'swr'
 import type { DictionaryResponseDto } from '@/lib/dictionary-service'
+import { getJson } from '@/lib/api'
 
 interface Handler {
   id: string
@@ -11,21 +12,8 @@ interface Handler {
   isActive: boolean
 }
 
-async function getJson<T>(url: string): Promise<T> {
-  const response = await fetch(url)
-  const text = await response.text()
-  if (!response.ok) {
-    throw new Error(`Failed to fetch ${url}: ${response.status} ${text}`)
-  }
-  try {
-    return JSON.parse(text) as T
-  } catch {
-    throw new Error(`Invalid JSON from ${url}: ${text}`)
-  }
-}
-
 async function fetchCaseHandlers(): Promise<Handler[]> {
-  const data = await getJson<DictionaryResponseDto>('/api/dictionaries/casehandlers')
+  const data = await getJson<DictionaryResponseDto>('/dictionaries/casehandlers')
   return data.items.map(({ id, name, code, isActive }) => ({
     id,
     name,

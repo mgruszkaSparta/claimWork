@@ -31,7 +31,7 @@ export function useDamages(eventId?: string) {
   const initDamage = useCallback(async (): Promise<DamageInit> => {
     const response = await fetch(API_ENDPOINTS.DAMAGES_INIT, {
       method: "POST",
-      credentials: "include",
+      credentials: "omit",
     })
 
     if (!response.ok) {
@@ -51,7 +51,7 @@ export function useDamages(eventId?: string) {
 
       const response = await fetch(
         `${API_ENDPOINTS.DAMAGES}/event/${targetId}`,
-        { method: "GET", credentials: "include" },
+        { method: "GET", credentials: "omit" },
       )
 
       if (!response.ok) {
@@ -72,7 +72,7 @@ export function useDamages(eventId?: string) {
 
       const response = await fetch(API_ENDPOINTS.DAMAGES, {
         method: "POST",
-        credentials: "include",
+        credentials: "omit",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           ...damage,
@@ -94,7 +94,7 @@ export function useDamages(eventId?: string) {
     async (id: string, damage: Partial<Damage>): Promise<void> => {
       const response = await fetch(`${API_ENDPOINTS.DAMAGES}/${id}`, {
         method: "PUT",
-        credentials: "include",
+        credentials: "omit",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ ...damage, eventId }),
       })
@@ -110,7 +110,7 @@ export function useDamages(eventId?: string) {
   const deleteDamage = useCallback(async (id: string): Promise<void> => {
     const response = await fetch(`${API_ENDPOINTS.DAMAGES}/${id}`, {
       method: "DELETE",
-      credentials: "include",
+      credentials: "omit",
     })
 
     if (!response.ok) {

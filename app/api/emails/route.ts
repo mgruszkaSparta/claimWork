@@ -4,11 +4,10 @@ const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5200/a
 
 export async function GET(request: NextRequest) {
   try {
-    const cookie = request.headers.get("cookie") ?? ""
+    const auth = request.headers.get("authorization") ?? ""
     const response = await fetch(`${API_BASE_URL}/emails`, {
       cache: "no-store",
-      credentials: "include",
-      headers: { Cookie: cookie },
+      headers: { Authorization: auth },
     })
 
     if (!response.ok) {
@@ -30,13 +29,12 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const formData = await request.formData()
-    const cookie = request.headers.get("cookie") ?? ""
+    const auth = request.headers.get("authorization") ?? ""
 
     const response = await fetch(`${API_BASE_URL}/emails`, {
       method: "POST",
       body: formData,
-      credentials: "include",
-      headers: { Cookie: cookie },
+      headers: { Authorization: auth },
     })
 
     if (!response.ok) {

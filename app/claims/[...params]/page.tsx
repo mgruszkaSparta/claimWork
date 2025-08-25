@@ -111,7 +111,7 @@ export default function ClaimPage() {
 
       const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/claims/${claimId}`, {
         method: "GET",
-        credentials: "include",
+        credentials: "omit",
       })
       if (!response.ok) {
         throw new Error(`HTTP ${response.status}: ${response.statusText}`)

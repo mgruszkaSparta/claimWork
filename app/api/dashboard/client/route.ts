@@ -4,15 +4,14 @@ const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5200/a
 
 export async function GET(request: NextRequest) {
   try {
-    const token = request.cookies.get("token")?.value;
+    const auth = request.headers.get("authorization") ?? "";
     const url = `${API_BASE_URL}/dashboard/client`;
 
     const response = await fetch(url, {
       headers: {
         "Content-Type": "application/json",
-        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        ...(auth ? { Authorization: auth } : {}),
       },
-      credentials: "include",
       cache: "no-store",
     });
 

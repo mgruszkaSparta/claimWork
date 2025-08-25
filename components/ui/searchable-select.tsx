@@ -41,7 +41,7 @@ export function SearchableSelect({
       try {
         const response = await fetch(apiEndpoint, {
           method: "GET",
-          credentials: "include",
+          credentials: "omit",
         })
         if (response.ok) {
           const data = await response.json()

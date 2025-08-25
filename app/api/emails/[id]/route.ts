@@ -8,12 +8,11 @@ export async function GET(
 ) {
   try {
     const emailId = params.id
-    const cookie = request.headers.get("cookie") ?? ""
+    const auth = request.headers.get("authorization") ?? ""
 
     const response = await fetch(`${API_BASE_URL}/emails/${emailId}`, {
       cache: "no-store",
-      credentials: "include",
-      headers: { Cookie: cookie },
+      headers: { Authorization: auth },
     })
 
     if (!response.ok) {
@@ -38,12 +37,11 @@ export async function DELETE(
 ) {
   try {
     const emailId = params.id
-    const cookie = request.headers.get("cookie") ?? ""
+    const auth = request.headers.get("authorization") ?? ""
 
     const response = await fetch(`${API_BASE_URL}/emails/${emailId}`, {
       method: "DELETE",
-      credentials: "include",
-      headers: { Cookie: cookie },
+      headers: { Authorization: auth },
     })
 
     if (!response.ok) {

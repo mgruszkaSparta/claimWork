@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { API_BASE_URL } from "../api";
+import { authFetch } from "../auth-fetch";
 
 const repairDetailSchema = z.object({
   id: z.string(),
@@ -38,8 +39,7 @@ export type RepairDetail = z.infer<typeof repairDetailSchema>;
 export type RepairDetailUpsert = z.infer<typeof repairDetailUpsertSchema>;
 
 async function request<T>(url: string, options: RequestInit = {}): Promise<T> {
-  const response = await fetch(`${API_BASE_URL}${url}`, {
-    credentials: "omit",
+  const response = await authFetch(`${API_BASE_URL}${url}`, {
     headers: { "Content-Type": "application/json" },
     ...options,
   });

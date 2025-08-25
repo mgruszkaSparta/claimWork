@@ -5,6 +5,7 @@ import * as SelectPrimitive from "@radix-ui/react-select"
 import { Check, ChevronDown, ChevronUp } from "lucide-react"
 
 import { cn } from "@/lib/utils"
+import { authFetch } from "@/lib/auth-fetch"
 
 const Select = SelectPrimitive.Root
 
@@ -165,10 +166,7 @@ const DependentSelect = React.forwardRef<React.ElementRef<typeof SelectPrimitive
             url += `?${dependsOnParam}=${encodeURIComponent(dependsOn)}`
           }
 
-          const response = await fetch(url, {
-            method: "GET",
-            credentials: "omit",
-          })
+          const response = await authFetch(url, { method: "GET" })
 
           if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`)

@@ -46,6 +46,7 @@ import { TransportDamageSection } from "./transport-damage-section"
 import { PropertyParticipantsSection } from "./property-participants-section"
 import InjuredPartySection from "./injured-party-section"
 import SubcontractorSection from "./subcontractor-section"
+import { authFetch } from "@/lib/auth-fetch"
 
 import { PropertyClaimSummary } from "./property-claim-summary"
 import { TransportClaimSummary } from "./transport-claim-summary"
@@ -212,17 +213,9 @@ export const ClaimMainContent = ({
     const loadRepairDetails = async () => {
       if (!eventId) return
       try {
-        const token =
-          typeof window !== "undefined" ? localStorage.getItem("token") : null
-        const response = await fetch(
+        const response = await authFetch(
           `${process.env.NEXT_PUBLIC_API_URL}/repair-details?eventId=${eventId}`,
-          {
-            method: "GET",
-            credentials: "omit",
-
-            headers: token ? { Authorization: `Bearer ${token}` } : {},
-          },
-
+          { method: "GET" },
         )
         if (response.ok) {
           const data = await response.json()

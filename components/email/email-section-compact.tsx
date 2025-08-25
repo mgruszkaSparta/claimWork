@@ -12,6 +12,7 @@ import { EmailView } from "./email-view"
 import { cn } from "@/lib/utils"
 import { emailService, type EmailDto } from "@/lib/email-service"
 import { API_BASE_URL } from "@/lib/api"
+import { authFetch } from "@/lib/auth-fetch"
 import {
   Mail,
   MailOpen,
@@ -151,9 +152,8 @@ export const EmailSection = ({
 
   const handleStarEmail = async (emailId: string) => {
     try {
-      await fetch(`${API_BASE_URL}/emails/${emailId}/starred`, {
+      await authFetch(`${API_BASE_URL}/emails/${emailId}/starred`, {
         method: "PUT",
-        credentials: "omit",
       })
     } catch (error) {
       console.error("Error toggling star:", error)

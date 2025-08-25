@@ -1,4 +1,5 @@
 import { AppealDto, API_BASE_URL, DocumentDto } from "../api";
+import { authFetch } from "../auth-fetch";
 
 export interface Appeal {
   id: string;
@@ -58,9 +59,8 @@ function buildFormData(data: AppealUpsert, documents: File[] = []) {
 }
 
 export async function getAppeals(claimId: string): Promise<Appeal[]> {
-  const response = await fetch(`${APPEALS_URL}/event/${claimId}`, {
+  const response = await authFetch(`${APPEALS_URL}/event/${claimId}`, {
     method: "GET",
-    credentials: "omit",
   });
   if (!response.ok) {
     throw new Error("Failed to fetch appeals");
@@ -74,9 +74,8 @@ export async function createAppeal(
   documents: File[] = [],
 ): Promise<Appeal> {
   const body = buildFormData(data, documents);
-  const response = await fetch(APPEALS_URL, {
+  const response = await authFetch(APPEALS_URL, {
     method: "POST",
-    credentials: "omit",
     body,
   });
   if (!response.ok) {
@@ -92,9 +91,8 @@ export async function updateAppeal(
   documents: File[] = [],
 ): Promise<Appeal> {
   const body = buildFormData(data, documents);
-  const response = await fetch(`${APPEALS_URL}/${id}`, {
+  const response = await authFetch(`${APPEALS_URL}/${id}`, {
     method: "PUT",
-    credentials: "omit",
     body,
   });
   if (!response.ok) {
@@ -105,9 +103,8 @@ export async function updateAppeal(
 }
 
 export async function deleteAppeal(id: string): Promise<void> {
-  const response = await fetch(`${APPEALS_URL}/${id}`, {
+  const response = await authFetch(`${APPEALS_URL}/${id}`, {
     method: "DELETE",
-    credentials: "omit",
   });
   if (!response.ok) {
     throw new Error("Failed to delete appeal");

@@ -32,6 +32,7 @@ import {
 import { emailTemplates } from "@/lib/email-data"
 import type { EmailCompose, EmailAttachment } from "@/types/email"
 import type { UploadedFile } from "@/types"
+import { authFetch } from "@/lib/auth-fetch"
 
 interface EmailComposeProps {
   onSend: (email: EmailCompose) => void
@@ -113,7 +114,7 @@ export const EmailComposeComponent = ({
     try {
       let file = doc.file
       if (!file) {
-        const response = await fetch(doc.url)
+        const response = await authFetch(doc.url)
         const blob = await response.blob()
         file = new File([blob], doc.name, { type: blob.type || 'application/octet-stream' })
       }

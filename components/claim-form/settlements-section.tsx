@@ -12,6 +12,7 @@ import { useToast } from "@/hooks/use-toast"
 import { HandHeart, Plus, Minus, Edit, Trash2, Download, Eye, X, Upload, FileText, Info, Loader2, ChevronLeft, ChevronRight } from "lucide-react"
 import { getSettlements, createSettlement, updateSettlement, deleteSettlement } from "@/lib/api/settlements"
 import { API_BASE_URL } from "@/lib/api"
+import { authFetch } from "@/lib/auth-fetch"
 import type { Settlement } from "@/lib/api/settlements"
 import type { DocumentDto } from "@/lib/api"
 
@@ -333,7 +334,7 @@ export const SettlementsSection: React.FC<SettlementsSectionProps> = ({ eventId 
 
   const loadPreview = async (settlement: Settlement, doc: DocumentDto) => {
     const url = `${API_BASE_URL}/settlements/${settlement.id}/documents/${doc.id}/preview`
-    const response = await fetch(url, { method: "GET", credentials: "omit" })
+    const response = await authFetch(url, { method: "GET" })
     if (!response.ok) throw new Error("Failed to preview file")
     const blob = await response.blob()
     const objectUrl = window.URL.createObjectURL(blob)
@@ -378,7 +379,7 @@ export const SettlementsSection: React.FC<SettlementsSectionProps> = ({ eventId 
       if (docs.length === 0) {
         try {
           const url = `${API_BASE_URL}/settlements/${settlement.id}/preview`
-          const response = await fetch(url, { method: "GET", credentials: "omit" })
+          const response = await authFetch(url, { method: "GET" })
           if (!response.ok) throw new Error("Failed to preview file")
           const blob = await response.blob()
           const objectUrl = window.URL.createObjectURL(blob)
@@ -484,10 +485,7 @@ export const SettlementsSection: React.FC<SettlementsSectionProps> = ({ eventId 
           ? `${API_BASE_URL}/settlements/${settlement.id}/documents/${doc.id}/download`
           : `${API_BASE_URL}/settlements/${settlement.id}/download`
 
-        const response = await fetch(downloadUrl, {
-          method: "GET",
-          credentials: "omit",
-        })
+        const response = await authFetch(downloadUrl, { method: "GET" })
         if (!response.ok) {
           throw new Error("Failed to download file")
         }

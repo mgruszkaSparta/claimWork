@@ -1,3 +1,5 @@
+import { authFetch } from "./auth-fetch"
+
 interface DictionaryItemDto {
   id: string | number
   code?: string
@@ -24,24 +26,10 @@ class DictionaryService {
   private cache = new Map<string, { data: DictionaryResponseDto; timestamp: number }>()
   private readonly CACHE_DURATION = 5 * 60 * 1000 // 5 minutes
 
-  private getToken(): string | null {
-    if (typeof window !== "undefined") {
-      return localStorage.getItem("token")
-    }
-    return null
-  }
-
   private async fetchFromAPI(endpoint: string): Promise<DictionaryResponseDto> {
-    const token = this.getToken()
-    const response = await fetch(
+    const response = await authFetch(
       `${process.env.NEXT_PUBLIC_API_URL}/dictionaries/${endpoint}`,
-      {
-        method: "GET",
-        credentials: "omit",
-
-        headers: token ? { Authorization: `Bearer ${token}` } : {},
-
-      },
+      { method: "GET" },
     )
     const text = await response.text()
     if (!response.ok) {

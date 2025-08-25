@@ -1,5 +1,6 @@
 import { EmailFolder } from "@/types/email"
 import { API_BASE_URL } from "./api"
+import { authFetch } from "./auth-fetch"
 
 export interface AttachmentDto {
   id: string
@@ -60,9 +61,8 @@ class EmailService {
 
   async getAllEmails(): Promise<EmailDto[]> {
     try {
-      const response = await fetch(this.apiUrl, {
+      const response = await authFetch(this.apiUrl, {
         method: "GET",
-        credentials: "omit",
       })
       if (!response.ok) throw new Error("Failed to fetch emails")
       const data = await response.json()
@@ -97,9 +97,8 @@ class EmailService {
   async getEmailById(id: string): Promise<EmailDto | undefined> {
     if (!this.isValidGuid(id)) return undefined
     try {
-      const response = await fetch(`${this.apiUrl}/${id}`, {
+      const response = await authFetch(`${this.apiUrl}/${id}`, {
         method: "GET",
-        credentials: "omit",
       })
       if (!response.ok) throw new Error("Failed to fetch email")
       const e = await response.json()
@@ -134,9 +133,8 @@ class EmailService {
   async deleteEmail(emailId: string): Promise<boolean> {
     if (!this.isValidGuid(emailId)) return false
     try {
-      const response = await fetch(`${this.apiUrl}/${emailId}`, {
+      const response = await authFetch(`${this.apiUrl}/${emailId}`, {
         method: "DELETE",
-        credentials: "omit",
       })
       return response.ok
     } catch (error) {
@@ -188,9 +186,8 @@ class EmailService {
   async getEmailsByEventId(eventId: string): Promise<EmailDto[]> {
     if (!this.isValidGuid(eventId)) return []
     try {
-      const response = await fetch(`${this.apiUrl}/event/${eventId}`, {
+      const response = await authFetch(`${this.apiUrl}/event/${eventId}`, {
         method: "GET",
-        credentials: "omit",
       })
       if (!response.ok) throw new Error("Failed to fetch emails by event")
       const data = await response.json()
@@ -225,9 +222,8 @@ class EmailService {
   async markAsRead(emailId: string): Promise<boolean> {
     if (!this.isValidGuid(emailId)) return false
     try {
-      const response = await fetch(`${this.apiUrl}/${emailId}/read`, {
+      const response = await authFetch(`${this.apiUrl}/${emailId}/read`, {
         method: "PUT",
-        credentials: "omit",
       })
       return response.ok
     } catch (error) {
@@ -249,9 +245,8 @@ class EmailService {
       if (sendRequest.eventId) formData.append("eventId", sendRequest.eventId)
       sendRequest.attachments?.forEach((file) => formData.append("attachments", file))
 
-      const response = await fetch(this.apiUrl, {
+      const response = await authFetch(this.apiUrl, {
         method: "POST",
-        credentials: "omit",
         body: formData,
       })
       return response.ok
@@ -275,9 +270,8 @@ class EmailService {
       if (sendRequest.eventId) formData.append("eventId", sendRequest.eventId)
       sendRequest.attachments?.forEach((file) => formData.append("attachments", file))
 
-      const response = await fetch(`${this.apiUrl}/draft`, {
+      const response = await authFetch(`${this.apiUrl}/draft`, {
         method: "POST",
-        credentials: "omit",
         body: formData,
       })
       return response.ok
@@ -290,9 +284,8 @@ class EmailService {
   async downloadAttachment(attachmentId: string): Promise<Blob | undefined> {
     if (!this.isValidGuid(attachmentId)) return undefined
     try {
-      const response = await fetch(`${this.apiUrl}/attachment/${attachmentId}`, {
+      const response = await authFetch(`${this.apiUrl}/attachment/${attachmentId}`, {
         method: "GET",
-        credentials: "omit",
       })
       if (!response.ok) throw new Error("Failed to download attachment")
       return await response.blob()
@@ -310,9 +303,8 @@ class EmailService {
     try {
       const formData = new FormData()
       formData.append("file", file)
-      const response = await fetch(`${this.apiUrl}/${emailId}/attachments`, {
+      const response = await authFetch(`${this.apiUrl}/${emailId}/attachments`, {
         method: "POST",
-        credentials: "omit",
         body: formData,
       })
       if (!response.ok) throw new Error("Failed to upload attachment")
@@ -326,9 +318,8 @@ class EmailService {
   async deleteAttachment(attachmentId: string): Promise<boolean> {
     if (!this.isValidGuid(attachmentId)) return false
     try {
-      const response = await fetch(`${this.apiUrl}/attachment/${attachmentId}`, {
+      const response = await authFetch(`${this.apiUrl}/attachment/${attachmentId}`, {
         method: "DELETE",
-        credentials: "omit",
       })
       return response.ok
     } catch (error) {
@@ -339,9 +330,8 @@ class EmailService {
 
   async assignEmailToClaim(emailId: string, claimIds: string[]): Promise<boolean> {
     try {
-      const response = await fetch(`${this.apiUrl}/assign-to-claim`, {
+      const response = await authFetch(`${this.apiUrl}/assign-to-claim`, {
         method: "POST",
-        credentials: "omit",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ emailId, claimIds }),
       })

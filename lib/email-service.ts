@@ -185,10 +185,15 @@ class EmailService {
     return emails.filter((e) => e.claimIds?.includes(claimId))
   }
 
-  async getEmailsByEventId(eventId: string): Promise<EmailDto[]> {
+  async getEmailsByEventId(
+    eventId: string,
+    folder?: EmailFolder,
+  ): Promise<EmailDto[]> {
     if (!this.isValidGuid(eventId)) return []
     try {
-      const response = await fetch(`${this.apiUrl}/event/${eventId}`, {
+      const url = new URL(`${this.apiUrl}/event/${eventId}`)
+      if (folder) url.searchParams.set("folder", folder)
+      const response = await fetch(url.toString(), {
         method: "GET",
         credentials: "include",
       })

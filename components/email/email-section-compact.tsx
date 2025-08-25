@@ -75,7 +75,7 @@ export const EmailSection = ({
       let data: EmailDto[]
       const folderEnum = folder as EmailFolder
       if (claimId) {
-        data = await emailService.getEmailsByEventId(claimId)
+        data = await emailService.getEmailsByEventId(claimId, folderEnum)
       } else {
         data = await emailService.getEmailsByFolder(folderEnum)
       }

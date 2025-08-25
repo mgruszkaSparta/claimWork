@@ -127,8 +127,7 @@ export default function EmailInbox({ claimId, claimNumber, claimInsuranceNumber 
       let emailsData: EmailDto[]
 
       if (claimId) {
-        const allEventEmails = await emailService.getEmailsByEventId(claimId)
-        emailsData = filterEmailsByFolder(allEventEmails, selectedFolder)
+        emailsData = await emailService.getEmailsByEventId(claimId, selectedFolder)
       } else if (selectedFolder === EmailFolder.Unassigned) {
         emailsData = await emailService.getUnassignedEmails()
       } else {

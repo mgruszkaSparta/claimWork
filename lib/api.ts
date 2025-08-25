@@ -925,6 +925,10 @@ class ApiService {
     userName: string
     email?: string
     password: string
+    firstName?: string
+    lastName?: string
+    roles?: string[]
+    status?: "active" | "inactive"
     fullAccess?: boolean
     clientIds?: number[]
   }): Promise<void> {

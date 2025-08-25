@@ -2,6 +2,7 @@
 
 import { useCallback } from "react"
 import { API_ENDPOINTS } from "@/lib/constants"
+import { authFetch } from "@/lib/auth-fetch"
 
 export interface Damage {
   id?: string
@@ -35,11 +36,9 @@ export function useDamages(eventId?: string) {
   }
 
   const initDamage = useCallback(async (): Promise<DamageInit> => {
-    const response = await fetch(API_ENDPOINTS.DAMAGES_INIT, {
+    const response = await authFetch(API_ENDPOINTS.DAMAGES_INIT, {
       method: "POST",
-      credentials: "omit",
 
-      headers: getAuthHeaders(),
 
     })
 
@@ -58,10 +57,10 @@ export function useDamages(eventId?: string) {
         throw new Error("Brak identyfikatora zdarzenia")
       }
 
-      const response = await fetch(
+      const response = await authFetch(
         `${API_ENDPOINTS.DAMAGES}/event/${targetId}`,
 
-        { method: "GET", credentials: "omit", headers: getAuthHeaders() },
+        { method: "GET" },
 
       )
 
@@ -81,14 +80,10 @@ export function useDamages(eventId?: string) {
         throw new Error("Brak identyfikatora zdarzenia")
       }
 
-      const response = await fetch(API_ENDPOINTS.DAMAGES, {
+      const response = await authFetch(API_ENDPOINTS.DAMAGES, {
         method: "POST",
-        credentials: "omit",
 
-        headers: {
-          "Content-Type": "application/json",
-          ...getAuthHeaders(),
-        },
+        headers: { "Content-Type": "application/json" },
 
         body: JSON.stringify({
           ...damage,
@@ -108,14 +103,10 @@ export function useDamages(eventId?: string) {
 
   const updateDamage = useCallback(
     async (id: string, damage: Partial<Damage>): Promise<void> => {
-      const response = await fetch(`${API_ENDPOINTS.DAMAGES}/${id}`, {
+      const response = await authFetch(`${API_ENDPOINTS.DAMAGES}/${id}`, {
         method: "PUT",
-        credentials: "omit",
 
-        headers: {
-          "Content-Type": "application/json",
-          ...getAuthHeaders(),
-        },
+        headers: { "Content-Type": "application/json" },
 
         body: JSON.stringify({ ...damage, eventId }),
       })
@@ -129,11 +120,8 @@ export function useDamages(eventId?: string) {
   )
 
   const deleteDamage = useCallback(async (id: string): Promise<void> => {
-    const response = await fetch(`${API_ENDPOINTS.DAMAGES}/${id}`, {
+    const response = await authFetch(`${API_ENDPOINTS.DAMAGES}/${id}`, {
       method: "DELETE",
-      credentials: "omit",
-
-      headers: getAuthHeaders(),
 
     })
 

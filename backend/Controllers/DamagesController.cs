@@ -53,13 +53,6 @@ namespace AutomotiveClaimsApi.Controllers
             }
         }
 
-        [HttpPost("init")]
-        public ActionResult InitDamage()
-        {
-            var id = Guid.NewGuid();
-            return Ok(new { id });
-        }
-
         [HttpPost]
         public async Task<ActionResult<DamageDto>> PostDamage(DamageUpsertDto upsertDto)
         {
@@ -67,11 +60,13 @@ namespace AutomotiveClaimsApi.Controllers
             {
                 if (!upsertDto.Id.HasValue || upsertDto.Id == Guid.Empty)
                 {
-                    return BadRequest("Damage ID is required. Use the init endpoint to obtain one.");
+                    return BadRequest("Id is required");
                 }
+                var damageId = upsertDto.Id.Value;
+
                 var damage = new Damage
                 {
-                    Id = upsertDto.Id.Value,
+                    Id = damageId,
                     EventId = upsertDto.EventId,
                     Description = upsertDto.Description,
                     Detail = upsertDto.Detail,

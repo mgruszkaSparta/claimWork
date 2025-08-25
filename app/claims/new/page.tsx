@@ -30,7 +30,7 @@ import { getRequiredDocumentsByObjectType } from "@/lib/required-documents"
 
 interface RepairSchedule {
   id?: string
-  eventId: string
+  eventId?: string
   companyName: string
   damageNumber: string
   vehicleFleetNumber: string
@@ -57,9 +57,8 @@ export default function NewClaimPage() {
   const claimObjectTypeParam = searchParams.get("claimObjectType") || "1"
   const [claimObjectType, setClaimObjectType] = useState(claimObjectTypeParam)
   const { toast } = useToast()
-  const { createClaim, deleteClaim, initializeClaim } = useClaims()
+  const { createClaim, deleteClaim } = useClaims()
   const { user } = useAuth()
-  const [claimId, setClaimId] = useState<string>("")
   const [activeClaimSection, setActiveClaimSection] = useState("teczka-szkodowa")
   const [isSaving, setIsSaving] = useState(false)
   const contentRef = useRef<HTMLDivElement>(null)
@@ -100,14 +99,8 @@ export default function NewClaimPage() {
     resetForm,
   } = useClaimForm()
 
-  useEffect(() => {
-    initializeClaim().then((id) => {
-      if (id) {
-        setClaimId(id)
-        setClaimFormData((prev) => ({ ...prev, id }))
-      }
-    })
-  }, [initializeClaim, setClaimFormData])
+
+  
 
   useEffect(() => {
     if (user) {
@@ -226,7 +219,6 @@ export default function NewClaimPage() {
     const newSchedule: RepairSchedule = {
       ...scheduleFormData,
       id: generateId(),
-      eventId: claimId,
       createdAt: new Date().toISOString(),
     } as RepairSchedule
 
@@ -244,7 +236,6 @@ export default function NewClaimPage() {
     const newDetail: RepairDetail = {
       ...repairDetailFormData,
       id: generateId(),
-      eventId: claimId,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     } as RepairDetail
@@ -311,13 +302,8 @@ export default function NewClaimPage() {
     let createdClaimId: string | null = null
 
     try {
-      const currentClaimId = claimId || claimFormData.id
-      if (!currentClaimId) {
-        throw new Error("Brak zainicjalizowanego ID szkody")
-      }
       const newClaimData = {
         ...claimFormData,
-        id: currentClaimId,
         claimNumber:
           claimFormData.claimNumber ||
           `PL${new Date().getFullYear()}${String(Date.now()).slice(-8)}`,
@@ -329,7 +315,8 @@ export default function NewClaimPage() {
       if (!createdClaim) {
         throw new Error("Nie udało się utworzyć szkody")
       }
-      createdClaimId = createdClaim.id
+      const currentClaimId = createdClaim.id
+      createdClaimId = currentClaimId
 
       // Save repair schedules sequentially
       for (const schedule of repairSchedules) {

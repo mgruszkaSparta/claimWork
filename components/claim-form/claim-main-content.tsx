@@ -412,11 +412,15 @@ export const ClaimMainContent = ({
         const newDamages = currentDamages.filter((d) => d.description !== partName)
         handleFormChange("damages", newDamages)
       } else {
-
-        const unsaved = createDamageDraft({ description: partName, detail: "Do opisu" })
-        const newDamages = [...currentDamages, unsaved]
-
-        handleFormChange("damages", newDamages)
+        if (claimFormData.id) {
+          const saved = await createDamage({ description: partName, detail: "Do opisu" })
+          const newDamages = [...currentDamages, { ...saved, isSaved: true }]
+          handleFormChange("damages", newDamages)
+        } else {
+          const unsaved = createDamageDraft({ description: partName, detail: "Do opisu" })
+          const newDamages = [...currentDamages, unsaved]
+          handleFormChange("damages", newDamages)
+        }
       }
     } catch (error: any) {
       toast({

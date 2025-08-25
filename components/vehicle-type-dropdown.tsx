@@ -12,6 +12,12 @@ import { cn } from "@/lib/utils"
 
 interface VehicleTypeDropdownProps {
   selectedVehicleTypeId?: string
+  /**
+   * When editing an existing claim we might only have the vehicle type
+   * name stored in the database. Allow passing it so the dropdown can
+   * preselect the correct option even without an id.
+   */
+  selectedVehicleTypeName?: string
   onVehicleTypeSelected: (event: VehicleTypeSelectionEvent) => void
   placeholder?: string
   className?: string
@@ -20,6 +26,7 @@ interface VehicleTypeDropdownProps {
 
 export default function VehicleTypeDropdown({
   selectedVehicleTypeId,
+  selectedVehicleTypeName,
   onVehicleTypeSelected,
   placeholder = "Wybierz rodzaj pojazdu...",
   className,
@@ -52,15 +59,26 @@ export default function VehicleTypeDropdown({
     }
   }, [searchTerm, vehicleTypes])
 
-  // Set selected vehicle type when selectedVehicleTypeId changes
+  // Set selected vehicle type when selectedVehicleTypeId or name changes
   useEffect(() => {
-    if (selectedVehicleTypeId && vehicleTypes.length > 0) {
+    if (vehicleTypes.length === 0) {
+      return
+    }
+
+    if (selectedVehicleTypeId) {
       const vehicleType = vehicleTypes.find((type) => type.id === selectedVehicleTypeId)
       setSelectedVehicleType(vehicleType || null)
-    } else {
-      setSelectedVehicleType(null)
+      return
     }
-  }, [selectedVehicleTypeId, vehicleTypes])
+
+    if (selectedVehicleTypeName) {
+      const vehicleType = vehicleTypes.find((type) => type.name === selectedVehicleTypeName)
+      setSelectedVehicleType(vehicleType || null)
+      return
+    }
+
+    setSelectedVehicleType(null)
+  }, [selectedVehicleTypeId, selectedVehicleTypeName, vehicleTypes])
 
   const loadVehicleTypes = async () => {
     setLoading(true)

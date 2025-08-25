@@ -295,7 +295,8 @@ namespace AutomotiveClaimsApi.Controllers
 
         private async Task<DecisionDto> MapToDto(Decision d)
         {
-            var baseUrl = _config["App:BaseUrl"] ?? string.Empty;
+            var baseUrl = (_config["App:BaseUrl"] ?? string.Empty).TrimEnd('/');
+            var apiBaseUrl = baseUrl.EndsWith("/api") ? baseUrl : $"{baseUrl}/api";
 
             var documents = await _context.Documents
                 .Where(doc => doc.RelatedEntityId == d.Id && doc.RelatedEntityType == "Decision" && !doc.IsDeleted)
@@ -305,8 +306,8 @@ namespace AutomotiveClaimsApi.Controllers
                     OriginalFileName = doc.OriginalFileName,
                     FileName = doc.FileName,
                     FilePath = doc.FilePath,
-                    DownloadUrl = $"{baseUrl}/api/documents/{doc.Id}/download",
-                    PreviewUrl = $"{baseUrl}/api/documents/{doc.Id}/preview"
+                    DownloadUrl = $"{apiBaseUrl}/documents/{doc.Id}/download",
+                    PreviewUrl = $"{apiBaseUrl}/documents/{doc.Id}/preview"
                 })
                 .ToListAsync();
 

@@ -359,9 +359,23 @@ export function DecisionsSection({ claimId, onChange }: DecisionsSectionProps) {
 
   const loadPreview = async (decision: Decision, doc: DocumentDto) => {
     if (!claimId) return
-    const url = doc.previewUrl ?? `${API_BASE_URL}/documents/${doc.id}/preview`
-    const response = await authFetch(url, { method: "GET" })
-    if (!response.ok) throw new Error("Failed to preview file")
+
+    // Try multiple sources in case some URLs are missing or return errors.
+    const urls = [
+      doc.previewUrl,
+      doc.downloadUrl,
+      doc.cloudUrl,
+      `/documents/${doc.id}/preview`,
+    ].filter(Boolean) as string[]
+
+    let response: Response | null = null
+    for (const url of urls) {
+      response = await authFetch(url, { method: "GET" })
+      if (response.ok) break
+    }
+
+    if (!response || !response.ok) throw new Error("Failed to preview file")
+
     const blob = await response.blob()
     const objectUrl = window.URL.createObjectURL(blob)
     const name = doc.originalFileName || doc.fileName

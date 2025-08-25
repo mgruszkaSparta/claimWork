@@ -45,6 +45,16 @@ namespace AutomotiveClaimsApi.Tests
                 _storage.Remove(objectName);
                 return Task.CompletedTask;
             }
+
+            public override Task<Bucket> GetBucketAsync(string bucket, GetBucketOptions options = null, CancellationToken cancellationToken = default)
+            {
+                return Task.FromResult(new Bucket { Name = bucket });
+            }
+
+            public override Task<Bucket> CreateBucketAsync(string projectId, Bucket bucket, CreateBucketOptions options = null, CancellationToken cancellationToken = default)
+            {
+                return Task.FromResult(bucket);
+            }
         }
 
         [Fact]
@@ -53,7 +63,8 @@ namespace AutomotiveClaimsApi.Tests
             var settings = Options.Create(new GoogleCloudStorageSettings
             {
                 Enabled = true,
-                BucketName = "test-bucket"
+                BucketName = "test-bucket",
+                ProjectId = "test-project"
             });
             var client = new FakeStorageClient();
             var service = new GoogleCloudStorageService(settings, NullLogger<GoogleCloudStorageService>.Instance, client);

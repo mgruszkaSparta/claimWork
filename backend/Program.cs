@@ -21,16 +21,13 @@ builder.Services.AddControllersWithViews(options =>
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-// Configure CORS to allow configured origins with credentials
-var allowedOrigins = builder.Configuration.GetSection("AllowedOrigins").Get<string[]>()
-    ?? new[] { "http://localhost:3000" };
+// Configure CORS to allow any origin, header, and method
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("ConfiguredOrigins", policy =>
-        policy.WithOrigins(allowedOrigins)
+    options.AddPolicy("AllowAll", policy =>
+        policy.AllowAnyOrigin()
               .AllowAnyHeader()
-              .AllowAnyMethod()
-              .AllowCredentials());
+              .AllowAnyMethod());
 });
 
 // Add Entity Framework with database provider selected from configuration
@@ -115,7 +112,7 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
-app.UseCors("ConfiguredOrigins");
+app.UseCors("AllowAll");
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();

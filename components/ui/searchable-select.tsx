@@ -39,9 +39,14 @@ export function SearchableSelect({
     const fetchOptions = async () => {
       setLoading(true)
       try {
+        const token =
+          typeof window !== "undefined" ? localStorage.getItem("token") : null
         const response = await fetch(apiEndpoint, {
           method: "GET",
           credentials: "omit",
+
+          headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+
         })
         if (response.ok) {
           const data = await response.json()

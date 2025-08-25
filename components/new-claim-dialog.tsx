@@ -51,10 +51,15 @@ export function NewClaimDialog({ open, onOpenChange }: NewClaimDialogProps) {
   } = useQuery<RiskType[]>({
     queryKey: ["risk-types", claimObjectTypeId],
     queryFn: async () => {
+      const token =
+        typeof window !== "undefined" ? localStorage.getItem("token") : null
       const res = await fetch(
         `${API_BASE_URL}/dictionaries/risk-types?claimObjectTypeId=${claimObjectTypeId}`,
         {
           credentials: "omit",
+
+          headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+
         },
       )
       const data = await res.json()
@@ -69,10 +74,15 @@ export function NewClaimDialog({ open, onOpenChange }: NewClaimDialogProps) {
   } = useQuery<DamageType[]>({
     queryKey: ["damage-types", riskTypeId],
     queryFn: async () => {
+      const token =
+        typeof window !== "undefined" ? localStorage.getItem("token") : null
       const res = await fetch(
         `${API_BASE_URL}/damage-types?riskTypeId=${riskTypeId}`,
         {
           credentials: "omit",
+
+          headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+
         },
       )
       return res.json()

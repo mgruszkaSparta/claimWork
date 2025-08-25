@@ -29,9 +29,17 @@ export function createDamageDraft(params: Partial<Damage> = {}): Damage {
 }
 
 export function useDamages(eventId?: string) {
+  const getAuthHeaders = () => {
+    const token =
+      typeof window !== "undefined" ? localStorage.getItem("token") : null
+    return token ? { Authorization: `Bearer ${token}` } : {}
+  }
+
   const initDamage = useCallback(async (): Promise<DamageInit> => {
     const response = await authFetch(API_ENDPOINTS.DAMAGES_INIT, {
       method: "POST",
+
+
     })
 
     if (!response.ok) {
@@ -51,7 +59,9 @@ export function useDamages(eventId?: string) {
 
       const response = await authFetch(
         `${API_ENDPOINTS.DAMAGES}/event/${targetId}`,
+
         { method: "GET" },
+
       )
 
       if (!response.ok) {
@@ -72,7 +82,9 @@ export function useDamages(eventId?: string) {
 
       const response = await authFetch(API_ENDPOINTS.DAMAGES, {
         method: "POST",
+
         headers: { "Content-Type": "application/json" },
+
         body: JSON.stringify({
           ...damage,
           eventId: (damage as any).eventId || eventId,
@@ -93,7 +105,9 @@ export function useDamages(eventId?: string) {
     async (id: string, damage: Partial<Damage>): Promise<void> => {
       const response = await authFetch(`${API_ENDPOINTS.DAMAGES}/${id}`, {
         method: "PUT",
+
         headers: { "Content-Type": "application/json" },
+
         body: JSON.stringify({ ...damage, eventId }),
       })
 
@@ -108,6 +122,7 @@ export function useDamages(eventId?: string) {
   const deleteDamage = useCallback(async (id: string): Promise<void> => {
     const response = await authFetch(`${API_ENDPOINTS.DAMAGES}/${id}`, {
       method: "DELETE",
+
     })
 
     if (!response.ok) {

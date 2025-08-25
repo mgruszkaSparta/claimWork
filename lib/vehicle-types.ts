@@ -17,8 +17,10 @@ export const vehicleTypeService = {
       }`
       console.log("Fetching vehicle types from:", url)
 
+
       const response = await authFetch(url, {
         method: "GET",
+
       })
 
       if (!response.ok) {
@@ -53,6 +55,7 @@ export const vehicleTypeService = {
 
   async getVehicleTypeById(id: string): Promise<VehicleType | null> {
     try {
+
       const response = await authFetch(`${VEHICLE_TYPES_URL}/${id}`, {
         method: "GET",
       })

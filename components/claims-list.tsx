@@ -38,7 +38,7 @@ import { useClaims } from "@/hooks/use-claims"
 import { useToast } from "@/hooks/use-toast"
 import { useAuth } from "@/hooks/use-auth"
 import type { Claim } from "@/types"
-import { API_BASE_URL } from "@/lib/api"
+import { dictionaryService } from "@/lib/dictionary-service"
 
 
 const typeLabelMap: Record<number, string> = {
@@ -115,11 +115,7 @@ export function ClaimsList({
   useEffect(() => {
     const loadStatuses = async () => {
       try {
-        const res = await fetch(
-          `${API_BASE_URL}/dictionaries/claim-statuses`,
-          { credentials: "include" },
-        )
-        const data = await res.json()
+        const data = await dictionaryService.getClaimStatuses()
         setClaimStatuses(
           (data.items ?? []) as {
             id: number
@@ -138,13 +134,7 @@ export function ClaimsList({
   useEffect(() => {
     const loadRiskTypes = async () => {
       try {
-        const res = await fetch(
-          `${API_BASE_URL}/dictionaries/risk-types${
-            claimObjectTypeId ? `?claimObjectTypeId=${claimObjectTypeId}` : ""
-          }`,
-          { credentials: "include" },
-        )
-        const data = await res.json()
+        const data = await dictionaryService.getRiskTypes(claimObjectTypeId)
         setRiskTypes(
           (data.items ?? []) as { id: string; code: string; name: string }[],
         )

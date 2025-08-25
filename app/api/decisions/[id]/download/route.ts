@@ -14,7 +14,7 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
       `${API_BASE_URL}/claims/${claimId}/decisions/${id}/download`,
       {
         headers: {
-          cookie: request.headers.get("cookie") ?? "",
+          authorization: request.headers.get("authorization") ?? "",
         },
       },
     )

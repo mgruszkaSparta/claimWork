@@ -49,6 +49,16 @@ import {
 import { API_BASE_URL, DocumentDto } from "@/lib/api"
 import { deleteDocument } from "@/lib/api/documents"
 
+const getAuthHeaders = () => {
+  if (typeof window !== "undefined") {
+    const token = localStorage.getItem("token")
+    if (token) {
+      return { Authorization: `Bearer ${token}` }
+    }
+  }
+  return {}
+}
+
 interface AppealsSectionProps {
   claimId: string
 }
@@ -359,7 +369,8 @@ export const AppealsSection = ({ claimId }: AppealsSectionProps) => {
         : `${API_BASE_URL}/appeals/${appeal.id}/download`
       const response = await fetch(url, {
         method: "GET",
-        credentials: "include",
+        credentials: "omit",
+        headers: getAuthHeaders(),
       })
       if (!response.ok) {
         throw new Error("Failed to download file")
@@ -391,7 +402,8 @@ export const AppealsSection = ({ claimId }: AppealsSectionProps) => {
         : `${API_BASE_URL}/appeals/${appeal.id}/preview`
       const response = await fetch(url, {
         method: "GET",
-        credentials: "include",
+        credentials: "omit",
+        headers: getAuthHeaders(),
       })
       if (!response.ok) {
         throw new Error("Failed to preview file")

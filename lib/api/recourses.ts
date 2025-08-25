@@ -1,6 +1,16 @@
 import { z } from "zod"
 import { API_BASE_URL } from "../api"
 
+function getAuthHeaders() {
+  if (typeof window !== "undefined") {
+    const token = localStorage.getItem("token")
+    if (token) {
+      return { Authorization: `Bearer ${token}` }
+    }
+  }
+  return {}
+}
+
 const documentSchema = z.object({
   id: z.string(),
   originalFileName: z.string().nullish(),
@@ -39,9 +49,11 @@ export type Recourse = z.infer<typeof recourseSchema>
 export type RecourseUpsert = z.infer<typeof recourseUpsertSchema>
 
 async function request<T>(url: string, options: RequestInit = {}): Promise<T> {
+  const headers = { ...getAuthHeaders(), ...(options.headers || {}) }
   const response = await fetch(`${API_BASE_URL}${url}`, {
-    credentials: "include",
+    credentials: "omit",
     ...options,
+    headers,
   })
   const text = await response.text()
   const data = text ? JSON.parse(text) : undefined
@@ -95,7 +107,7 @@ export async function deleteRecourse(id: string): Promise<void> {
 export async function downloadRecourseDocument(id: string): Promise<Blob> {
   const response = await fetch(`${API_BASE_URL}/recourses/${id}/download`, {
     method: "GET",
-    credentials: "include",
+    credentials: "omit",
   })
   if (!response.ok) {
     throw new Error("Failed to download document")
@@ -106,7 +118,7 @@ export async function downloadRecourseDocument(id: string): Promise<Blob> {
 export async function previewRecourseDocument(id: string): Promise<Blob> {
   const response = await fetch(`${API_BASE_URL}/recourses/${id}/preview`, {
     method: "GET",
-    credentials: "include",
+    credentials: "omit",
   })
   if (!response.ok) {
     throw new Error("Failed to preview document")

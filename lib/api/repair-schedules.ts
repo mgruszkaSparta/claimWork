@@ -31,7 +31,7 @@ export async function getRepairSchedules(eventId: string) {
     : REPAIR_SCHEDULES_URL
   const response = await fetch(url, {
     method: 'GET',
-    credentials: 'include',
+    credentials: 'omit',
     cache: 'no-store',
   })
   if (!response.ok) {
@@ -44,7 +44,7 @@ export async function createRepairSchedule(data: RepairSchedulePayload) {
   ensureRequired(data)
   const response = await fetch(REPAIR_SCHEDULES_URL, {
     method: 'POST',
-    credentials: 'include',
+    credentials: 'omit',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(data),
   })
@@ -60,7 +60,7 @@ export async function updateRepairSchedule(id: string, data: Partial<RepairSched
   }
   const response = await fetch(`${REPAIR_SCHEDULES_URL}/${id}`, {
     method: 'PUT',
-    credentials: 'include',
+    credentials: 'omit',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(data),
   })
@@ -73,7 +73,7 @@ export async function updateRepairSchedule(id: string, data: Partial<RepairSched
 export async function deleteRepairSchedule(id: string) {
   const response = await fetch(`${REPAIR_SCHEDULES_URL}/${id}`, {
     method: 'DELETE',
-    credentials: 'include',
+    credentials: 'omit',
   })
   if (!response.ok) {
     throw new Error('Failed to delete repair schedule')

@@ -52,6 +52,16 @@ import {
 import { API_BASE_URL } from "@/lib/api"
 import type { DocumentDto } from "@/lib/api"
 
+const getAuthHeaders = () => {
+  if (typeof window !== "undefined") {
+    const token = localStorage.getItem("token")
+    if (token) {
+      return { Authorization: `Bearer ${token}` }
+    }
+  }
+  return {}
+}
+
 interface RecourseSectionProps {
   eventId: string
 }
@@ -343,7 +353,11 @@ export function RecourseSection({ eventId }: RecourseSectionProps) {
       : `${API_BASE_URL}/recourses/${recourse.id}/download`
 
     try {
-      const response = await fetch(url, { method: "GET", credentials: "include" })
+      const response = await fetch(url, {
+        method: "GET",
+        credentials: "omit",
+        headers: getAuthHeaders(),
+      })
       if (!response.ok) throw new Error("Failed to download")
       const blob = await response.blob()
       const objectUrl = window.URL.createObjectURL(blob)
@@ -362,7 +376,11 @@ export function RecourseSection({ eventId }: RecourseSectionProps) {
 
   const loadPreview = async (recourse: Recourse, doc: DocumentDto) => {
     const url = `${API_BASE_URL}/recourses/${recourse.id}/documents/${doc.id}/preview`
-    const response = await fetch(url, { method: "GET", credentials: "include" })
+    const response = await fetch(url, {
+      method: "GET",
+      credentials: "omit",
+      headers: getAuthHeaders(),
+    })
     if (!response.ok) throw new Error("Failed to preview")
     const blob = await response.blob()
     const objectUrl = window.URL.createObjectURL(blob)
@@ -385,7 +403,11 @@ export function RecourseSection({ eventId }: RecourseSectionProps) {
       // single file fallback
       const url = `${API_BASE_URL}/recourses/${recourse.id}/preview`
       try {
-        const response = await fetch(url, { method: "GET", credentials: "include" })
+        const response = await fetch(url, {
+          method: "GET",
+          credentials: "omit",
+          headers: getAuthHeaders(),
+        })
         if (!response.ok) throw new Error("Failed to preview")
         const blob = await response.blob()
         const objectUrl = window.URL.createObjectURL(blob)

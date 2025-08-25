@@ -1,10 +1,21 @@
 import { API_BASE_URL } from "../api";
 import type { DocumentDto } from "../api";
 
+function getAuthHeaders() {
+  if (typeof window !== "undefined") {
+    const token = localStorage.getItem("token")
+    if (token) {
+      return { Authorization: `Bearer ${token}` }
+    }
+  }
+  return {}
+}
+
 export async function deleteDocument(id: string): Promise<void> {
   const res = await fetch(`${API_BASE_URL}/documents/${id}`, {
     method: "DELETE",
-    credentials: "include",
+    credentials: "omit",
+    headers: getAuthHeaders(),
   });
   if (!res.ok) {
     const text = await res.text();
@@ -18,10 +29,8 @@ export async function renameDocument(
 ): Promise<DocumentDto> {
   const res = await fetch(`${API_BASE_URL}/documents/${id}`, {
     method: "PUT",
-    credentials: "include",
-    headers: {
-      "Content-Type": "application/json",
-    },
+    credentials: "omit",
+    headers: { ...getAuthHeaders(), "Content-Type": "application/json" },
     body: JSON.stringify({ originalFileName }),
   });
   if (!res.ok) {

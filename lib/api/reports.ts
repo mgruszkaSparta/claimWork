@@ -14,7 +14,7 @@ export interface ReportRequest {
 
 export async function getReportMetadata(): Promise<ReportMetadata> {
   const res = await fetch(`${API_BASE_URL}/report/metadata`, {
-    credentials: "include",
+    credentials: "omit",
   });
   if (!res.ok) {
     throw new Error("Failed to fetch report metadata");
@@ -25,7 +25,7 @@ export async function getReportMetadata(): Promise<ReportMetadata> {
 export async function exportReport(request: ReportRequest): Promise<Blob> {
   const res = await fetch(`${API_BASE_URL}/report/export`, {
     method: "POST",
-    credentials: "include",
+    credentials: "omit",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(request),
   });
@@ -43,7 +43,7 @@ export async function getFilterValues(
     `${API_BASE_URL}/report/values?entity=${encodeURIComponent(
       entity,
     )}&field=${encodeURIComponent(field)}`,
-    { credentials: "include" },
+    { credentials: "omit" },
   );
   if (!res.ok) {
     throw new Error("Failed to fetch filter values");

@@ -10,16 +10,13 @@ export async function GET(request: NextRequest) {
 
     console.log(`Fetching claims from backend: ${url}`)
 
-    // Retrieve auth token from cookies (adjust cookie name as needed)
-    const token = request.cookies.get("token")?.value
+    const auth = request.headers.get("authorization") ?? ""
 
     const response = await fetch(url, {
       headers: {
         "Content-Type": "application/json",
-        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        ...(auth ? { Authorization: auth } : {}),
       },
-      // Include cookies for session-based authentication
-      credentials: "include",
       cache: "no-store",
     })
 

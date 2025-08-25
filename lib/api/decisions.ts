@@ -1,6 +1,16 @@
 import { z } from "zod";
 import { API_BASE_URL } from "../api";
 
+function getAuthHeaders() {
+  if (typeof window !== "undefined") {
+    const token = localStorage.getItem("token")
+    if (token) {
+      return { Authorization: `Bearer ${token}` }
+    }
+  }
+  return {}
+}
+
 const documentSchema = z.object({
   id: z.string(),
   originalFileName: z.string().nullish(),
@@ -40,9 +50,11 @@ export const decisionUpsertSchema = decisionSchema.pick({
 export type DecisionUpsert = z.infer<typeof decisionUpsertSchema>;
 
 async function request<T>(url: string, options: RequestInit = {}): Promise<T> {
+  const headers = { ...getAuthHeaders(), ...(options.headers || {}) }
   const response = await fetch(`${API_BASE_URL}${url}`, {
-    credentials: "include",
+    credentials: "omit",
     ...options,
+    headers,
   });
   const text = await response.text();
   const data = text ? JSON.parse(text) : undefined;

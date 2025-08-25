@@ -156,7 +156,7 @@ export default function ViewClaimPage() {
         `${process.env.NEXT_PUBLIC_API_URL}/claims/${id}`,
         {
           method: "GET",
-          credentials: "include",
+          credentials: "omit",
         }
       )
       if (!response.ok) {
@@ -192,7 +192,7 @@ export default function ViewClaimPage() {
         `${process.env.NEXT_PUBLIC_API_URL}/repair-schedules?eventId=${id}`,
         {
           method: "GET",
-          credentials: "include",
+          credentials: "omit",
         }
       )
       if (response.ok) {
@@ -210,7 +210,7 @@ export default function ViewClaimPage() {
         `${process.env.NEXT_PUBLIC_API_URL}/repair-details?eventId=${id}`,
         {
           method: "GET",
-          credentials: "include",
+          credentials: "omit",
         }
       )
       if (response.ok) {
@@ -278,7 +278,7 @@ export default function ViewClaimPage() {
         `${process.env.NEXT_PUBLIC_API_URL}/repair-schedules`,
         {
           method: "POST",
-          credentials: "include",
+          credentials: "omit",
           headers: {
             "Content-Type": "application/json",
           },
@@ -316,7 +316,7 @@ export default function ViewClaimPage() {
         `${process.env.NEXT_PUBLIC_API_URL}/repair-details`,
         {
           method: "POST",
-          credentials: "include",
+          credentials: "omit",
           headers: {
             "Content-Type": "application/json",
           },

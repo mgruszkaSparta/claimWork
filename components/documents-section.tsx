@@ -19,6 +19,16 @@ import type { DocumentsSectionProps, UploadedFile, DocumentsSectionRef } from "@
 import JSZip from "jszip"
 import { saveAs } from "file-saver"
 
+const getAuthHeaders = () => {
+  if (typeof window !== "undefined") {
+    const token = localStorage.getItem("token")
+    if (token) {
+      return { Authorization: `Bearer ${token}` }
+    }
+  }
+  return {}
+}
+
 // Categories that have dedicated sections elsewhere and therefore should
 // not appear in the generic documents section for a claim folder.
 const DEFAULT_HIDDEN_CATEGORIES = [
@@ -164,7 +174,8 @@ export const DocumentsSection = React.forwardRef<
           const response = await fetch(
             previewDocument.previewUrl || previewDocument.downloadUrl,
             {
-              credentials: "include",
+              credentials: "omit",
+              headers: getAuthHeaders(),
             },
           )
           if (!response.ok) {
@@ -295,7 +306,8 @@ export const DocumentsSection = React.forwardRef<
       const params = new URLSearchParams({ eventId })
       const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/documents?${params.toString()}`, {
         method: "GET",
-        credentials: "include",
+        credentials: "omit",
+        headers: getAuthHeaders(),
       })
 
       if (response.status === 404) {
@@ -456,7 +468,8 @@ export const DocumentsSection = React.forwardRef<
       try {
         const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/documents/upload`, {
           method: "POST",
-          credentials: "include",
+          credentials: "omit",
+          headers: getAuthHeaders(),
           body: formData,
         })
 
@@ -639,7 +652,8 @@ export const DocumentsSection = React.forwardRef<
     try {
       const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/documents/${documentId}`, {
         method: "DELETE",
-        credentials: "include",
+        credentials: "omit",
+        headers: getAuthHeaders(),
       })
 
       if (response.ok) {
@@ -755,10 +769,8 @@ export const DocumentsSection = React.forwardRef<
     try {
       const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/documents/${documentId}`, {
         method: "PUT",
-        credentials: "include",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        credentials: "omit",
+        headers: { ...getAuthHeaders(), "Content-Type": "application/json" },
         body: JSON.stringify({ description }),
       })
 
@@ -795,7 +807,8 @@ export const DocumentsSection = React.forwardRef<
 
       const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/documents/${documentId}/generate-description`, {
         method: "POST",
-        credentials: "include",
+        credentials: "omit",
+        headers: getAuthHeaders(),
       })
 
       if (response.ok) {
@@ -905,7 +918,8 @@ export const DocumentsSection = React.forwardRef<
       for (const doc of documentsForCategory) {
         const response = await fetch(doc.downloadUrl, {
           method: "GET",
-          credentials: "include",
+          credentials: "omit",
+          headers: getAuthHeaders(),
         })
         const blob = await response.blob()
         zip.file(doc.originalFileName, blob)
@@ -974,7 +988,8 @@ export const DocumentsSection = React.forwardRef<
       for (const doc of documentsForCategory) {
         const response = await fetch(doc.downloadUrl, {
           method: "GET",
-          credentials: "include",
+          credentials: "omit",
+          headers: getAuthHeaders(),
         })
         const blob = await response.blob()
         zip.file(doc.originalFileName, blob)
@@ -1039,8 +1054,8 @@ export const DocumentsSection = React.forwardRef<
         try {
           await fetch(`${process.env.NEXT_PUBLIC_API_URL}/documents/${documentId}`, {
             method: "PUT",
-            credentials: "include",
-            headers: { "Content-Type": "application/json" },
+            credentials: "omit",
+            headers: { ...getAuthHeaders(), "Content-Type": "application/json" },
             body: JSON.stringify({ documentType: targetCode }),
           })
         } catch (error) {

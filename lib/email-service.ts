@@ -62,7 +62,7 @@ class EmailService {
     try {
       const response = await fetch(this.apiUrl, {
         method: "GET",
-        credentials: "include",
+        credentials: "omit",
       })
       if (!response.ok) throw new Error("Failed to fetch emails")
       const data = await response.json()
@@ -99,7 +99,7 @@ class EmailService {
     try {
       const response = await fetch(`${this.apiUrl}/${id}`, {
         method: "GET",
-        credentials: "include",
+        credentials: "omit",
       })
       if (!response.ok) throw new Error("Failed to fetch email")
       const e = await response.json()
@@ -136,7 +136,7 @@ class EmailService {
     try {
       const response = await fetch(`${this.apiUrl}/${emailId}`, {
         method: "DELETE",
-        credentials: "include",
+        credentials: "omit",
       })
       return response.ok
     } catch (error) {
@@ -190,7 +190,7 @@ class EmailService {
     try {
       const response = await fetch(`${this.apiUrl}/event/${eventId}`, {
         method: "GET",
-        credentials: "include",
+        credentials: "omit",
       })
       if (!response.ok) throw new Error("Failed to fetch emails by event")
       const data = await response.json()
@@ -227,7 +227,7 @@ class EmailService {
     try {
       const response = await fetch(`${this.apiUrl}/${emailId}/read`, {
         method: "PUT",
-        credentials: "include",
+        credentials: "omit",
       })
       return response.ok
     } catch (error) {
@@ -251,7 +251,7 @@ class EmailService {
 
       const response = await fetch(this.apiUrl, {
         method: "POST",
-        credentials: "include",
+        credentials: "omit",
         body: formData,
       })
       return response.ok
@@ -277,7 +277,7 @@ class EmailService {
 
       const response = await fetch(`${this.apiUrl}/draft`, {
         method: "POST",
-        credentials: "include",
+        credentials: "omit",
         body: formData,
       })
       return response.ok
@@ -292,7 +292,7 @@ class EmailService {
     try {
       const response = await fetch(`${this.apiUrl}/attachment/${attachmentId}`, {
         method: "GET",
-        credentials: "include",
+        credentials: "omit",
       })
       if (!response.ok) throw new Error("Failed to download attachment")
       return await response.blob()
@@ -312,7 +312,7 @@ class EmailService {
       formData.append("file", file)
       const response = await fetch(`${this.apiUrl}/${emailId}/attachments`, {
         method: "POST",
-        credentials: "include",
+        credentials: "omit",
         body: formData,
       })
       if (!response.ok) throw new Error("Failed to upload attachment")
@@ -328,7 +328,7 @@ class EmailService {
     try {
       const response = await fetch(`${this.apiUrl}/attachment/${attachmentId}`, {
         method: "DELETE",
-        credentials: "include",
+        credentials: "omit",
       })
       return response.ok
     } catch (error) {
@@ -341,7 +341,7 @@ class EmailService {
     try {
       const response = await fetch(`${this.apiUrl}/assign-to-claim`, {
         method: "POST",
-        credentials: "include",
+        credentials: "omit",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ emailId, claimIds }),
       })

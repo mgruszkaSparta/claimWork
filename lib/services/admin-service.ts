@@ -10,7 +10,19 @@ const ROLE_COLORS: Record<string, string> = {
 export const adminService = {
   async getRoles(): Promise<Role[]> {
     const res = await fetch(`${API_BASE_URL}/roles`);
-    const data = (await res.json()) as { value: string; label: string }[];
+
+    // Handle cases where the response has no body or invalid JSON
+    const text = await res.text();
+    let data: { value: string; label: string }[] = [];
+
+    if (text) {
+      try {
+        data = JSON.parse(text) as { value: string; label: string }[];
+      } catch {
+        data = [];
+      }
+    }
+
     return data.map((r) => ({
       id: r.value,
       name: r.label,

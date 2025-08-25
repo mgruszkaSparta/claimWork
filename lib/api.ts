@@ -827,13 +827,14 @@ class ApiService {
     username: string,
     password: string,
   ): Promise<{ mustChangePassword: boolean }> {
-    const data = await this.request<{ mustChangePassword: boolean }>(
+    const data = await this.request<{ token: string; mustChangePassword: boolean }>(
       "/auth/login",
       {
         method: "POST",
         body: JSON.stringify({ userName: username, password }),
       },
     )
+    this.setToken(data.token)
     return { mustChangePassword: data.mustChangePassword }
   }
 

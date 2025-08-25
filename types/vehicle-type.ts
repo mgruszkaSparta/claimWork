@@ -5,6 +5,7 @@ export interface VehicleType {
   label: string
   value: string
   isActive: boolean
+  sortOrder?: number
 }
 
 export interface VehicleTypeSelectionEvent {

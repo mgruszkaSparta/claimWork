@@ -2,6 +2,7 @@
 
 import { Button } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
+import { Badge } from "@/components/ui/badge"
 import {
   FileText,
   AlertTriangle,
@@ -24,6 +25,7 @@ interface ClaimFormSidebarProps {
   activeClaimSection: string
   setActiveClaimSection: (section: string) => void
   claimObjectType?: string
+  counts?: Record<string, number>
 }
 
 const sidebarSections = [
@@ -122,7 +124,12 @@ const sidebarSections = [
   },
 ]
 
-function ClaimFormSidebar({ activeClaimSection, setActiveClaimSection, claimObjectType }: ClaimFormSidebarProps) {
+function ClaimFormSidebar({
+  activeClaimSection,
+  setActiveClaimSection,
+  claimObjectType,
+  counts,
+}: ClaimFormSidebarProps) {
   const sections = sidebarSections.map((section) => {
     let items = section.items
     if (claimObjectType === "3") {
@@ -149,6 +156,7 @@ function ClaimFormSidebar({ activeClaimSection, setActiveClaimSection, claimObje
                 {section.items.map((item) => {
                   const Icon = item.icon
                   const isActive = activeClaimSection === item.id
+                  const count = counts?.[item.id] ?? 0
 
                   return (
                     <Button
@@ -166,10 +174,20 @@ function ClaimFormSidebar({ activeClaimSection, setActiveClaimSection, claimObje
                         <div className={`mt-0.5 ${isActive ? "text-blue-700" : "text-gray-400"}`}>
                           <Icon className="h-4 w-4" />
                         </div>
-                        <div className="flex-1 min-w-0">
-                          <div className={`text-sm font-medium ${isActive ? "text-blue-700 font-semibold" : "text-gray-900"}`}>
+                        <div className="flex-1 min-w-0 flex items-center justify-between">
+                          <div
+                            className={`text-sm font-medium ${isActive ? "text-blue-700 font-semibold" : "text-gray-900"}`}
+                          >
                             {item.label}
                           </div>
+                          {count > 0 && (
+                            <Badge
+                              variant="secondary"
+                              className="ml-2 bg-blue-100 text-blue-800"
+                            >
+                              {count}
+                            </Badge>
+                          )}
                         </div>
                       </div>
                     </Button>

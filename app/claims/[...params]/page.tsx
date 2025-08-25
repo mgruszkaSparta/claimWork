@@ -315,6 +315,32 @@ export default function ClaimPage() {
             activeClaimSection={activeClaimSection}
             setActiveClaimSection={setActiveClaimSection}
             claimObjectType={claim?.objectTypeId?.toString()}
+            counts={{
+              roszczenia:
+                (mode === "view"
+                  ? claim?.clientClaims?.length
+                  : claimFormData.clientClaims?.length) || 0,
+              decyzje:
+                (mode === "view"
+                  ? claim?.decisions?.length
+                  : claimFormData.decisions?.length) || 0,
+              odwolanie:
+                (mode === "view"
+                  ? claim?.appeals?.length
+                  : claimFormData.appeals?.length) || 0,
+              regres:
+                (mode === "view"
+                  ? claim?.recourses?.length
+                  : claimFormData.recourses?.length) || 0,
+              ugody:
+                (mode === "view"
+                  ? claim?.settlements?.length
+                  : claimFormData.settlements?.length) || 0,
+              notatki:
+                (mode === "view"
+                  ? claim?.notes?.length
+                  : claimFormData.notes?.length) || 0,
+            }}
           />
           <div ref={contentRef} className="flex-1 overflow-y-auto bg-gray-50">
             <div className="p-6 min-h-full">

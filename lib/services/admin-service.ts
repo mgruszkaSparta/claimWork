@@ -76,23 +76,13 @@ export const adminService = {
       userName: data.email,
       email: data.email,
       password: data.password,
+      firstName: data.firstName,
+      lastName: data.lastName,
+      roles: data.roles.map((r) => r.id),
+      status: data.status,
       fullAccess: data.fullAccess,
       clientIds: data.clientIds,
-    });
-
-    // try to locate the newly created user and update remaining fields
-    const { items } = await apiService.getUsers({ search: data.email })
-    const created = items.find((u) => u.email === data.email)
-    if (created) {
-      await apiService.updateUser(created.id, {
-        firstName: data.firstName,
-        lastName: data.lastName,
-        roles: data.roles.map((r) => r.id),
-        status: data.status,
-        fullAccess: data.fullAccess,
-        clientIds: data.clientIds,
-      });
-    }
+    })
   },
 
   async deleteUser(id: string): Promise<void> {

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { useParams, useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -20,6 +20,7 @@ import type { Claim } from "@/types"
 import { pksData, type Employee } from "@/lib/pks-data"
 import type { RepairDetail } from "@/lib/repair-details-store"
 import { transformApiClaimToFrontend } from "@/hooks/use-claims"
+import { dictionaryService, type DictionaryItemDto } from "@/lib/dictionary-service"
 
 interface RepairSchedule {
   id?: string
@@ -59,8 +60,43 @@ export default function ViewClaimPage() {
   const [scheduleFormData, setScheduleFormData] = useState<Partial<RepairSchedule>>({})
   const [repairDetailFormData, setRepairDetailFormData] = useState<Partial<RepairDetail>>({})
   const [employeesForSelectedBranch, setEmployeesForSelectedBranch] = useState<Employee[]>([])
+  const [riskTypes, setRiskTypes] = useState<DictionaryItemDto[]>([])
+  const [claimStatuses, setClaimStatuses] = useState<DictionaryItemDto[]>([])
 
   const id = params.id as string
+
+  useEffect(() => {
+    const loadDictionaries = async () => {
+      try {
+        const [riskRes, statusRes] = await Promise.all([
+          dictionaryService.getRiskTypes(),
+          dictionaryService.getClaimStatuses(),
+        ])
+        setRiskTypes(riskRes.items)
+        setClaimStatuses(statusRes.items)
+      } catch (err) {
+        console.error("Error loading dictionaries:", err)
+      }
+    }
+    loadDictionaries()
+  }, [])
+
+  const riskTypeMap = useMemo(() => {
+    const map: Record<string, string> = {}
+    riskTypes.forEach((r) => {
+      map[String(r.code).toLowerCase()] = r.name
+    })
+    return map
+  }, [riskTypes])
+
+  const claimStatusMap = useMemo(() => {
+    const map: Record<number, { name: string; color?: string }> = {}
+    claimStatuses.forEach((s) => {
+      const idNum = typeof s.id === "string" ? parseInt(s.id) : s.id
+      map[idNum] = { name: s.name, color: s.color }
+    })
+    return map
+  }, [claimStatuses])
 
   const getInitialScheduleData = (): Partial<RepairSchedule> => ({
     eventId: id,
@@ -354,16 +390,12 @@ export default function ViewClaimPage() {
       }).format(amount);
     };
 
-    const getStatusBadge = (status?: string) => {
-      const statusColors: Record<string, string> = {
-        nowa: "bg-blue-100 text-blue-800",
-        "w-trakcie": "bg-yellow-100 text-yellow-800",
-        zamknieta: "bg-green-100 text-green-800",
-        anulowana: "bg-red-100 text-red-800",
-      };
-
-      return <Badge className={statusColors[status || "nowa"] || "bg-gray-100 text-gray-800"}>{status || "Nowa"}</Badge>;
-    };
+    const getStatusBadge = (statusId?: number) => {
+      const statusInfo = statusId ? claimStatusMap[statusId] : undefined
+      const color =
+        statusInfo?.color || "bg-gray-100 text-gray-800 border-gray-200"
+      return <Badge className={color}>{statusInfo?.name || "Brak"}</Badge>
+    }
 
     const getRepairDetailStatusBadge = (status: RepairDetail["status"]) => {
       const statusConfig = {
@@ -432,7 +464,7 @@ export default function ViewClaimPage() {
             </div>
           </div>
           <div className="flex items-center space-x-3">
-            {getStatusBadge(claim.status)}
+            {getStatusBadge(claim.claimStatusId)}
             <Button onClick={handleEdit} className="bg-[#1a3a6c] hover:bg-[#1a3a6c]/90">
               <Edit className="h-4 w-4 mr-2" />
               Edytuj
@@ -464,7 +496,7 @@ export default function ViewClaimPage() {
                 </div>
                 <div>
                   <p className="text-xs text-gray-500">Status</p>
-                  <div className="mt-1">{getStatusBadge(claim.status)}</div>
+                  <div className="mt-1">{getStatusBadge(claim.claimStatusId)}</div>
                 </div>
                 <div>
                   <p className="text-xs text-gray-500">Klient</p>
@@ -548,7 +580,13 @@ export default function ViewClaimPage() {
                 </div>
                 <div>
                   <p className="text-sm text-gray-500 mb-1">Ryzyko szkody</p>
-                  <p className="font-medium">{claim.riskType || "-"}</p>
+                  <p className="font-medium">
+                    {claim.riskType
+                      ?
+                          riskTypeMap[String(claim.riskType).toLowerCase()] ||
+                            String(claim.riskType)
+                      : "-"}
+                  </p>
                 </div>
                 <div>
                   <p className="text-sm text-gray-500 mb-1">Obszar</p>

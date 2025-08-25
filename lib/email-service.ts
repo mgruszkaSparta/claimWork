@@ -187,12 +187,12 @@ class EmailService {
 
   async getEmailsByEventId(
     eventId: string,
-    folder?: EmailFolder,
+    folder: EmailFolder,
   ): Promise<EmailDto[]> {
     if (!this.isValidGuid(eventId)) return []
     try {
       const url = new URL(`${this.apiUrl}/event/${eventId}`)
-      if (folder) url.searchParams.set("folder", folder)
+      url.searchParams.set("folder", folder)
       const response = await fetch(url.toString(), {
         method: "GET",
         credentials: "include",

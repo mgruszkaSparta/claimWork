@@ -9,8 +9,14 @@ export async function GET(
   try {
     const cookie = request.headers.get("cookie") ?? ""
     const folder = request.nextUrl.searchParams.get("folder")
+    if (!folder) {
+      return NextResponse.json(
+        { error: "Folder query parameter is required" },
+        { status: 400 },
+      )
+    }
     const url = new URL(`${API_BASE_URL}/emails/event/${params.eventId}`)
-    if (folder) url.searchParams.set("folder", folder)
+    url.searchParams.set("folder", folder)
     const response = await fetch(url.toString(), {
       cache: "no-store",
       credentials: "include",

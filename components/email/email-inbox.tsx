@@ -83,26 +83,6 @@ export default function EmailInbox({ claimId, claimNumber, claimInsuranceNumber 
       .toLowerCase()
   }, [])
 
-  const filterEmailsByFolder = useCallback(
-    (emails: EmailDto[], folder: EmailFolder): EmailDto[] => {
-      switch (folder) {
-        case EmailFolder.Inbox:
-          return emails.filter((e) => e.direction === "Inbound")
-        case EmailFolder.Sent:
-          return emails.filter((e) => e.direction === "Outbound")
-        case EmailFolder.Drafts:
-          return emails.filter((e) => e.status === "Draft")
-        case EmailFolder.Important:
-          return emails.filter((e) => e.isImportant)
-        case EmailFolder.Unassigned:
-          return emails.filter((e) => !e.claimIds || e.claimIds.length === 0)
-        default:
-          return emails
-      }
-    },
-    [],
-  )
-
   // Apply filter to emails
   const filteredEmails = useMemo(() => {
     const trimmedFilter = debouncedFilterText.trim()
@@ -146,18 +126,24 @@ export default function EmailInbox({ claimId, claimNumber, claimInsuranceNumber 
     } finally {
       setIsLoading(false)
     }
-  }, [selectedFolder, claimId, filterEmailsByFolder])
+  }, [selectedFolder, claimId])
 
   // Update folder counts
   const updateFolderCounts = useCallback(async () => {
     try {
       if (claimId) {
-        const emails = await emailService.getEmailsByEventId(claimId)
+        const [inbox, sent, drafts, unassigned] = await Promise.all([
+          emailService.getEmailsByEventId(claimId, EmailFolder.Inbox),
+          emailService.getEmailsByEventId(claimId, EmailFolder.Sent),
+          emailService.getEmailsByEventId(claimId, EmailFolder.Drafts),
+          emailService.getEmailsByEventId(claimId, EmailFolder.Unassigned),
+        ])
+
         setFolderCounts({
-          inbox: filterEmailsByFolder(emails, EmailFolder.Inbox).length,
-          sent: filterEmailsByFolder(emails, EmailFolder.Sent).length,
-          drafts: filterEmailsByFolder(emails, EmailFolder.Drafts).length,
-          unassigned: filterEmailsByFolder(emails, EmailFolder.Unassigned).length,
+          inbox: inbox.length,
+          sent: sent.length,
+          drafts: drafts.length,
+          unassigned: unassigned.length,
         })
       } else {
         const [inboxEmails, sentEmails, draftEmails, unassignedEmails] = await Promise.all([
@@ -178,7 +164,7 @@ export default function EmailInbox({ claimId, claimNumber, claimInsuranceNumber 
       console.error("Error fetching folder counts:", error)
       setFolderCounts({ inbox: 0, sent: 0, drafts: 0, unassigned: 0 })
     }
-  }, [claimId, filterEmailsByFolder])
+  }, [claimId])
 
   // Select folder
   const selectFolder = useCallback((folder: EmailFolder) => {

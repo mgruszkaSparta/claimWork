@@ -41,8 +41,13 @@ namespace AutomotiveClaimsApi.Controllers
         }
 
         [HttpGet("event/{eventId}")]
-        public async Task<ActionResult<IEnumerable<EmailDto>>> GetEmailsByEventId(Guid eventId, [FromQuery] string? folder)
+        public async Task<ActionResult<IEnumerable<EmailDto>>> GetEmailsByEventId(Guid eventId, [FromQuery] string folder)
         {
+            if (string.IsNullOrWhiteSpace(folder))
+            {
+                return BadRequest(new { message = "Folder parameter is required" });
+            }
+
             var emails = await _emailService.GetEmailsByEventIdAsync(eventId, folder);
             return Ok(emails);
         }

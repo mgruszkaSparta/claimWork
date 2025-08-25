@@ -137,7 +137,7 @@ namespace AutomotiveClaimsApi.Services
             return true;
         }
 
-        public async Task<IEnumerable<EmailDto>> GetEmailsByEventIdAsync(Guid eventId, string? folder)
+        public async Task<IEnumerable<EmailDto>> GetEmailsByEventIdAsync(Guid eventId, string folder)
         {
             var query = _context.Emails
                 .Where(e => e.EventId == eventId);

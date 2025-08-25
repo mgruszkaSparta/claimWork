@@ -24,12 +24,23 @@ class DictionaryService {
   private cache = new Map<string, { data: DictionaryResponseDto; timestamp: number }>()
   private readonly CACHE_DURATION = 5 * 60 * 1000 // 5 minutes
 
+  private getToken(): string | null {
+    if (typeof window !== "undefined") {
+      return localStorage.getItem("token")
+    }
+    return null
+  }
+
   private async fetchFromAPI(endpoint: string): Promise<DictionaryResponseDto> {
+    const token = this.getToken()
     const response = await fetch(
       `${process.env.NEXT_PUBLIC_API_URL}/dictionaries/${endpoint}`,
       {
         method: "GET",
         credentials: "omit",
+
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+
       },
     )
     const text = await response.text()
@@ -126,8 +137,11 @@ class DictionaryService {
     return this.getDictionary('document-statuses')
   }
 
-  async getRiskTypes(): Promise<DictionaryResponseDto> {
-    return this.getDictionary('risk-types')
+  async getRiskTypes(claimObjectTypeId?: string): Promise<DictionaryResponseDto> {
+    const endpoint = claimObjectTypeId
+      ? `risk-types?claimObjectTypeId=${claimObjectTypeId}`
+      : 'risk-types'
+    return this.getDictionary(endpoint)
   }
 
   async getDamageTypesByRisk(riskType?: string): Promise<DictionaryResponseDto> {

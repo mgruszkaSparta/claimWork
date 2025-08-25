@@ -38,6 +38,7 @@ import VehicleTypeDropdown from "@/components/vehicle-type-dropdown"
 import type { VehicleTypeSelectionEvent } from "@/types/vehicle-type"
 import { RepairScheduleSection } from "./repair-schedule-section"
 import { RepairDetailsSection } from "./repair-details-section"
+import { dictionaryService } from "@/lib/dictionary-service"
 import { DamageDataSection } from "./damage-data-section"
 import type { RepairDetail } from "@/lib/repair-details-store"
 import { PropertyDamageSection } from "./property-damage-section"
@@ -211,12 +212,17 @@ export const ClaimMainContent = ({
     const loadRepairDetails = async () => {
       if (!eventId) return
       try {
+        const token =
+          typeof window !== "undefined" ? localStorage.getItem("token") : null
         const response = await fetch(
           `${process.env.NEXT_PUBLIC_API_URL}/repair-details?eventId=${eventId}`,
           {
             method: "GET",
             credentials: "omit",
-          }
+
+            headers: token ? { Authorization: `Bearer ${token}` } : {},
+          },
+
         )
         if (response.ok) {
           const data = await response.json()
@@ -311,23 +317,14 @@ export const ClaimMainContent = ({
   const loadRiskTypes = async () => {
     setLoadingRiskTypes(true)
     try {
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/dictionaries/risk-types?claimObjectTypeId=${claimObjectType}`,
-        {
-          method: "GET",
-          credentials: "omit",
-        },
-      )
-      if (response.ok) {
-        const data = await response.json()
-        const riskTypeOptions = (data.items || []).map((item: any) => ({
-          value: String(item.id),
-          label: item.name,
-        }))
-        setRiskTypes(riskTypeOptions)
-      } else {
-        throw new Error(`HTTP error! status: ${response.status}`)
-      }
+
+      const data = await dictionaryService.getRiskTypes(claimObjectType)
+      const riskTypeOptions = (data.items || []).map((item: any) => ({
+        value: String(item.id),
+        label: item.name,
+      }))
+      setRiskTypes(riskTypeOptions)
+
     } catch (error) {
       console.error("Error loading risk types:", error)
       setRiskTypes([])
@@ -344,19 +341,10 @@ export const ClaimMainContent = ({
   const loadClaimStatuses = async () => {
     setLoadingStatuses(true)
     try {
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/dictionaries/claim-statuses`,
-        {
-          method: "GET",
-          credentials: "omit",
-        },
-      )
-      if (response.ok) {
-        const data = await response.json()
-        setClaimStatuses((data.items ?? []) as ClaimStatus[])
-      } else {
-        throw new Error(`HTTP error! status: ${response.status}`)
-      }
+
+      const data = await dictionaryService.getClaimStatuses()
+      setClaimStatuses((data.items ?? []) as ClaimStatus[])
+
     } catch (error) {
       console.error("Error loading claim statuses:", error)
       toast({
@@ -372,19 +360,10 @@ export const ClaimMainContent = ({
   const loadCaseHandlers = async () => {
     setLoadingHandlers(true)
     try {
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/dictionaries/casehandlers`,
-        {
-          method: "GET",
-          credentials: "omit",
-        },
-      )
-      if (response.ok) {
-        const data = await response.json()
-        setCaseHandlers(data.items ?? [])
-      } else {
-        throw new Error(`HTTP error! status: ${response.status}`)
-      }
+
+      const data = await dictionaryService.getCaseHandlers()
+      setCaseHandlers(data.items ?? [])
+
     } catch (error) {
       console.error("Error loading case handlers:", error)
       // Fallback data
@@ -398,18 +377,18 @@ export const ClaimMainContent = ({
         { id: 7, name: "Jacek Kamiński", phone: "513 423 810", email: "jacek.kaminski@spartabrokers.pl", subrogationLimit: 0.0000, userId: "99b463cb-f134-46a1-869f-d6583421ef62", toDoList: null, settlementTypeId: null, disabled: 0, substituteHandlerId: null, vacationStartDate: null, vacationEndDate: null },
         { id: 11, name: "Edyta Dyczkowska", phone: "799-040-568", email: "edyta.dyczkowska@spartabrokers.pl", subrogationLimit: 0.0000, userId: "99b463cb-f134-46a1-869f-d6583421ef67", toDoList: null, settlementTypeId: null, disabled: 0, substituteHandlerId: null, vacationStartDate: null, vacationEndDate: null },
         { id: 10, name: "Ireneusz Osiński", phone: "572-278-718", email: "ireneusz.osinski@spartabrokers.pl", subrogationLimit: 0.0000, userId: "99b463cb-f134-46a1-869f-d6583421ef68", toDoList: null, settlementTypeId: null, disabled: 0, substituteHandlerId: null, vacationStartDate: null, vacationEndDate: null },
-        { id: 13, name: "Kinga Tuzimek", phone: "508-038-245", email: "kinga.tuzimek@spartabrokers.pl", subrogationLimit: 0.0000, userId: "99b463cb-f134-46a1-869f-d6583421ef78", toDoList: null, settlementTypeId: null, disabled: 0, substituteHandlerId: null, vacationStartDate: null, vacationEndDate: null }
+        { id: 13, name: "Kinga Tuzimek", phone: "508-038-245", email: "kinga.tuzimek@spartabrokers.pl", subrogationLimit: 0.0000, userId: "99b463cb-f134-46a1-869f-d6583421ef78", toDoList: null, settlementTypeId: null, disabled: 0, substituteHandlerId: null, vacationStartDate: null, vacationEndDate: null },
       ])
-    
-    toast({
-      title: "Uwaga",
-      description: "Nie udało się załadować listy pracowników. Używane są dane lokalne.",
-      variant: "destructive",
-    })
-  } finally {
-    setLoadingHandlers(false)
+
+      toast({
+        title: "Uwaga",
+        description: "Nie udało się załadować listy pracowników. Używane są dane lokalne.",
+        variant: "destructive",
+      })
+    } finally {
+      setLoadingHandlers(false)
+    }
   }
-}
 
   const handleServicesChange = (service: Service, checked: boolean | "indeterminate") => {
     if (typeof checked === "boolean") {

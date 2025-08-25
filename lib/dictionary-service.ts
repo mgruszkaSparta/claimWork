@@ -76,6 +76,71 @@ class DictionaryService {
     }
   }
 
+  async createDictionaryItem(
+    type: string,
+    data: Partial<DictionaryItemDto>,
+  ): Promise<DictionaryItemDto> {
+    const response = await fetch(
+      `${process.env.NEXT_PUBLIC_API_URL}/dictionaries/${type}`,
+      {
+        method: 'POST',
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data),
+      },
+    )
+    if (!response.ok) {
+      const text = await response.text()
+      throw new Error(`Failed to create ${type}: ${response.status} ${text}`)
+    }
+    const item = (await response.json()) as DictionaryItemDto
+    this.clearCacheForType(type)
+    return item
+  }
+
+  async updateDictionaryItem(
+    type: string,
+    id: string | number,
+    data: Partial<DictionaryItemDto>,
+  ): Promise<void> {
+    const response = await fetch(
+      `${process.env.NEXT_PUBLIC_API_URL}/dictionaries/${type}/${id}`,
+      {
+        method: 'PUT',
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data),
+      },
+    )
+    if (!response.ok) {
+      const text = await response.text()
+      throw new Error(`Failed to update ${type}: ${response.status} ${text}`)
+    }
+    this.clearCacheForType(type)
+  }
+
+  async deleteDictionaryItem(
+    type: string,
+    id: string | number,
+  ): Promise<void> {
+    const response = await fetch(
+      `${process.env.NEXT_PUBLIC_API_URL}/dictionaries/${type}/${id}`,
+      {
+        method: 'DELETE',
+        credentials: 'include',
+      },
+    )
+    if (!response.ok) {
+      const text = await response.text()
+      throw new Error(`Failed to delete ${type}: ${response.status} ${text}`)
+    }
+    this.clearCacheForType(type)
+  }
+
   // Specific methods for each dictionary type
   async getCaseHandlers(): Promise<DictionaryResponseDto> {
     return this.getDictionary('casehandlers')

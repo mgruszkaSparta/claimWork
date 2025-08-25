@@ -27,7 +27,33 @@ export function useDictionary(type: string) {
     fetchData()
   }, [type])
 
-  return { data, loading, error, refetch: fetchData }
+  const createItem = async (item: Partial<DictionaryItemDto>) => {
+    await dictionaryService.createDictionaryItem(type, item)
+    await fetchData()
+  }
+
+  const updateItem = async (
+    id: string | number,
+    item: Partial<DictionaryItemDto>,
+  ) => {
+    await dictionaryService.updateDictionaryItem(type, id, item)
+    await fetchData()
+  }
+
+  const deleteItem = async (id: string | number) => {
+    await dictionaryService.deleteDictionaryItem(type, id)
+    await fetchData()
+  }
+
+  return {
+    data,
+    loading,
+    error,
+    refetch: fetchData,
+    createItem,
+    updateItem,
+    deleteItem,
+  }
 }
 
 // Specific hooks for each dictionary type

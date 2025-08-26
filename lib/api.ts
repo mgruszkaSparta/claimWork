@@ -851,7 +851,12 @@ class ApiService {
   }
 
   async logout(): Promise<void> {
-    await this.request<void>("/auth/logout", { method: "POST" })
+    await this.request<void>("/auth/logout", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${this.getToken()}`,
+      },
+    })
     this.setToken(null)
   }
 

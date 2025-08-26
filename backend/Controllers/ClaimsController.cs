@@ -59,6 +59,7 @@ namespace AutomotiveClaimsApi.Controllers
             [FromQuery] string? search = null,
             [FromQuery] string? clientId = null,
             [FromQuery] string? status = null,
+            [FromQuery] string? riskType = null,
             [FromQuery] string? policyNumber = null,
             [FromQuery] DateTime? damageDate = null,
             [FromQuery] DateTime? reportFromDate = null,
@@ -127,6 +128,11 @@ namespace AutomotiveClaimsApi.Controllers
                 if (!string.IsNullOrEmpty(status) && int.TryParse(status, out var statusId))
                 {
                     query = query.Where(e => e.ClaimStatusId == statusId);
+                }
+
+                if (!string.IsNullOrEmpty(riskType))
+                {
+                    query = query.Where(e => e.RiskType == riskType);
                 }
 
                 if (!string.IsNullOrEmpty(policyNumber))

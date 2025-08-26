@@ -9,7 +9,15 @@ const ROLE_COLORS: Record<string, string> = {
 
 export const adminService = {
   async getRoles(): Promise<Role[]> {
-    const res = await fetch(`${API_BASE_URL}/roles`);
+    const token =
+      typeof window !== "undefined" ? localStorage.getItem("token") : null;
+
+    const res = await fetch(`${API_BASE_URL}/roles`, {
+      headers: {
+        "Content-Type": "application/json",
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      },
+    });
 
     // Handle cases where the response has no body or invalid JSON
     const text = await res.text();

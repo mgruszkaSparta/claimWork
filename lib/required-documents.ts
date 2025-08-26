@@ -121,7 +121,120 @@ const propertyDocuments: RequiredDocument[] = [
   { id: "1", name: "Dokument własności mienia", required: true, uploaded: false, description: "" }
 ]
 
-const transportDocuments: RequiredDocument[] = communicationDocuments
+const transportDocuments: RequiredDocument[] = [
+  {
+    id: "1",
+    name: "Dowód rejestracyjny",
+    required: true,
+    uploaded: false,
+    description: ""
+  },
+  {
+    id: "2",
+    name: "Dyspozycja dotycząca wypłaty odszkodowania",
+    required: true,
+    uploaded: false,
+    description: ""
+  },
+  {
+    id: "3",
+    name: "Kalkulacja naprawy",
+    required: true,
+    uploaded: false,
+    description: ""
+  },
+  {
+    id: "4",
+    name: "Ocena techniczna",
+    required: true,
+    uploaded: false,
+    description: ""
+  },
+  {
+    id: "5",
+    name: "Oświadczenie o trzeźwości",
+    required: true,
+    uploaded: false,
+    description: ""
+  },
+  {
+    id: "6",
+    name: "Prawo jazdy",
+    required: true,
+    uploaded: false,
+    description: ""
+  },
+  {
+    id: "7",
+    name: "Świadectwo kwalifikacji",
+    required: true,
+    uploaded: false,
+    description: ""
+  },
+  {
+    id: "8",
+    name: "Zdjęcia",
+    required: true,
+    uploaded: false,
+    description: ""
+  },
+  {
+    id: "9",
+    name: "Zgłoszenie szkody",
+    required: true,
+    uploaded: false,
+    description: ""
+  },
+  {
+    id: "10",
+    name: "Decyzje",
+    required: true,
+    uploaded: false,
+    description: ""
+  },
+  {
+    id: "11",
+    name: "Faktura",
+    required: true,
+    uploaded: false,
+    description: ""
+  },
+  {
+    id: "12",
+    name: "Kalkulacja naprawy – TU",
+    required: true,
+    uploaded: false,
+    description: ""
+  },
+  {
+    id: "13",
+    name: "Kalkulacja naprawy – serwis",
+    required: true,
+    uploaded: false,
+    description: ""
+  },
+  {
+    id: "14",
+    name: "Inne dokumenty",
+    required: true,
+    uploaded: false,
+    description: ""
+  },
+  {
+    id: "15",
+    name: "Akceptacja kosztów OT",
+    required: true,
+    uploaded: false,
+    description: ""
+  },
+  {
+    id: "16",
+    name: "Ankieta TU",
+    required: true,
+    uploaded: false,
+    description: ""
+  }
+]
 
 export const getRequiredDocumentsByObjectType = (
   objectTypeId?: string | number

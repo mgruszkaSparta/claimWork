@@ -75,13 +75,20 @@ function HomePage({ user, onLogout }: PageProps) {
   useEffect(() => {
     async function loadStats() {
       try {
-        const res = await fetch(`${API_BASE_URL}/dashboard/user`);
-        if (!res.ok) throw new Error("Failed to fetch dashboard stats");
+        const res = await fetch("/api/dashboard");
+        if (!res.ok) {
+          console.warn(
+            "Failed to fetch dashboard stats:",
+            res.status,
+            res.statusText,
+          );
+          return;
+        }
         const data = await res.json();
         setStats([
           { ...initialStats[0], value: data.totalClaims?.toString() },
           { ...initialStats[1], value: data.activeClaims?.toString() },
-          { ...initialStats[2], value: data.closedClaims?.toString() }
+          { ...initialStats[2], value: data.closedClaims?.toString() },
         ]);
       } catch (err) {
         console.error("Error fetching dashboard stats:", err);

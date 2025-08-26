@@ -34,6 +34,7 @@ import {
   CircleCheck,
   CircleAlert,
   PlayCircle,
+  Printer,
 } from "lucide-react"
 import { pksData } from "@/lib/pks-data"
 import {
@@ -795,6 +796,14 @@ export const RepairScheduleSection: React.FC<RepairScheduleSectionProps> = ({ ev
                     <div className="flex items-center gap-3">
                       {getStatusBadge(statusIndicator.status)}
                       <div className="flex gap-2">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => window.print()}
+                          className="h-10 w-10 rounded-xl hover:bg-primary/10 hover:text-primary"
+                        >
+                          <Printer className="h-4 w-4" />
+                        </Button>
                         <Button
                           variant="ghost"
                           size="icon"

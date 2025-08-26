@@ -432,6 +432,12 @@ export const RepairScheduleSection: React.FC<RepairScheduleSectionProps> = ({ ev
 
   return (
     <div className="space-y-8 animate-fade-in w-full min-h-screen">
+      <div className="space-y-2">
+        <h2 className="text-xl font-semibold text-foreground">Harmonogram i naprawy</h2>
+        <p className="text-sm text-gray-600">
+          Zarządzaj planem napraw pojazdu. Dodaj nowy harmonogram lub edytuj istniejące wpisy.
+        </p>
+      </div>
       <div className="flex justify-end">
         <Button
           onClick={() => setShowForm(true)}

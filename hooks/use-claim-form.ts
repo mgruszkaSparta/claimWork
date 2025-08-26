@@ -4,10 +4,29 @@ import { useState, useCallback } from "react"
 import { initialClaimFormData, emptyDriver, generateId } from "@/lib/constants"
 import type { Claim, ParticipantInfo, DriverInfo } from "@/types"
 
+// Global claim identifier handling
+let globalClaimId: string | null = null
+
+const generateClaimId = () =>
+  typeof crypto !== "undefined" && "randomUUID" in crypto
+    ? crypto.randomUUID()
+    : generateId()
+
+const createNewClaimId = () => {
+  globalClaimId = generateClaimId()
+  return globalClaimId
+}
+
+export const getGlobalClaimId = () => {
+  return globalClaimId || createNewClaimId()
+}
+
 export function useClaimForm(initialData?: Partial<Claim>) {
   const [claimFormData, setClaimFormData] = useState<Partial<Claim>>({
     ...initialClaimFormData,
+
     id: initialData?.id ?? generateId(),
+
     ...initialData,
   })
 
@@ -124,7 +143,8 @@ export function useClaimForm(initialData?: Partial<Claim>) {
   }, [])
 
   const resetForm = useCallback(() => {
-    setClaimFormData({ ...initialClaimFormData })
+    const newId = createNewClaimId()
+    setClaimFormData({ ...initialClaimFormData, id: newId })
   }, [])
 
   return {

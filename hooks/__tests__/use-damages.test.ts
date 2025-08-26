@@ -46,6 +46,56 @@ test('createDamage returns data on success', async () => {
   }
 })
 
+test('initDamage throws on failed response', async () => {
+  const originalFetch = globalThis.fetch
+  globalThis.fetch = async () => ({ ok: false, text: async () => 'bad' }) as any
+
+  try {
+    const { initDamage } = useDamages('123')
+    await assert.rejects(() => initDamage(), /Nie udało się pobrać szkód|bad/)
+  } finally {
+    globalThis.fetch = originalFetch
+  }
+})
+
+test('initDamage returns data on success', async () => {
+  const originalFetch = globalThis.fetch
+  const init = { id: '1' }
+  globalThis.fetch = async () => ({ ok: true, json: async () => init }) as any
+
+  try {
+    const { initDamage } = useDamages('123')
+    const result = await initDamage()
+    assert.deepEqual(result, init)
+  } finally {
+    globalThis.fetch = originalFetch
+  }
+})
+
+test('initDamage fetches initial id', async () => {
+  const originalFetch = global.fetch
+  const init = { id: 'abc' }
+
+  global.fetch = async (url: any, options?: any) => {
+    assert.equal(url, API_ENDPOINTS.DAMAGES_INIT)
+    assert.equal(options?.method, 'POST')
+    return {
+      ok: true,
+      json: async () => init,
+    } as any
+  }
+
+  let hook: ReturnType<typeof useDamages>
+  function Wrapper() {
+    hook = useDamages()
+    return null
+  }
+  renderToString(React.createElement(Wrapper))
+
+  const result = await hook!.initDamage()
+  assert.deepEqual(result, init)
+  global.fetch = originalFetch
+})
 
 test('deleteDamage issues DELETE request', async () => {
   const originalFetch = global.fetch

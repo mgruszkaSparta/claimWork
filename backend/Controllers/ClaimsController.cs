@@ -293,6 +293,21 @@ namespace AutomotiveClaimsApi.Controllers
             }
         }
 
+        [HttpPost("initialize")]
+        public ActionResult<object> InitializeClaim()
+        {
+            try
+            {
+                var id = Guid.NewGuid();
+                return Ok(new { id });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error initializing event");
+                return StatusCode(500, new { error = "Failed to initialize event" });
+            }
+        }
+
         [HttpPost]
         public async Task<ActionResult<ClaimDto>> CreateClaim([FromBody] ClaimUpsertDto eventDto)
         {
@@ -300,9 +315,8 @@ namespace AutomotiveClaimsApi.Controllers
             {
                 if (!eventDto.Id.HasValue || eventDto.Id == Guid.Empty)
                 {
-                    return BadRequest("Id is required");
+                    return BadRequest("Claim ID is required. Use the initialize endpoint to obtain one.");
                 }
-                var eventId = eventDto.Id.Value;
 
                 var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
                 ApplicationUser? currentUser = null;
@@ -338,7 +352,7 @@ namespace AutomotiveClaimsApi.Controllers
                     .Include(e => e.Settlements)
                     .Include(e => e.Emails)
                     .Include(e => e.Notes)
-                    .FirstOrDefaultAsync(e => e.Id == eventId);
+                    .FirstOrDefaultAsync(e => e.Id == eventDto.Id.Value);
 
                 if (existingEvent != null)
                 {
@@ -382,7 +396,7 @@ namespace AutomotiveClaimsApi.Controllers
 
                 var eventEntity = new Event
                 {
-                    Id = eventId,
+                    Id = eventDto.Id.Value,
                     CreatedAt = DateTime.UtcNow,
                     UpdatedAt = DateTime.UtcNow,
                     RegisteredById = userId

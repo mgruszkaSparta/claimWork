@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { FormHeader } from '@/components/ui/form-header'
@@ -29,11 +29,14 @@ interface ClaimFormProps {
 
 export function ClaimForm({ initialData, mode }: ClaimFormProps) {
   const router = useRouter()
-  const { createClaim, updateClaim, loading, error } = useClaims()
+  const { createClaim, updateClaim, initializeClaim, loading, error } = useClaims()
   const { toast } = useToast()
   useUnsavedChangesWarning(mode !== 'view')
+  const initialized = useRef(false)
   const [formData, setFormData] = useState<Claim>({
+
     id: initialData?.id || generateId(),
+
     spartaNumber: '',
     claimNumber: '',
     insurerClaimNumber: '',
@@ -100,6 +103,16 @@ export function ClaimForm({ initialData, mode }: ClaimFormProps) {
   const mapCategoryNameToCode = (name?: string | null) =>
     requiredDocuments.find((d) => d.name === name)?.category || name || 'Inne dokumenty'
 
+  useEffect(() => {
+    if (!initialized.current && mode === 'create' && !formData.id) {
+      initialized.current = true
+      initializeClaim().then((id) => {
+        if (id) {
+          setFormData((prev) => ({ ...prev, id }))
+        }
+      })
+    }
+  }, [mode, formData.id, initializeClaim])
 
   const handleInputChange = (field: keyof Claim, value: any) => {
     setFormData(prev => ({
@@ -107,6 +120,7 @@ export function ClaimForm({ initialData, mode }: ClaimFormProps) {
       [field]: value
     }))
   }
+
   useEffect(() => {
     setRequiredDocuments(getRequiredDocumentsByObjectType(formData.objectTypeId))
   }, [formData.objectTypeId])

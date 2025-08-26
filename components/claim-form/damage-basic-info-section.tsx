@@ -48,8 +48,8 @@ export function DamageBasicInfoSection({
             <SelectValue placeholder="Wybierz typ szkody..." />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="1">Szkody komunikacyjne</SelectItem>
-            <SelectItem value="2">Szkody mienia</SelectItem>
+            <SelectItem value="1">Szkoda komunikacyjna</SelectItem>
+            <SelectItem value="2">Szkoda mienia</SelectItem>
             <SelectItem value="3">Szkoda transportowa</SelectItem>
           </SelectContent>
         </Select>

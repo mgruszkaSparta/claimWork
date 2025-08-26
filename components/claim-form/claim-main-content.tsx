@@ -11,7 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Textarea } from "@/components/ui/textarea"
 import { Checkbox } from "@/components/ui/checkbox"
-import { AlertTriangle, User, Wrench, Car, X, MessageSquare, Clock, FileCheck, FileText, Search, Mail, Plus, CheckCircle, Trash2, Save, Calendar, Phone, Paperclip, DollarSign, Gavel, ArrowUpDown, HandHeart, Users, CreditCard, Shield, UserCheck, Download } from 'lucide-react'
+import { AlertTriangle, User, Wrench, Car, X, MessageSquare, Clock, FileCheck, FileText, Mail, Plus, CheckCircle, Trash2, Save, Calendar, Phone, Paperclip, DollarSign, Gavel, ArrowUpDown, HandHeart, Users, CreditCard, Shield, UserCheck, Download, Edit } from 'lucide-react'
 import { DamageDiagram } from "@/components/damage-diagram"
 import { ParticipantForm } from "./participant-form"
 import { DocumentsSection } from "../documents-section"
@@ -279,11 +279,7 @@ export const ClaimMainContent = ({
     dueDate: "",
   })
 
-  const [taskFilter, setTaskFilter] = useState({
-    status: "wszystkie",
-    priority: "wszystkie",
-    search: "",
-  })
+  const [editingNoteId, setEditingNoteId] = useState<string | null>(null)
 
   useEffect(() => {
     if (!claimFormData.id) return
@@ -462,7 +458,7 @@ export const ClaimMainContent = ({
   }
 
   // Notes functions
-  const addNote = (type: Note["type"]) => {
+  const saveNote = (type: Note["type"]) => {
     if (!noteForm.title.trim() || !noteForm.description.trim()) {
       toast({
         title: "Błąd",
@@ -472,27 +468,48 @@ export const ClaimMainContent = ({
       return
     }
 
-    const newNote: Note = {
-      id: `temp-${Date.now()}`,
-      type,
-      title: noteForm.title,
-      description: noteForm.description,
-      user: "",
-      createdAt: new Date().toISOString(),
-      priority: noteForm.priority,
-      status: type === "task" ? "active" : undefined,
-      dueDate: noteForm.dueDate || undefined,
+    let updatedNotes: Note[]
+
+    if (editingNoteId) {
+      updatedNotes = (claimFormData.notes ?? []).map((note) =>
+        note.id === editingNoteId
+          ? {
+              ...note,
+              title: noteForm.title,
+              description: noteForm.description,
+              priority: noteForm.priority,
+              dueDate: noteForm.dueDate || undefined,
+            }
+          : note,
+      )
+      toast({
+        title: "Zaktualizowano",
+        description: `${getTypeLabel(type)} została zaktualizowana.`,
+      })
+    } else {
+      const newNote: Note = {
+        id: `temp-${Date.now()}`,
+        type,
+        title: noteForm.title,
+        description: noteForm.description,
+        user: "",
+        createdAt: new Date().toISOString(),
+        priority: noteForm.priority,
+        status: type === "task" ? "active" : undefined,
+        dueDate: noteForm.dueDate || undefined,
+      }
+
+      updatedNotes = [newNote, ...(claimFormData.notes ?? [])]
+      toast({
+        title: "Sukces",
+        description: `${getTypeLabel(type)} została dodana pomyślnie.`,
+      })
     }
 
-    const updatedNotes = [newNote, ...(claimFormData.notes ?? [])]
     handleFormChange("notes", updatedNotes)
     setNoteForm({ title: "", description: "", priority: "medium", dueDate: "" })
     setShowNoteForm(null)
-
-    toast({
-      title: "Sukces",
-      description: `${getTypeLabel(type)} została dodana pomyślnie.`,
-    })
+    setEditingNoteId(null)
   }
 
   const updateTaskStatus = (
@@ -521,9 +538,21 @@ export const ClaimMainContent = ({
     })
   }
 
+  const startEditNote = (note: Note) => {
+    setEditingNoteId(note.id)
+    setShowNoteForm(note.type)
+    setNoteForm({
+      title: note.title,
+      description: note.description,
+      priority: note.priority ?? "medium",
+      dueDate: note.dueDate ?? "",
+    })
+  }
+
   const cancelNoteForm = () => {
     setShowNoteForm(null)
     setNoteForm({ title: "", description: "", priority: "medium", dueDate: "" })
+    setEditingNoteId(null)
   }
 
   const getTypeLabel = (type: Note["type"]) => {
@@ -570,21 +599,6 @@ export const ClaimMainContent = ({
   }
 
   const notes = (claimFormData.notes ?? []) as Note[]
-
-  const filteredNotes = notes.filter((note) => {
-    const matchesSearch =
-      note.title.toLowerCase().includes(taskFilter.search.toLowerCase()) ||
-      note.description.toLowerCase().includes(taskFilter.search.toLowerCase())
-    const matchesStatus = taskFilter.status === "wszystkie" || note.status === taskFilter.status
-    const matchesPriority = taskFilter.priority === "wszystkie" || note.priority === taskFilter.priority
-    return matchesSearch && matchesStatus && matchesPriority
-  })
-
-  const taskStats = {
-    active: notes.filter((n) => n.type === "task" && n.status === "active").length,
-    cancelled: notes.filter((n) => n.type === "task" && n.status === "cancelled").length,
-    completed: notes.filter((n) => n.type === "task" && n.status === "completed").length,
-  }
 
   // Get status label from code
   const getStatusLabel = (statusId?: number) => {
@@ -1507,7 +1521,7 @@ export const ClaimMainContent = ({
                         Anuluj
                       </Button>
                       <Button
-                        onClick={() => addNote(showNoteForm as Note["type"])}
+                        onClick={() => saveNote(showNoteForm as Note["type"])}
                         disabled={!noteForm.title.trim() || !noteForm.description.trim()}
                         className="bg-blue-600 hover:bg-blue-700"
                       >
@@ -1534,8 +1548,8 @@ export const ClaimMainContent = ({
                         </tr>
                       </thead>
                       <tbody className="bg-white">
-                        {filteredNotes.length > 0 ? (
-                          filteredNotes.map((note) => (
+                        {notes.length > 0 ? (
+                          notes.map((note) => (
                             <tr key={note.id} className="border-b border-gray-100 hover:bg-gray-50">
                               <td className="p-4">
                                 <span
@@ -1605,6 +1619,14 @@ export const ClaimMainContent = ({
                                     variant="ghost"
                                     size="icon"
                                     className="h-8 w-8"
+                                    onClick={() => startEditNote(note)}
+                                  >
+                                    <Edit className="h-4 w-4 text-blue-500" />
+                                  </Button>
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    className="h-8 w-8"
                                     onClick={() => deleteNote(note.id)}
                                   >
                                     <Trash2 className="h-4 w-4 text-red-500" />
@@ -1626,149 +1648,6 @@ export const ClaimMainContent = ({
                 </CardContent>
               </Card>
 
-              {/* My Tasks section */}
-              <Card className="rounded-xl mt-6">
-                <CardHeader>
-                  <CardTitle className="flex items-center space-x-2">
-                    <FileText className="h-5 w-5 text-blue-600" />
-                    <span>Moje zadania</span>
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="flex items-center space-x-6 mb-4">
-                    <div className="flex items-center space-x-2">
-                      <Clock className="h-4 w-4 text-blue-500" />
-                      <span className="text-sm text-gray-600">{taskStats.active} aktywnych</span>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <X className="h-4 w-4 text-red-500" />
-                      <span className="text-sm text-gray-600">{taskStats.cancelled} anulowanych</span>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <CheckCircle className="h-4 w-4 text-green-500" />
-                      <span className="text-sm text-gray-600">{taskStats.completed} zakończonych</span>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center space-x-4 mb-4">
-                    <div className="relative flex-1">
-                      <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-                      <Input
-                        placeholder="Szukaj zadań..."
-                        className="pl-10"
-                        value={taskFilter.search}
-                        onChange={(e) => setTaskFilter((prev) => ({ ...prev, search: e.target.value }))}
-                      />
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <Label className="text-sm">Status:</Label>
-                      <Select
-                        value={taskFilter.status}
-                        onValueChange={(value) => setTaskFilter((prev) => ({ ...prev, status: value }))}
-                      >
-                        <SelectTrigger className="w-32">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="wszystkie">Wszystkie</SelectItem>
-                          <SelectItem value="active">Aktywne</SelectItem>
-                          <SelectItem value="completed">Zakończone</SelectItem>
-                          <SelectItem value="cancelled">Anulowane</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <Label className="text-sm">Priorytet:</Label>
-                      <Select
-                        value={taskFilter.priority}
-                        onValueChange={(value) => setTaskFilter((prev) => ({ ...prev, priority: value }))}
-                      >
-                        <SelectTrigger className="w-32">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="wszystkie">Wszystkie</SelectItem>
-                          <SelectItem value="high">Wysoki</SelectItem>
-                          <SelectItem value="medium">Średni</SelectItem>
-                          <SelectItem value="low">Niski</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <Button variant="outline" size="sm">
-                      Odśwież
-                    </Button>
-                  </div>
-
-                  {/* Tasks list */}
-                  <div className="space-y-3">
-                    {notes
-                      .filter((note) => note.type === "task")
-                      .map((task) => (
-                        <div key={task.id} className="border rounded-lg p-4 bg-gray-50">
-                          <div className="flex items-start justify-between">
-                            <div className="flex-1">
-                              <div className="flex items-center space-x-2 mb-2">
-                                <Checkbox
-                                  checked={task.status === "completed"}
-                                  onCheckedChange={(checked) =>
-                                    updateTaskStatus(
-                                      task.id,
-                                      checked ? "completed" : "active",
-                                    )
-                                  }
-                                  disabled={task.status === "cancelled"}
-                                  className="mr-1"
-                                />
-                                {getStatusIcon(task.status)}
-                                <h4 className="font-medium text-gray-900">{task.title}</h4>
-                                {task.priority && (
-                                  <span
-                                    className={`px-2 py-1 rounded-full text-xs font-medium ${
-                                      task.priority === "high"
-                                        ? "bg-red-100 text-red-800"
-                                        : task.priority === "medium"
-                                          ? "bg-yellow-100 text-yellow-800"
-                                          : "bg-green-100 text-green-800"
-                                    }`}
-                                  >
-                                    {task.priority === "high"
-                                      ? "Wysoki"
-                                      : task.priority === "medium"
-                                        ? "Średni"
-                                        : "Niski"}
-                                  </span>
-                                )}
-                              </div>
-                              <p className="text-sm text-gray-600 mb-2">{task.description}</p>
-                              <div className="flex items-center space-x-4 text-xs text-gray-500">
-                                <span>
-                                  {new Date(task.createdAt).toLocaleDateString("pl-PL", {
-                                    day: "2-digit",
-                                    month: "short",
-                                    year: "numeric",
-                                    hour: "2-digit",
-                                    minute: "2-digit",
-                                  })}
-                                </span>
-                                {task.dueDate && (
-                                  <span>Termin: {new Date(task.dueDate).toLocaleDateString("pl-PL")}</span>
-                                )}
-                                <span>Szkoda nr: {claimFormData.spartaNumber}</span>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      ))}
-
-                    {notes.filter((note) => note.type === "task").length === 0 && (
-                      <div className="text-center py-8 text-gray-500">
-                        <FileCheck className="h-12 w-12 mx-auto mb-4 text-gray-300" />
-                        <p>Brak zadań do wyświetlenia</p>
-                      </div>
-                    )}
-                  </div>
-                </CardContent>
-              </Card>
             </CardContent>
           </Card>
         </div>

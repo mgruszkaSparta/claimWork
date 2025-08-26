@@ -128,9 +128,11 @@ export const DocumentsSection = React.forwardRef<
     if (previewDocument?.previewUrl?.startsWith("blob:")) {
       URL.revokeObjectURL(previewDocument.previewUrl)
     }
+
     if (docxPreviewRef.current) {
       docxPreviewRef.current.innerHTML = ""
     }
+
     setDocxEditing(false)
     setPreviewDocument(null)
   }, [previewDocument])
@@ -166,13 +168,12 @@ export const DocumentsSection = React.forwardRef<
 
 
   const uploadedFileToDocument = (file: UploadedFile): Document => {
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL || ""
     const isPersisted = isGuid(file.id)
     const previewUrl = isPersisted
-      ? `${apiUrl}/documents/${file.id}/preview`
+      ? `/api/documents/${file.id}/preview`
       : file.cloudUrl || file.url
     const downloadUrl = isPersisted
-      ? `${apiUrl}/documents/${file.id}/download`
+      ? `/api/documents/${file.id}/download`
       : file.cloudUrl || file.url
 
     return {
@@ -290,14 +291,13 @@ export const DocumentsSection = React.forwardRef<
         })
       } else if (response.ok) {
         const data: Document[] = await response.json()
-        const apiUrl = process.env.NEXT_PUBLIC_API_URL || ""
         const mappedDocs: Document[] = data.map((d: any) => ({
           ...d,
           documentType: mapCategoryCodeToName(d.documentType || d.category),
           categoryCode: d.documentType || d.category,
 
-          previewUrl: `${apiUrl}/documents/${d.id}/preview`,
-          downloadUrl: `${apiUrl}/documents/${d.id}/download`,
+          previewUrl: `/api/documents/${d.id}/preview`,
+          downloadUrl: `/api/documents/${d.id}/download`,
 
         }))
         setDocuments(mappedDocs)
@@ -454,7 +454,6 @@ export const DocumentsSection = React.forwardRef<
         if (response.ok) {
           const documentDto = await response.json()
           const serverCategory = documentDto.documentType || documentDto.category
-         const apiUrl = process.env.NEXT_PUBLIC_API_URL || ""
          const doc: Document = {
            ...documentDto,
            documentType: serverCategory
@@ -473,8 +472,8 @@ export const DocumentsSection = React.forwardRef<
               documentDto.contentType?.includes("spreadsheetml") ||
               documentDto.contentType?.includes("excel")),
 
-          previewUrl: `${apiUrl}/documents/${documentDto.id}/preview`,
-          downloadUrl: `${apiUrl}/documents/${documentDto.id}/download`,
+          previewUrl: `/api/documents/${documentDto.id}/preview`,
+          downloadUrl: `/api/documents/${documentDto.id}/download`,
         }
         return doc
        } else {
@@ -817,6 +816,7 @@ export const DocumentsSection = React.forwardRef<
   }
 
   const handlePreview = async (doc: Document, documentsArray?: Document[]) => {
+
     const docsToPreview = documentsArray || visibleDocuments
     const index = docsToPreview.findIndex((d) => d.id === doc.id)
     if (previewDocument?.previewUrl?.startsWith("blob:")) {
@@ -828,6 +828,7 @@ export const DocumentsSection = React.forwardRef<
     setPreviewRotation(0)
     setPreviewFullscreen(false)
     setDocxEditing(false)
+
     try {
       const response = await authFetch(doc.previewUrl || doc.downloadUrl, {
         method: "GET",
@@ -855,6 +856,7 @@ export const DocumentsSection = React.forwardRef<
       }
     } catch (error) {
       console.error("Error loading preview:", error)
+
       toast({
         title: "Błąd podglądu",
         description: "Nie można wyświetlić dokumentu",
@@ -866,6 +868,7 @@ export const DocumentsSection = React.forwardRef<
   const handleDownload = async (doc: Document) => {
     try {
       const response = await authFetch(doc.downloadUrl, { method: "GET" })
+
       if (!response.ok) throw new Error(`HTTP ${response.status}`)
       const blob = await response.blob()
       const url = window.URL.createObjectURL(blob)
@@ -878,6 +881,7 @@ export const DocumentsSection = React.forwardRef<
       console.error("Error downloading file:", error)
       toast({
         title: "Błąd pobierania",
+
         description: "Nie udało się pobrać pliku.",
         variant: "destructive",
       })

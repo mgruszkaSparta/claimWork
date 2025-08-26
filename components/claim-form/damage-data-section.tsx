@@ -424,19 +424,28 @@ export function DamageDataSection({
               className="relative z-20"
             />
           </div>
-          <div className="relative z-10">
-            <Label htmlFor="leasingCompany" className="text-sm font-medium text-gray-700 mb-2 block">
-              Firma leasingowa
-            </Label>
-            <LeasingDropdown
-              selectedCompanyId={claimFormData.leasingCompanyId ? parseInt(claimFormData.leasingCompanyId) : undefined}
-              onCompanySelected={(event: LeasingCompanySelectionEvent) => {
-                handleFormChange("leasingCompany", event.companyName)
-                handleFormChange("leasingCompanyId", event.companyId.toString())
-              }}
-              className="relative z-10"
-            />
-          </div>
+          {claimObjectType !== "3" && (
+            <div className="relative z-10">
+              <Label
+                htmlFor="leasingCompany"
+                className="text-sm font-medium text-gray-700 mb-2 block"
+              >
+                Firma leasingowa
+              </Label>
+              <LeasingDropdown
+                selectedCompanyId={
+                  claimFormData.leasingCompanyId
+                    ? parseInt(claimFormData.leasingCompanyId)
+                    : undefined
+                }
+                onCompanySelected={(event: LeasingCompanySelectionEvent) => {
+                  handleFormChange("leasingCompany", event.companyName)
+                  handleFormChange("leasingCompanyId", event.companyId.toString())
+                }}
+                className="relative z-10"
+              />
+            </div>
+          )}
         </div>
       </CardContent>
     </Card>

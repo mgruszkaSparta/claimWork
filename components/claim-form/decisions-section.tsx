@@ -10,7 +10,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { Badge } from "@/components/ui/badge"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { useToast } from "@/hooks/use-toast"
-import { Plus, Minus, Edit, Trash2, Download, Eye, Upload, X, FileText, Loader2, Gavel, ChevronLeft, ChevronRight } from 'lucide-react'
+import { Plus, Minus, Edit, Trash2, Download, Eye, Upload, X, FileText, Loader2, Gavel, ChevronLeft, ChevronRight, Printer } from 'lucide-react'
 import type { Decision } from "@/types"
 import type { DocumentDto } from "@/lib/api"
 import {
@@ -463,15 +463,45 @@ export function DecisionsSection({ claimId, onChange }: DecisionsSectionProps) {
     }
   }
 
-  const closePreview = () => {
-    setIsPreviewVisible(false)
-    if (previewUrl) {
-      window.URL.revokeObjectURL(previewUrl)
+  const handlePreviewOpenChange = (open: boolean) => {
+    setIsPreviewVisible(open)
+    if (!open) {
+      if (previewUrl) {
+        window.URL.revokeObjectURL(previewUrl)
+      }
+      setPreviewUrl(null)
+      setCurrentPreviewDecision(null)
+      setCurrentPreviewDoc(null)
+      setPreviewDocs([])
     }
-    setPreviewUrl(null)
-    setCurrentPreviewDecision(null)
-    setCurrentPreviewDoc(null)
-    setPreviewDocs([])
+  }
+
+  const handlePrintPdf = () => {
+    if (!currentPreviewDecision) return
+
+    const printWindow = window.open('', '_blank')
+    if (!printWindow) return
+
+    const { decisionDate, status, amount, currency, compensationTitle, documentDescription } =
+      currentPreviewDecision
+
+    printWindow.document.write(`<!DOCTYPE html><html><head><title>Decyzja</title></head><body>`)
+    printWindow.document.write('<h1>Szczegóły decyzji</h1>')
+    printWindow.document.write(`<p><strong>Data:</strong> ${decisionDate}</p>`)
+    if (status) printWindow.document.write(`<p><strong>Status:</strong> ${status}</p>`)
+    if (amount)
+      printWindow.document.write(
+        `<p><strong>Kwota:</strong> ${amount} ${currency ?? ''}</p>`,
+      )
+    if (compensationTitle)
+      printWindow.document.write(`<p><strong>Tytuł:</strong> ${compensationTitle}</p>`)
+    if (documentDescription)
+      printWindow.document.write(`<p><strong>Opis dokumentu:</strong> ${documentDescription}</p>`)
+    printWindow.document.write('</body></html>')
+    printWindow.document.close()
+    printWindow.focus()
+    printWindow.print()
+    printWindow.close()
   }
 
   const previewSelectedFile = (file: File) => {
@@ -1062,7 +1092,7 @@ export function DecisionsSection({ claimId, onChange }: DecisionsSectionProps) {
       )}
 
       {/* File Preview Modal */}
-      <Dialog open={isPreviewVisible} onOpenChange={closePreview}>
+      <Dialog open={isPreviewVisible} onOpenChange={handlePreviewOpenChange}>
         <DialogContent className="max-w-4xl w-full max-h-[90vh] flex flex-col">
           <DialogHeader>
             <DialogTitle>Podgląd: {previewFileName}</DialogTitle>
@@ -1103,19 +1133,25 @@ export function DecisionsSection({ claimId, onChange }: DecisionsSectionProps) {
             </Button>
           </div>
         )}
-        <Button
-          onClick={() =>
-            currentPreviewDecision &&
-            downloadFile(
-              currentPreviewDecision,
-              previewDocs.length ? previewDocs[previewIndex] : currentPreviewDoc || undefined
-            )
-          }
-          className="flex items-center gap-2"
-        >
-          <Download className="h-4 w-4" />
-          Pobierz plik
-        </Button>
+        <div className="flex gap-2">
+          <Button onClick={handlePrintPdf} className="flex items-center gap-2">
+            <Printer className="h-4 w-4" />
+            Drukuj PDF
+          </Button>
+          <Button
+            onClick={() =>
+              currentPreviewDecision &&
+              downloadFile(
+                currentPreviewDecision,
+                previewDocs.length ? previewDocs[previewIndex] : currentPreviewDoc || undefined
+              )
+            }
+            className="flex items-center gap-2"
+          >
+            <Download className="h-4 w-4" />
+            Pobierz plik
+          </Button>
+        </div>
       </div>
     </DialogContent>
   </Dialog>

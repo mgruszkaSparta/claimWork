@@ -675,7 +675,7 @@ export const ClaimMainContent = ({
                 </div>
                 <div className="p-4">
                 {eventId ? (
-                  <div className="border rounded-lg overflow-hidden">
+                  <div className="rounded-lg overflow-hidden">
                     <RepairScheduleSection eventId={eventId} />
                   </div>
                 ) : (
@@ -1738,7 +1738,7 @@ export const ClaimMainContent = ({
                 </div>
                 <div className="p-4">
                 {eventId ? (
-                  <div className="border rounded-lg overflow-hidden">
+                  <div className="rounded-lg overflow-hidden">
                     <RepairScheduleSection eventId={eventId} />
                   </div>
                 ) : (

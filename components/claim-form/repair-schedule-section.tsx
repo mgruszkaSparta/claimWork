@@ -431,7 +431,7 @@ export const RepairScheduleSection: React.FC<RepairScheduleSectionProps> = ({ ev
   }
 
   return (
-    <div className="space-y-8 animate-fade-in w-full min-h-screen">
+    <div className="space-y-8 animate-fade-in w-full">
       <div className="flex justify-end">
         <Button
           onClick={() => setShowForm(true)}

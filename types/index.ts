@@ -25,6 +25,8 @@ export interface Note {
 
 
 export interface TransportDamage {
+  transportType: string
+  transportTypeId: string
   cargoDescription: string
   losses: string[]
   carrier: string
@@ -78,6 +80,8 @@ export interface Claim
     | "inspectionContactName"
     | "inspectionContactPhone"
     | "inspectionContactEmail"
+    | "transportType"
+    | "transportTypeId"
   > {
   id?: string
   clientId?: string

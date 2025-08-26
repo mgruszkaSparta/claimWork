@@ -6,9 +6,19 @@ import { Label } from "@/components/ui/label"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Button } from "@/components/ui/button"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
+import { TRANSPORT_TYPES } from "@/lib/constants"
 import { FileText, Plus, Trash2 } from "lucide-react"
 
 interface TransportDamage {
+  transportType: string
+  transportTypeId: string
   cargoDescription: string
   losses: string[]
   carrier: string
@@ -31,6 +41,8 @@ export function TransportDamageSection({
 }: TransportDamageSectionProps) {
   const transportDamage: TransportDamage =
     claimFormData.transportDamage || {
+      transportType: "",
+      transportTypeId: "",
       cargoDescription: "",
       losses: [""],
       carrier: "",
@@ -62,10 +74,38 @@ export function TransportDamageSection({
     handleFieldChange("losses", updated)
   }
 
+  const handleTransportTypeChange = (value: string) => {
+    const selected = TRANSPORT_TYPES.find((t) => t.value === value)
+    handleFormChange("transportDamage", {
+      ...transportDamage,
+      transportTypeId: value,
+      transportType: selected?.code || "",
+    })
+  }
+
   return (
     <Card>
       <FormHeader icon={FileText} title="Szkoda w transporcie" />
       <CardContent className="space-y-4">
+        <div className="space-y-2">
+          <Label htmlFor="transportType">Rodzaj transportu</Label>
+          <Select
+            value={transportDamage.transportTypeId}
+            onValueChange={handleTransportTypeChange}
+            disabled={disabled}
+          >
+            <SelectTrigger>
+              <SelectValue placeholder="Wybierz rodzaj transportu" />
+            </SelectTrigger>
+            <SelectContent>
+              {TRANSPORT_TYPES.map((type) => (
+                <SelectItem key={type.value} value={type.value}>
+                  {type.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
         <div className="space-y-2">
           <Label htmlFor="cargoDescription">Opis ładunku / lista strat</Label>
           <Textarea

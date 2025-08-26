@@ -1052,6 +1052,8 @@ namespace AutomotiveClaimsApi.Controllers
             entity.ClaimFromSubcontractorPolicyDate = dto.ClaimFromSubcontractorPolicyDate;
             entity.ComplaintResponse = dto.ComplaintResponse;
             entity.ComplaintResponseDate = dto.ComplaintResponseDate;
+            entity.TransportTypeId = dto.TransportTypeId;
+            entity.TransportType = dto.TransportType;
             entity.CargoDescription = dto.CargoDescription;
             entity.Losses = dto.Losses;
             entity.Carrier = dto.Carrier;
@@ -1869,6 +1871,8 @@ namespace AutomotiveClaimsApi.Controllers
             ClaimFromSubcontractorPolicyDate = e.ClaimFromSubcontractorPolicyDate,
             ComplaintResponse = e.ComplaintResponse,
             ComplaintResponseDate = e.ComplaintResponseDate,
+            TransportTypeId = e.TransportTypeId,
+            TransportType = e.TransportType,
             CargoDescription = e.CargoDescription,
             Losses = e.Losses?.Split(',', StringSplitOptions.RemoveEmptyEntries),
             Carrier = e.Carrier,

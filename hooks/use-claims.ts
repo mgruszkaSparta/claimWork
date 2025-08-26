@@ -34,6 +34,8 @@ export const transformApiClaimToFrontend = (apiClaim: ClaimDto): Claim => {
     recourses,
     settlements,
     servicesCalled,
+    transportType,
+    transportTypeId,
     cargoDescription,
     losses,
     carrier,
@@ -136,6 +138,8 @@ export const transformApiClaimToFrontend = (apiClaim: ClaimDto): Claim => {
     recourses: recourses || [],
     settlements: settlements || [],
     transportDamage: {
+      transportType: transportType || "",
+      transportTypeId: transportTypeId?.toString() || "",
       cargoDescription: cargoDescription || "",
       losses: losses || [],
       carrier: carrier || "",
@@ -289,6 +293,10 @@ export const transformFrontendClaimToApiPayload = (
           inspectionContactName: transportDamage.inspectionContactName,
           inspectionContactPhone: transportDamage.inspectionContactPhone,
           inspectionContactEmail: transportDamage.inspectionContactEmail,
+          transportType: transportDamage.transportType,
+          transportTypeId: transportDamage.transportTypeId
+            ? parseInt(transportDamage.transportTypeId, 10)
+            : undefined,
         }
       : {}),
     participants: participants,

@@ -185,6 +185,11 @@ namespace AutomotiveClaimsApi.Models
 
         public DateTime? ComplaintResponseDate { get; set; }
 
+        public int? TransportTypeId { get; set; }
+
+        [MaxLength(50)]
+        public string? TransportType { get; set; }
+
         [MaxLength(2000)]
         public string? CargoDescription { get; set; }
 

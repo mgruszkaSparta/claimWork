@@ -73,6 +73,8 @@ namespace AutomotiveClaimsApi.DTOs
         public DateTime? ClaimFromSubcontractorPolicyDate { get; set; }
         public bool? ComplaintResponse { get; set; }
         public DateTime? ComplaintResponseDate { get; set; }
+        public int? TransportTypeId { get; set; }
+        public string? TransportType { get; set; }
         public string? CargoDescription { get; set; }
         public string[]? Losses { get; set; }
         public string? Carrier { get; set; }

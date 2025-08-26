@@ -125,9 +125,12 @@ export const DocumentsSection = React.forwardRef<
     if (document.fullscreenElement) {
       document.exitFullscreen()
     }
+    if (previewDocument?.previewUrl?.startsWith("blob:")) {
+      URL.revokeObjectURL(previewDocument.previewUrl)
+    }
     setDocxEditing(false)
     setPreviewDocument(null)
-  }, [setPreviewDocument])
+  }, [previewDocument])
 
   useEffect(() => {
     const handleFullscreenChange = () => {
@@ -195,13 +198,12 @@ export const DocumentsSection = React.forwardRef<
 
 
   const uploadedFileToDocument = (file: UploadedFile): Document => {
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL || ""
     const isPersisted = isGuid(file.id)
     const previewUrl = isPersisted
-      ? `${apiUrl}/documents/${file.id}/preview`
+      ? `/api/documents/${file.id}/preview`
       : file.cloudUrl || file.url
     const downloadUrl = isPersisted
-      ? `${apiUrl}/documents/${file.id}/download`
+      ? `/api/documents/${file.id}/download`
       : file.cloudUrl || file.url
 
     return {
@@ -319,14 +321,13 @@ export const DocumentsSection = React.forwardRef<
         })
       } else if (response.ok) {
         const data: Document[] = await response.json()
-        const apiUrl = process.env.NEXT_PUBLIC_API_URL || ""
         const mappedDocs: Document[] = data.map((d: any) => ({
           ...d,
           documentType: mapCategoryCodeToName(d.documentType || d.category),
           categoryCode: d.documentType || d.category,
 
-          previewUrl: `${apiUrl}/documents/${d.id}/preview`,
-          downloadUrl: `${apiUrl}/documents/${d.id}/download`,
+          previewUrl: `/api/documents/${d.id}/preview`,
+          downloadUrl: `/api/documents/${d.id}/download`,
 
         }))
         setDocuments(mappedDocs)
@@ -483,7 +484,6 @@ export const DocumentsSection = React.forwardRef<
         if (response.ok) {
           const documentDto = await response.json()
           const serverCategory = documentDto.documentType || documentDto.category
-         const apiUrl = process.env.NEXT_PUBLIC_API_URL || ""
          const doc: Document = {
            ...documentDto,
            documentType: serverCategory
@@ -502,8 +502,8 @@ export const DocumentsSection = React.forwardRef<
               documentDto.contentType?.includes("spreadsheetml") ||
               documentDto.contentType?.includes("excel")),
 
-          previewUrl: `${apiUrl}/documents/${documentDto.id}/preview`,
-          downloadUrl: `${apiUrl}/documents/${documentDto.id}/download`,
+          previewUrl: `/api/documents/${documentDto.id}/preview`,
+          downloadUrl: `/api/documents/${documentDto.id}/download`,
         }
         return doc
        } else {
@@ -845,7 +845,10 @@ export const DocumentsSection = React.forwardRef<
     }
   }
 
-  const handlePreview = (doc: Document, documentsArray?: Document[]) => {
+  const handlePreview = async (doc: Document, documentsArray?: Document[]) => {
+    if (previewDocument?.previewUrl?.startsWith("blob:")) {
+      URL.revokeObjectURL(previewDocument.previewUrl)
+    }
 
     const docsToPreview = documentsArray || visibleDocuments
 
@@ -853,21 +856,50 @@ export const DocumentsSection = React.forwardRef<
 
     setPreviewDocuments(docsToPreview)
     setCurrentPreviewIndex(index)
-    setPreviewDocument(doc)
     setPreviewZoom(1)
     setPreviewRotation(0)
     setPreviewFullscreen(false)
     setDocxEditing(false)
+
+    if (
+      doc.contentType?.startsWith(
+        "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+      ) || doc.contentType?.startsWith("application/msword")
+    ) {
+      setPreviewDocument(doc)
+      return
+    }
+
+    try {
+      const response = await authFetch(doc.previewUrl || doc.downloadUrl, { method: "GET" })
+      if (!response.ok) throw new Error("Failed to load preview")
+      const blob = await response.blob()
+      const objectUrl = URL.createObjectURL(blob)
+      setPreviewDocument({ ...doc, previewUrl: objectUrl })
+    } catch (error) {
+      console.error("Failed to preview document", error)
+      toast({
+        title: "Błąd podglądu",
+        description: "Nie można wyświetlić dokumentu",
+        variant: "destructive",
+      })
+    }
   }
 
-  const handleDownload = (doc: Document) => {
-    const link = window.document.createElement("a")
-    link.href = doc.downloadUrl
-    link.download = doc.originalFileName
-    link.target = "_blank"
-    window.document.body.appendChild(link)
-    link.click()
-    window.document.body.removeChild(link)
+  const handleDownload = async (doc: Document) => {
+    try {
+      const response = await authFetch(doc.downloadUrl, { method: "GET" })
+      if (!response.ok) throw new Error("Failed to download document")
+      const blob = await response.blob()
+      saveAs(blob, doc.originalFileName)
+    } catch (error) {
+      console.error("Failed to download document", error)
+      toast({
+        title: "Błąd",
+        description: "Nie udało się pobrać pliku.",
+        variant: "destructive",
+      })
+    }
   }
 
   const startDocxEdit = () => {

@@ -10,21 +10,26 @@ import { ProtectedRoute } from '@/components/protected-route'
 import { cn } from '@/lib/utils'
 import { useAuth } from '@/hooks/use-auth'
 
+const BASE_SETTINGS_NAV = [
+  { href: '/settings/casehandlers', label: 'Likwidatorzy' },
+  { href: '/settings/clients', label: 'Klienci' },
+  { href: '/settings/damage-types', label: 'Typy szkód' },
+  { href: '/settings/dictionaries', label: 'Słowniki' },
+  { href: '/settings/notifications', label: 'Powiadomienia' },
+  { href: '/settings/risk-types', label: 'Typy ryzyka' },
+  { href: '/settings/users', label: 'Użytkownicy' },
+]
+  .sort((a, b) => a.label.localeCompare(b.label, 'pl'))
+
+const SETTINGS_NAV_ITEMS = [
+  ...BASE_SETTINGS_NAV,
+  { href: '/admin', label: 'Panel administracyjny' },
+]
+
 export default function SettingsLayout({ children }: { children: ReactNode }) {
   const [activeTab, setActiveTab] = useState('settings')
   const pathname = usePathname()
   const { user, logout } = useAuth()
-
-  const settingsItems = [
-    { href: '/settings/clients', label: 'Klienci' },
-    { href: '/settings/users', label: 'Użytkownicy' },
-    { href: '/settings/casehandlers', label: 'Likwidatorzy' },
-    { href: '/settings/risk-types', label: 'Typy ryzyka' },
-    { href: '/settings/damage-types', label: 'Typy szkód' },
-    { href: '/settings/dictionaries', label: 'Słowniki' },
-    { href: '/settings/notifications', label: 'Powiadomienia' },
-    { href: '/admin', label: 'Panel administracyjny' },
-  ]
 
   return (
     <ProtectedRoute roles={["Admin", "admin"]}>
@@ -34,7 +39,7 @@ export default function SettingsLayout({ children }: { children: ReactNode }) {
           <Header onMenuClick={() => {}} user={user ?? undefined} onLogout={logout} />
           <div className="flex flex-1">
             <nav className="w-48 border-r bg-white p-4 space-y-2">
-              {settingsItems.map((item) => (
+              {SETTINGS_NAV_ITEMS.map((item) => (
                 <Link
                   key={item.href}
                   href={item.href}

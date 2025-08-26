@@ -129,6 +129,10 @@ export const DocumentsSection = React.forwardRef<
       URL.revokeObjectURL(previewDocument.previewUrl)
     }
 
+    if (docxPreviewRef.current) {
+      docxPreviewRef.current.innerHTML = ""
+    }
+
     setDocxEditing(false)
     setPreviewDocument(null)
   }, [previewDocument])
@@ -813,11 +817,6 @@ export const DocumentsSection = React.forwardRef<
 
   const handlePreview = async (doc: Document, documentsArray?: Document[]) => {
 
-    if (previewDocument?.previewUrl?.startsWith("blob:")) {
-      URL.revokeObjectURL(previewDocument.previewUrl)
-    }
-
-
     const docsToPreview = documentsArray || visibleDocuments
     const index = docsToPreview.findIndex((d) => d.id === doc.id)
     if (previewDocument?.previewUrl?.startsWith("blob:")) {
@@ -830,24 +829,33 @@ export const DocumentsSection = React.forwardRef<
     setPreviewFullscreen(false)
     setDocxEditing(false)
 
-
-    if (
-      doc.contentType?.startsWith(
-        "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-      ) || doc.contentType?.startsWith("application/msword")
-    ) {
-      setPreviewDocument(doc)
-      return
-    }
-
     try {
-      const response = await authFetch(doc.previewUrl || doc.downloadUrl, { method: "GET" })
-      if (!response.ok) throw new Error("Failed to load preview")
+      const response = await authFetch(doc.previewUrl || doc.downloadUrl, {
+        method: "GET",
+      })
+      if (!response.ok) throw new Error(`HTTP ${response.status}`)
       const blob = await response.blob()
-      const objectUrl = URL.createObjectURL(blob)
+      const objectUrl = window.URL.createObjectURL(blob)
+      if (docxPreviewRef.current) {
+        docxPreviewRef.current.innerHTML = ""
+      }
       setPreviewDocument({ ...doc, previewUrl: objectUrl })
+      if (
+        doc.contentType ===
+        "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+      ) {
+        try {
+          const buffer = await blob.arrayBuffer()
+          const { renderAsync } = await import("docx-preview")
+          if (docxPreviewRef.current) {
+            await renderAsync(buffer, docxPreviewRef.current)
+          }
+        } catch (err) {
+          console.error("Error rendering docx preview:", err)
+        }
+      }
     } catch (error) {
-      console.error("Failed to preview document", error)
+      console.error("Error loading preview:", error)
 
       toast({
         title: "Błąd podglądu",
@@ -860,13 +868,20 @@ export const DocumentsSection = React.forwardRef<
   const handleDownload = async (doc: Document) => {
     try {
       const response = await authFetch(doc.downloadUrl, { method: "GET" })
-      if (!response.ok) throw new Error("Failed to download document")
+
+      if (!response.ok) throw new Error(`HTTP ${response.status}`)
       const blob = await response.blob()
-      saveAs(blob, doc.originalFileName)
+      const url = window.URL.createObjectURL(blob)
+      const link = window.document.createElement("a")
+      link.href = url
+      link.download = doc.originalFileName
+      link.click()
+      window.URL.revokeObjectURL(url)
     } catch (error) {
-      console.error("Failed to download document", error)
+      console.error("Error downloading file:", error)
       toast({
-        title: "Błąd",
+        title: "Błąd pobierania",
+
         description: "Nie udało się pobrać pliku.",
         variant: "destructive",
       })

@@ -254,6 +254,7 @@ export const transformFrontendClaimToApiPayload = (
     id,
     rowVersion,
     ...rest,
+    isDraft: rest.isDraft ?? false,
     objectTypeId: rest.objectTypeId
       ? typeof rest.objectTypeId === "string"
         ? parseInt(rest.objectTypeId, 10)

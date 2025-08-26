@@ -13,6 +13,7 @@ namespace AutomotiveClaimsApi.DTOs
         public string? Owner { get; set; }
         public string? Status { get; set; }
         public int? ClaimStatusId { get; set; }
+        public bool IsDraft { get; set; }
         public DateTime? DamageDate { get; set; }
         public decimal? TotalClaim { get; set; }
         public decimal? Payout { get; set; }

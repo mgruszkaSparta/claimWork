@@ -59,6 +59,8 @@ namespace AutomotiveClaimsApi.Models
 
         public ClaimStatus? ClaimStatus { get; set; }
 
+        public bool IsDraft { get; set; } = false;
+
         public DateTime? DamageDate { get; set; }
 
         public DateTime? ReportDate { get; set; }

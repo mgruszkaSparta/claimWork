@@ -42,7 +42,6 @@ import { dictionaryService } from "@/lib/dictionary-service"
 import { DamageDataSection } from "./damage-data-section"
 import type { RepairDetail } from "@/lib/repair-details-store"
 import { PropertyDamageSection } from "./property-damage-section"
-import { TransportDamageSection } from "./transport-damage-section"
 import { PropertyParticipantsSection } from "./property-participants-section"
 import InjuredPartySection from "./injured-party-section"
 import SubcontractorSection from "./subcontractor-section"
@@ -1219,12 +1218,6 @@ export const ClaimMainContent = ({
                 </div>
               </CardContent>
             </Card>
-          )}
-          {claimObjectType === "3" && (
-            <TransportDamageSection
-              claimFormData={claimFormData}
-              handleFormChange={(field, value) => handleFormChange(field as keyof Claim, value)}
-            />
           )}
         </div>
       )

@@ -853,6 +853,13 @@ class ApiService {
     this.setToken(null)
   }
 
+  async refreshToken(): Promise<void> {
+    const data = await this.request<{ token: string }>("/auth/refresh", {
+      method: "POST",
+    })
+    this.setToken(data.token)
+  }
+
   async checkHealth(): Promise<void> {
     try {
       await fetch(API_BASE_URL, { method: "GET" })

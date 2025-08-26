@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { FormHeader } from "@/components/ui/form-header"
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -39,6 +39,8 @@ import {
 
 interface RepairDetailsSectionProps {
   eventId: string
+  autoShowForm?: boolean
+  onAutoShowFormHandled?: () => void
 }
 
 const initialFormData: Omit<RepairDetail, "id" | "eventId" | "createdAt" | "updatedAt"> = {
@@ -64,7 +66,11 @@ const initialFormData: Omit<RepairDetail, "id" | "eventId" | "createdAt" | "upda
   status: "draft",
 }
 
-export const RepairDetailsSection: React.FC<RepairDetailsSectionProps> = ({ eventId }) => {
+export const RepairDetailsSection: React.FC<RepairDetailsSectionProps> = ({
+  eventId,
+  autoShowForm,
+  onAutoShowFormHandled,
+}) => {
   const { toast } = useToast()
   const [details, setDetails] = useState<RepairDetail[]>([])
   const [loading, setLoading] = useState(true)
@@ -76,6 +82,13 @@ export const RepairDetailsSection: React.FC<RepairDetailsSectionProps> = ({ even
   useEffect(() => {
     loadDetails()
   }, [eventId])
+
+  useEffect(() => {
+    if (autoShowForm) {
+      setShowForm(true)
+      onAutoShowFormHandled?.()
+    }
+  }, [autoShowForm, onAutoShowFormHandled])
 
   const loadDetails = async () => {
     try {
@@ -209,20 +222,14 @@ export const RepairDetailsSection: React.FC<RepairDetailsSectionProps> = ({ even
 
   return (
     <div className="space-y-8 animate-fade-in">
-      {showForm && (
-        <Card className="border shadow-lg bg-card animate-scale-in">
-          <FormHeader icon={FileText} title={editing ? "Edytuj opis naprawy" : "Nowy opis naprawy"}>
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={resetForm}
-              className="rounded-xl hover:bg-destructive/10 hover:text-destructive"
-            >
-              <X className="h-5 w-5" />
-            </Button>
-          </FormHeader>
-          <CardContent className="p-8">
-            <form onSubmit={handleSubmit} className="space-y-8">
+      <Dialog open={showForm} onOpenChange={(open) => (open ? setShowForm(true) : resetForm())}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <FileText className="h-5 w-5 text-primary" /> {editing ? "Edytuj opis naprawy" : "Nowy opis naprawy"}
+            </DialogTitle>
+          </DialogHeader>
+          <form onSubmit={handleSubmit} className="space-y-8">
               {/* Basic information */}
               <div className="space-y-4">
                 <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
@@ -521,26 +528,25 @@ export const RepairDetailsSection: React.FC<RepairDetailsSectionProps> = ({ even
                 </div>
               </div>
 
-              <div className="flex justify-between items-center pt-8 border-t border-border">
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={resetForm}
-                  className="px-8 py-3 rounded-xl border-border hover:bg-destructive/10 hover:text-destructive"
-                >
-                  <X className="h-4 w-4 mr-2" /> Anuluj
-                </Button>
-                <Button
-                  type="submit"
-                  className="bg-primary hover:bg-primary/90 text-primary-foreground px-8 py-3 rounded-xl shadow"
-                >
-                  <Save className="h-4 w-4 mr-2" /> {editing ? "Zaktualizuj" : "Zapisz"}
-                </Button>
-              </div>
-            </form>
-          </CardContent>
-        </Card>
-      )}
+            <div className="flex justify-between items-center pt-8 border-t border-border">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={resetForm}
+                className="px-8 py-3 rounded-xl border-border hover:bg-destructive/10 hover:text-destructive"
+              >
+                <X className="h-4 w-4 mr-2" /> Anuluj
+              </Button>
+              <Button
+                type="submit"
+                className="bg-primary hover:bg-primary/90 text-primary-foreground px-8 py-3 rounded-xl shadow"
+              >
+                <Save className="h-4 w-4 mr-2" /> {editing ? "Zaktualizuj" : "Zapisz"}
+              </Button>
+            </div>
+          </form>
+        </DialogContent>
+      </Dialog>
 
       <div className="space-y-4">
         {details.length === 0 ? (

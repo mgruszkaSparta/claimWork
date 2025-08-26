@@ -70,7 +70,6 @@ export const DocumentsSection = React.forwardRef<
       requiredDocuments,
       setRequiredDocuments,
       eventId,
-      damageId,
       pendingFiles = [],
       setPendingFiles,
       hideRequiredDocuments = false,
@@ -262,7 +261,7 @@ export const DocumentsSection = React.forwardRef<
       loadDocuments()
     }, 300)
     return () => clearTimeout(handler)
-  }, [eventId, damageId])
+  }, [eventId])
 
   const mapCategoryCodeToName = (code?: string) =>
     requiredDocuments.find((d) => d.category === code)?.name || code || "Inne dokumenty"
@@ -276,9 +275,6 @@ export const DocumentsSection = React.forwardRef<
     setLoading(true)
     try {
       const params = new URLSearchParams({ eventId })
-      if (damageId) {
-        params.append("damageId", damageId)
-      }
       const response = await authFetch(
         `${process.env.NEXT_PUBLIC_API_URL}/documents?${params.toString()}`,
       )
@@ -436,9 +432,6 @@ export const DocumentsSection = React.forwardRef<
       const formData = new FormData()
       formData.append("file", file)
       formData.append("eventId", eventId.toString())
-      if (damageId) {
-        formData.append("damageId", damageId.toString())
-      }
       formData.append("category", mapCategoryNameToCode(categoryName))
       formData.append("uploadedBy", "Current User")
 

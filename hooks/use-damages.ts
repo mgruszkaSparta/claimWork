@@ -16,6 +16,10 @@ export interface Damage {
   isSaved?: boolean
 }
 
+export interface DamageInit {
+  id: string
+}
+
 export function createDamageDraft(params: Partial<Damage> = {}): Damage {
   return {
     description: "",
@@ -25,6 +29,26 @@ export function createDamageDraft(params: Partial<Damage> = {}): Damage {
 }
 
 export function useDamages(eventId?: string) {
+  const getAuthHeaders = () => {
+    const token =
+      typeof window !== "undefined" ? localStorage.getItem("token") : null
+    return token ? { Authorization: `Bearer ${token}` } : {}
+  }
+
+  const initDamage = useCallback(async (): Promise<DamageInit> => {
+    const response = await authFetch(API_ENDPOINTS.DAMAGES_INIT, {
+      method: "POST",
+
+    })
+
+    if (!response.ok) {
+      const errorText = await response.text()
+      throw new Error(errorText || "Nie udało się pobrać szkód")
+    }
+
+    return response.json()
+  }, [])
+
   const fetchDamages = useCallback(
     async (id?: string): Promise<Damage[]> => {
       const targetId = id || eventId
@@ -50,7 +74,7 @@ export function useDamages(eventId?: string) {
   )
 
   const createDamage = useCallback(
-    async (damage: Omit<Damage, "eventId">): Promise<Damage> => {
+    async (damage: Omit<Damage, "id" | "eventId">): Promise<void> => {
       if (!eventId) {
         throw new Error("Brak identyfikatora zdarzenia")
       }
@@ -62,7 +86,6 @@ export function useDamages(eventId?: string) {
 
         body: JSON.stringify({
           ...damage,
-          id: damage.id || crypto.randomUUID(),
           eventId: (damage as any).eventId || eventId,
         }),
       })
@@ -107,7 +130,7 @@ export function useDamages(eventId?: string) {
     }
   }, [])
 
-  return { createDamage, updateDamage, deleteDamage, fetchDamages }
+  return { createDamage, updateDamage, deleteDamage, initDamage, fetchDamages }
 
 }
 

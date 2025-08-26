@@ -653,7 +653,18 @@ export function ClaimsList({
                         <div className="flex items-center gap-2">
                           {(() => {
                             const Icon = typeIconMap[claim.objectTypeId as number]
-                            return Icon ? <Icon className="h-4 w-4" /> : null
+                            return Icon ? (
+                              <Icon
+                                className="h-4 w-4 cursor-pointer"
+                                onClick={() =>
+                                  claim.id &&
+                                  (onEditClaim
+                                    ? onEditClaim(claim.id)
+                                    : handleEditClaimDirect(claim.id))
+                                }
+                                title="Edytuj"
+                              />
+                            ) : null
                           })()}
                           <span>{typeLabelMap[claim.objectTypeId as number]}</span>
                         </div>

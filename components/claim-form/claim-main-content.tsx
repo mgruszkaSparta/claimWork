@@ -733,21 +733,10 @@ export const ClaimMainContent = ({
               {/* Szczegóły naprawy - expandable section with data preview */}
               <div className="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden">
                 <div className="px-4 py-3 bg-gradient-to-r from-blue-50 to-blue-100 border-b border-gray-200">
-                  <div className="flex items-center justify-between">
+                  <div className="flex items-center">
                     <div className="flex items-center space-x-2">
                       <Wrench className="h-4 w-4 text-blue-600" />
                       <h3 className="text-sm font-semibold text-gray-900">Szczegóły naprawy</h3>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <Button
-                        size="sm"
-                        onClick={() => {
-                          setAutoShowRepairForm(true)
-                        }}
-                        className="text-xs bg-[#1a3a6c] hover:bg-[#15305a] text-white"
-                      >
-                        Dodaj opis naprawy
-                      </Button>
                     </div>
                   </div>
                 </div>
@@ -1929,21 +1918,10 @@ export const ClaimMainContent = ({
             {/* Szczegóły naprawy - expandable section */}
             <div className="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden">
             <div className="px-4 py-3 bg-gradient-to-r from-blue-50 to-blue-100 border-b border-gray-200">
-              <div className="flex items-center justify-between">
+              <div className="flex items-center">
                 <div className="flex items-center space-x-2">
                   <Wrench className="h-4 w-4 text-blue-600" />
                   <h3 className="text-sm font-semibold text-gray-900">Szczegóły naprawy</h3>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <Button
-                    size="sm"
-                    onClick={() => {
-                      setAutoShowRepairForm(true)
-                    }}
-                    className="text-xs bg-[#1a3a6c] hover:bg-[#15305a] text-white"
-                  >
-                    Dodaj opis naprawy
-                  </Button>
                 </div>
               </div>
             </div>

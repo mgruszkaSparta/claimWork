@@ -3,6 +3,15 @@
 import { useAuth } from '@/hooks/use-auth'
 import { useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog'
 
 export default function Footer() {
   const { user, logout, refreshToken } = useAuth()
@@ -10,6 +19,7 @@ export default function Footer() {
   const [timeLeft, setTimeLeft] = useState<string | null>(null)
   const [aboutToLogout, setAboutToLogout] = useState(false)
   const [sessionRefresh, setSessionRefresh] = useState(0)
+  const [sessionExpired, setSessionExpired] = useState(false)
   const warningShown = useRef(false)
 
   const handleRefresh = async () => {
@@ -47,8 +57,7 @@ export default function Footer() {
         setTimeLeft(null)
         if (interval) clearInterval(interval)
         void logout().finally(() => {
-          alert('Sesja wygasła. Zostałeś wylogowany.')
-          router.push('/login')
+          setSessionExpired(true)
         })
         return
       }
@@ -74,16 +83,33 @@ export default function Footer() {
   }, [logout, router, sessionRefresh])
 
   return (
-    <footer className="p-4 text-center text-sm text-gray-600">
-      {user ? `Zalogowany jako ${user.username}` : 'Nie zalogowano'}
-      {user && timeLeft ? ` | Czas sesji: ${timeLeft}` : ''}
-      {aboutToLogout ? ' | System wkrótce Cię wyloguje' : ''}
-      {user && timeLeft && (
-        <button onClick={handleRefresh} className="ml-2 underline">
-          Odśwież token
-        </button>
-      )}
-    </footer>
+    <>
+      <AlertDialog open={sessionExpired} onOpenChange={setSessionExpired}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Sesja wygasła</AlertDialogTitle>
+            <AlertDialogDescription>Zostałeś wylogowany.</AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogAction
+              onClick={() => router.push('/login')}
+            >
+              OK
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+      <footer className="p-4 text-center text-sm text-gray-600">
+        {user ? `Zalogowany jako ${user.username}` : 'Nie zalogowano'}
+        {user && timeLeft ? ` | Czas sesji: ${timeLeft}` : ''}
+        {aboutToLogout ? ' | System wkrótce Cię wyloguje' : ''}
+        {user && timeLeft && (
+          <button onClick={handleRefresh} className="ml-2 underline">
+            Odśwież token
+          </button>
+        )}
+      </footer>
+    </>
   )
 }
 

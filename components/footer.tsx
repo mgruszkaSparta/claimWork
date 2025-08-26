@@ -92,7 +92,10 @@ export default function Footer() {
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogAction
-              onClick={() => router.push('/login')}
+              onClick={() => {
+                setSessionExpired(false)
+                window.location.href = '/login'
+              }}
             >
               OK
             </AlertDialogAction>

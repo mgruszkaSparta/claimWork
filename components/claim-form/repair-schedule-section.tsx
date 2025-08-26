@@ -743,7 +743,7 @@ export const RepairScheduleSection: React.FC<RepairScheduleSectionProps> = ({ ev
 
       <div className="grid gap-4 w-full grid-cols-1">
         {schedules.length === 0 ? (
-          <Card className="col-span-full w-full border-2 border-dashed border-border bg-muted/20 rounded-2xl animate-fade-in">
+          <Card className="col-span-full w-full bg-muted/20 rounded-2xl animate-fade-in">
             <CardContent className="text-center py-16">
               <div className="space-y-4">
                 <div className="p-6 bg-primary/10 rounded-2xl w-fit mx-auto">

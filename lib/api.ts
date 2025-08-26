@@ -35,6 +35,12 @@ export interface EventListItemDto {
   vehicleNumber?: string
   victimRegistrationNumber?: string
   perpetratorRegistrationNumber?: string
+  victimVehicleBrand?: string
+  victimVehicleModel?: string
+  victimVehicleCountry?: string
+  perpetratorVehicleBrand?: string
+  perpetratorVehicleModel?: string
+  perpetratorVehicleCountry?: string
   clientId?: number
   client?: string
   liquidator?: string
@@ -153,6 +159,12 @@ export interface EventUpsertDto {
   vehicleNumber?: string
   victimRegistrationNumber?: string
   perpetratorRegistrationNumber?: string
+  victimVehicleBrand?: string
+  victimVehicleModel?: string
+  victimVehicleCountry?: string
+  perpetratorVehicleBrand?: string
+  perpetratorVehicleModel?: string
+  perpetratorVehicleCountry?: string
   clientId?: number
   client?: string
   liquidator?: string

@@ -1,7 +1,7 @@
 "use client"
 
 import type React from "react"
-import { useState, useEffect, useRef } from "react"
+import { useState, useEffect, useRef, useMemo } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { FormHeader } from "@/components/ui/form-header"
 import { Button } from "@/components/ui/button"
@@ -246,6 +246,15 @@ export const ClaimMainContent = ({
   const [riskTypes, setRiskTypes] = useState<RiskType[]>([])
   const [loadingRiskTypes, setLoadingRiskTypes] = useState(false)
   const [claimObjectType, setClaimObjectType] = useState<string>(initialClaimObjectType) // Default to communication claims
+
+  const selectedRiskTypeLabel = useMemo(() => {
+    const rt = riskTypes.find((r) => r.value === claimFormData.riskType)
+    return rt?.label
+  }, [riskTypes, claimFormData.riskType])
+
+  const showVehicleFields =
+    selectedRiskTypeLabel === "OC SPRAWCY" ||
+    selectedRiskTypeLabel === "OC PPM"
 
   // Keep local state in sync when initial value changes (e.g. after loading claim)
   useEffect(() => {
@@ -1227,6 +1236,7 @@ export const ClaimMainContent = ({
             <PropertyParticipantsSection
               claimFormData={claimFormData}
               handleFormChange={(field, value) => handleFormChange(field as keyof Claim, value)}
+              showVehicleFields={showVehicleFields}
             />
           </div>
         )

@@ -94,7 +94,7 @@ export default function Footer() {
             <AlertDialogAction
               onClick={() => {
                 setSessionExpired(false)
-                router.push('/login')
+                window.location.href = '/login'
               }}
             >
               OK

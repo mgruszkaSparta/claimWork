@@ -9,7 +9,7 @@ import { ProtectedRoute } from '@/components/protected-route'
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { FileText, Clock, TrendingUp, Users, Search, Filter, CheckSquare } from 'lucide-react';
-import { API_BASE_URL } from "@/lib/api";
+import { apiService } from "@/lib/api";
 
 interface User {
   username: string
@@ -41,17 +41,8 @@ function HomePage({ user, onLogout }: PageProps) {
   useEffect(() => {
     async function loadTasks() {
       try {
-        const res = await fetch(`${API_BASE_URL}/notes?category=task`)
-        if (!res.ok) {
-          console.warn(
-            "Failed to fetch tasks:",
-            res.status,
-            res.statusText,
-          )
-          return
-        }
-        const data = await res.json()
-        const mapped = data.map((note: any) => ({
+        const data = await apiService.getNotes({ category: "task" })
+        const mapped = data.map((note) => ({
           title: note.title || note.content,
           due: note.createdAt
             ? new Date(note.createdAt).toISOString().split("T")[0]
@@ -59,7 +50,7 @@ function HomePage({ user, onLogout }: PageProps) {
         }))
         setTasks(mapped)
       } catch (err) {
-        console.error("Error fetching tasks:", err)
+        console.warn("Failed to fetch tasks:", err)
       }
     }
     loadTasks()

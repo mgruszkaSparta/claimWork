@@ -1400,9 +1400,6 @@ export const DocumentsSection = React.forwardRef<
         />
 
         <Card className="rounded-md">
-          <CardHeader className="p-4">
-            <CardTitle className="text-xl">Dokumenty</CardTitle>
-          </CardHeader>
           <CardContent className="p-3 space-y-2">
             <div className="flex flex-wrap items-center gap-1.5">
               <span className="text-sm font-medium text-gray-600">Szybkie filtry:</span>

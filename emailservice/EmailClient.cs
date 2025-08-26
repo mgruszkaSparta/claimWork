@@ -121,6 +121,24 @@ public class EmailClient
                 }
             }
 
+            if (emailEntity.EventId == null)
+            {
+                var combined = (message.Subject ?? string.Empty) + " " + (message.TextBody ?? string.Empty);
+                var spartaNumber = ExtractSpartaNumber(combined);
+                var insuranceNumber = ExtractInsuranceNumber(combined);
+
+                if (!string.IsNullOrEmpty(spartaNumber) && !string.IsNullOrEmpty(insuranceNumber))
+                {
+                    var evt = await _db.Events.FirstOrDefaultAsync(e =>
+                        e.SpartaNumber == spartaNumber && e.InsuranceNumber == insuranceNumber);
+                    if (evt != null)
+                    {
+                        emailEntity.EventId = evt.Id;
+                        emailEntity.Event = evt;
+                    }
+                }
+            }
+
             foreach (var attachment in message.Attachments.OfType<MimePart>())
             {
                 using var stream = new MemoryStream();
@@ -222,5 +240,23 @@ public class EmailClient
 
         var match = Regex.Match(message, @"\b[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}\b");
         return match.Success && Guid.TryParse(match.Value, out var guid) ? guid : (Guid?)null;
+    }
+
+    private static string? ExtractSpartaNumber(string message)
+    {
+        if (string.IsNullOrWhiteSpace(message))
+            return null;
+
+        var match = Regex.Match(message, @"SPARTA/\d{4}/\d+");
+        return match.Success ? match.Value : null;
+    }
+
+    private static string? ExtractInsuranceNumber(string message)
+    {
+        if (string.IsNullOrWhiteSpace(message))
+            return null;
+
+        var match = Regex.Match(message, @"\[(\d+)\]");
+        return match.Success ? match.Groups[1].Value : null;
     }
 }

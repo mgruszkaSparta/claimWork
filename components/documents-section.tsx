@@ -128,6 +128,7 @@ export const DocumentsSection = React.forwardRef<
     if (previewDocument?.previewUrl?.startsWith("blob:")) {
       URL.revokeObjectURL(previewDocument.previewUrl)
     }
+
     setDocxEditing(false)
     setPreviewDocument(null)
   }, [previewDocument])
@@ -157,41 +158,6 @@ export const DocumentsSection = React.forwardRef<
       document.removeEventListener("keydown", handleKeyDown)
     }
   }, [previewDocument, closePreview])
-
-  useEffect(() => {
-    if (
-      previewDocument &&
-      previewDocument.contentType ===
-        "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
-    ) {
-      const load = async () => {
-        try {
-          const response = await authFetch(
-            previewDocument.previewUrl || previewDocument.downloadUrl,
-          )
-          if (!response.ok) {
-            throw new Error(`HTTP ${response.status}`)
-          }
-          const buffer = await response.arrayBuffer()
-          const { renderAsync } = await import("docx-preview")
-          if (docxPreviewRef.current) {
-            docxPreviewRef.current.innerHTML = ""
-            await renderAsync(buffer, docxPreviewRef.current)
-          }
-        } catch (err) {
-          console.error("Error rendering docx preview:", err)
-          toast({
-            title: "Błąd podglądu",
-            description: "Nie można wyświetlić dokumentu",
-            variant: "destructive",
-          })
-        }
-      }
-      load()
-    } else if (docxPreviewRef.current) {
-      docxPreviewRef.current.innerHTML = ""
-    }
-  }, [previewDocument, toast])
 
   const isGuid = (value: string) =>
     /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/.test(value)
@@ -846,20 +812,24 @@ export const DocumentsSection = React.forwardRef<
   }
 
   const handlePreview = async (doc: Document, documentsArray?: Document[]) => {
+
     if (previewDocument?.previewUrl?.startsWith("blob:")) {
       URL.revokeObjectURL(previewDocument.previewUrl)
     }
 
+
     const docsToPreview = documentsArray || visibleDocuments
-
     const index = docsToPreview.findIndex((d) => d.id === doc.id)
-
+    if (previewDocument?.previewUrl?.startsWith("blob:")) {
+      URL.revokeObjectURL(previewDocument.previewUrl)
+    }
     setPreviewDocuments(docsToPreview)
     setCurrentPreviewIndex(index)
     setPreviewZoom(1)
     setPreviewRotation(0)
     setPreviewFullscreen(false)
     setDocxEditing(false)
+
 
     if (
       doc.contentType?.startsWith(
@@ -878,6 +848,7 @@ export const DocumentsSection = React.forwardRef<
       setPreviewDocument({ ...doc, previewUrl: objectUrl })
     } catch (error) {
       console.error("Failed to preview document", error)
+
       toast({
         title: "Błąd podglądu",
         description: "Nie można wyświetlić dokumentu",
@@ -988,8 +959,7 @@ export const DocumentsSection = React.forwardRef<
       })
       return
     }
-
-    handlePreview(visibleDocuments[0], visibleDocuments)
+    void handlePreview(visibleDocuments[0], visibleDocuments)
   }
 
   const handleDownloadSelected = async (category?: string) => {
@@ -1188,20 +1158,14 @@ export const DocumentsSection = React.forwardRef<
   const goToPreviousDocument = () => {
     if (currentPreviewIndex > 0) {
       const newIndex = currentPreviewIndex - 1
-      setCurrentPreviewIndex(newIndex)
-      setPreviewDocument(previewDocuments[newIndex])
-      setPreviewZoom(1)
-      setPreviewRotation(0)
+      void handlePreview(previewDocuments[newIndex], previewDocuments)
     }
   }
 
   const goToNextDocument = () => {
     if (currentPreviewIndex < previewDocuments.length - 1) {
       const newIndex = currentPreviewIndex + 1
-      setCurrentPreviewIndex(newIndex)
-      setPreviewDocument(previewDocuments[newIndex])
-      setPreviewZoom(1)
-      setPreviewRotation(0)
+      void handlePreview(previewDocuments[newIndex], previewDocuments)
     }
   }
 
@@ -1281,13 +1245,13 @@ export const DocumentsSection = React.forwardRef<
             src={doc.previewUrl || "/placeholder.svg?height=150&width=200"}
             alt={doc.originalFileName}
             className="w-full h-full object-cover cursor-pointer"
-            onClick={() => handlePreview(doc)}
+            onClick={() => void handlePreview(doc)}
           />
         ) : doc.contentType.startsWith("video/") ? (
           <video
             src={doc.previewUrl || doc.downloadUrl}
             className="w-full h-full object-cover cursor-pointer"
-            onClick={() => handlePreview(doc)}
+            onClick={() => void handlePreview(doc)}
             muted
             preload="metadata"
           />
@@ -1380,7 +1344,7 @@ export const DocumentsSection = React.forwardRef<
           className="h-8 w-8"
           onClick={(e) => {
             e.stopPropagation()
-            handlePreview(doc)
+            void handlePreview(doc)
           }}
         >
           <Eye className="h-4 w-4" />
@@ -1727,7 +1691,7 @@ export const DocumentsSection = React.forwardRef<
                                       variant="ghost"
                                       size="icon"
                                       className="h-7 w-7"
-                                      onClick={() => handlePreview(doc, documentsForCategory)}
+                                      onClick={() => void handlePreview(doc, documentsForCategory)}
                                     >
                                       <Eye className="h-4 w-4" />
                                     </Button>

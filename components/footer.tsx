@@ -39,11 +39,13 @@ export default function Footer() {
 
     const exp = payload.exp * 1000
 
+    let interval: ReturnType<typeof setInterval> | null = null
+
     const updateTimer = () => {
       const remaining = exp - Date.now()
       if (remaining <= 0) {
         setTimeLeft(null)
-        clearInterval(interval)
+        if (interval) clearInterval(interval)
         void logout().finally(() => {
           alert('Sesja wygasła. Zostałeś wylogowany.')
           router.push('/login')
@@ -65,8 +67,10 @@ export default function Footer() {
     }
 
     updateTimer()
-    const interval = setInterval(updateTimer, 1000)
-    return () => clearInterval(interval)
+    interval = setInterval(updateTimer, 1000)
+    return () => {
+      if (interval) clearInterval(interval)
+    }
   }, [logout, router, sessionRefresh])
 
   return (

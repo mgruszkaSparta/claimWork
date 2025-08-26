@@ -20,6 +20,7 @@ import { useUnsavedChangesWarning, UNSAVED_CHANGES_MESSAGE } from '@/hooks/use-u
 import type { Claim, ParticipantInfo, UploadedFile, RequiredDocument } from '@/types'
 import { getRequiredDocumentsByObjectType } from '@/lib/required-documents'
 import { authFetch } from '@/lib/auth-fetch'
+import { generateId } from '@/lib/constants'
 
 interface ClaimFormProps {
   initialData?: Claim
@@ -33,6 +34,9 @@ export function ClaimForm({ initialData, mode }: ClaimFormProps) {
   useUnsavedChangesWarning(mode !== 'view')
   const initialized = useRef(false)
   const [formData, setFormData] = useState<Claim>({
+
+    id: initialData?.id || generateId(),
+
     spartaNumber: '',
     claimNumber: '',
     insurerClaimNumber: '',

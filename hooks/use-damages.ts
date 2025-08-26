@@ -1,7 +1,7 @@
 "use client"
 
 import { useCallback } from "react"
-import { API_ENDPOINTS } from "@/lib/constants"
+import { API_ENDPOINTS, generateId } from "@/lib/constants"
 import { authFetch } from "@/lib/auth-fetch"
 
 export interface Damage {
@@ -86,6 +86,9 @@ export function useDamages(eventId?: string) {
 
         body: JSON.stringify({
           ...damage,
+
+          id: damage.id || generateId(),
+
           eventId: (damage as any).eventId || eventId,
         }),
       })

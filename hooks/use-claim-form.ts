@@ -24,7 +24,9 @@ export const getGlobalClaimId = () => {
 export function useClaimForm(initialData?: Partial<Claim>) {
   const [claimFormData, setClaimFormData] = useState<Partial<Claim>>({
     ...initialClaimFormData,
-    id: getGlobalClaimId(),
+
+    id: initialData?.id ?? generateId(),
+
     ...initialData,
   })
 

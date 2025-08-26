@@ -137,3 +137,8 @@ test('omits appeals when undefined', () => {
   assert.ok(!('appeals' in payload))
 
 })
+
+test('defaults isDraft to false', () => {
+  const payload = transformFrontendClaimToApiPayload({} as any)
+  assert.equal(payload.isDraft, false)
+})

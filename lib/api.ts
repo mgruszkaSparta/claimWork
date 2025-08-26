@@ -41,6 +41,7 @@ export interface EventListItemDto {
   brand?: string
   status?: string
   claimStatusId?: number
+  isDraft?: boolean
   damageDate?: string
   totalClaim?: number
   payout?: number
@@ -158,6 +159,7 @@ export interface EventUpsertDto {
   brand?: string
   status?: string
   claimStatusId?: number
+  isDraft?: boolean
   riskType?: string
   damageType?: string
   objectTypeId?: number

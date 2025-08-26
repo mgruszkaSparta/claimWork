@@ -84,6 +84,7 @@ export interface Claim
   insuranceCompanyId?: string
   leasingCompanyId?: string
   handlerId?: string
+  isDraft?: boolean
   /**
    * List of services called.
    * API stores this as a comma-separated string

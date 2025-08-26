@@ -74,7 +74,7 @@ namespace AutomotiveClaimsApi.Controllers
         {
             try
             {
-                var query = _context.Events.AsQueryable();
+                var query = _context.Events.AsQueryable().Where(e => !e.IsDraft);
 
                 var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
                 ApplicationUser? currentUser = null;
@@ -224,6 +224,7 @@ namespace AutomotiveClaimsApi.Controllers
                         Owner = e.Owner,
                         Status = e.Status,
                         ClaimStatusId = e.ClaimStatusId,
+                        IsDraft = e.IsDraft,
                         DamageDate = e.DamageDate,
                         TotalClaim = e.TotalClaim,
                         Payout = e.Payout,
@@ -294,11 +295,22 @@ namespace AutomotiveClaimsApi.Controllers
         }
 
         [HttpPost("initialize")]
-        public ActionResult<object> InitializeClaim()
+        public async Task<ActionResult<object>> InitializeClaim()
         {
             try
             {
                 var id = Guid.NewGuid();
+                var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                var eventEntity = new Event
+                {
+                    Id = id,
+                    CreatedAt = DateTime.UtcNow,
+                    UpdatedAt = DateTime.UtcNow,
+                    RegisteredById = userId,
+                    IsDraft = true
+                };
+                _context.Events.Add(eventEntity);
+                await _context.SaveChangesAsync();
                 return Ok(new { id });
             }
             catch (Exception ex)
@@ -984,6 +996,7 @@ namespace AutomotiveClaimsApi.Controllers
             entity.PolicyNumber = dto.PolicyNumber;
             entity.Status = dto.Status;
             entity.ClaimStatusId = dto.ClaimStatusId;
+            entity.IsDraft = dto.IsDraft;
             entity.DamageDate = dto.DamageDate;
             entity.ReportDate = dto.ReportDate;
             entity.ReportDateToInsurer = dto.ReportDateToInsurer;
@@ -1865,6 +1878,7 @@ namespace AutomotiveClaimsApi.Controllers
             InspectionContactEmail = e.InspectionContactEmail,
             DamageDescription = e.DamageDescription,
             Description = e.Description,
+            IsDraft = e.IsDraft,
             RegisteredById = e.RegisteredById,
             RegisteredByName = e.RegisteredBy != null ? e.RegisteredBy.UserName : null,
             CreatedAt = e.CreatedAt,

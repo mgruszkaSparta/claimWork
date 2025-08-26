@@ -54,6 +54,8 @@ namespace AutomotiveClaimsApi.DTOs
 
         public int? ClaimStatusId { get; set; }
 
+        public bool IsDraft { get; set; }
+
         public DateTime? DamageDate { get; set; }
 
         public DateTime? ReportDate { get; set; }

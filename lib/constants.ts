@@ -252,7 +252,10 @@ export const getEventStatusColor = (statusCode: string) => {
   return status?.color || "bg-gray-100 text-gray-800"
 }
 
-export const generateId = () => Math.random().toString(36).substr(2, 9)
+export const generateId = () =>
+  typeof globalThis.crypto?.randomUUID === "function"
+    ? globalThis.crypto.randomUUID()
+    : Math.random().toString(36).slice(2, 11)
 
 // Helper function to get label by value
 export const getLabelByValue = (items: Array<{ value: string; label: string }>, value: string): string => {

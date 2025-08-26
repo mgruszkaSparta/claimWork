@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input"
 import { Checkbox } from "@/components/ui/checkbox"
 import { renameDocument } from "@/lib/api/documents"
 import { authFetch } from "@/lib/auth-fetch"
+import { generateId } from "@/lib/constants"
 import {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -517,7 +518,7 @@ export const DocumentsSection = React.forwardRef<
       )
       const successfulUploadsWithIds = successfulUploads.map((doc) => ({
         ...doc,
-        id: doc.id?.toString() ?? crypto.randomUUID(),
+        id: doc.id?.toString() ?? generateId(),
       }))
 
       if (successfulUploadsWithIds.length > 0) {

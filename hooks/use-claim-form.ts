@@ -7,7 +7,7 @@ import type { Claim, ParticipantInfo, DriverInfo } from "@/types"
 export function useClaimForm(initialData?: Partial<Claim>) {
   const [claimFormData, setClaimFormData] = useState<Partial<Claim>>({
     ...initialClaimFormData,
-    id: initialData?.id ?? crypto.randomUUID(),
+    id: initialData?.id ?? generateId(),
     ...initialData,
   })
 

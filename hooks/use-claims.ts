@@ -9,6 +9,7 @@ import {
   type ParticipantUpsertDto,
 } from "@/lib/api"
 import type { Claim, ParticipantInfo, DriverInfo, Note } from "@/types"
+import { generateId } from "@/lib/constants"
 
 const toIso = (value?: string, field?: string): string | undefined => {
   if (!value) return undefined
@@ -450,7 +451,7 @@ export function useClaims() {
       setError(null)
       const payload = transformFrontendClaimToApiPayload(claimData)
       if (!payload.id) {
-        payload.id = crypto.randomUUID()
+        payload.id = generateId()
       }
       const newApiClaim = await apiService.createClaim(payload)
       const newClaim = transformApiClaimToFrontend(newApiClaim)

@@ -251,7 +251,7 @@ const CommunicationClaimSummary = ({
 
               <div className="grid grid-cols-2 gap-3">
                 <InfoCard label="Status" value={getStatusLabel(claimFormData.claimStatusId)} />
-                <InfoCard label="Szkodę zarejestrował" value={claimFormData.handler} />
+                <InfoCard label="Likwidator" value={claimFormData.handler} />
               </div>
 
               {(claimFormData.handlerEmail || claimFormData.handlerPhone) && (

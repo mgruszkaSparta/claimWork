@@ -233,7 +233,7 @@ export function DamageDataSection({
             </div>
             <div>
               <Label htmlFor="handler" className="text-sm font-medium text-gray-700">
-                Szkodę zarejestrował
+                Likwidator
               </Label>
               <HandlerDropdown
                 selectedHandlerId={claimFormData.handlerId || undefined}

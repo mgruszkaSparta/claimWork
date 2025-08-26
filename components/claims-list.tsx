@@ -136,11 +136,16 @@ export function ClaimsList({
   useEffect(() => {
     const loadRiskTypes = async () => {
       try {
+        const responses = await Promise.all(
+          [1, 2, 3].map((type) =>
+            dictionaryService.getRiskTypes(String(type)),
+          ),
+        )
 
-        const data = await dictionaryService.getRiskTypes(claimObjectTypeId)
+        const allItems = responses.flatMap((data) => data.items ?? [])
 
         setRiskTypes(
-          (data.items ?? []) as { id: number; code: string; name: string }[],
+          allItems as { id: number; code: string; name: string }[],
         )
       } catch (error) {
         console.error("Error loading risk types:", error)
@@ -148,7 +153,7 @@ export function ClaimsList({
       }
     }
     loadRiskTypes()
-  }, [claimObjectTypeId])
+  }, [])
 
   useEffect(() => {
     if (initialClaims?.length) return

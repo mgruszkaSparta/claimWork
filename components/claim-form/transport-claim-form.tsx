@@ -1,7 +1,6 @@
 "use client"
 
 import DamageDataSection from "./damage-data-section"
-import { TransportDamageSection } from "./transport-damage-section"
 import SubcontractorSection from "./subcontractor-section"
 import type { Dispatch, SetStateAction } from "react"
 import type {
@@ -80,10 +79,6 @@ export function TransportClaimForm({
         loadingRiskTypes={loadingRiskTypes}
         claimStatuses={claimStatuses}
         loadingStatuses={loadingStatuses}
-      />
-      <TransportDamageSection
-        claimFormData={claimFormData}
-        handleFormChange={handleFormChange}
       />
       <SubcontractorSection
         claimFormData={claimFormData}

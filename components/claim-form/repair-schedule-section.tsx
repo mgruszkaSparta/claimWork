@@ -3,13 +3,13 @@
 import type React from "react"
 import { useState, useEffect } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { FormHeader } from "@/components/ui/form-header"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Badge } from "@/components/ui/badge"
 import { useToast } from "@/hooks/use-toast"
 import {
@@ -441,302 +441,296 @@ export const RepairScheduleSection: React.FC<RepairScheduleSectionProps> = ({ ev
         </Button>
       </div>
 
-      {showForm && (
-        <Card className="border shadow-lg bg-card animate-scale-in">
-          <FormHeader icon={Calendar} title={editingSchedule ? "Edytuj harmonogram" : "Nowy harmonogram naprawy"}>
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={resetForm}
-              className="rounded-xl hover:bg-destructive/10 hover:text-destructive"
-            >
-              <X className="h-5 w-5" />
-            </Button>
-          </FormHeader>
+      <Dialog open={showForm} onOpenChange={(open) => (open ? setShowForm(true) : resetForm())}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Calendar className="h-5 w-5 text-primary" />
+              {editingSchedule ? "Edytuj harmonogram" : "Nowy harmonogram naprawy"}
+            </DialogTitle>
+          </DialogHeader>
 
-          <CardContent className="p-8">
-            <div className="space-y-8 animate-slide-up">
-              <div className="space-y-4">
-                <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
-                  <Car className="h-5 w-5 text-primary" />
-                  Podstawowe informacje
-                </h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="space-y-3">
-                    <Label htmlFor="branch" className="flex items-center gap-2 text-sm font-semibold">
-                      <Building2 className="h-4 w-4 text-primary" />
-                      Oddział
-                    </Label>
-                    <Select value={formData.branchId} onValueChange={handleBranchChange}>
-                      <SelectTrigger
-                        id="branch"
-                        className="h-12 rounded-xl border-border focus:border-primary/50 focus:ring-primary/20"
-                      >
-                        <SelectValue placeholder="Wybierz oddział" />
-                      </SelectTrigger>
-                      <SelectContent className="rounded-xl">
-                        {pksData.map((branch) => (
-                          <SelectItem key={branch.id} value={branch.id} className="rounded-lg">
-                            {branch.company} - {branch.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  <div className="space-y-3">
-                    <Label htmlFor="companyName">Nazwa przedsiębiorstwa</Label>
-                    <Input
-                      id="companyName"
-                      value={formData.companyName}
-                      onChange={(e) => setFormData((prev) => ({ ...prev, companyName: e.target.value }))}
-                      className="h-12 rounded-xl border-border focus:border-primary/50 focus:ring-primary/20"
-                    />
-                  </div>
-
-                  <div className="space-y-3">
-                    <Label htmlFor="vehicleFleetNumber" className="flex items-center gap-2 text-sm font-semibold">
-                      <Car className="h-4 w-4 text-primary" />
-                      Nr taborowy *
-                    </Label>
-                    <Input
-                      id="vehicleFleetNumber"
-                      value={formData.vehicleFleetNumber}
-                      onChange={(e) => setFormData((prev) => ({ ...prev, vehicleFleetNumber: e.target.value }))}
-                      className="h-12 rounded-xl border-border focus:border-primary/50 focus:ring-primary/20"
-                      required
-                    />
-                  </div>
-                </div>
-              </div>
-
-              <div className="space-y-4">
-                <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
-                  <Calendar className="h-5 w-5 text-primary" />
-                  Harmonogram napraw
-                </h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="space-y-3">
-                    <Label htmlFor="expertWaitingDate" className="flex items-center gap-2 text-sm font-semibold">
-                      <Timer className="h-4 w-4 text-primary" />
-                      Oczekiwanie na rzeczoznawcę
-                    </Label>
-                    <Input
-                      id="expertWaitingDate"
-                      type="date"
-                      value={formData.expertWaitingDate}
-                      onChange={(e) => setFormData((prev) => ({ ...prev, expertWaitingDate: e.target.value }))}
-                      className="h-12 rounded-xl border-border focus:border-primary/50 focus:ring-primary/20"
-                    />
-                  </div>
-
-                  <div className="space-y-3">
-                    <Label htmlFor="additionalInspections">Kolejne wyceny oględziny</Label>
-                    <Input
-                      id="additionalInspections"
-                      value={formData.additionalInspections}
-                      onChange={(e) => setFormData((prev) => ({ ...prev, additionalInspections: e.target.value }))}
-                      className="h-12 rounded-xl border-border focus:border-primary/50 focus:ring-primary/20"
-                      placeholder="np. brak, planowane na..."
-                    />
-                  </div>
-
-                  <div className="space-y-3">
-                    <Label htmlFor="repairStartDate" className="flex items-center gap-2 text-sm font-semibold">
-                      <Wrench className="h-4 w-4 text-accent" />
-                      Przystąpienie do naprawy
-                    </Label>
-                    <Input
-                      id="repairStartDate"
-                      type="date"
-                      value={formData.repairStartDate}
-                      onChange={(e) => setFormData((prev) => ({ ...prev, repairStartDate: e.target.value }))}
-                      className="h-12 rounded-xl border-border focus:border-primary/50 focus:ring-primary/20"
-                    />
-                  </div>
-
-                  <div className="space-y-3">
-                    <Label htmlFor="repairEndDate" className="flex items-center gap-2 text-sm font-semibold">
-                      <CheckCircle2 className="h-4 w-4 text-green-600" />
-                      Zakończenie naprawy
-                    </Label>
-                    <Input
-                      id="repairEndDate"
-                      type="date"
-                      value={formData.repairEndDate}
-                      onChange={(e) => setFormData((prev) => ({ ...prev, repairEndDate: e.target.value }))}
-                      className="h-12 rounded-xl border-border focus:border-primary/50 focus:ring-primary/20"
-                    />
-                  </div>
-                </div>
-              </div>
-
-              <div className="space-y-4">
-                <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
-                  <AlertTriangle className="h-5 w-5 text-accent" />
-                  Status operacyjny
-                </h3>
-                <div className="space-y-4">
-                  <div className="space-y-3">
-                    <Label htmlFor="whyNotOperational" className="flex items-center gap-2 text-sm font-semibold">
-                      <AlertTriangle className="h-4 w-4 text-accent" />
-                      Dlaczego nie mógł jeździć na linii
-                    </Label>
-                    <Textarea
-                      id="whyNotOperational"
-                      value={formData.whyNotOperational}
-                      onChange={(e) => setFormData((prev) => ({ ...prev, whyNotOperational: e.target.value }))}
-                      placeholder="np. poważne uszkodzenia, niebezpieczne dla pasażerów..."
-                      rows={4}
-                      className="resize-none h-28 rounded-xl border-border focus:border-primary/50 focus:ring-primary/20"
-                    />
-                  </div>
-
-                  <div className="space-y-4">
-                    <Label className="text-base font-medium flex items-center gap-2">
-                      <Car className="h-4 w-4 text-primary" />
-                      Czy były pojazdy inne które można było używać?
-                    </Label>
-                    <RadioGroup
-                      value={formData.alternativeVehiclesAvailable ? "tak" : "nie"}
-                      onValueChange={(value) =>
-                        setFormData((prev) => ({
-                          ...prev,
-                          alternativeVehiclesAvailable: value === "tak",
-                        }))
-                      }
-                      className="flex gap-8"
-                    >
-                      <div className="flex items-center space-x-3">
-                        <RadioGroupItem
-                          value="tak"
-                          id="alt-vehicles-yes"
-                          className="h-5 w-5 rounded-full border-border focus:border-primary/50 focus:ring-primary/20"
-                        />
-                        <Label htmlFor="alt-vehicles-yes" className="font-normal">
-                          Tak
-                        </Label>
-                      </div>
-                      <div className="flex items-center space-x-3">
-                        <RadioGroupItem
-                          value="nie"
-                          id="alt-vehicles-no"
-                          className="h-5 w-5 rounded-full border-border focus:border-primary/50 focus:ring-primary/20"
-                        />
-                        <Label htmlFor="alt-vehicles-no" className="font-normal">
-                          Nie
-                        </Label>
-                      </div>
-                    </RadioGroup>
-
-                    {formData.alternativeVehiclesAvailable && (
-                      <div className="space-y-3 mt-4">
-                        <Label htmlFor="alternativeVehiclesDescription">Opis dostępnych pojazdów</Label>
-                        <Textarea
-                          id="alternativeVehiclesDescription"
-                          value={formData.alternativeVehiclesDescription}
-                          onChange={(e) =>
-                            setFormData((prev) => ({ ...prev, alternativeVehiclesDescription: e.target.value }))
-                          }
-                          placeholder="Opisz jakie pojazdy były dostępne..."
-                          rows={3}
-                          className="resize-none h-24 rounded-xl border-border focus:border-primary/50 focus:ring-primary/20"
-                        />
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </div>
-
-              <div className="space-y-4">
-                <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
-                  <User className="h-5 w-5 text-primary" />
-                  Kontakty
-                </h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="space-y-3">
-                    <Label htmlFor="contactDispatcher" className="flex items-center gap-2 text-sm font-semibold">
-                      <Phone className="h-4 w-4 text-primary" />
-                      Kontakt - Dyspozytor
-                    </Label>
-                    <Input
-                      id="contactDispatcher"
-                      type="email"
-                      value={formData.contactDispatcher}
-                      onChange={(e) => setFormData((prev) => ({ ...prev, contactDispatcher: e.target.value }))}
-                      className="h-12 rounded-xl border-border focus:border-primary/50 focus:ring-primary/20"
-                      placeholder="email@example.com"
-                    />
-                  </div>
-
-                  <div className="space-y-3">
-                    <Label htmlFor="contactManager" className="flex items-center gap-2 text-sm font-semibold">
-                      <User className="h-4 w-4 text-accent" />
-                      Kontakt - Kierownik
-                    </Label>
-                    <Input
-                      id="contactManager"
-                      type="email"
-                      value={formData.contactManager}
-                      onChange={(e) => setFormData((prev) => ({ ...prev, contactManager: e.target.value }))}
-                      className="h-12 rounded-xl border-border focus:border-primary/50 focus:ring-primary/20"
-                      placeholder="email@example.com"
-                    />
-                  </div>
-                </div>
-
+          <div className="space-y-8 animate-slide-up">
+            <div className="space-y-4">
+              <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
+                <Car className="h-5 w-5 text-primary" />
+                Podstawowe informacje
+              </h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-3">
-                  <Label htmlFor="status" className="flex items-center gap-2 text-sm font-semibold">
-                    <FileText className="h-4 w-4 text-muted-foreground" />
-                    Status harmonogramu
+                  <Label htmlFor="branch" className="flex items-center gap-2 text-sm font-semibold">
+                    <Building2 className="h-4 w-4 text-primary" />
+                    Oddział
                   </Label>
-                  <Select
-                    value={formData.status}
-                    onValueChange={(value) => setFormData((prev) => ({ ...prev, status: value as any }))}
-                  >
-                    <SelectTrigger className="h-12 rounded-xl border-border focus:border-primary/50 focus:ring-primary/20">
-                      <SelectValue />
+                  <Select value={formData.branchId} onValueChange={handleBranchChange}>
+                    <SelectTrigger
+                      id="branch"
+                      className="h-12 rounded-xl border-border focus:border-primary/50 focus:ring-primary/20"
+                    >
+                      <SelectValue placeholder="Wybierz oddział" />
                     </SelectTrigger>
                     <SelectContent className="rounded-xl">
-                      <SelectItem value="draft" className="rounded-lg">
-                        Szkic
-                      </SelectItem>
-                      <SelectItem value="submitted" className="rounded-lg">
-                        Przesłany
-                      </SelectItem>
-                      <SelectItem value="approved" className="rounded-lg">
-                        Zatwierdzony
-                      </SelectItem>
-                      <SelectItem value="completed" className="rounded-lg">
-                        Zakończony
-                      </SelectItem>
+                      {pksData.map((branch) => (
+                        <SelectItem key={branch.id} value={branch.id} className="rounded-lg">
+                          {branch.company} - {branch.name}
+                        </SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
                 </div>
-              </div>
 
-              <div className="flex justify-between items-center pt-8 border-t border-border">
-                <Button
-                  variant="outline"
-                  onClick={resetForm}
-                  className="px-8 py-3 rounded-xl border-border hover:bg-destructive/10 hover:text-destructive hover:border-destructive/20 bg-transparent"
-                >
-                  <X className="h-4 w-4 mr-2" />
-                  Anuluj
-                </Button>
+                <div className="space-y-3">
+                  <Label htmlFor="companyName">Nazwa przedsiębiorstwa</Label>
+                  <Input
+                    id="companyName"
+                    value={formData.companyName}
+                    onChange={(e) => setFormData((prev) => ({ ...prev, companyName: e.target.value }))}
+                    className="h-12 rounded-xl border-border focus:border-primary/50 focus:ring-primary/20"
+                  />
+                </div>
 
-                <Button
-                  onClick={handleSubmit}
-                  className="bg-primary hover:bg-primary/90 text-primary-foreground px-8 py-3 rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 font-medium"
-                >
-                  <Save className="h-4 w-4 mr-2" />
-                  {editingSchedule ? "Zaktualizuj" : "Zapisz"}
-                </Button>
+                <div className="space-y-3">
+                  <Label htmlFor="vehicleFleetNumber" className="flex items-center gap-2 text-sm font-semibold">
+                    <Car className="h-4 w-4 text-primary" />
+                    Nr taborowy *
+                  </Label>
+                  <Input
+                    id="vehicleFleetNumber"
+                    value={formData.vehicleFleetNumber}
+                    onChange={(e) => setFormData((prev) => ({ ...prev, vehicleFleetNumber: e.target.value }))}
+                    className="h-12 rounded-xl border-border focus:border-primary/50 focus:ring-primary/20"
+                    required
+                  />
+                </div>
               </div>
             </div>
-          </CardContent>
-        </Card>
-      )}
+
+            <div className="space-y-4">
+              <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
+                <Calendar className="h-5 w-5 text-primary" />
+                Harmonogram napraw
+              </h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-3">
+                  <Label htmlFor="expertWaitingDate" className="flex items-center gap-2 text-sm font-semibold">
+                    <Timer className="h-4 w-4 text-primary" />
+                    Oczekiwanie na rzeczoznawcę
+                  </Label>
+                  <Input
+                    id="expertWaitingDate"
+                    type="date"
+                    value={formData.expertWaitingDate}
+                    onChange={(e) => setFormData((prev) => ({ ...prev, expertWaitingDate: e.target.value }))}
+                    className="h-12 rounded-xl border-border focus:border-primary/50 focus:ring-primary/20"
+                  />
+                </div>
+
+                <div className="space-y-3">
+                  <Label htmlFor="additionalInspections">Kolejne wyceny oględziny</Label>
+                  <Input
+                    id="additionalInspections"
+                    value={formData.additionalInspections}
+                    onChange={(e) => setFormData((prev) => ({ ...prev, additionalInspections: e.target.value }))}
+                    className="h-12 rounded-xl border-border focus:border-primary/50 focus:ring-primary/20"
+                    placeholder="np. brak, planowane na..."
+                  />
+                </div>
+
+                <div className="space-y-3">
+                  <Label htmlFor="repairStartDate" className="flex items-center gap-2 text-sm font-semibold">
+                    <Wrench className="h-4 w-4 text-accent" />
+                    Przystąpienie do naprawy
+                  </Label>
+                  <Input
+                    id="repairStartDate"
+                    type="date"
+                    value={formData.repairStartDate}
+                    onChange={(e) => setFormData((prev) => ({ ...prev, repairStartDate: e.target.value }))}
+                    className="h-12 rounded-xl border-border focus:border-primary/50 focus:ring-primary/20"
+                  />
+                </div>
+
+                <div className="space-y-3">
+                  <Label htmlFor="repairEndDate" className="flex items-center gap-2 text-sm font-semibold">
+                    <CheckCircle2 className="h-4 w-4 text-green-600" />
+                    Zakończenie naprawy
+                  </Label>
+                  <Input
+                    id="repairEndDate"
+                    type="date"
+                    value={formData.repairEndDate}
+                    onChange={(e) => setFormData((prev) => ({ ...prev, repairEndDate: e.target.value }))}
+                    className="h-12 rounded-xl border-border focus:border-primary/50 focus:ring-primary/20"
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div className="space-y-4">
+              <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
+                <AlertTriangle className="h-5 w-5 text-accent" />
+                Status operacyjny
+              </h3>
+              <div className="space-y-4">
+                <div className="space-y-3">
+                  <Label htmlFor="whyNotOperational" className="flex items-center gap-2 text-sm font-semibold">
+                    <AlertTriangle className="h-4 w-4 text-accent" />
+                    Dlaczego nie mógł jeździć na linii
+                  </Label>
+                  <Textarea
+                    id="whyNotOperational"
+                    value={formData.whyNotOperational}
+                    onChange={(e) => setFormData((prev) => ({ ...prev, whyNotOperational: e.target.value }))}
+                    placeholder="np. poważne uszkodzenia, niebezpieczne dla pasażerów..."
+                    rows={4}
+                    className="resize-none h-28 rounded-xl border-border focus:border-primary/50 focus:ring-primary/20"
+                  />
+                </div>
+
+                <div className="space-y-4">
+                  <Label className="text-base font-medium flex items-center gap-2">
+                    <Car className="h-4 w-4 text-primary" />
+                    Czy były pojazdy inne które można było używać?
+                  </Label>
+                  <RadioGroup
+                    value={formData.alternativeVehiclesAvailable ? "tak" : "nie"}
+                    onValueChange={(value) =>
+                      setFormData((prev) => ({
+                        ...prev,
+                        alternativeVehiclesAvailable: value === "tak",
+                      }))
+                    }
+                    className="flex gap-8"
+                  >
+                    <div className="flex items-center space-x-3">
+                      <RadioGroupItem
+                        value="tak"
+                        id="alt-vehicles-yes"
+                        className="h-5 w-5 rounded-full border-border focus:border-primary/50 focus:ring-primary/20"
+                      />
+                      <Label htmlFor="alt-vehicles-yes" className="font-normal">
+                        Tak
+                      </Label>
+                    </div>
+                    <div className="flex items-center space-x-3">
+                      <RadioGroupItem
+                        value="nie"
+                        id="alt-vehicles-no"
+                        className="h-5 w-5 rounded-full border-border focus:border-primary/50 focus:ring-primary/20"
+                      />
+                      <Label htmlFor="alt-vehicles-no" className="font-normal">
+                        Nie
+                      </Label>
+                    </div>
+                  </RadioGroup>
+
+                  {formData.alternativeVehiclesAvailable && (
+                    <div className="space-y-3 mt-4">
+                      <Label htmlFor="alternativeVehiclesDescription">Opis dostępnych pojazdów</Label>
+                      <Textarea
+                        id="alternativeVehiclesDescription"
+                        value={formData.alternativeVehiclesDescription}
+                        onChange={(e) =>
+                          setFormData((prev) => ({ ...prev, alternativeVehiclesDescription: e.target.value }))
+                        }
+                        placeholder="Opisz jakie pojazdy były dostępne..."
+                        rows={3}
+                        className="resize-none h-24 rounded-xl border-border focus:border-primary/50 focus:ring-primary/20"
+                      />
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            <div className="space-y-4">
+              <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
+                <User className="h-5 w-5 text-primary" />
+                Kontakty
+              </h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-3">
+                  <Label htmlFor="contactDispatcher" className="flex items-center gap-2 text-sm font-semibold">
+                    <Phone className="h-4 w-4 text-primary" />
+                    Kontakt - Dyspozytor
+                  </Label>
+                  <Input
+                    id="contactDispatcher"
+                    type="email"
+                    value={formData.contactDispatcher}
+                    onChange={(e) => setFormData((prev) => ({ ...prev, contactDispatcher: e.target.value }))}
+                    className="h-12 rounded-xl border-border focus:border-primary/50 focus:ring-primary/20"
+                    placeholder="email@example.com"
+                  />
+                </div>
+
+                <div className="space-y-3">
+                  <Label htmlFor="contactManager" className="flex items-center gap-2 text-sm font-semibold">
+                    <User className="h-4 w-4 text-accent" />
+                    Kontakt - Kierownik
+                  </Label>
+                  <Input
+                    id="contactManager"
+                    type="email"
+                    value={formData.contactManager}
+                    onChange={(e) => setFormData((prev) => ({ ...prev, contactManager: e.target.value }))}
+                    className="h-12 rounded-xl border-border focus:border-primary/50 focus:ring-primary/20"
+                    placeholder="email@example.com"
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-3">
+                <Label htmlFor="status" className="flex items-center gap-2 text-sm font-semibold">
+                  <FileText className="h-4 w-4 text-muted-foreground" />
+                  Status harmonogramu
+                </Label>
+                <Select
+                  value={formData.status}
+                  onValueChange={(value) => setFormData((prev) => ({ ...prev, status: value as any }))}
+                >
+                  <SelectTrigger className="h-12 rounded-xl border-border focus:border-primary/50 focus:ring-primary/20">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent className="rounded-xl">
+                    <SelectItem value="draft" className="rounded-lg">
+                      Szkic
+                    </SelectItem>
+                    <SelectItem value="submitted" className="rounded-lg">
+                      Przesłany
+                    </SelectItem>
+                    <SelectItem value="approved" className="rounded-lg">
+                      Zatwierdzony
+                    </SelectItem>
+                    <SelectItem value="completed" className="rounded-lg">
+                      Zakończony
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            <div className="flex justify-between items-center pt-8 border-t border-border">
+              <Button
+                variant="outline"
+                onClick={resetForm}
+                className="px-8 py-3 rounded-xl border-border hover:bg-destructive/10 hover:text-destructive hover:border-destructive/20 bg-transparent"
+              >
+                <X className="h-4 w-4 mr-2" />
+                Anuluj
+              </Button>
+
+              <Button
+                onClick={handleSubmit}
+                className="bg-primary hover:bg-primary/90 text-primary-foreground px-8 py-3 rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 font-medium"
+              >
+                <Save className="h-4 w-4 mr-2" />
+                {editingSchedule ? "Zaktualizuj" : "Zapisz"}
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       <div className="grid gap-4 w-full grid-cols-1">
         {schedules.length === 0 ? (

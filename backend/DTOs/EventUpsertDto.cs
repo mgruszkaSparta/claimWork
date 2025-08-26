@@ -187,6 +187,11 @@ namespace AutomotiveClaimsApi.DTOs
 
         public DateTime? ComplaintResponseDate { get; set; }
 
+        public int? TransportTypeId { get; set; }
+
+        [StringLength(50)]
+        public string? TransportType { get; set; }
+
         [StringLength(2000)]
         public string? CargoDescription { get; set; }
 

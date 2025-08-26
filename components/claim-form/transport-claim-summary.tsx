@@ -3,6 +3,7 @@
 import { FileText, MessageSquare } from "lucide-react"
 import { DocumentsSection } from "../documents-section"
 import type { Claim, Note, UploadedFile } from "@/types"
+import { TRANSPORT_TYPES } from "@/lib/constants"
 
 interface ClaimStatus {
   id: number
@@ -57,6 +58,13 @@ export function TransportClaimSummary({
   }
 
   const transportDamage = (claimFormData.transportDamage || {}) as any
+
+  const getTransportTypeLabel = (id?: string, code?: string) => {
+    const typeById = TRANSPORT_TYPES.find((t) => t.value === id)
+    if (typeById) return typeById.label
+    const typeByCode = TRANSPORT_TYPES.find((t) => t.code === code)
+    return typeByCode ? typeByCode.label : code || id || "Nie określono"
+  }
 
   return (
     <div className="space-y-4">
@@ -127,6 +135,13 @@ export function TransportClaimSummary({
           </div>
         </div>
         <div className="p-4 space-y-4">
+          <InfoCard
+            label="Rodzaj transportu"
+            value={getTransportTypeLabel(
+              transportDamage.transportTypeId,
+              transportDamage.transportType,
+            )}
+          />
           <div>
             <span className="text-xs font-medium text-gray-500 uppercase tracking-wide block mb-1">
               Opis ładunku / lista strat

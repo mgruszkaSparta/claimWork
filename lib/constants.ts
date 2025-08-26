@@ -139,6 +139,14 @@ export const VEHICLE_TYPES = [
   { value: "TRAILER", label: "Przyczepa" },
 ]
 
+// Transport types
+export const TRANSPORT_TYPES = [
+  { value: "1", code: "LAND", label: "Lądowy" },
+  { value: "2", code: "SEA", label: "Morski" },
+  { value: "3", code: "AIR", label: "Lotniczy" },
+  { value: "4", code: "RAIL", label: "Kolejowy" },
+]
+
 // Damage types
 export const DAMAGE_TYPES = [
   "Kolizja",

@@ -75,6 +75,14 @@ function HomePage({ user, onLogout }: PageProps) {
           );
           return;
         }
+        const contentType = res.headers.get("content-type");
+        if (!contentType || !contentType.includes("application/json")) {
+          console.warn(
+            "Unexpected response format for dashboard stats:",
+            contentType,
+          );
+          return;
+        }
         const data = await res.json();
         setStats([
           { ...initialStats[0], value: data.totalClaims?.toString() },

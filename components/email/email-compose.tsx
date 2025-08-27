@@ -417,7 +417,7 @@ export const EmailComposeComponent = ({
                   <DialogTitle>Wybierz dokumenty</DialogTitle>
                 </DialogHeader>
                 {availableDocuments.length ? (
-                  <div className="flex flex-col gap-2 max-h-60 overflow-y-auto">
+                  <div className="flex flex-col gap-2 max-h-96 overflow-y-auto">
                     {availableDocuments.map((doc) => {
                       const checked = selectedDocIds.includes(doc.id)
                       return (

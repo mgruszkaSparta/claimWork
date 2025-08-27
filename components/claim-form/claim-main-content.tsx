@@ -1175,7 +1175,7 @@ export const ClaimMainContent = ({
                   </div>
                   <div>
                     <Label className="text-sm font-medium text-gray-700">Powstałe uszkodzenia</Label>
-                    <div className="p-4 border rounded-lg bg-gray-50 space-y-2 mt-2 max-h-60 overflow-y-auto">
+                    <div className="p-4 border rounded-lg bg-gray-50 space-y-2 mt-2 max-h-96 overflow-y-auto">
                       {claimFormData.damages && claimFormData.damages.length > 0 ? (
                         claimFormData.damages.map((damage, index) => (
                           <div

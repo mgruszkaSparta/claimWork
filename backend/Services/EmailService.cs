@@ -139,8 +139,17 @@ namespace AutomotiveClaimsApi.Services
 
         public async Task<IEnumerable<EmailDto>> GetEmailsByEventIdAsync(Guid eventId, string? folder = null)
         {
-            var query = _context.Emails
-                .Where(e => e.EventId == eventId)
+            // Start with a basic IQueryable to avoid keeping the more specific
+            // IIncludableQueryable that `Include` returns.  Reassigning an
+            // IIncludableQueryable after additional `Where` calls can lead to
+            // invalid cast exceptions at runtime when EF Core attempts to cast
+            // the simplified query back to the includable version.  By keeping
+            // the variable typed as `IQueryable<Email>` we can safely add
+            // filters conditionally without triggering these casts.
+            IQueryable<Email> query = _context.Emails
+                .Where(e => e.EventId == eventId);
+
+            query = query
                 .Include(e => e.EmailClaims)
                 .Include(e => e.Attachments);
 

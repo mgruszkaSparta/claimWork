@@ -261,6 +261,26 @@ export function DamageDataSection({
                 disabled={!claimFormData.riskType}
               />
             </div>
+            {claimObjectType === "3" && (
+              <div>
+                <Label htmlFor="transportType">Rodzaj transportu</Label>
+                <Select
+                  value={transportDamage.transportTypeId}
+                  onValueChange={handleTransportTypeChange}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Wybierz rodzaj transportu" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {TRANSPORT_TYPES.map((type) => (
+                      <SelectItem key={type.value} value={type.value}>
+                        {type.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
             <div>
               <Label htmlFor="insurerClaimNumber" className="text-sm font-medium text-gray-700">
                 Nr szkody TU
@@ -302,37 +322,17 @@ export function DamageDataSection({
           <>
             <div className="border-t border-gray-200 my-8" />
             <div className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="transportType">Rodzaj transportu</Label>
-                  <Select
-                    value={transportDamage.transportTypeId}
-                    onValueChange={handleTransportTypeChange}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Wybierz rodzaj transportu" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {TRANSPORT_TYPES.map((type) => (
-                        <SelectItem key={type.value} value={type.value}>
-                          {type.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="space-y-2 md:col-span-2">
-                  <Label htmlFor="cargoDescription">Opis ładunku / lista strat</Label>
-                  <Textarea
-                    id="cargoDescription"
-                    placeholder="Opisz ładunek lub ogólną listę strat"
-                    value={transportDamage.cargoDescription}
-                    onChange={(e) =>
-                      handleTransportFieldChange("cargoDescription", e.target.value)
-                    }
-                    rows={3}
-                  />
-                </div>
+              <div className="space-y-2">
+                <Label htmlFor="cargoDescription">Opis ładunku / lista strat</Label>
+                <Textarea
+                  id="cargoDescription"
+                  placeholder="Opisz ładunek lub ogólną listę strat"
+                  value={transportDamage.cargoDescription}
+                  onChange={(e) =>
+                    handleTransportFieldChange("cargoDescription", e.target.value)
+                  }
+                  rows={3}
+                />
               </div>
               <div className="space-y-2">
                 <Label>Lista strat</Label>

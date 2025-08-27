@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useRef } from "react"
+import { Checkbox } from "@/components/ui/checkbox"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -62,6 +63,7 @@ export const EmailComposeComponent = ({
   const [isHtmlMode, setIsHtmlMode] = useState(false)
   const [selectedTemplate, setSelectedTemplate] = useState("")
   const [documentDialogOpen, setDocumentDialogOpen] = useState(false)
+  const [selectedDocIds, setSelectedDocIds] = useState<string[]>([])
 
   const [emailData, setEmailData] = useState<EmailCompose>({
     to: replyTo || "",
@@ -110,13 +112,17 @@ export const EmailComposeComponent = ({
     }))
   }
 
-  const addDocumentAttachment = async (doc: UploadedFile) => {
+  const addDocumentAttachment = async (
+    doc: UploadedFile,
+    closeDialog = true,
+    showToast = true,
+  ) => {
     try {
       let file = doc.file
       if (!file) {
         const response = await authFetch(doc.url)
         const blob = await response.blob()
-        file = new File([blob], doc.name, { type: blob.type || 'application/octet-stream' })
+        file = new File([blob], doc.name, { type: blob.type || "application/octet-stream" })
       }
       const newAttachment: EmailAttachment = {
         id: doc.id,
@@ -130,12 +136,22 @@ export const EmailComposeComponent = ({
         ...prev,
         attachments: [...prev.attachments, newAttachment],
       }))
-      setDocumentDialogOpen(false)
-      toast({ title: 'Załącznik dodany', description: `Dodano ${doc.name}` })
+      if (closeDialog) setDocumentDialogOpen(false)
+      if (showToast) toast({ title: "Załącznik dodany", description: `Dodano ${doc.name}` })
     } catch (error) {
-      console.error('Error adding document attachment:', error)
-      toast({ title: 'Błąd', description: 'Nie udało się dodać dokumentu', variant: 'destructive' })
+      console.error("Error adding document attachment:", error)
+      toast({ title: "Błąd", description: "Nie udało się dodać dokumentu", variant: "destructive" })
     }
+  }
+
+  const addSelectedDocuments = async () => {
+    const docsToAdd = availableDocuments.filter((d) => selectedDocIds.includes(d.id))
+    for (const doc of docsToAdd) {
+      await addDocumentAttachment(doc, false, false)
+    }
+    setDocumentDialogOpen(false)
+    setSelectedDocIds([])
+    toast({ title: "Załączniki dodane", description: `Dodano ${docsToAdd.length} dokument(y)` })
   }
 
   const handleTemplateSelect = (templateId: string) => {
@@ -398,23 +414,41 @@ export const EmailComposeComponent = ({
               </DialogTrigger>
               <DialogContent className="sm:max-w-md">
                 <DialogHeader>
-                  <DialogTitle>Wybierz dokument</DialogTitle>
+                  <DialogTitle>Wybierz dokumenty</DialogTitle>
                 </DialogHeader>
-                <div className="flex flex-col gap-2">
-                  {availableDocuments.length ? (
-                    availableDocuments.map((doc) => (
-                      <Button
-                        key={doc.id}
-                        variant="ghost"
-                        className="justify-start"
-                        onClick={() => addDocumentAttachment(doc)}
-                      >
-                        {doc.name}
-                      </Button>
-                    ))
-                  ) : (
-                    <p className="text-sm text-gray-500">Brak dokumentów</p>
-                  )}
+                {availableDocuments.length ? (
+                  <div className="flex flex-col gap-2 max-h-60 overflow-y-auto">
+                    {availableDocuments.map((doc) => {
+                      const checked = selectedDocIds.includes(doc.id)
+                      return (
+                        <div key={doc.id} className="flex items-center space-x-2">
+                          <Checkbox
+                            id={`doc-${doc.id}`}
+                            checked={checked}
+                            onCheckedChange={(checked) => {
+                              const value = checked === true
+                              setSelectedDocIds((prev) =>
+                                value ? [...prev, doc.id] : prev.filter((id) => id !== doc.id),
+                              )
+                            }}
+                          />
+                          <label htmlFor={`doc-${doc.id}`} className="text-sm">
+                            {doc.name}
+                          </label>
+                        </div>
+                      )
+                    })}
+                  </div>
+                ) : (
+                  <p className="text-sm text-gray-500">Brak dokumentów</p>
+                )}
+                <div className="flex justify-end gap-2 mt-4">
+                  <Button variant="outline" onClick={() => setDocumentDialogOpen(false)}>
+                    Anuluj
+                  </Button>
+                  <Button onClick={addSelectedDocuments} disabled={selectedDocIds.length === 0}>
+                    Dodaj zaznaczone
+                  </Button>
                 </div>
               </DialogContent>
             </Dialog>

@@ -767,7 +767,7 @@ namespace AutomotiveClaimsApi.Controllers
         private async Task UpsertClaimAsync(Event eventEntity, ClaimUpsertDto eventDto)
         {
             UpdateEventFromDto(eventDto, eventEntity);
-            _context.Events.Update(eventEntity);
+            _context.Entry(eventEntity).State = EntityState.Modified;
 
             if (eventDto.Participants != null)
             {
@@ -1136,6 +1136,7 @@ namespace AutomotiveClaimsApi.Controllers
                     UpdatedAt = DateTime.UtcNow
                 };
                 entity.Damages.Add(damage);
+                context.Damages.Add(damage);
             }
         }
 

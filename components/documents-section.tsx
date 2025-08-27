@@ -100,6 +100,7 @@ export const DocumentsSection = React.forwardRef<
   const [dragCategory, setDragCategory] = useState<string | null>(null)
   const [selectedDocumentIds, setSelectedDocumentIds] = useState<string[]>([])
   const [editingDocId, setEditingDocId] = useState<string | number | null>(null)
+  const [selectedRequiredDocs, setSelectedRequiredDocs] = useState<string[]>([])
 
   const [showRequiredOnly, setShowRequiredOnly] = useState(false)
   const [searchQuery, setSearchQuery] = useState("")
@@ -1144,10 +1145,15 @@ export const DocumentsSection = React.forwardRef<
   const handleAddRequiredCategory = (docName: string) => {
     setRequiredDocuments((prev) => prev.map((doc) => (doc.name === docName ? { ...doc, uploaded: true } : doc)))
     setOpenCategories((prev) => ({ ...prev, [docName]: true }))
+    setSelectedRequiredDocs((prev) => prev.filter((name) => name !== docName))
     toast({
       title: "Dodano kategorię",
       description: `Kategoria "${docName}" jest gotowa do dodania plików.`,
     })
+  }
+
+  const handleAddSelectedRequired = () => {
+    selectedRequiredDocs.forEach((doc) => handleAddRequiredCategory(doc))
   }
 
   const handleRemoveCategory = (category: string) => {
@@ -1806,16 +1812,19 @@ export const DocumentsSection = React.forwardRef<
               <p className="mb-4 text-sm text-gray-500">
                 Dodaj kategorię, aby móc załączyć odpowiednie pliki.
               </p>
+              <Button
+                className="mb-4"
+                onClick={handleAddSelectedRequired}
+                disabled={selectedRequiredDocs.length === 0}
+              >
+                Dodaj zaznaczone
+              </Button>
               <div className="border rounded-md">
                 {missingRequiredDocs.map((doc, index, arr) => (
                   <div
                     key={`required-${doc.id ?? doc.name}`}
-                    className={`flex items-center justify-between p-4 ${index < arr.length - 1 ? "border-b" : ""}`}
+                    className={`flex items-center gap-3 p-4 ${index < arr.length - 1 ? "border-b" : ""}`}
                   >
-                    <div className="flex items-center gap-3">
-                      <span className="font-medium text-gray-800">{doc.name}</span>
-                      <div className="h-2 w-2 rounded-full bg-red-500 animate-pulse" title="Brakujący"></div>
-                    </div>
                     <Button
                       variant="outline"
                       size="sm"
@@ -1824,6 +1833,23 @@ export const DocumentsSection = React.forwardRef<
                       <Plus className="mr-2 h-4 w-4" />
                       Dodaj
                     </Button>
+                    <Checkbox
+                      checked={selectedRequiredDocs.includes(doc.name)}
+                      onCheckedChange={(checked) =>
+                        setSelectedRequiredDocs((prev) =>
+                          checked
+                            ? [...prev, doc.name]
+                            : prev.filter((name) => name !== doc.name),
+                        )
+                      }
+                    />
+                    <div className="flex items-center gap-3">
+                      <span className="font-medium text-gray-800">{doc.name}</span>
+                      <div
+                        className="h-2 w-2 rounded-full bg-red-500 animate-pulse"
+                        title="Brakujący"
+                      ></div>
+                    </div>
                   </div>
                 ))}
               </div>

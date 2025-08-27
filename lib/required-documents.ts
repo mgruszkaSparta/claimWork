@@ -118,7 +118,8 @@ const communicationDocuments: RequiredDocument[] = [
 ]
 
 const propertyDocuments: RequiredDocument[] = [
-  { id: "1", name: "Dokument własności mienia", required: true, uploaded: false, description: "" }
+  { id: "1", name: "Dokument własności mienia", required: true, uploaded: false, description: "" },
+  { id: "2", name: "Szkoda mienia", required: true, uploaded: false, description: "" },
 ]
 
 const transportDocuments: RequiredDocument[] = [

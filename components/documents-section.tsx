@@ -101,6 +101,9 @@ export const DocumentsSection = React.forwardRef<
   const [selectedDocumentIds, setSelectedDocumentIds] = useState<string[]>([])
   const [editingDocId, setEditingDocId] = useState<string | number | null>(null)
 
+  const [showRequiredOnly, setShowRequiredOnly] = useState(false)
+  const [searchQuery, setSearchQuery] = useState("")
+
   // Preview modal states
   const [previewZoom, setPreviewZoom] = useState(1)
   const [previewRotation, setPreviewRotation] = useState(0)
@@ -238,10 +241,18 @@ export const DocumentsSection = React.forwardRef<
     [documents, pendingFiles]
   )
 
-  const visibleDocuments = React.useMemo(
-    () => allDocuments.filter((d) => !hiddenCategories.includes(d.documentType)),
-    [allDocuments, hiddenCategories],
-  )
+  const visibleDocuments = React.useMemo(() => {
+    let docs = allDocuments.filter((d) => !hiddenCategories.includes(d.documentType))
+    if (showRequiredOnly) {
+      const requiredNames = requiredDocuments.map((d) => d.name)
+      docs = docs.filter((d) => requiredNames.includes(d.documentType))
+    }
+    if (searchQuery.trim()) {
+      const q = searchQuery.toLowerCase()
+      docs = docs.filter((d) => d.fileName.toLowerCase().includes(q))
+    }
+    return docs
+  }, [allDocuments, hiddenCategories, showRequiredOnly, requiredDocuments, searchQuery])
 
   useEffect(() => {
     const validIds = selectedDocumentIds.filter((id) =>
@@ -1401,11 +1412,21 @@ export const DocumentsSection = React.forwardRef<
 
         <Card className="rounded-md">
           <CardContent className="p-3 space-y-2">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+              <Input
+                placeholder="Szukaj po nazwie..."
+                className="pl-10"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+              />
+            </div>
             <div className="flex flex-wrap items-center gap-1.5">
               <span className="text-sm font-medium text-gray-600">Szybkie filtry:</span>
               <Badge
                 variant="secondary"
-                className="cursor-pointer px-2 bg-blue-100 text-blue-800"
+                className={`cursor-pointer px-2 ${showRequiredOnly ? "bg-blue-600 text-white" : "bg-blue-100 text-blue-800"}`}
+                onClick={() => setShowRequiredOnly((prev) => !prev)}
               >
                 Wymagane
               </Badge>

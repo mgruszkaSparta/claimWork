@@ -891,6 +891,15 @@ class ApiService {
     }
   }
 
+  async getNotes(params?: { category?: string }): Promise<NoteDto[]> {
+    const search = new URLSearchParams()
+    if (params?.category) {
+      search.set("category", params.category)
+    }
+    const query = search.toString()
+    return this.request<NoteDto[]>(`/notes${query ? `?${query}` : ""}`)
+  }
+
   async getCurrentUser(): Promise<{ id: string; username: string; email?: string; roles?: string[]; createdAt?: string; lastLogin?: string } | undefined> {
     const data = await this.request<{ id: string; userName: string; email: string; roles: string[]; createdAt: string; lastLogin?: string }>("/auth/me")
     if (!data) return undefined

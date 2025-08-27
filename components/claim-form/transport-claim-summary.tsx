@@ -95,6 +95,13 @@ export function TransportClaimSummary({
             </div>
           )}
           <InfoCard label="Rodzaj szkody" value={claimFormData.damageType} />
+          <InfoCard
+            label="Rodzaj transportu"
+            value={getTransportTypeLabel(
+              transportDamage.transportTypeId,
+              transportDamage.transportType,
+            )}
+          />
           <InfoCard label="Ryzyko szkody" value={getRiskTypeLabel(claimFormData.riskType)} />
           <div className="grid grid-cols-2 gap-3">
             <InfoCard label="Data zdarzenia" value={claimFormData.damageDate} />
@@ -135,13 +142,6 @@ export function TransportClaimSummary({
           </div>
         </div>
         <div className="p-4 space-y-4">
-          <InfoCard
-            label="Rodzaj transportu"
-            value={getTransportTypeLabel(
-              transportDamage.transportTypeId,
-              transportDamage.transportType,
-            )}
-          />
           <div>
             <span className="text-xs font-medium text-gray-500 uppercase tracking-wide block mb-1">
               Opis ładunku / lista strat

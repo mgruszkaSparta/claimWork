@@ -6,6 +6,10 @@
   .text-balance {
     text-wrap: balance;
   }
+  .my-8 {
+    margin-top: 1rem;
+    margin-bottom: 1rem;
+  }
 }
 
 @layer base {

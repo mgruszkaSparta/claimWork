@@ -5,14 +5,13 @@ import { createPortal } from "react-dom"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
-import { ChevronDown, Phone, Mail, MapPin, Check, Plus, FileText, Hash } from "lucide-react"
+import { ChevronDown, Phone, Mail, MapPin, Check, FileText, Hash } from "lucide-react"
 import type { Client, ClientSelectionEvent } from "@/types/client"
 import { apiService } from "@/lib/api"
 
 interface ClientDropdownProps {
   selectedClientId?: number
   onClientSelected?: (event: ClientSelectionEvent) => void
-  onNewClientClick?: () => void
   className?: string
 }
 
@@ -25,7 +24,6 @@ interface DropdownPosition {
 export default function ClientDropdown({
   selectedClientId,
   onClientSelected,
-  onNewClientClick,
   className = "",
 }: ClientDropdownProps) {
   const [clients, setClients] = useState<Client[]>([])
@@ -149,13 +147,6 @@ export default function ClientDropdown({
     }
   }
 
-  const handleNewClientClick = () => {
-    setIsDropdownOpen(false)
-    if (onNewClientClick) {
-      onNewClientClick()
-    }
-  }
-
   const hasContactInfo = (info: string): boolean => {
     return info && info !== "brak" && info.trim() !== ""
   }
@@ -188,12 +179,6 @@ export default function ClientDropdown({
 
         {/* Dropdown Items */}
         <div className="dropdown-items">
-          {/* New Client Button */}
-          <div className="dropdown-item" onClick={handleNewClientClick}>
-            <Plus className="h-4 w-4 mr-2 text-green-600" />
-            <span className="text-green-600 font-medium">Dodaj nowego klienta</span>
-          </div>
-
           {filteredClients.length === 0 ? (
             <div className="dropdown-no-results">Nie znaleziono klientów spełniających kryteria wyszukiwania</div>
           ) : (

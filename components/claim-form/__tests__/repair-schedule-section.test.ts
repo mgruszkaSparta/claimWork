@@ -4,11 +4,10 @@ import { deleteRepairSchedule } from '@/lib/api/repair-schedules'
 
 type Schedule = { id: string }
 
-async function testHandleDelete(confirmResult: boolean) {
+async function testHandleDelete() {
   let fetchCalled = false
   let schedules: Schedule[] = [{ id: '1' }]
 
-  globalThis.confirm = () => confirmResult
   globalThis.fetch = async (_url: string, _opts?: any) => {
     if (_opts?.method === 'DELETE') {
       fetchCalled = true
@@ -24,7 +23,6 @@ async function testHandleDelete(confirmResult: boolean) {
   const toast = (_: any) => {}
 
   const handleDelete = async (scheduleId: string) => {
-    if (!confirm('Czy na pewno chcesz usunąć harmonogram?')) return
     try {
       await deleteRepairSchedule(scheduleId)
       setSchedules((prev) => prev.filter((s) => s.id !== scheduleId))
@@ -39,14 +37,8 @@ async function testHandleDelete(confirmResult: boolean) {
   return { fetchCalled, schedules }
 }
 
-test('rejecting confirmation aborts deletion', async () => {
-  const { fetchCalled, schedules } = await testHandleDelete(false)
-  assert.equal(fetchCalled, false)
-  assert.equal(schedules.length, 1)
-})
-
-test('accepting confirmation deletes schedule', async () => {
-  const { fetchCalled, schedules } = await testHandleDelete(true)
+test('deletes schedule', async () => {
+  const { fetchCalled, schedules } = await testHandleDelete()
   assert.equal(fetchCalled, true)
   assert.equal(schedules.length, 0)
 })

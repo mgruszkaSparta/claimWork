@@ -118,8 +118,40 @@ const communicationDocuments: RequiredDocument[] = [
 ]
 
 const propertyDocuments: RequiredDocument[] = [
-  { id: "1", name: "Dokument własności mienia", required: true, uploaded: false, description: "" },
-  { id: "2", name: "Szkoda mienia", required: true, uploaded: false, description: "" },
+  { id: "1", name: "Nr konta", required: true, uploaded: false, description: "" },
+  {
+    id: "2",
+    name: "Faktury za naprawę / zakup nowego",
+    required: true,
+    uploaded: false,
+    description: "",
+  },
+  { id: "3", name: "Kosztorys", required: true, uploaded: false, description: "" },
+  { id: "4", name: "Inne", required: true, uploaded: false, description: "" },
+  { id: "5", name: "Opinia serwisu", required: true, uploaded: false, description: "" },
+  { id: "6", name: "Zdjęcia", required: true, uploaded: false, description: "" },
+  {
+    id: "7",
+    name: "Notatka policja / straż pożarna",
+    required: true,
+    uploaded: false,
+    description: "",
+  },
+  { id: "8", name: "Oświadczenia", required: true, uploaded: false, description: "" },
+  {
+    id: "9",
+    name: "Oświadczenie spisane ze sprawcą (dla OC)",
+    required: true,
+    uploaded: false,
+    description: "",
+  },
+  {
+    id: "10",
+    name: "Dokument własności mienia",
+    required: true,
+    uploaded: false,
+    description: "",
+  },
 ]
 
 const transportDocuments: RequiredDocument[] = [

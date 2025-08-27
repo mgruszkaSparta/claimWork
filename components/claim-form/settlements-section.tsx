@@ -3,6 +3,7 @@
 import type React from "react"
 import { useState, useCallback, useMemo, useEffect, useRef } from "react"
 import { Button } from "@/components/ui/button"
+import { ConfirmDialog } from "@/components/ui/confirm-dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
@@ -292,7 +293,6 @@ export const SettlementsSection: React.FC<SettlementsSectionProps> = ({ eventId 
   // Delete settlement
   const removeSettlement = useCallback(
     async (settlementId: string) => {
-      if (!window.confirm("Czy na pewno chcesz usunąć tę ugodę?")) return
       try {
         await deleteSettlement(settlementId)
         toast({
@@ -977,15 +977,21 @@ export const SettlementsSection: React.FC<SettlementsSectionProps> = ({ eventId 
                           >
                             <Edit className="h-4 w-4" />
                           </Button>
-                          <Button
-                            onClick={() => removeSettlement(settlement.id!)}
-                            variant="ghost"
-                            size="sm"
-                            className="p-1 text-red-600 hover:text-red-800"
-                            title="Usuń"
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
+                          <ConfirmDialog
+                            title="Czy na pewno chcesz usunąć tę ugodę?"
+                            description="Ta akcja nie może być cofnięta. Ugoda zostanie trwale usunięta."
+                            onConfirm={() => removeSettlement(settlement.id!)}
+                            trigger={
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="p-1 text-red-600 hover:text-red-800"
+                                title="Usuń"
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            }
+                          />
                         </div>
                       </td>
                     </tr>

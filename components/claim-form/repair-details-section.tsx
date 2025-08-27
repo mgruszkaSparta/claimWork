@@ -4,6 +4,7 @@ import React, { useEffect, useState } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
+import { ConfirmDialog } from "@/components/ui/confirm-dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
@@ -174,7 +175,6 @@ export const RepairDetailsSection: React.FC<RepairDetailsSectionProps> = ({
   }
 
   const handleDelete = async (id: string) => {
-    if (!confirm("Czy na pewno chcesz usunąć opis?")) return
     try {
       await deleteRepairDetail(id)
       toast({ title: "Sukces", description: "Opis naprawy został usunięty" })
@@ -596,14 +596,20 @@ export const RepairDetailsSection: React.FC<RepairDetailsSectionProps> = ({
                       >
                         <Edit className="h-4 w-4" />
                       </Button>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => handleDelete(detail.id)}
-                        className="h-10 w-10 rounded-xl hover:bg-destructive/10 hover:text-destructive"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
+                      <ConfirmDialog
+                        title="Czy na pewno chcesz usunąć opis?"
+                        description="Ta akcja nie może być cofnięta. Opis zostanie trwale usunięty."
+                        onConfirm={() => handleDelete(detail.id)}
+                        trigger={
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-10 w-10 rounded-xl hover:bg-destructive/10 hover:text-destructive"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        }
+                      />
                     </div>
                   </div>
                 </div>

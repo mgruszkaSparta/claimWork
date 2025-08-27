@@ -136,7 +136,7 @@ function HomePage({ user, onLogout }: PageProps) {
       )}
       <div className={`${isBasicUser ? "" : "ml-16"} flex flex-col min-h-screen`}>
         <Header onMenuClick={() => {}} user={user} onLogout={onLogout} />
-        <main className="flex-1 p-0">
+        <main className="flex-1 px-4 md:px-6 lg:px-8">
           <div className="w-full">
 
             <div className="mb-8">

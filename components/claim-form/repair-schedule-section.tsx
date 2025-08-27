@@ -4,6 +4,7 @@ import type React from "react"
 import { useState, useEffect } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
+import { ConfirmDialog } from "@/components/ui/confirm-dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
@@ -184,7 +185,6 @@ export const RepairScheduleSection: React.FC<RepairScheduleSectionProps> = ({ ev
   }
 
   const handleDelete = async (scheduleId: string) => {
-    if (!confirm("Czy na pewno chcesz usunąć harmonogram?")) return
     try {
       await deleteRepairSchedule(scheduleId)
       setSchedules((prev) => prev.filter((s) => s.id !== scheduleId))
@@ -814,14 +814,20 @@ export const RepairScheduleSection: React.FC<RepairScheduleSectionProps> = ({ ev
                         >
                           <Edit className="h-4 w-4" />
                         </Button>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => handleDelete(schedule.id!)}
-                          className="h-10 w-10 rounded-xl hover:bg-destructive/10 hover:text-destructive"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
+                        <ConfirmDialog
+                          title="Czy na pewno chcesz usunąć harmonogram?"
+                          description="Ta akcja nie może być cofnięta. Harmonogram zostanie trwale usunięty."
+                          onConfirm={() => handleDelete(schedule.id!)}
+                          trigger={
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-10 w-10 rounded-xl hover:bg-destructive/10 hover:text-destructive"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          }
+                        />
                       </div>
                     </div>
                   </div>

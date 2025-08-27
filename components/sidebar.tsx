@@ -2,10 +2,9 @@
 import Link from "next/link"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
-
+import { Badge } from "@/components/ui/badge"
 
 import { LayoutDashboard, FileText, Car, Settings, Inbox, Calendar, CalendarCheck, BarChart3 } from "lucide-react"
-
 
 import { useAuth } from "@/hooks/use-auth"
 
@@ -102,8 +101,12 @@ export function Sidebar(props: SidebarProps) {
               <Link
                 href={item.href}
                 onClick={() => props.onTabChange(item.id)}
+                className="flex items-center"
               >
                 <Icon className="h-5 w-5" />
+                {item.id === "unassigned" && (
+                  <Badge className="ml-2 bg-blue-100 text-blue-800">1</Badge>
+                )}
               </Link>
             </Button>
           )

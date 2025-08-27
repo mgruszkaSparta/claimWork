@@ -16,7 +16,8 @@ import { useClaims } from '@/hooks/use-claims'
 import { useDamages } from '@/hooks/use-damages'
 import { useRouter } from 'next/navigation'
 import { useToast } from '@/hooks/use-toast'
-import { useUnsavedChangesWarning, UNSAVED_CHANGES_MESSAGE } from '@/hooks/use-unsaved-changes-warning'
+import { useUnsavedChangesWarning } from '@/hooks/use-unsaved-changes-warning'
+import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 import type { Claim, ParticipantInfo, UploadedFile, RequiredDocument } from '@/types'
 import { getRequiredDocumentsByObjectType } from '@/lib/required-documents'
 import { authFetch } from '@/lib/auth-fetch'
@@ -403,17 +404,18 @@ export function ClaimForm({ initialData, mode }: ClaimFormProps) {
         {/* Form Actions */}
         {mode !== 'view' && (
           <div className="flex justify-end space-x-4">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => {
-                if (confirm(UNSAVED_CHANGES_MESSAGE)) {
-                  router.back()
-                }
-              }}
-            >
-              Anuluj
-            </Button>
+            <ConfirmDialog
+              title="Czy na pewno chcesz zakończyć edycję?"
+              description="Ta akcja spowoduje utratę niezapisanych zmian."
+              confirmText="Wyjdź"
+              cancelText="Wróć"
+              onConfirm={() => router.back()}
+              trigger={
+                <Button type="button" variant="outline">
+                  Anuluj
+                </Button>
+              }
+            />
             <Button
               type="submit"
               disabled={loading}

@@ -5,7 +5,6 @@ import { SWRConfig } from 'swr'
 import QueryProvider from '@/components/query-provider'
 import { ThemeProvider } from '@/components/theme-provider'
 import { Toaster } from '@/components/ui/toaster'
-import Footer from '@/components/footer'
 import SessionGuard from '@/components/session-guard'
 import { AuthProvider } from '@/hooks/use-auth'
 
@@ -36,7 +35,6 @@ export default function Providers({ children }: { children: React.ReactNode }) {
             <SessionGuard>
               <main className="flex-1">{children}</main>
             </SessionGuard>
-            <Footer />
             <Toaster />
           </AuthProvider>
         </ThemeProvider>

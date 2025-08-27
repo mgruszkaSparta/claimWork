@@ -664,14 +664,6 @@ export const ClaimMainContent = ({
             <CardContent className="p-0 bg-white">
               {/* Harmonogram naprawy - expandable section with data preview */}
               <div className="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden">
-                <div className="px-4 py-3 bg-gradient-to-r from-blue-50 to-blue-100 border-b border-gray-200">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-2">
-                      <Calendar className="h-4 w-4 text-blue-600" />
-                      <h3 className="text-sm font-semibold text-gray-900">Harmonogram naprawy</h3>
-                    </div>
-                  </div>
-                </div>
                 <div className="p-4">
                 {eventId ? (
                   <div className="rounded-lg overflow-hidden">

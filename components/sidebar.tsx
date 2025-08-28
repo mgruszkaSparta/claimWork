@@ -30,13 +30,13 @@ const menuItems = [
     id: "vacations",
     label: "Urlopy",
     icon: Calendar,
-    href: "/vacations",
+    href: "/vacations/leaves/my",
   },
   {
     id: "vacation-requests",
     label: "Wnioski urlopowe",
     icon: CalendarCheck,
-    href: "/vacations/manage",
+    href: "/vacations/leaves",
     roles: ["Admin", "admin"],
   },
   {

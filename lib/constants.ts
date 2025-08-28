@@ -261,10 +261,17 @@ export const getEventStatusColor = (statusCode: string) => {
   return status?.color || "bg-gray-100 text-gray-800"
 }
 
-export const generateId = () =>
-  typeof globalThis.crypto?.randomUUID === "function"
-    ? globalThis.crypto.randomUUID()
-    : Math.random().toString(36).slice(2, 11)
+export const generateId = () => {
+  if (typeof globalThis.crypto?.randomUUID === "function") {
+    return globalThis.crypto.randomUUID()
+  }
+
+  return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, (c) => {
+    const r = (Math.random() * 16) | 0
+    const v = c === "x" ? r : (r & 0x3) | 0x8
+    return v.toString(16)
+  })
+}
 
 // Helper function to get label by value
 export const getLabelByValue = (items: Array<{ value: string; label: string }>, value: string): string => {

@@ -13,6 +13,7 @@ import { Badge } from '@/components/ui/badge'
 import { FormHeader } from '@/components/ui/form-header'
 import { API_BASE_URL } from '@/lib/api'
 import { User } from 'lucide-react'
+import { validatePassword } from '@/lib/password'
 
 interface UserFormProps {
   userId?: string
@@ -81,7 +82,13 @@ export default function UserForm({ userId }: UserFormProps) {
     if (!firstName.trim()) newErrors.firstName = 'Imię jest wymagane'
     if (!lastName.trim()) newErrors.lastName = 'Nazwisko jest wymagane'
     if (!email.trim()) newErrors.email = 'Email jest wymagany'
-    if (!isEdit && !password.trim()) newErrors.password = 'Hasło jest wymagane'
+    if (!isEdit) {
+      if (!password.trim()) newErrors.password = 'Hasło jest wymagane'
+      else {
+        const pwdError = validatePassword(password)
+        if (pwdError) newErrors.password = pwdError
+      }
+    }
     if (!phone.trim()) newErrors.phone = 'Telefon jest wymagany'
     if (roles.length === 0) newErrors.roles = 'Wybierz co najmniej jedną rolę'
     if (!fullAccess && clientIds.length === 0) newErrors.clientIds = 'Wybierz co najmniej jednego klienta'

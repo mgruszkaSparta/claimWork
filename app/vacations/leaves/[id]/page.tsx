@@ -1,4 +1,6 @@
-import { useParams, useNavigate } from "react-router-dom";
+"use client";
+
+import { useParams, useRouter } from "next/navigation";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { getLeaveRequestById } from "@/services/leaves-service";
 import { LeaveRequestDetails } from "@/components/leaves/LeaveRequestDetails";
@@ -8,7 +10,7 @@ import { ArrowLeft } from "lucide-react";
 
 export default function LeaveRequestDetailsPage() {
   const { id } = useParams<{ id: string }>();
-  const navigate = useNavigate();
+  const router = useRouter();
   const queryClient = useQueryClient();
 
   const { data: request, isLoading, isError } = useQuery({
@@ -36,7 +38,7 @@ export default function LeaveRequestDetailsPage() {
       <div className="container mx-auto p-8 text-center">
         <h2 className="text-2xl font-bold mb-4">Nie znaleziono wniosku</h2>
         <p className="text-muted-foreground mb-4">Wniosek, którego szukasz, nie istnieje lub został usunięty.</p>
-        <Button onClick={() => navigate(-1)}>
+        <Button onClick={() => router.back()}>
           <ArrowLeft className="mr-2 h-4 w-4" />
           Powrót
         </Button>
@@ -46,7 +48,7 @@ export default function LeaveRequestDetailsPage() {
 
   return (
     <div className="container mx-auto p-4 sm:p-6 lg:p-8 max-w-4xl">
-       <Button variant="ghost" onClick={() => navigate(-1)} className="mb-4">
+       <Button variant="ghost" onClick={() => router.back()} className="mb-4">
         <ArrowLeft className="mr-2 h-4 w-4" />
         Powrót do listy
       </Button>

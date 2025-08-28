@@ -1,10 +1,11 @@
 import { NextResponse } from "next/server";
 import { randomUUID } from "crypto";
-import { addLeave, getLeaves } from "./data";
+import { addLeave, getLeaves } from "./db";
 import { LeaveRequest } from "@/types/leave";
 
 export async function GET() {
-  return NextResponse.json(getLeaves());
+  const leaves = await getLeaves();
+  return NextResponse.json(leaves);
 }
 
 export async function POST(request: Request) {
@@ -33,6 +34,6 @@ export async function POST(request: Request) {
     approvedAt: body.approvedAt,
     rejectionReason: body.rejectionReason,
   };
-  addLeave(newLeave);
+  await addLeave(newLeave);
   return NextResponse.json(newLeave, { status: 201 });
 }

@@ -360,6 +360,9 @@ namespace AutomotiveClaimsApi.Controllers
                     handler = await _context.CaseHandlers.FindAsync(currentUser.CaseHandlerId.Value);
                 }
 
+                var statusCode = (handler != null || isHandler) ? "NEW" : "TO_ASSIGN";
+                var statusEntity = await _context.ClaimStatuses.FirstOrDefaultAsync(cs => cs.Code == statusCode);
+
                 var existingEvent = await _context.Events
                     .Include(e => e.Participants).ThenInclude(p => p.Drivers)
                     .Include(e => e.Damages)
@@ -400,6 +403,18 @@ namespace AutomotiveClaimsApi.Controllers
                         existingEvent.SpartaNumber = await GenerateNextSpartaNumber();
                     }
 
+                    if (statusEntity != null)
+                    {
+                        if (!existingEvent.ClaimStatusId.HasValue)
+                        {
+                            existingEvent.ClaimStatusId = statusEntity.Id;
+                        }
+                        if (string.IsNullOrWhiteSpace(existingEvent.Status))
+                        {
+                            existingEvent.Status = statusEntity.Name;
+                        }
+                    }
+
                     await _context.SaveChangesAsync();
 
                     if (!isHandler && currentUser != null && _notificationService != null)
@@ -438,6 +453,18 @@ namespace AutomotiveClaimsApi.Controllers
                 if (string.IsNullOrEmpty(eventEntity.SpartaNumber))
                 {
                     eventEntity.SpartaNumber = await GenerateNextSpartaNumber();
+                }
+
+                if (statusEntity != null)
+                {
+                    if (!eventEntity.ClaimStatusId.HasValue)
+                    {
+                        eventEntity.ClaimStatusId = statusEntity.Id;
+                    }
+                    if (string.IsNullOrWhiteSpace(eventEntity.Status))
+                    {
+                        eventEntity.Status = statusEntity.Name;
+                    }
                 }
 
                 _context.Events.Add(eventEntity);

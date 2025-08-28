@@ -75,7 +75,7 @@ export function ClaimsList({
   >([])
   const [filterRisk, setFilterRisk] = useState("all")
   const [riskTypes, setRiskTypes] = useState<
-    { id: number; code: string; name: string }[]
+    { id: number; code: string; name: string; claimObjectTypeId?: number }[]
   >([])
   const [filterRegistration, setFilterRegistration] = useState("")
   const [filterHandler, setFilterHandler] = useState("")
@@ -145,7 +145,12 @@ export function ClaimsList({
         const allItems = responses.flatMap((data) => data.items ?? [])
 
         setRiskTypes(
-          allItems as { id: number; code: string; name: string }[],
+          allItems as {
+            id: number
+            code: string
+            name: string
+            claimObjectTypeId?: number
+          }[],
         )
       } catch (error) {
         console.error("Error loading risk types:", error)
@@ -479,11 +484,21 @@ export function ClaimsList({
               className="px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#1a3a6c] focus:border-[#1a3a6c] bg-white"
             >
               <option value="all">Wszystkie ryzyka</option>
-              {riskTypes.map((risk) => (
-                <option key={risk.id} value={risk.id.toString()}>
-                  {risk.name}
-                </option>
-              ))}
+              {[1, 2, 3].map((type) => {
+                const grouped = riskTypes.filter(
+                  (r) => r.claimObjectTypeId === type,
+                )
+                if (grouped.length === 0) return null
+                return (
+                  <optgroup key={type} label={typeLabelMap[type]}>
+                    {grouped.map((risk) => (
+                      <option key={risk.id} value={risk.id.toString()}>
+                        {risk.name}
+                      </option>
+                    ))}
+                  </optgroup>
+                )
+              })}
             </select>
             <Button
               variant="outline"

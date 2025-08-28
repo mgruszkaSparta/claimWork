@@ -43,20 +43,26 @@ export default function ClientDropdown({
     return () => setMounted(false)
   }, [])
 
-  useEffect(() => {
-    const load = async () => {
-      try {
-        const data = await apiService.getClients()
-        const sorted = [...data].sort((a, b) =>
-          a.name.localeCompare(b.name, "pl", { sensitivity: "base" }),
-        )
-        setClients(sorted)
-        setFilteredClients(sorted)
-      } catch (e) {
-        console.error(e)
-      }
+  const loadClients = async () => {
+    try {
+      const data = await apiService.getClients()
+      const sorted = [...data].sort((a, b) =>
+        a.name.localeCompare(b.name, "pl", { sensitivity: "base" }),
+      )
+      setClients(sorted)
+      setFilteredClients(sorted)
+    } catch (e) {
+      console.error(e)
     }
-    load()
+  }
+
+  useEffect(() => {
+    loadClients()
+    const handleUpdate = () => {
+      loadClients()
+    }
+    window.addEventListener("clientsUpdated", handleUpdate)
+    return () => window.removeEventListener("clientsUpdated", handleUpdate)
   }, [])
 
   useEffect(() => {

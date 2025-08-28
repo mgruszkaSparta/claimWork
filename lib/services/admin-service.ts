@@ -5,6 +5,7 @@ import type { Role, User, UserFilters, Permission } from "../types/admin";
 const ROLE_COLORS: Record<string, string> = {
   admin: "#e11d48", // rose-600
   user: "#2563eb",  // blue-600
+  likwidator: "#16a34a", // green-600
 };
 
 export const adminService = {

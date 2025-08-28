@@ -57,7 +57,8 @@ export default function ClientsPage() {
       isActive: true,
     })
     setEditingId(null)
-    loadClients()
+    await loadClients()
+    window.dispatchEvent(new Event("clientsUpdated"))
   }
 
   const handleEdit = (client: ClientDto) => {
@@ -77,7 +78,8 @@ export default function ClientsPage() {
 
   const handleDelete = async (id: number) => {
     await apiService.deleteClient(id)
-    loadClients()
+    await loadClients()
+    window.dispatchEvent(new Event("clientsUpdated"))
   }
 
   return (

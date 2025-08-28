@@ -11,10 +11,10 @@ import {
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from "@/components/ui/tooltip";
 import { Eye, CheckCircle, XCircle } from "lucide-react";
 import { format, parseISO } from "date-fns";
-import { Link } from "react-router-dom";
+import Link from "next/link";
 import { updateLeaveRequestStatus } from "@/services/leaves-service";
 import { showSuccess, showError } from "@/utils/toast";
 import { RejectReasonDialog } from "./RejectReasonDialog";
@@ -26,10 +26,11 @@ interface ManagerLeavesTableProps {
 export function ManagerLeavesTable({ requests }: ManagerLeavesTableProps) {
   const queryClient = useQueryClient();
   const [rejectDialogState, setRejectDialogState] = useState<{ requestId: string | null }>({ requestId: null });
+  const currentUser = { id: 'user-1', name: 'Anna Kowalska' };
 
   const handleApprove = async (requestId: string) => {
     try {
-      await updateLeaveRequestStatus(requestId, 'APPROVED', "Admin User");
+      await updateLeaveRequestStatus(requestId, 'APPROVED', "Admin User", currentUser);
       showSuccess("Wniosek został zatwierdzony.");
       queryClient.invalidateQueries({ queryKey: ["leaveRequests"] });
     } catch (error) {
@@ -40,7 +41,13 @@ export function ManagerLeavesTable({ requests }: ManagerLeavesTableProps) {
   const handleReject = async (reason: string) => {
     if (!rejectDialogState.requestId) return;
     try {
-      await updateLeaveRequestStatus(rejectDialogState.requestId, 'REJECTED', "Admin User", reason);
+      await updateLeaveRequestStatus(
+        rejectDialogState.requestId,
+        'REJECTED',
+        "Admin User",
+        currentUser,
+        reason,
+      );
       showSuccess("Wniosek został odrzucony.");
       queryClient.invalidateQueries({ queryKey: ["leaveRequests"] });
     } catch (error) {
@@ -73,7 +80,7 @@ export function ManagerLeavesTable({ requests }: ManagerLeavesTableProps) {
   };
 
   return (
-    <>
+    <TooltipProvider>
       <div className="overflow-x-auto">
         <Table>
           <TableHeader className="bg-muted/50">
@@ -107,7 +114,7 @@ export function ManagerLeavesTable({ requests }: ManagerLeavesTableProps) {
                     <Tooltip>
                       <TooltipTrigger asChild>
                         <Button asChild variant="ghost" size="icon" className="hover:bg-blue-100 dark:hover:bg-blue-900/50">
-                          <Link to={`/leaves/${request.id}`}>
+                          <Link href={`/vacations/leaves/${request.id}`}>
                             <Eye className="h-4 w-4 text-blue-600" />
                           </Link>
                         </Button>
@@ -146,6 +153,6 @@ export function ManagerLeavesTable({ requests }: ManagerLeavesTableProps) {
         onOpenChange={(open) => !open && setRejectDialogState({ requestId: null })}
         onConfirm={handleReject}
       />
-    </>
+    </TooltipProvider>
   );
 }

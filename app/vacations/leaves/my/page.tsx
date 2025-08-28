@@ -1,9 +1,11 @@
+"use client";
+
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { getLeaveRequests } from "@/services/leaves-service";
 import { LeaveRequest, LeaveStatus, LeaveType } from "@/types/leave";
 import { Button } from "@/components/ui/button";
-import { Link } from "react-router-dom";
+import Link from "next/link";
 import { PlusCircle } from "lucide-react";
 import { MyLeavesTable } from "@/components/leaves/MyLeavesTable";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -57,7 +59,7 @@ export default function MyLeavesPage() {
           </p>
         </div>
         <Button asChild>
-          <Link to="/leaves/new">
+          <Link href="/vacations/leaves/new">
             <PlusCircle className="mr-2 h-4 w-4" />
             Złóż wniosek
           </Link>
@@ -97,9 +99,9 @@ export default function MyLeavesPage() {
                 {myRequests && myRequests.length > 0 ? "Spróbuj zmienić kryteria wyszukiwania." : "Zacznij planować swój odpoczynek."}
               </p>
               {(!myRequests || myRequests.length === 0) && (
-                <Button asChild>
-                  <Link to="/leaves/new">Złóż pierwszy wniosek</Link>
-                </Button>
+                  <Button asChild>
+                    <Link href="/vacations/leaves/new">Złóż pierwszy wniosek</Link>
+                  </Button>
               )}
             </div>
           )}

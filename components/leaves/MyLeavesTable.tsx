@@ -29,7 +29,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { MoreHorizontal } from "lucide-react";
 import { format, parseISO } from "date-fns";
-import { Link } from "react-router-dom";
+import Link from "next/link";
 import { withdrawLeaveRequest, deleteLeaveRequest } from "@/services/leaves-service";
 import { showSuccess, showError } from "@/utils/toast";
 
@@ -46,7 +46,10 @@ export function MyLeavesTable({ requests }: MyLeavesTableProps) {
 
     try {
       if (dialogState.type === 'withdraw') {
-        await withdrawLeaveRequest(dialogState.requestId);
+        await withdrawLeaveRequest(dialogState.requestId, {
+          id: 'user-1',
+          name: 'Anna Kowalska',
+        });
         showSuccess("Wniosek został wycofany.");
       } else if (dialogState.type === 'delete') {
         await deleteLeaveRequest(dialogState.requestId);
@@ -120,11 +123,11 @@ export function MyLeavesTable({ requests }: MyLeavesTableProps) {
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
                       <DropdownMenuItem asChild>
-                        <Link to={`/leaves/${request.id}`}>Podgląd</Link>
+                        <Link href={`/vacations/leaves/${request.id}`}>Podgląd</Link>
                       </DropdownMenuItem>
                       {(request.status === 'DRAFT' || request.status === 'SUBMITTED') && (
                         <DropdownMenuItem asChild>
-                          <Link to={`/leaves/${request.id}/edit`}>Edytuj</Link>
+                          <Link href={`/vacations/leaves/${request.id}/edit`}>Edytuj</Link>
                         </DropdownMenuItem>
                       )}
                       {request.status === 'SUBMITTED' && (

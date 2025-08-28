@@ -1,3 +1,5 @@
+"use client";
+
 import { useQuery } from "@tanstack/react-query";
 import { getLeaveRequests } from "@/services/leaves-service";
 import { LeaveRequest } from "@/types/leave";

@@ -18,10 +18,11 @@ interface LeaveRequestDetailsProps {
 
 export function LeaveRequestDetails({ request, onStatusChange, onBack }: LeaveRequestDetailsProps) {
   const [isRejectDialogOpen, setIsRejectDialogOpen] = useState(false);
+  const currentUser = { id: 'user-1', name: 'Anna Kowalska' };
 
   const handleApprove = async () => {
     try {
-      await updateLeaveRequestStatus(request.id, 'APPROVED', "Admin User");
+      await updateLeaveRequestStatus(request.id, 'APPROVED', "Admin User", currentUser);
       showSuccess("Wniosek został zatwierdzony pomyślnie!");
       onStatusChange();
     } catch (error) {
@@ -31,7 +32,7 @@ export function LeaveRequestDetails({ request, onStatusChange, onBack }: LeaveRe
 
   const handleReject = async (reason: string) => {
     try {
-      await updateLeaveRequestStatus(request.id, 'REJECTED', "Admin User", reason);
+      await updateLeaveRequestStatus(request.id, 'REJECTED', "Admin User", currentUser, reason);
       showSuccess("Wniosek został odrzucony pomyślnie!");
       onStatusChange();
     } catch (error) {

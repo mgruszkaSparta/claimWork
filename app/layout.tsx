@@ -11,35 +11,24 @@ export const metadata: Metadata = {
   generator: "v0.dev",
 }
 
-export default async function RootLayout({
+export default function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode
 }>) {
-  const res = await fetch("http://34.118.17.116/admin", { cache: "no-store" })
-  const remoteHtml = await res.text()
-  const headMatch = remoteHtml.match(/<head[^>]*>([\s\S]*?)<\/head>/i)
-  const bodyMatch = remoteHtml.match(/<body[^>]*>([\s\S]*?)<\/body>/i)
-  const headContent = headMatch ? headMatch[1] : ""
-  const bodyContent = bodyMatch ? bodyMatch[1] : remoteHtml
-  const fontStyles = `
+  return (
+    <html lang="pl" suppressHydrationWarning>
+      <head>
+        <style>{`
 html {
   font-family: ${GeistSans.style.fontFamily};
   --font-sans: ${GeistSans.variable};
   --font-mono: ${GeistMono.variable};
-}`
-  return (
-    <html lang="pl" suppressHydrationWarning>
-      <head
-        dangerouslySetInnerHTML={{
-          __html: `<style>${fontStyles}</style>${headContent}`,
-        }}
-      />
+}
+        `}</style>
+      </head>
       <body className="min-h-screen bg-background">
-        <Providers>
-          <div dangerouslySetInnerHTML={{ __html: bodyContent }} />
-          {children}
-        </Providers>
+        <Providers>{children}</Providers>
       </body>
     </html>
   )

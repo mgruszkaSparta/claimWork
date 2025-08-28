@@ -11,7 +11,7 @@ import {
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from "@/components/ui/tooltip";
 import { Eye, CheckCircle, XCircle } from "lucide-react";
 import { format, parseISO } from "date-fns";
 import Link from "next/link";
@@ -80,7 +80,7 @@ export function ManagerLeavesTable({ requests }: ManagerLeavesTableProps) {
   };
 
   return (
-    <>
+    <TooltipProvider>
       <div className="overflow-x-auto">
         <Table>
           <TableHeader className="bg-muted/50">
@@ -153,6 +153,6 @@ export function ManagerLeavesTable({ requests }: ManagerLeavesTableProps) {
         onOpenChange={(open) => !open && setRejectDialogState({ requestId: null })}
         onConfirm={handleReject}
       />
-    </>
+    </TooltipProvider>
   );
 }

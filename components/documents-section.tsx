@@ -174,10 +174,10 @@ export const DocumentsSection = React.forwardRef<
   const uploadedFileToDocument = (file: UploadedFile): Document => {
     const isPersisted = isGuid(file.id)
     const previewUrl = isPersisted
-      ? `/api/documents/${file.id}/preview`
+      ? `${process.env.NEXT_PUBLIC_API_URL}/documents/${file.id}/preview`
       : file.cloudUrl || file.url
     const downloadUrl = isPersisted
-      ? `/api/documents/${file.id}/download`
+      ? `${process.env.NEXT_PUBLIC_API_URL}/documents/${file.id}/download`
       : file.cloudUrl || file.url
 
     return {
@@ -305,8 +305,8 @@ export const DocumentsSection = React.forwardRef<
           documentType: mapCategoryCodeToName(d.documentType || d.category),
           categoryCode: d.documentType || d.category,
 
-          previewUrl: `/api/documents/${d.id}/preview`,
-          downloadUrl: `/api/documents/${d.id}/download`,
+          previewUrl: `${process.env.NEXT_PUBLIC_API_URL}/documents/${d.id}/preview`,
+          downloadUrl: `${process.env.NEXT_PUBLIC_API_URL}/documents/${d.id}/download`,
 
         }))
         setDocuments(mappedDocs)
@@ -478,8 +478,8 @@ export const DocumentsSection = React.forwardRef<
               documentDto.contentType?.includes("spreadsheetml") ||
               documentDto.contentType?.includes("excel")),
 
-          previewUrl: `/api/documents/${documentDto.id}/preview`,
-          downloadUrl: `/api/documents/${documentDto.id}/download`,
+          previewUrl: `/documents/${documentDto.id}/preview`,
+          downloadUrl: `/documents/${documentDto.id}/download`,
         }
         return doc
        } else {

@@ -92,12 +92,17 @@ namespace AutomotiveClaimsApi.Controllers
 
             var user = new ApplicationUser { UserName = dto.UserName, Email = dto.Email, MustChangePassword = true , CreatedAt = DateTime.UtcNow};
 
-
             var result = await _userManager.CreateAsync(user, dto.Password);
             if (!result.Succeeded)
             {
                 return BadRequest(result.Errors);
             }
+
+            if (!string.IsNullOrEmpty(dto.Role))
+            {
+                await _userManager.AddToRoleAsync(user, dto.Role);
+            }
+
             return Ok();
         }
 
@@ -259,6 +264,17 @@ namespace AutomotiveClaimsApi.Controllers
 
             var result = await _userManager.UpdateAsync(user);
             if (!result.Succeeded) return BadRequest(result.Errors);
+
+            if (!string.IsNullOrEmpty(dto.Role))
+            {
+                var currentRoles = await _userManager.GetRolesAsync(user);
+                if (currentRoles.Count > 0)
+                {
+                    await _userManager.RemoveFromRolesAsync(user, currentRoles);
+                }
+                await _userManager.AddToRoleAsync(user, dto.Role);
+            }
+
             await _context.SaveChangesAsync();
             return NoContent();
         }

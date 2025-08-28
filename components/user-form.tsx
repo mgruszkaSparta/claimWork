@@ -102,7 +102,7 @@ export default function UserForm({ userId }: UserFormProps) {
       lastName,
       email,
       phone,
-      roles,
+      role: roles[0],
       status: status ? 'active' : 'inactive',
       fullAccess,
       clientIds,

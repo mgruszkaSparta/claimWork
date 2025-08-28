@@ -829,7 +829,7 @@ class ApiService {
     password: string
     firstName: string
     lastName: string
-    roles: string[]
+    role: string
     status: "active" | "inactive"
     phone?: string
     fullAccess?: boolean
@@ -947,7 +947,7 @@ class ApiService {
       email?: string
       firstName?: string
       lastName?: string
-      roles?: string[]
+      role?: string
       status?: "active" | "inactive"
       phone?: string
       fullAccess?: boolean
@@ -966,7 +966,7 @@ class ApiService {
     password: string
     firstName?: string
     lastName?: string
-    roles?: string[]
+    role?: string
     status?: "active" | "inactive"
     fullAccess?: boolean
     clientIds?: number[]

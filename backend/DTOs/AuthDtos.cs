@@ -8,6 +8,7 @@ namespace AutomotiveClaimsApi.DTOs
         public string? UserName { get; set; }
         public string? Email { get; set; }
         public string? Password { get; set; }
+        public string? Role { get; set; }
     }
 
     public class LoginDto
@@ -34,6 +35,7 @@ namespace AutomotiveClaimsApi.DTOs
         public string? Email { get; set; }
         public bool? FullAccess { get; set; }
         public IEnumerable<int>? ClientIds { get; set; }
+        public string? Role { get; set; }
     }
 
     public class UserDto

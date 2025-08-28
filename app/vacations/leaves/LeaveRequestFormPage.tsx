@@ -1,5 +1,7 @@
+"use client";
+
 import { useState, useEffect } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useRouter, useParams } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -19,16 +21,29 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { LeaveAttachments } from "@/components/leaves/LeaveAttachments";
 import { LeaveRequestSummary } from "@/components/leaves/LeaveRequestSummary";
+import { getEmployees } from "@/services/employees-service";
+import { Employee } from "@/types/employee";
 
 export default function LeaveRequestFormPage() {
-  const navigate = useNavigate();
+  const router = useRouter();
   const { id } = useParams<{ id: string }>();
   const isEditMode = Boolean(id);
+
+  const currentUser: Employee = {
+    id: "user-1",
+    name: "Anna Kowalska",
+    email: "anna.kowalska@example.com",
+  };
 
   const { data: existingRequest, isLoading } = useQuery({
     queryKey: ["leaveRequest", id],
     queryFn: () => getLeaveRequestById(id!),
     enabled: isEditMode,
+  });
+
+  const { data: employees } = useQuery({
+    queryKey: ["employees"],
+    queryFn: () => getEmployees(currentUser.id),
   });
 
   const [type, setType] = useState<LeaveType | undefined>(undefined);
@@ -37,6 +52,7 @@ export default function LeaveRequestFormPage() {
   const [endDate, setEndDate] = useState<Date | undefined>(undefined);
   const [firstDayDuration, setFirstDayDuration] = useState<DayDuration>("Cały dzień");
   const [lastDayDuration, setLastDayDuration] = useState<DayDuration>("Cały dzień");
+  const [substituteId, setSubstituteId] = useState("");
   const [substituteName, setSubstituteName] = useState("");
   const [substituteAcceptanceStatus, setSubstituteAcceptanceStatus] = useState<SubstituteAcceptanceStatus>("Oczekujące");
   const [transferDescription, setTransferDescription] = useState("");
@@ -51,7 +67,8 @@ export default function LeaveRequestFormPage() {
       setEndDate(parseISO(existingRequest.endDate));
       setFirstDayDuration(existingRequest.firstDayDuration);
       setLastDayDuration(existingRequest.lastDayDuration);
-      setSubstituteName(existingRequest.substituteName);
+      setSubstituteId(existingRequest.substituteId || "");
+      setSubstituteName(existingRequest.substituteName || "");
       setSubstituteAcceptanceStatus(existingRequest.substituteAcceptanceStatus);
       setTransferDescription(existingRequest.transferDescription);
       setUrgentProjects(existingRequest.urgentProjects);
@@ -60,7 +77,7 @@ export default function LeaveRequestFormPage() {
   }, [existingRequest]);
 
   const handleSave = async (status: LeaveStatus) => {
-    if (!type || !startDate || !endDate || !substituteName) {
+    if (!type || !startDate || !endDate || !substituteId) {
       showError("Proszę wypełnić wszystkie wymagane pola: Typ urlopu, Daty, Zastępca.");
       return;
     }
@@ -70,14 +87,14 @@ export default function LeaveRequestFormPage() {
     }
 
     const requestData = {
-      employeeId: "user-1",
-      employeeName: "Anna Kowalska",
-      employeeEmail: "anna.kowalska@example.com",
+      employeeId: currentUser.id,
+      employeeName: currentUser.name,
+      employeeEmail: currentUser.email,
       startDate: startDate.toISOString().split('T')[0],
       endDate: endDate.toISOString().split('T')[0],
       firstDayDuration,
       lastDayDuration,
-      substituteId: "user-2", // Placeholder
+      substituteId,
       substituteName,
       substituteAcceptanceStatus,
       type,
@@ -90,13 +107,13 @@ export default function LeaveRequestFormPage() {
 
     try {
       if (isEditMode) {
-        await updateLeaveRequest(id!, requestData);
+        await updateLeaveRequest(id!, requestData, currentUser);
         showSuccess("Wniosek został zaktualizowany.");
       } else {
-        await createLeaveRequest(requestData);
+        await createLeaveRequest(requestData, currentUser);
         showSuccess(status === 'DRAFT' ? "Szkic został zapisany." : "Wniosek został wysłany do akceptacji.");
       }
-      navigate("/leaves/my");
+      router.push("/vacations/leaves/my");
     } catch (error) {
       showError("Wystąpił błąd podczas zapisywania wniosku.");
     }
@@ -115,7 +132,7 @@ export default function LeaveRequestFormPage() {
 
   return (
     <div className="container mx-auto p-4 sm:p-6 lg:p-8 max-w-4xl">
-      <Button variant="ghost" onClick={() => navigate(-1)} className="mb-4">
+      <Button variant="ghost" onClick={() => router.back()} className="mb-4">
         <ArrowLeft className="mr-2 h-4 w-4" />
         Powrót
       </Button>
@@ -127,6 +144,13 @@ export default function LeaveRequestFormPage() {
           </CardDescription>
         </CardHeader>
         <CardContent className="grid gap-6">
+          <div className="grid gap-4 border rounded-lg p-4">
+            <h3 className="text-lg font-semibold">Wnioskujący</h3>
+            <div className="grid gap-2">
+              <Label>Pracownik</Label>
+              <Input value={currentUser.name} disabled />
+            </div>
+          </div>
           {/* Typ urlopu */}
           <div className="grid gap-4 border rounded-lg p-4">
             <h3 className="text-lg font-semibold">Typ urlopu</h3>
@@ -254,7 +278,25 @@ export default function LeaveRequestFormPage() {
             <div className="grid sm:grid-cols-2 gap-4">
               <div className="grid gap-2">
                 <Label htmlFor="substitute">Osoba zastępująca *</Label>
-                <Input id="substitute" placeholder="Wybierz osobę zastępującą" value={substituteName} onChange={(e) => setSubstituteName(e.target.value)} />
+                <Select
+                  value={substituteId}
+                  onValueChange={(value) => {
+                    setSubstituteId(value);
+                    const emp = employees?.find((e) => e.id === value);
+                    setSubstituteName(emp?.name || "");
+                  }}
+                >
+                  <SelectTrigger id="substitute">
+                    <SelectValue placeholder="Wybierz osobę zastępującą" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {employees?.map((emp) => (
+                      <SelectItem key={emp.id} value={emp.id}>
+                        {emp.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
               <div className="grid gap-2">
                 <Label>Status akceptacji zastępstwa</Label>

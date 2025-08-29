@@ -43,6 +43,7 @@ export interface Email {
   date: string
   attachments: EmailAttachment[]
   labels: string[]
+  status?: string
   claimId?: string
   eventId?: string
   claimIds?: string[]

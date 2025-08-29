@@ -23,6 +23,7 @@ import {
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
+import { Badge } from "@/components/ui/badge"
 import { emailService, type EmailDto, type AttachmentDto, type SendEmailRequestDto } from "@/lib/email-service"
 import { EmailFolder } from "@/types/email"
 import { useDebounce } from "@/hooks/use-debounce"
@@ -574,6 +575,21 @@ export default function EmailInbox({ claimId, claimNumber, claimInsuranceNumber 
     }
   }, [])
 
+  const getStatusLabel = (status?: string): string => {
+    switch (status) {
+      case "Pending":
+        return "Do wysłania"
+      case "Sent":
+        return "Wysłany"
+      case "Failed":
+        return "Błąd"
+      case "Draft":
+        return "Szkic"
+      default:
+        return status || ""
+    }
+  }
+
   // Check if image
   const isImage = useCallback((contentType: string): boolean => {
     return contentType.startsWith("image/")
@@ -734,6 +750,11 @@ export default function EmailInbox({ claimId, claimNumber, claimInsuranceNumber 
                         <span className="email-mail-subject font-medium">{email.subject}</span>
                         <span className="email-mail-separator text-gray-400 mx-1">-</span>
                         <span className="email-mail-snippet text-gray-500">{stripHtml(email.body)}</span>
+                        {email.status && email.status !== "Received" && (
+                          <Badge variant="secondary" className="ml-2">
+                            {getStatusLabel(email.status)}
+                          </Badge>
+                        )}
                       </div>
                       <div className="flex items-center gap-2">
                         {emailService.hasAttachments(email) && (

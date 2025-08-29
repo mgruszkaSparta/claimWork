@@ -57,6 +57,7 @@ export const EmailSection = ({
     isStarred: false,
     isImportant: dto.isImportant ?? false,
     folder: dto.direction === "Outbound" ? "sent" : "inbox",
+    status: dto.status,
     date: dto.receivedDate || new Date().toISOString(),
     attachments:
       dto.attachments?.map((a) => ({
@@ -71,10 +72,10 @@ export const EmailSection = ({
     claimIds: dto.claimIds,
     eventId: dto.eventId,
   })
-  const loadEmails = async (folder: string) => {
+  const loadEmails = async (folder?: string) => {
     try {
       let data: EmailDto[]
-      const folderEnum = folder as EmailFolder
+      const folderEnum = (folder ?? activeTab) as EmailFolder
       if (claimId) {
         data = await emailService.getEmailsByEventId(claimId, folderEnum)
       } else {
@@ -138,6 +139,21 @@ export const EmailSection = ({
       return date.toLocaleDateString("pl-PL", { weekday: "short" })
     } else {
       return date.toLocaleDateString("pl-PL", { day: "2-digit", month: "2-digit" })
+    }
+  }
+
+  const getStatusLabel = (status: string) => {
+    switch (status) {
+      case "Pending":
+        return "Do wysłania"
+      case "Sent":
+        return "Wysłany"
+      case "Failed":
+        return "Błąd"
+      case "Draft":
+        return "Szkic"
+      default:
+        return status
     }
   }
 
@@ -234,7 +250,7 @@ export const EmailSection = ({
     })
     if (success) {
       toast({ title: "E-mail wysłany", description: "Wiadomość została wysłana pomyślnie" })
-      await loadEmails()
+      await loadEmails(activeTab)
       setCurrentView("list")
       setComposeData({})
     } else {
@@ -258,7 +274,7 @@ export const EmailSection = ({
     })
     if (success) {
       toast({ title: "Szkic zapisany", description: "Wiadomość została zapisana w szkicach" })
-      await loadEmails()
+      await loadEmails(activeTab)
       setCurrentView("list")
       setComposeData({})
     } else {
@@ -433,6 +449,11 @@ export const EmailSection = ({
                                   {label}
                                 </Badge>
                               ))}
+                              {email.status && email.status !== "Received" && (
+                                <Badge variant="secondary" className="text-xs">
+                                  {getStatusLabel(email.status)}
+                                </Badge>
+                              )}
                             </div>
                             <div className="flex items-center space-x-2 flex-shrink-0">
                               {email.attachments.length > 0 && <Paperclip className="h-4 w-4 text-gray-400" />}

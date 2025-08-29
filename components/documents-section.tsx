@@ -90,7 +90,7 @@ export const DocumentsSection = React.forwardRef<
     return "list"
   })
   const fileInputRef = React.useRef<HTMLInputElement>(null)
-  const [openCategories, setOpenCategories] = useState<Record<string, boolean>>({ "Inne dokumenty": true })
+  const [openCategories, setOpenCategories] = useState<Record<string, boolean>>({})
   const [uploadingForCategory, setUploadingForCategory] = useState<string | null>(null)
   const [documents, setDocuments] = useState<Document[]>([])
   const [loading, setLoading] = useState(false)

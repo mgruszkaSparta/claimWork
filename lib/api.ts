@@ -60,7 +60,7 @@ export interface EventListItemDto {
   damageType?: string
   leasingCompanyId?: number
   leasingCompany?: string
-  claimHandlerId?: number
+  caseHandlerId?: number
   handler?: string
   objectTypeId?: number
   registeredById?: string
@@ -91,7 +91,7 @@ export interface EventDto extends EventListItemDto {
   perpetratorData?: string
 
   insuranceCompanyId?: number
-  claimHandlerId?: number
+  caseHandlerId?: number
   riskType?: string
   damageType?: string
   subcontractorName?: string
@@ -182,7 +182,7 @@ export interface EventUpsertDto {
   insuranceCompany?: string
   leasingCompanyId?: number
   leasingCompany?: string
-  claimHandlerId?: number
+  caseHandlerId?: number
   handler?: string
   damageDate?: string
   reportDate?: string

@@ -13,11 +13,11 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { MyLeavesToolbar } from "@/components/leaves/MyLeavesToolbar";
 import { DateRange } from "react-day-picker";
 import { parseISO } from "date-fns";
-
-// W symulacji, to ID pochodziłoby z sesji zalogowanego użytkownika
-const CURRENT_USER_ID = "user-1";
+import { useAuth } from "@/hooks/use-auth";
 
 export default function MyLeavesPage() {
+  const { user } = useAuth();
+  const currentUserId = user?.id;
   const { data: requests, isLoading } = useQuery<LeaveRequest[]>({
     queryKey: ["leaveRequests"],
     queryFn: getLeaveRequests,
@@ -28,7 +28,7 @@ export default function MyLeavesPage() {
   const [dateFilter, setDateFilter] = useState<DateRange | undefined>(undefined);
 
   const myRequests = requests?.filter(
-    (request) => request.employeeId === CURRENT_USER_ID
+    (request) => request.employeeId === currentUserId
   );
 
   const filteredRequests = myRequests?.filter(request => {

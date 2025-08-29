@@ -10,6 +10,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { FileText, Clock, TrendingUp, Users, Search, Filter, CheckSquare } from 'lucide-react';
 import { apiService } from "@/lib/api";
+import VacationCalendar from "@/components/vacation-calendar";
 
 interface User {
   username: string
@@ -166,10 +167,10 @@ function HomePage({ user, onLogout }: PageProps) {
                
                 {/* Stats Cards */}
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {stats.map((stat, index) => {
-                    const Icon = stat.icon
-                    return (
-                      <Card key={`stat-${stat.title}`} className="hover:shadow-lg transition-shadow">
+                {stats.map((stat, index) => {
+                  const Icon = stat.icon
+                  return (
+                    <Card key={`stat-${stat.title}`} className="hover:shadow-lg transition-shadow">
                         <CardContent className="p-6">
                           <div className="flex items-center justify-between">
                             <div>
@@ -214,6 +215,15 @@ function HomePage({ user, onLogout }: PageProps) {
                     )
                   })}
                 </div>
+
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Kalendarz urlopów</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <VacationCalendar />
+                  </CardContent>
+                </Card>
 
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                   {/* Status Overview */}

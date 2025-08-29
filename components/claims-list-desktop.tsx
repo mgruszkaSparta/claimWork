@@ -74,6 +74,10 @@ export function ClaimsListDesktop({
   >([])
   const [filterRegistration, setFilterRegistration] = useState("")
   const [filterHandler, setFilterHandler] = useState("")
+  const [substituteOptions, setSubstituteOptions] = useState<
+    { id: string; name: string }[]
+  >([])
+  const [selectedSubstituteId, setSelectedSubstituteId] = useState("")
   const [dateFilters, setDateFilters] = useState<
     { type: "reportDate" | "damageDate"; from: string; to: string }
   >([])
@@ -156,6 +160,33 @@ export function ClaimsListDesktop({
   }, [])
 
   useEffect(() => {
+    const loadSubstitutions = async () => {
+      if (!user?.id) return
+      try {
+        const res = await fetch("/api/leaves")
+        const leaves = await res.json()
+        const today = new Date()
+        const options = leaves
+          .filter(
+            (l: any) =>
+              l.substituteId === user.id &&
+              l.status === "APPROVED" &&
+              new Date(l.startDate) <= today &&
+              new Date(l.endDate) >= today,
+          )
+          .map((l: any) => ({ id: l.employeeId, name: l.employeeName }))
+        const unique = Array.from(
+          new Map(options.map((o: any) => [o.id, o])).values(),
+        )
+        setSubstituteOptions(unique)
+      } catch (err) {
+        console.error("Failed to load leaves", err)
+      }
+    }
+    loadSubstitutions()
+  }, [user?.id])
+
+  useEffect(() => {
     if (initialClaims?.length) return
 
     const loadClaims = async () => {
@@ -170,7 +201,9 @@ export function ClaimsListDesktop({
             status: filterStatus !== "all" ? filterStatus : undefined,
             riskType: filterRisk !== "all" ? filterRisk : undefined,
             brand: filterRegistration || undefined,
-            handler: showMyClaims ? user?.username : filterHandler || undefined,
+            handler: filterHandler || undefined,
+            claimHandlerId:
+              showMyClaims ? user?.id : selectedSubstituteId || undefined,
             registeredById: showMyClaims ? user?.id : undefined,
             claimObjectTypeId,
             sortBy,
@@ -201,9 +234,9 @@ export function ClaimsListDesktop({
     filterRisk,
     filterRegistration,
     filterHandler,
+    selectedSubstituteId,
     showMyClaims,
     user?.id,
-    user?.username,
     dateFilters,
     claimObjectTypeId,
     sortBy,
@@ -329,7 +362,9 @@ export function ClaimsListDesktop({
           status: filterStatus !== "all" ? filterStatus : undefined,
           riskType: filterRisk !== "all" ? filterRisk : undefined,
           brand: filterRegistration || undefined,
-          handler: showMyClaims ? user?.username : filterHandler || undefined,
+          handler: filterHandler || undefined,
+          claimHandlerId:
+            showMyClaims ? user?.id : selectedSubstituteId || undefined,
           registeredById: showMyClaims ? user?.id : undefined,
           claimObjectTypeId,
           sortBy,
@@ -510,11 +545,33 @@ export function ClaimsListDesktop({
               className={`h-9 text-sm ${showMyClaims ? "bg-[#1a3a6c] text-white hover:bg-[#1a3a6c]/90" : "bg-white"}`}
               onClick={() => {
                 setShowMyClaims((prev) => !prev)
+                setSelectedSubstituteId("")
                 setPage(1)
               }}
             >
               Moje szkody
             </Button>
+            {substituteOptions.length > 0 && (
+              <Select
+                value={selectedSubstituteId}
+                onValueChange={(value) => {
+                  setSelectedSubstituteId(value)
+                  setShowMyClaims(false)
+                  setPage(1)
+                }}
+              >
+                <SelectTrigger className="w-48 h-9 text-sm">
+                  <SelectValue placeholder="Zastępuję" />
+                </SelectTrigger>
+                <SelectContent>
+                  {substituteOptions.map((opt) => (
+                    <SelectItem key={opt.id} value={opt.id}>
+                      {opt.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
           </div>
         </div>
         {showFilters && (

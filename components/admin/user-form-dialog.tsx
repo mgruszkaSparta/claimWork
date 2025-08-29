@@ -10,6 +10,7 @@ import type { Role, User } from "@/lib/types/admin"
 import { Checkbox } from "@/components/ui/checkbox"
 import { apiService, type ClientDto } from "@/lib/api"
 import { adminService } from "@/lib/services/admin-service"
+import { validatePassword } from "@/lib/password"
 
 interface UserFormDialogProps {
   open: boolean
@@ -30,6 +31,7 @@ export function UserFormDialog({ open, onOpenChange, user, roles, onSave }: User
   const [fullAccess, setFullAccess] = useState(false)
   const [clients, setClients] = useState<ClientDto[]>([])
   const [clientIds, setClientIds] = useState<number[]>([])
+  const [passwordError, setPasswordError] = useState<string | null>(null)
 
   useEffect(() => {
     apiService.getClients().then(setClients)
@@ -62,6 +64,13 @@ export function UserFormDialog({ open, onOpenChange, user, roles, onSave }: User
     e.preventDefault()
     const role = roles.find((r) => r.id === roleId)
     if (!role) return
+    if (!isEdit) {
+      const err = validatePassword(password)
+      if (err) {
+        setPasswordError(err)
+        return
+      }
+    }
     onSave({
       id: user?.id ?? "",
       firstName,
@@ -104,8 +113,12 @@ export function UserFormDialog({ open, onOpenChange, user, roles, onSave }: User
                 id="password"
                 type="password"
                 value={password}
-                onChange={(e) => setPassword(e.target.value)}
+                onChange={(e) => {
+                  setPassword(e.target.value)
+                  if (passwordError) setPasswordError(null)
+                }}
               />
+              {passwordError && <p className="text-sm text-red-500">{passwordError}</p>}
             </div>
           )}
           <div>

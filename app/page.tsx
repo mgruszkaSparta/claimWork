@@ -356,7 +356,7 @@ function HomePage({ user, onLogout }: PageProps) {
 
 export default function Page() {
   return (
-    <ProtectedRoute roles={["Admin", "User"]}>
+    <ProtectedRoute roles={["Admin", "User", "Likwidator"]}>
       <AuthWrapper>
         <HomePage />
       </AuthWrapper>

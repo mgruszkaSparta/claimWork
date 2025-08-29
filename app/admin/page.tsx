@@ -8,12 +8,14 @@ import { Input } from "@/components/ui/input"
 import { Users, Shield, UserCheck, UserX, Activity, Clock, AlertTriangle } from "lucide-react"
 import { apiService, type AdminSettings, type UserListItemDto } from "@/lib/api"
 import Link from "next/link"
+import { validatePassword } from "@/lib/password"
 
 export default function AdminDashboard() {
   const [users, setUsers] = useState<UserListItemDto[]>([])
   const [roles, setRoles] = useState<string[]>([])
   const [adminInfo, setAdminInfo] = useState<AdminSettings | null>(null)
   const [newUser, setNewUser] = useState({ userName: "", email: "", password: "" })
+  const [passwordError, setPasswordError] = useState<string | null>(null)
 
   useEffect(() => {
     apiService.getAdminSettings().then(setAdminInfo).catch((err) => {
@@ -30,6 +32,12 @@ export default function AdminDashboard() {
 
   const handleAddUser = async () => {
     try {
+      const err = validatePassword(newUser.password)
+      if (err) {
+        setPasswordError(err)
+        return
+      }
+      setPasswordError(null)
       await apiService.createUser(newUser)
       setNewUser({ userName: "", email: "", password: "" })
       const { items } = await apiService.getUsers()
@@ -239,12 +247,18 @@ export default function AdminDashboard() {
               value={newUser.email}
               onChange={(e) => setNewUser({ ...newUser, email: e.target.value })}
             />
-            <Input
-              placeholder="Hasło"
-              type="password"
-              value={newUser.password}
-              onChange={(e) => setNewUser({ ...newUser, password: e.target.value })}
-            />
+            <div className="space-y-1">
+              <Input
+                placeholder="Hasło"
+                type="password"
+                value={newUser.password}
+                onChange={(e) => {
+                  setNewUser({ ...newUser, password: e.target.value })
+                  if (passwordError) setPasswordError(null)
+                }}
+              />
+              {passwordError && <p className="text-sm text-red-500">{passwordError}</p>}
+            </div>
           </div>
           <Button className="mt-4" onClick={handleAddUser}>
             Dodaj użytkownika

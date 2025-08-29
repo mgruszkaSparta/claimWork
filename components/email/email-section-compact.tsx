@@ -30,6 +30,7 @@ import type { UploadedFile, RequiredDocument } from "@/types"
 
 interface EmailSectionProps {
   claimId?: string
+  claimNumber?: string
   uploadedFiles?: UploadedFile[]
   setUploadedFiles?: Dispatch<SetStateAction<UploadedFile[]>>
   requiredDocuments?: RequiredDocument[]
@@ -38,6 +39,7 @@ interface EmailSectionProps {
 
 export const EmailSection = ({
   claimId,
+  claimNumber,
   uploadedFiles,
   setUploadedFiles,
   requiredDocuments,
@@ -303,7 +305,7 @@ export const EmailSection = ({
         replyTo={composeData.replyTo}
         replySubject={composeData.replySubject}
         replyBody={composeData.replyBody}
-        claimId={claimId || ""}
+        claimNumber={claimNumber || ""}
         availableDocuments={documents}
       />
     )
@@ -346,7 +348,7 @@ export const EmailSection = ({
     <div className="space-y-6">
       <Card>
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
-          <CardTitle className="text-lg font-semibold">Korespondencja e-mail {claimId && `- ${claimId}`}</CardTitle>
+          <CardTitle className="text-lg font-semibold">Korespondencja e-mail {claimNumber && `- ${claimNumber}`}</CardTitle>
           <Button onClick={handleCompose} className="bg-blue-600 hover:bg-blue-700">
             <Plus className="h-4 w-4 mr-2" />
             Napisz e-mail

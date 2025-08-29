@@ -13,6 +13,7 @@ import { API_BASE_URL } from "@/lib/api"
 
 interface EmailSectionProps {
   claimId?: string
+  claimNumber?: string
   uploadedFiles?: UploadedFile[]
   setUploadedFiles?: Dispatch<SetStateAction<UploadedFile[]>>
   requiredDocuments?: RequiredDocument[]
@@ -21,6 +22,7 @@ interface EmailSectionProps {
 
 export const EmailSection = ({
   claimId,
+  claimNumber,
   uploadedFiles,
   setUploadedFiles,
   requiredDocuments,
@@ -36,7 +38,7 @@ export const EmailSection = ({
     replyTo?: string
     replySubject?: string
     replyBody?: string
-    claimId?: string
+    claimNumber?: string
   }>({})
 
   const [internalDocuments, setInternalDocuments] = useState<UploadedFile[]>([
@@ -169,7 +171,7 @@ export const EmailSection = ({
       replyTo: email.from,
       replySubject: email.subject.startsWith("Re:") ? email.subject : `Re: ${email.subject}`,
       replyBody: email.body,
-      claimId: claimId,
+      claimNumber: claimNumber,
     })
     setCurrentView("compose")
   }
@@ -183,7 +185,7 @@ export const EmailSection = ({
       replyTo: allRecipients,
       replySubject: email.subject.startsWith("Re:") ? email.subject : `Re: ${email.subject}`,
       replyBody: email.body,
-      claimId: claimId,
+      claimNumber: claimNumber,
     })
     setCurrentView("compose")
   }
@@ -192,7 +194,7 @@ export const EmailSection = ({
     setComposeData({
       replySubject: email.subject.startsWith("Fwd:") ? email.subject : `Fwd: ${email.subject}`,
       replyBody: `\n\n--- Przekazana wiadomość ---\nOd: ${email.fromName} <${email.from}>\nData: ${email.date}\nTemat: ${email.subject}\n\n${email.body}`,
-      claimId: claimId,
+      claimNumber: claimNumber,
     })
     setCurrentView("compose")
   }
@@ -312,7 +314,7 @@ export const EmailSection = ({
             replyTo={composeData.replyTo}
             replySubject={composeData.replySubject}
             replyBody={composeData.replyBody}
-            claimId={composeData.claimId || ""}
+            claimNumber={composeData.claimNumber || claimNumber || ""}
             availableDocuments={documents}
           />
         </div>

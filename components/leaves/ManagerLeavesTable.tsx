@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { LeaveRequest } from "@/types/leave";
+import { useAuth } from "@/hooks/use-auth";
 import {
   Table,
   TableBody,
@@ -26,7 +27,8 @@ interface ManagerLeavesTableProps {
 export function ManagerLeavesTable({ requests }: ManagerLeavesTableProps) {
   const queryClient = useQueryClient();
   const [rejectDialogState, setRejectDialogState] = useState<{ requestId: string | null }>({ requestId: null });
-  const currentUser = { id: 'user-1', name: 'Anna Kowalska' };
+  const { user } = useAuth();
+  const currentUser = { id: user?.id || '', name: user?.username || '', email: user?.email, caseHandlerId: user?.caseHandlerId };
 
   const handleApprove = async (requestId: string) => {
     try {

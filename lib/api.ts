@@ -900,10 +900,10 @@ class ApiService {
     return this.request<NoteDto[]>(`/notes${query ? `?${query}` : ""}`)
   }
 
-  async getCurrentUser(): Promise<{ id: string; username: string; email?: string; roles?: string[]; createdAt?: string; lastLogin?: string } | undefined> {
-    const data = await this.request<{ id: string; userName: string; email: string; roles: string[]; createdAt: string; lastLogin?: string }>("/auth/me")
+  async getCurrentUser(): Promise<{ id: string; username: string; email?: string; caseHandlerId?: number; roles?: string[]; createdAt?: string; lastLogin?: string } | undefined> {
+    const data = await this.request<{ id: string; userName: string; email: string; caseHandlerId?: number; roles: string[]; createdAt: string; lastLogin?: string }>("/auth/me")
     if (!data) return undefined
-    return { id: data.id, username: data.userName, email: data.email, roles: data.roles, createdAt: data.createdAt, lastLogin: data.lastLogin }
+    return { id: data.id, username: data.userName, email: data.email, caseHandlerId: data.caseHandlerId, roles: data.roles, createdAt: data.createdAt, lastLogin: data.lastLogin }
   }
 
 

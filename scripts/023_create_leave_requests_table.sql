@@ -8,6 +8,7 @@ CREATE TABLE dbo.LeaveRequests (
     EmployeeId UNIQUEIDENTIFIER NOT NULL,
     EmployeeName NVARCHAR(200) NOT NULL,
     EmployeeEmail NVARCHAR(200),
+    CaseHandlerId INT,
     StartDate DATE NOT NULL,
     EndDate DATE NOT NULL,
     FirstDayDuration NVARCHAR(20),

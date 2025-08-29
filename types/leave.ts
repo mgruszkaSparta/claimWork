@@ -9,6 +9,7 @@ export interface LeaveRequest {
   employeeId: string;
   employeeName: string;
   employeeEmail?: string;
+  caseHandlerId?: number;
   startDate: string;
   endDate: string;
   firstDayDuration?: DayDuration;

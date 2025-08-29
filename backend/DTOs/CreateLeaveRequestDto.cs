@@ -7,6 +7,9 @@ namespace AutomotiveClaimsApi.DTOs
         public Guid EmployeeId { get; set; }
         public string EmployeeName { get; set; } = string.Empty;
         public string? EmployeeEmail { get; set; }
+
+        public int? CaseHandlerId { get; set; }
+
         public DateTime StartDate { get; set; }
         public DateTime EndDate { get; set; }
         public string? FirstDayDuration { get; set; }

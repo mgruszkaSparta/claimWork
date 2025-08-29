@@ -4,6 +4,7 @@ interface CurrentUser {
   id: string;
   name: string;
   email?: string;
+  caseHandlerId?: number;
 }
 
 const API_BASE = "/api/leaves";
@@ -34,6 +35,7 @@ export async function createLeaveRequest(
       "Content-Type": "application/json",
       "X-User-Id": user.id,
       "X-User-Name": user.name,
+      ...(user.caseHandlerId ? { "X-Case-Handler-Id": String(user.caseHandlerId) } : {}),
     },
     body: JSON.stringify(data),
   });
@@ -54,6 +56,7 @@ export async function updateLeaveRequest(
       "Content-Type": "application/json",
       "X-User-Id": user.id,
       "X-User-Name": user.name,
+      ...(user.caseHandlerId ? { "X-Case-Handler-Id": String(user.caseHandlerId) } : {}),
     },
     body: JSON.stringify(data),
   });

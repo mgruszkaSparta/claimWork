@@ -24,16 +24,19 @@ import { LeaveRequestSummary } from "@/components/leaves/LeaveRequestSummary";
 import HandlerDropdown from "@/components/handler-dropdown";
 import type { HandlerSelectionEvent } from "@/types/handler";
 import { Employee } from "@/types/employee";
+import { useAuth } from "@/hooks/use-auth";
 
 export default function LeaveRequestFormPage() {
   const router = useRouter();
   const { id } = useParams<{ id: string }>();
   const isEditMode = Boolean(id);
 
+  const { user } = useAuth();
   const currentUser: Employee = {
-    id: "user-1",
-    name: "Anna Kowalska",
-    email: "anna.kowalska@example.com",
+    id: user?.id || "",
+    name: user?.username || "",
+    email: user?.email,
+    caseHandlerId: user?.caseHandlerId,
   };
 
   const { data: existingRequest, isLoading } = useQuery({
@@ -88,6 +91,7 @@ export default function LeaveRequestFormPage() {
       employeeId: currentUser.id,
       employeeName: currentUser.name,
       employeeEmail: currentUser.email,
+      caseHandlerId: currentUser.caseHandlerId,
       startDate: startDate.toISOString().split('T')[0],
       endDate: endDate.toISOString().split('T')[0],
       firstDayDuration,

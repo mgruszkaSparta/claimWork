@@ -44,7 +44,9 @@ namespace AutomotiveClaimsApi.Controllers
                 EmployeeId = dto.EmployeeId,
                 EmployeeName = dto.EmployeeName,
                 EmployeeEmail = dto.EmployeeEmail,
+
                 CaseHandlerId = dto.CaseHandlerId,
+
                 StartDate = dto.StartDate,
                 EndDate = dto.EndDate,
                 FirstDayDuration = dto.FirstDayDuration,
@@ -76,7 +78,9 @@ namespace AutomotiveClaimsApi.Controllers
             leave.EmployeeId = dto.EmployeeId;
             leave.EmployeeName = dto.EmployeeName;
             leave.EmployeeEmail = dto.EmployeeEmail;
+
             leave.CaseHandlerId = dto.CaseHandlerId;
+
             leave.StartDate = dto.StartDate;
             leave.EndDate = dto.EndDate;
             leave.FirstDayDuration = dto.FirstDayDuration;
@@ -113,7 +117,9 @@ namespace AutomotiveClaimsApi.Controllers
             EmployeeId = leave.EmployeeId,
             EmployeeName = leave.EmployeeName,
             EmployeeEmail = leave.EmployeeEmail,
+
             CaseHandlerId = leave.CaseHandlerId,
+
             StartDate = leave.StartDate,
             EndDate = leave.EndDate,
             FirstDayDuration = leave.FirstDayDuration,

@@ -19,6 +19,7 @@ export default function RootLayout({
   return (
     <html lang="pl" suppressHydrationWarning>
       <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
         <style>{`
 html {
   font-family: ${GeistSans.style.fontFamily};

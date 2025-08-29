@@ -1,24 +1,61 @@
 "use client"
 
-import { useIsMobile } from "@/hooks/use-mobile"
-import type { ClaimsListProps } from "./claims-list.types"
-import { ClaimsListDesktop } from "./claims-list-desktop"
-import { ClaimsListMobile } from "./mobile/claims-list"
+import { useState, useEffect, useMemo, useRef, type ComponentType } from "react"
+import type { ClaimsListProps } from "../claims-list.types"
+import { useRouter } from "next/navigation"
+import { Button } from "@/components/ui/button"
+import { Badge } from "@/components/ui/badge"
+import { Input } from "@/components/ui/input"
+import { Alert, AlertDescription } from "@/components/ui/alert"
+import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
+} from "@/components/ui/select"
 
-export function ClaimsList(props: ClaimsListProps) {
-  const isMobile = useIsMobile()
-  return isMobile ? <ClaimsListMobile {...props} /> : <ClaimsListDesktop {...props} />
+import {
+  Search,
+  Plus,
+  Filter,
+  Eye,
+  Edit,
+  Trash2,
+  RefreshCw,
+  AlertCircle,
+  Loader2,
+  X,
+  ChevronUp,
+  ChevronDown,
+  Car,
+  Home,
+  Truck,
+} from "lucide-react"
+
+
+
+import { useClaims } from "@/hooks/use-claims"
+import { useToast } from "@/hooks/use-toast"
+import { useAuth } from "@/hooks/use-auth"
+import type { Claim } from "@/types"
+import { dictionaryService } from "@/lib/dictionary-service"
+
+
+const typeLabelMap: Record<number, string> = {
+  1: "Komunikacyjna",
+  2: "Majątkowa",
+  3: "Transportowa",
+}
+
+const typeIconMap: Record<number, ComponentType<{ className?: string }>> = {
+  1: Car,
+  2: Home,
+  3: Truck,
 }
 
 
-interface ClaimsListProps {
-  claims?: Claim[]
-  onEditClaim?: (claimId: string) => void
-  onNewClaim?: () => void
-  claimObjectTypeId?: string
-}
-
-export function ClaimsList({
+export function ClaimsListMobile({
   claims: initialClaims,
   onEditClaim,
   onNewClaim,
@@ -37,10 +74,6 @@ export function ClaimsList({
   >([])
   const [filterRegistration, setFilterRegistration] = useState("")
   const [filterHandler, setFilterHandler] = useState("")
-  const [substituteOptions, setSubstituteOptions] = useState<
-    { id: string; name: string }[]
-  >([])
-  const [selectedSubstituteId, setSelectedSubstituteId] = useState("")
   const [dateFilters, setDateFilters] = useState<
     { type: "reportDate" | "damageDate"; from: string; to: string }
   >([])
@@ -123,31 +156,6 @@ export function ClaimsList({
   }, [])
 
   useEffect(() => {
-    const loadSubstitutions = async () => {
-      if (!user?.id) return
-      try {
-        const res = await fetch("/api/leaves")
-        const leaves = await res.json()
-        const today = new Date()
-        const options = leaves
-          .filter(
-            (l: any) =>
-              l.substituteId === user.id &&
-              l.status === "APPROVED" &&
-              new Date(l.startDate) <= today &&
-              new Date(l.endDate) >= today,
-          )
-          .map((l: any) => ({ id: l.employeeId, name: l.employeeName }))
-        const unique = Array.from(new Map(options.map((o: any) => [o.id, o])).values())
-        setSubstituteOptions(unique)
-      } catch (err) {
-        console.error("Failed to load leaves", err)
-      }
-    }
-    loadSubstitutions()
-  }, [user?.id])
-
-  useEffect(() => {
     if (initialClaims?.length) return
 
     const loadClaims = async () => {
@@ -162,8 +170,7 @@ export function ClaimsList({
             status: filterStatus !== "all" ? filterStatus : undefined,
             riskType: filterRisk !== "all" ? filterRisk : undefined,
             brand: filterRegistration || undefined,
-            handler: filterHandler || undefined,
-            claimHandlerId: showMyClaims ? user?.id : selectedSubstituteId || undefined,
+            handler: showMyClaims ? user?.username : filterHandler || undefined,
             registeredById: showMyClaims ? user?.id : undefined,
             claimObjectTypeId,
             sortBy,
@@ -194,9 +201,9 @@ export function ClaimsList({
     filterRisk,
     filterRegistration,
     filterHandler,
-    selectedSubstituteId,
     showMyClaims,
     user?.id,
+    user?.username,
     dateFilters,
     claimObjectTypeId,
     sortBy,
@@ -228,6 +235,28 @@ export function ClaimsList({
   useEffect(() => {
 
     if (initialClaims?.length) return
+
+    const node = loaderRef.current
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (
+          entries[0].isIntersecting &&
+          !loading &&
+          claims.length < totalRecords
+        ) {
+          setPage((p) => p + 1)
+        }
+      },
+      { root: containerRef.current || undefined, rootMargin: "200px" },
+    )
+    if (node) {
+      observer.observe(node)
+    }
+    return () => {
+      if (node) {
+        observer.unobserve(node)
+      }
+    }
 
   }, [loading, claims.length, totalRecords, initialClaims])
 
@@ -300,8 +329,7 @@ export function ClaimsList({
           status: filterStatus !== "all" ? filterStatus : undefined,
           riskType: filterRisk !== "all" ? filterRisk : undefined,
           brand: filterRegistration || undefined,
-          handler: filterHandler || undefined,
-          claimHandlerId: showMyClaims ? user?.id : selectedSubstituteId || undefined,
+          handler: showMyClaims ? user?.username : filterHandler || undefined,
           registeredById: showMyClaims ? user?.id : undefined,
           claimObjectTypeId,
           sortBy,
@@ -482,33 +510,11 @@ export function ClaimsList({
               className={`h-9 text-sm ${showMyClaims ? "bg-[#1a3a6c] text-white hover:bg-[#1a3a6c]/90" : "bg-white"}`}
               onClick={() => {
                 setShowMyClaims((prev) => !prev)
-                setSelectedSubstituteId("")
                 setPage(1)
               }}
             >
               Moje szkody
             </Button>
-            {substituteOptions.length > 0 && (
-              <Select
-                value={selectedSubstituteId}
-                onValueChange={(value) => {
-                  setSelectedSubstituteId(value)
-                  setShowMyClaims(false)
-                  setPage(1)
-                }}
-              >
-                <SelectTrigger className="w-48 h-9 text-sm">
-                  <SelectValue placeholder="Zastępuję" />
-                </SelectTrigger>
-                <SelectContent>
-                  {substituteOptions.map((opt) => (
-                    <SelectItem key={opt.id} value={opt.id}>
-                      {opt.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            )}
           </div>
         </div>
         {showFilters && (
@@ -594,164 +600,72 @@ export function ClaimsList({
       <div className="flex-1 px-6 pb-4 overflow-hidden">
         <div className="bg-white rounded-lg border border-gray-200 shadow-sm h-full flex flex-col">
           <div ref={containerRef} className="flex-1 overflow-auto">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50 sticky top-0 z-10">
-                <tr>
-
-                  <th
-                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer"
-                    onClick={() => handleSort("objectTypeId")}
-                  >
-                    Typ
-                    {renderSortIcon("objectTypeId")}
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Nr szkody TU
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Nr szkody Sparta
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Nr rejestracyjny
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Likwidator
-
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    <div className="flex items-center cursor-pointer" onClick={() => handleSort("client")}>
-                      Grupa klienta
-                      {renderSortIcon("client")}
-                    </div>
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-
-                    <div className="flex items-center cursor-pointer" onClick={() => handleSort("reportDate")}>
-                      Data rejestracji
-                      {renderSortIcon("reportDate")}
-                    </div>
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    <div className="flex items-center cursor-pointer" onClick={() => handleSort("riskType")}>
-                      Ryzyko
-                      {renderSortIcon("riskType")}
-                    </div>
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    <div className="flex items-center cursor-pointer" onClick={() => handleSort("status")}>
-                      Status
-                      {renderSortIcon("status")}
-                    </div>
-
-                  </th>
-                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Akcje
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-200">
-                {claims.map((claim) => (
-                  <tr
-                    key={claim.id}
-                    className="odd:bg-white even:bg-gray-50 hover:bg-gray-100 transition-colors"
-                  >
-
-
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      {claim.objectTypeId ? (
-                        <div className="flex items-center gap-2">
-                          {(() => {
-                            const Icon = typeIconMap[claim.objectTypeId as number]
-                            return Icon ? (
-                              <Icon
-                                className="h-4 w-4 cursor-pointer"
-                                onClick={() =>
-                                  claim.id &&
-                                  (onEditClaim
-                                    ? onEditClaim(claim.id)
-                                    : handleEditClaimDirect(claim.id))
-                                }
-                                title="Edytuj"
-                              />
-                            ) : null
-                          })()}
-                          <span>{typeLabelMap[claim.objectTypeId as number]}</span>
-                        </div>
-                      ) : (
-                        "-"
-                      )}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">{claim.insurerClaimNumber || "-"}</td>
-
-                    <td className="px-6 py-4 whitespace-nowrap">{claim.spartaNumber || "-"}</td>
-                    <td className="px-6 py-4 whitespace-nowrap">{claim.victimRegistrationNumber || "-"}</td>
-
-                    <td className="px-6 py-4 whitespace-nowrap">{claim.handler || "-"}</td>
-                    <td className="px-6 py-4 whitespace-nowrap">{claim.client || "-"}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {claim.reportDate ? new Date(claim.reportDate).toLocaleDateString("pl-PL") : "-"}
-
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      {claim.riskType
-                        ? riskTypeMap[String(claim.riskType)] ||
-                          String(claim.riskType)
-                        : "-"}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
+            <div className="p-4 space-y-4">
+              {claims.map((claim) => (
+                <div key={claim.id} className="rounded-lg border border-gray-200 p-4 space-y-2">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
                       {(() => {
-                        const statusInfo = claim.claimStatusId
-                          ? claimStatusMap[claim.claimStatusId]
-                          : undefined
-                        const colorClass =
-                          statusInfo?.color ||
-                          "bg-gray-100 text-gray-800 border-gray-200"
-                        return (
-                          <Badge className={`text-xs border ${colorClass}`}>
-                            {statusInfo?.name || "-"}
-                          </Badge>
-                        )
+                        const Icon = typeIconMap[claim.objectTypeId as number]
+                        return Icon ? <Icon className="h-4 w-4" /> : null
                       })()}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                      <div className="flex items-center justify-end space-x-2">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="h-8 w-8 p-0 hover:bg-blue-50"
-                          onClick={() => claim.id && handleViewClaim(claim.id)}
-                          title="Podgląd"
-                        >
-                          <Eye className="h-4 w-4 text-blue-600" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="h-8 w-8 p-0 hover:bg-green-50"
-                          onClick={() =>
-                            claim.id && (onEditClaim ? onEditClaim(claim.id) : handleEditClaimDirect(claim.id))
-                          }
-                          title="Edytuj"
-                        >
-                          <Edit className="h-4 w-4 text-green-600" />
-                        </Button>
-                        {isAdmin && (
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="h-8 w-8 p-0 hover:bg-red-50"
-                            onClick={() => handleDeleteClaim(claim.id, claim.claimNumber)}
-                            title="Usuń"
-                          >
-                            <Trash2 className="h-4 w-4 text-red-600" />
-                          </Button>
-                        )}
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+                      <span className="font-medium">{claim.spartaNumber || "-"}</span>
+                    </div>
+                    {(() => {
+                      const statusInfo = claim.claimStatusId
+                        ? claimStatusMap[claim.claimStatusId]
+                        : undefined
+                      const colorClass =
+                        statusInfo?.color ||
+                        "bg-gray-100 text-gray-800 border-gray-200"
+                      return (
+                        <Badge className={`text-xs border ${colorClass}`}>
+                          {statusInfo?.name || "-"}
+                        </Badge>
+                      )
+                    })()}
+                  </div>
+                  <div className="text-sm text-gray-700 space-y-1">
+                    <div>Nr szkody TU: {claim.insurerClaimNumber || "-"}</div>
+                    <div>Nr rej.: {claim.victimRegistrationNumber || "-"}</div>
+                    <div>Likwidator: {claim.handler || "-"}</div>
+                  </div>
+                  <div className="flex justify-end space-x-2 pt-2">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="h-8 w-8 p-0 hover:bg-blue-50"
+                      onClick={() => claim.id && handleViewClaim(claim.id)}
+                      title="Podgląd"
+                    >
+                      <Eye className="h-4 w-4 text-blue-600" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="h-8 w-8 p-0 hover:bg-green-50"
+                      onClick={() =>
+                        claim.id && (onEditClaim ? onEditClaim(claim.id) : handleEditClaimDirect(claim.id))
+                      }
+                      title="Edytuj"
+                    >
+                      <Edit className="h-4 w-4 text-green-600" />
+                    </Button>
+                    {isAdmin && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-8 w-8 p-0 hover:bg-red-50"
+                        onClick={() => handleDeleteClaim(claim.id, claim.claimNumber)}
+                        title="Usuń"
+                      >
+                        <Trash2 className="h-4 w-4 text-red-600" />
+                      </Button>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
             {loading && page > 1 && (
               <div className="flex justify-center py-4">
                 <Loader2 className="h-6 w-6 animate-spin text-[#1a3a6c]" />
@@ -808,3 +722,4 @@ export function ClaimsList({
   )
 }
 
+export default ClaimsListMobile

@@ -12,8 +12,10 @@ export async function createLeave(request: Request) {
   const body = (await request.json()) as Partial<LeaveRequest>;
   const employeeId = request.headers.get("x-user-id") || body.employeeId || "";
   const employeeName = request.headers.get("x-user-name") || body.employeeName || "";
+
   const caseHandlerIdHeader = request.headers.get("x-case-handler-id");
   const caseHandlerId = caseHandlerIdHeader ? parseInt(caseHandlerIdHeader, 10) : body.caseHandlerId;
+
   const newLeave: LeaveRequest = {
     id: randomUUID(),
     employeeId,
@@ -36,7 +38,9 @@ export async function createLeave(request: Request) {
     approvedBy: body.approvedBy,
     approvedAt: body.approvedAt,
     rejectionReason: body.rejectionReason,
+
     caseHandlerId,
+
   };
   await addLeave(newLeave);
   return NextResponse.json(newLeave, { status: 201 });
@@ -54,9 +58,13 @@ export async function updateLeaveById(id: string, request: Request) {
   const body = (await request.json()) as Partial<LeaveRequest>;
   const employeeId = request.headers.get("x-user-id") || body.employeeId;
   const employeeName = request.headers.get("x-user-name") || body.employeeName;
+
   const caseHandlerIdHeader = request.headers.get("x-case-handler-id");
   const caseHandlerId = caseHandlerIdHeader ? parseInt(caseHandlerIdHeader, 10) : body.caseHandlerId;
   const updated = await updateLeave(id, { ...body, employeeId, employeeName, caseHandlerId });
+
+
+
   if (!updated) {
     return NextResponse.json({ error: "Not found" }, { status: 404 });
   }

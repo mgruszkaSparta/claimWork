@@ -10,4 +10,5 @@ export function ClaimsList(props: ClaimsListProps) {
   return isMobile ? <ClaimsListMobile {...props} /> : <ClaimsListDesktop {...props} />
 }
 
-export default ClaimsList
+
+

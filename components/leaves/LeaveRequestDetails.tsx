@@ -108,7 +108,11 @@ export function LeaveRequestDetails({ request, onStatusChange, onBack }: LeaveRe
               </div>
               <div>
                 <p className="text-sm font-medium">Zastępca:</p>
-                <p>{request.substituteName} (Status akceptacji: {request.substituteAcceptanceStatus})</p>
+                <p>
+                  {request.substituteName}
+                  {request.substituteEmail && ` (${request.substituteEmail})`}
+                  {` (Status akceptacji: ${request.substituteAcceptanceStatus})`}
+                </p>
               </div>
               <div>
                 <p className="text-sm font-medium">Opis obowiązków do przekazania:</p>

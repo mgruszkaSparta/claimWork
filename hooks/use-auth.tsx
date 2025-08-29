@@ -7,6 +7,7 @@ interface User {
   id: string
   username: string
   email?: string
+  caseHandlerId?: number
   roles?: string[]
 }
 

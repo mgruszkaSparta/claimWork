@@ -50,7 +50,7 @@ export default function MyLeavesPage() {
   });
 
   return (
-    <div className="container mx-auto p-4 sm:p-6 lg:p-8 h-screen flex flex-col">
+    <div className="p-4 sm:p-6 lg:p-8 flex flex-col h-full w-full">
       <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Moje urlopy</h1>

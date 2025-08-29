@@ -6,6 +6,7 @@ CREATE TABLE "LeaveRequests" (
     "EmployeeId" UUID NOT NULL,
     "EmployeeName" VARCHAR(200) NOT NULL,
     "EmployeeEmail" VARCHAR(200),
+    "CaseHandlerId" INT,
     "StartDate" DATE NOT NULL,
     "EndDate" DATE NOT NULL,
     "FirstDayDuration" VARCHAR(20),

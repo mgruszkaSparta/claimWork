@@ -21,29 +21,28 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { LeaveAttachments } from "@/components/leaves/LeaveAttachments";
 import { LeaveRequestSummary } from "@/components/leaves/LeaveRequestSummary";
-import { getEmployees } from "@/services/employees-service";
+import HandlerDropdown from "@/components/handler-dropdown";
+import type { HandlerSelectionEvent } from "@/types/handler";
 import { Employee } from "@/types/employee";
+import { useAuth } from "@/hooks/use-auth";
 
 export default function LeaveRequestFormPage() {
   const router = useRouter();
   const { id } = useParams<{ id: string }>();
   const isEditMode = Boolean(id);
 
+  const { user } = useAuth();
   const currentUser: Employee = {
-    id: "user-1",
-    name: "Anna Kowalska",
-    email: "anna.kowalska@example.com",
+    id: user?.id || "",
+    name: user?.username || "",
+    email: user?.email,
+    caseHandlerId: user?.caseHandlerId,
   };
 
   const { data: existingRequest, isLoading } = useQuery({
     queryKey: ["leaveRequest", id],
     queryFn: () => getLeaveRequestById(id!),
     enabled: isEditMode,
-  });
-
-  const { data: employees } = useQuery({
-    queryKey: ["employees"],
-    queryFn: () => getEmployees(currentUser.id),
   });
 
   const [type, setType] = useState<LeaveType | undefined>(undefined);
@@ -54,6 +53,7 @@ export default function LeaveRequestFormPage() {
   const [lastDayDuration, setLastDayDuration] = useState<DayDuration>("Cały dzień");
   const [substituteId, setSubstituteId] = useState("");
   const [substituteName, setSubstituteName] = useState("");
+  const [substituteEmail, setSubstituteEmail] = useState("");
   const [substituteAcceptanceStatus, setSubstituteAcceptanceStatus] = useState<SubstituteAcceptanceStatus>("Oczekujące");
   const [transferDescription, setTransferDescription] = useState("");
   const [urgentProjects, setUrgentProjects] = useState("");
@@ -69,6 +69,7 @@ export default function LeaveRequestFormPage() {
       setLastDayDuration(existingRequest.lastDayDuration);
       setSubstituteId(existingRequest.substituteId || "");
       setSubstituteName(existingRequest.substituteName || "");
+      setSubstituteEmail(existingRequest.substituteEmail || "");
       setSubstituteAcceptanceStatus(existingRequest.substituteAcceptanceStatus);
       setTransferDescription(existingRequest.transferDescription);
       setUrgentProjects(existingRequest.urgentProjects);
@@ -90,12 +91,14 @@ export default function LeaveRequestFormPage() {
       employeeId: currentUser.id,
       employeeName: currentUser.name,
       employeeEmail: currentUser.email,
+      caseHandlerId: currentUser.caseHandlerId,
       startDate: startDate.toISOString().split('T')[0],
       endDate: endDate.toISOString().split('T')[0],
       firstDayDuration,
       lastDayDuration,
       substituteId,
       substituteName,
+      substituteEmail,
       substituteAcceptanceStatus,
       type,
       priority,
@@ -278,25 +281,14 @@ export default function LeaveRequestFormPage() {
             <div className="grid sm:grid-cols-2 gap-4">
               <div className="grid gap-2">
                 <Label htmlFor="substitute">Osoba zastępująca *</Label>
-                <Select
-                  value={substituteId}
-                  onValueChange={(value) => {
-                    setSubstituteId(value);
-                    const emp = employees?.find((e) => e.id === value);
-                    setSubstituteName(emp?.name || "");
+                <HandlerDropdown
+                  selectedHandlerId={substituteId || undefined}
+                  onHandlerSelected={(e: HandlerSelectionEvent) => {
+                    setSubstituteId(e.handlerId);
+                    setSubstituteName(e.handlerName);
+                    setSubstituteEmail(e.handlerEmail || "");
                   }}
-                >
-                  <SelectTrigger id="substitute">
-                    <SelectValue placeholder="Wybierz osobę zastępującą" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {employees?.map((emp) => (
-                      <SelectItem key={emp.id} value={emp.id}>
-                        {emp.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                />
               </div>
               <div className="grid gap-2">
                 <Label>Status akceptacji zastępstwa</Label>

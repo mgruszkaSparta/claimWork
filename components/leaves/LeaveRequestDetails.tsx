@@ -9,6 +9,7 @@ import { CheckCircle, XCircle, Clock } from "lucide-react";
 import { updateLeaveRequestStatus } from "@/services/leaves-service";
 import { showSuccess, showError } from "@/utils/toast";
 import { RejectReasonDialog } from "./RejectReasonDialog";
+import { useAuth } from "@/hooks/use-auth";
 
 interface LeaveRequestDetailsProps {
   request: LeaveRequest;
@@ -18,7 +19,8 @@ interface LeaveRequestDetailsProps {
 
 export function LeaveRequestDetails({ request, onStatusChange, onBack }: LeaveRequestDetailsProps) {
   const [isRejectDialogOpen, setIsRejectDialogOpen] = useState(false);
-  const currentUser = { id: 'user-1', name: 'Anna Kowalska' };
+  const { user } = useAuth();
+  const currentUser = { id: user?.id || '', name: user?.username || '', email: user?.email, caseHandlerId: user?.caseHandlerId };
 
   const handleApprove = async () => {
     try {
@@ -108,7 +110,11 @@ export function LeaveRequestDetails({ request, onStatusChange, onBack }: LeaveRe
               </div>
               <div>
                 <p className="text-sm font-medium">Zastępca:</p>
-                <p>{request.substituteName} (Status akceptacji: {request.substituteAcceptanceStatus})</p>
+                <p>
+                  {request.substituteName}
+                  {request.substituteEmail && ` (${request.substituteEmail})`}
+                  {` (Status akceptacji: ${request.substituteAcceptanceStatus})`}
+                </p>
               </div>
               <div>
                 <p className="text-sm font-medium">Opis obowiązków do przekazania:</p>

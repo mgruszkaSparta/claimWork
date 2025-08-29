@@ -306,9 +306,9 @@ export function DamageDataSection({
                 Likwidator
               </Label>
               <HandlerDropdown
-                selectedHandlerId={claimFormData.handlerId || undefined}
+                selectedHandlerId={claimFormData.claimHandlerId || undefined}
                 onHandlerSelected={(event: HandlerSelectionEvent) => {
-                  handleFormChange("handlerId", event.handlerId.toString())
+                  handleFormChange("claimHandlerId", event.handlerId.toString())
                   handleFormChange("handler", event.handlerName)
                   handleFormChange("handlerEmail", event.handlerEmail || "")
                   handleFormChange("handlerPhone", event.handlerPhone || "")

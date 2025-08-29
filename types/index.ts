@@ -55,7 +55,7 @@ export interface Claim
     | "clientId"
     | "insuranceCompanyId"
     | "leasingCompanyId"
-    | "handlerId"
+    | "claimHandlerId"
     | "servicesCalled"
     | "participants"
     | "damages"
@@ -87,7 +87,7 @@ export interface Claim
   clientId?: string
   insuranceCompanyId?: string
   leasingCompanyId?: string
-  handlerId?: string
+  claimHandlerId?: string
   isDraft?: boolean
   /**
    * List of services called.

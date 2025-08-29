@@ -26,7 +26,7 @@ namespace AutomotiveClaimsApi.Controllers
             var request = new VacationRequest
             {
                 Id = Guid.NewGuid(),
-                ClaimHandlerId = dto.ClaimHandlerId,
+                CaseHandlerId = dto.CaseHandlerId,
                 SubstituteId = dto.SubstituteId,
                 ManagerIds = dto.ManagerIds,
                 StartDate = dto.StartDate,
@@ -88,7 +88,7 @@ namespace AutomotiveClaimsApi.Controllers
         private static VacationRequestDto ToDto(VacationRequest request) => new()
         {
             Id = request.Id,
-            ClaimHandlerId = request.ClaimHandlerId,
+            CaseHandlerId = request.CaseHandlerId,
             SubstituteId = request.SubstituteId,
             ManagerIds = request.ManagerIds,
             StartDate = request.StartDate,

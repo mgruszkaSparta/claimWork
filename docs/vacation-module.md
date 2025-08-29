@@ -27,7 +27,7 @@ This document proposes a vacation module for claim handlers.
 
 ## Backend
 - Add `VacationRequest` entity with fields:
-- `Id`, `ClaimHandlerId`, `ManagerIds`, `SubstituteId`.
+- `Id`, `CaseHandlerId`, `ManagerIds`, `SubstituteId`.
   - `StartDate`, `EndDate`, `Status` (Pending, Approved, Rejected).
 - Endpoints:
   - `POST /api/vacations` – create request (handler).
@@ -52,7 +52,7 @@ This document proposes a vacation module for claim handlers.
 VacationRequest
 ---------------
 Id: Guid
-ClaimHandlerId: string
+CaseHandlerId: string
 SubstituteId: string
 ManagerIds: List<string>
 StartDate: DateTime

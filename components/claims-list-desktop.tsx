@@ -174,7 +174,10 @@ export function ClaimsListDesktop({
               new Date(l.startDate) <= today &&
               new Date(l.endDate) >= today,
           )
-          .map((l: any) => ({ id: l.employeeId, name: l.employeeName }))
+          .map((l: any) => ({
+            id: String(l.caseHandlerId),
+            name: l.employeeName,
+          }))
         const unique = Array.from(
           new Map(options.map((o: any) => [o.id, o])).values(),
         )
@@ -202,8 +205,11 @@ export function ClaimsListDesktop({
             riskType: filterRisk !== "all" ? filterRisk : undefined,
             brand: filterRegistration || undefined,
             handler: filterHandler || undefined,
-            claimHandlerId:
-              showMyClaims ? user?.id : selectedSubstituteId || undefined,
+            caseHandlerId: showMyClaims
+              ? user?.caseHandlerId
+              : selectedSubstituteId
+              ? parseInt(selectedSubstituteId, 10)
+              : undefined,
             registeredById: showMyClaims ? user?.id : undefined,
             claimObjectTypeId,
             sortBy,
@@ -237,6 +243,7 @@ export function ClaimsListDesktop({
     selectedSubstituteId,
     showMyClaims,
     user?.id,
+    user?.caseHandlerId,
     dateFilters,
     claimObjectTypeId,
     sortBy,
@@ -363,8 +370,11 @@ export function ClaimsListDesktop({
           riskType: filterRisk !== "all" ? filterRisk : undefined,
           brand: filterRegistration || undefined,
           handler: filterHandler || undefined,
-          claimHandlerId:
-            showMyClaims ? user?.id : selectedSubstituteId || undefined,
+          caseHandlerId: showMyClaims
+            ? user?.caseHandlerId
+            : selectedSubstituteId
+            ? parseInt(selectedSubstituteId, 10)
+            : undefined,
           registeredById: showMyClaims ? user?.id : undefined,
           claimObjectTypeId,
           sortBy,

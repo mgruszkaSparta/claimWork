@@ -7,7 +7,8 @@
     "dev": "next dev",
     "lint": "next lint",
     "start": "next start",
-    "test": "node --test --loader ts-node/esm -r tsconfig-paths/register"
+    "test": "node --test --loader ts-node/esm -r tsconfig-paths/register",
+    "seed:leaves": "ts-node --esm scripts/seed-leaves.ts"
   },
   "dependencies": {
     "@hello-pangea/dnd": "latest",

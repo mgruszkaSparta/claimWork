@@ -62,6 +62,7 @@ namespace AutomotiveClaimsApi.Controllers
             [FromQuery] string? riskType = null,
             [FromQuery] string? policyNumber = null,
             [FromQuery] int? caseHandlerId = null,
+            [FromQuery] string? registeredById = null,
             [FromQuery] DateTime? damageDate = null,
             [FromQuery] DateTime? reportFromDate = null,
             [FromQuery] DateTime? reportToDate = null,
@@ -144,6 +145,11 @@ namespace AutomotiveClaimsApi.Controllers
                 if (caseHandlerId.HasValue)
                 {
                     query = query.Where(e => e.HandlerId == caseHandlerId.Value);
+                }
+
+                if (!string.IsNullOrEmpty(registeredById))
+                {
+                    query = query.Where(e => e.RegisteredById == registeredById);
                 }
 
                 if (damageDate.HasValue)

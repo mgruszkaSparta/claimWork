@@ -204,9 +204,9 @@ export function ClaimsListDesktop({
             status: filterStatus !== "all" ? filterStatus : undefined,
             riskType: filterRisk !== "all" ? filterRisk : undefined,
             brand: filterRegistration || undefined,
-            handler: filterHandler || undefined,
+            handler: showMyClaims ? undefined : filterHandler || undefined,
             caseHandlerId: showMyClaims
-              ? user?.caseHandlerId
+              ? undefined
               : selectedSubstituteId
               ? parseInt(selectedSubstituteId, 10)
               : undefined,
@@ -369,9 +369,9 @@ export function ClaimsListDesktop({
           status: filterStatus !== "all" ? filterStatus : undefined,
           riskType: filterRisk !== "all" ? filterRisk : undefined,
           brand: filterRegistration || undefined,
-          handler: filterHandler || undefined,
+          handler: showMyClaims ? undefined : filterHandler || undefined,
           caseHandlerId: showMyClaims
-            ? user?.caseHandlerId
+            ? undefined
             : selectedSubstituteId
             ? parseInt(selectedSubstituteId, 10)
             : undefined,

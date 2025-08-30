@@ -9,6 +9,7 @@ import { Toaster } from '@/components/ui/toaster';
 import { ArrowLeft, Edit } from 'lucide-react';
 import type { Claim, Note, UploadedFile } from '@/types';
 import { transformApiClaimToFrontend } from '@/hooks/use-claims';
+import { authFetch } from '@/lib/auth-fetch';
 import { dictionaryService, type DictionaryItemDto } from '@/lib/dictionary-service';
 import CommunicationClaimSummary from '@/components/claim-form/communication-claim-summary';
 import { PropertyClaimSummary } from '@/components/claim-form/property-claim-summary';
@@ -38,9 +39,8 @@ export default function ViewClaimPage() {
     try {
       setIsLoading(true);
       setLoadError(null);
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/claims/${id}`, {
+      const response = await authFetch(`${process.env.NEXT_PUBLIC_API_URL}/claims/${id}`, {
         method: 'GET',
-        credentials: 'omit',
       });
       if (!response.ok) {
         throw new Error(`HTTP ${response.status}: ${response.statusText}`);

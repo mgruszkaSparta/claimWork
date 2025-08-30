@@ -1,6 +1,10 @@
 import type { RequiredDocument } from "@/types"
+import { slugify } from "@/utils/slugify"
 
-const communicationDocuments: RequiredDocument[] = [
+const withCategory = (docs: Omit<RequiredDocument, "category">[]): RequiredDocument[] =>
+  docs.map((d) => ({ ...d, category: slugify(d.name) }))
+
+const communicationDocuments: RequiredDocument[] = withCategory([
   { id: "1", name: "Akta z TU", required: true, uploaded: false, description: "" },
   { id: "2", name: "Arkusz / Info", required: true, uploaded: false, description: "" },
   { id: "3", name: "Zgłoszenie szkody - Bank/Leasing", required: true, uploaded: false, description: "" },
@@ -115,9 +119,9 @@ const communicationDocuments: RequiredDocument[] = [
   { id: "112", name: "PBUK/UFG - potwierdzenie zapytania", required: true, uploaded: false, description: "" },
   { id: "113", name: "Europrotokół", required: true, uploaded: false, description: "" },
   { id: "114", name: "Faktura - uprzątnięcie", required: true, uploaded: false, description: "" }
-]
+])
 
-const propertyDocuments: RequiredDocument[] = [
+const propertyDocuments: RequiredDocument[] = withCategory([
   { id: "1", name: "Nr konta", required: true, uploaded: false, description: "" },
   {
     id: "2",
@@ -152,9 +156,9 @@ const propertyDocuments: RequiredDocument[] = [
     uploaded: false,
     description: "",
   },
-]
+])
 
-const transportDocuments: RequiredDocument[] = [
+const transportDocuments: RequiredDocument[] = withCategory([
   {
     id: "1",
     name: "Dowód rejestracyjny",
@@ -351,7 +355,7 @@ const transportDocuments: RequiredDocument[] = [
     uploaded: false,
     description: ""
   }
-]
+])
 
 export const getRequiredDocumentsByObjectType = (
   objectTypeId?: string | number

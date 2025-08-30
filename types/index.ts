@@ -295,7 +295,8 @@ export interface RequiredDocument {
   required: boolean
   uploaded: boolean
   description: string
-  category?: string
+  /** Machine readable category identifier */
+  category: string
 }
 
 export interface DocumentsSectionProps {

@@ -21,11 +21,14 @@ export default function Footer() {
   const [sessionRefresh, setSessionRefresh] = useState(0)
   const [sessionExpired, setSessionExpired] = useState(false)
   const warningShown = useRef(false)
+  const lastActivity = useRef(Date.now())
+  const autoRefreshAttempted = useRef(false)
 
   const handleRefresh = async () => {
     try {
       await refreshToken()
       warningShown.current = false
+      autoRefreshAttempted.current = false
       setAboutToLogout(false)
       setSessionRefresh((c) => c + 1)
     } catch {
@@ -34,6 +37,20 @@ export default function Footer() {
       router.push('/login')
     }
   }
+
+  useEffect(() => {
+    const updateActivity = () => {
+      lastActivity.current = Date.now()
+    }
+    window.addEventListener('mousemove', updateActivity)
+    window.addEventListener('keydown', updateActivity)
+    window.addEventListener('click', updateActivity)
+    return () => {
+      window.removeEventListener('mousemove', updateActivity)
+      window.removeEventListener('keydown', updateActivity)
+      window.removeEventListener('click', updateActivity)
+    }
+  }, [])
 
   useEffect(() => {
     const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null
@@ -48,6 +65,7 @@ export default function Footer() {
     if (!payload?.exp) return
 
     const exp = payload.exp * 1000
+    autoRefreshAttempted.current = false
 
     let interval: ReturnType<typeof setInterval> | null = null
 
@@ -62,10 +80,18 @@ export default function Footer() {
         return
       }
       if (remaining <= 60000) {
-        setAboutToLogout(true)
-        if (!warningShown.current) {
-          alert('System wkrótce Cię wyloguje. Odśwież token aby pozostać zalogowanym.')
-          warningShown.current = true
+        if (
+          Date.now() - lastActivity.current < 60000 &&
+          !autoRefreshAttempted.current
+        ) {
+          autoRefreshAttempted.current = true
+          void handleRefresh()
+        } else {
+          setAboutToLogout(true)
+          if (!warningShown.current) {
+            alert('System wkrótce Cię wyloguje. Odśwież token aby pozostać zalogowanym.')
+            warningShown.current = true
+          }
         }
       } else {
         setAboutToLogout(false)

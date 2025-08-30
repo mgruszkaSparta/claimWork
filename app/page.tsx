@@ -10,7 +10,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { FileText, Clock, TrendingUp, Users, Search, Filter, CheckSquare } from 'lucide-react';
 import { apiService } from "@/lib/api";
-import VacationCalendar from "@/components/vacation-calendar";
 
 interface User {
   username: string
@@ -215,15 +214,6 @@ function HomePage({ user, onLogout }: PageProps) {
                     )
                   })}
                 </div>
-
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Kalendarz urlopów</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <VacationCalendar />
-                  </CardContent>
-                </Card>
 
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                   {/* Status Overview */}

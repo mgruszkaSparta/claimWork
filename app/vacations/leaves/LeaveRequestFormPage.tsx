@@ -39,8 +39,8 @@ export default function LeaveRequestFormPage() {
   };
 
   const { data: employees } = useQuery<Employee[]>({
-    queryKey: ["employees", currentUser.id],
-    queryFn: () => getEmployees(currentUser.id),
+    queryKey: ["employees"],
+    queryFn: () => getEmployees(),
     enabled: !!currentUser.id,
   });
 

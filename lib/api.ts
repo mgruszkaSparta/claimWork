@@ -355,6 +355,49 @@ export interface UpdateCaseHandlerDto {
   isActive?: boolean
 }
 
+export interface DepartmentDto {
+  id: number
+  name: string
+}
+
+export interface CreateDepartmentDto {
+  name: string
+}
+
+export interface UpdateDepartmentDto extends CreateDepartmentDto {}
+
+export interface EmployeeRoleDto {
+  id: number
+  name: string
+}
+
+export interface CreateEmployeeRoleDto {
+  name: string
+}
+
+export interface UpdateEmployeeRoleDto extends CreateEmployeeRoleDto {}
+
+export interface EmployeeDto {
+  id: number
+  firstName: string
+  lastName: string
+  email?: string
+  departmentId?: number
+  department?: DepartmentDto
+  roleId?: number
+  role?: EmployeeRoleDto
+}
+
+export interface CreateEmployeeDto {
+  firstName: string
+  lastName: string
+  email?: string
+  departmentId?: number
+  roleId?: number
+}
+
+export interface UpdateEmployeeDto extends CreateEmployeeDto {}
+
 export interface CreateRiskTypeDto {
   code: string
   name: string
@@ -1249,6 +1292,81 @@ class ApiService {
 
   async deleteDamageType(id: number): Promise<void> {
     await this.request<void>(`/damage-types/${id}`, {
+      method: 'DELETE',
+    })
+  }
+
+  // Departments API
+  async getDepartments(): Promise<DepartmentDto[]> {
+    return this.request<DepartmentDto[]>(`/Departments`)
+  }
+
+  async createDepartment(data: CreateDepartmentDto): Promise<DepartmentDto> {
+    return this.request<DepartmentDto>(`/Departments`, {
+      method: 'POST',
+      body: JSON.stringify(data),
+    })
+  }
+
+  async updateDepartment(id: number, data: UpdateDepartmentDto): Promise<void> {
+    await this.request<void>(`/Departments/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    })
+  }
+
+  async deleteDepartment(id: number): Promise<void> {
+    await this.request<void>(`/Departments/${id}`, {
+      method: 'DELETE',
+    })
+  }
+
+  // Employee Roles API
+  async getEmployeeRoles(): Promise<EmployeeRoleDto[]> {
+    return this.request<EmployeeRoleDto[]>(`/EmployeeRoles`)
+  }
+
+  async createEmployeeRole(data: CreateEmployeeRoleDto): Promise<EmployeeRoleDto> {
+    return this.request<EmployeeRoleDto>(`/EmployeeRoles`, {
+      method: 'POST',
+      body: JSON.stringify(data),
+    })
+  }
+
+  async updateEmployeeRole(id: number, data: UpdateEmployeeRoleDto): Promise<void> {
+    await this.request<void>(`/EmployeeRoles/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    })
+  }
+
+  async deleteEmployeeRole(id: number): Promise<void> {
+    await this.request<void>(`/EmployeeRoles/${id}`, {
+      method: 'DELETE',
+    })
+  }
+
+  // Employees API
+  async getEmployees(): Promise<EmployeeDto[]> {
+    return this.request<EmployeeDto[]>(`/Employees`)
+  }
+
+  async createEmployee(data: CreateEmployeeDto): Promise<EmployeeDto> {
+    return this.request<EmployeeDto>(`/Employees`, {
+      method: 'POST',
+      body: JSON.stringify(data),
+    })
+  }
+
+  async updateEmployee(id: number, data: UpdateEmployeeDto): Promise<void> {
+    await this.request<void>(`/Employees/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    })
+  }
+
+  async deleteEmployee(id: number): Promise<void> {
+    await this.request<void>(`/Employees/${id}`, {
       method: 'DELETE',
     })
   }

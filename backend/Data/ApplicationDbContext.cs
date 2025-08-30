@@ -30,6 +30,9 @@ namespace AutomotiveClaimsApi.Data
         public DbSet<DamageType> DamageTypes { get; set; }
         public DbSet<VacationRequest> VacationRequests { get; set; }
         public DbSet<LeaveRequest> LeaveRequests { get; set; }
+        public DbSet<Department> Departments { get; set; }
+        public DbSet<EmployeeRole> EmployeeRoles { get; set; }
+        public DbSet<Employee> Employees { get; set; }
 
         // Dictionary entities
         public DbSet<CaseHandler> CaseHandlers { get; set; }

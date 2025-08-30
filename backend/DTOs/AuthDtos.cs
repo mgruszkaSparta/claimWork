@@ -11,6 +11,7 @@ namespace AutomotiveClaimsApi.DTOs
         public string? Password { get; set; }
         [JsonPropertyName("role")]
         public string? Role { get; set; }
+        public int? CaseHandlerId { get; set; }
     }
 
     public class LoginDto
@@ -39,6 +40,7 @@ namespace AutomotiveClaimsApi.DTOs
         public IEnumerable<int>? ClientIds { get; set; }
         [JsonPropertyName("role")]
         public string? Role { get; set; }
+        public int? CaseHandlerId { get; set; }
     }
 
     public class UserDto
@@ -51,6 +53,7 @@ namespace AutomotiveClaimsApi.DTOs
         public DateTime? LastLogin { get; set; }
         public bool FullAccess { get; set; }
         public IEnumerable<int> ClientIds { get; set; } = Array.Empty<int>();
+        public int? CaseHandlerId { get; set; }
     }
 
     public class UserListItemDto
@@ -64,6 +67,7 @@ namespace AutomotiveClaimsApi.DTOs
         public string? Status { get; set; }
         public DateTime CreatedAt { get; set; }
         public DateTime? LastLogin { get; set; }
+        public int? CaseHandlerId { get; set; }
     }
 
     public class UpdateUsersBulkDto

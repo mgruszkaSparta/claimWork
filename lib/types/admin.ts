@@ -31,6 +31,7 @@ export interface User {
   password?: string;
   fullAccess?: boolean;
   clientIds?: number[];
+  caseHandlerId?: number;
 }
 
 export interface UserFilters {

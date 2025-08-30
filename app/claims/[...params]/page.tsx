@@ -28,7 +28,6 @@ import { ClaimMainContent } from "@/components/claim-form/claim-main-content"
 import { useClaimForm } from "@/hooks/use-claim-form"
 import { useClaims, transformApiClaimToFrontend } from "@/hooks/use-claims"
 import { useAuth } from "@/hooks/use-auth"
-import { generateId } from "@/lib/constants"
 import type { Claim, UploadedFile, RequiredDocument } from "@/types"
 import { getRequiredDocumentsByObjectType } from "@/lib/required-documents"
 
@@ -164,7 +163,6 @@ export default function ClaimPage() {
       if (mode === "new") {
         const newClaimData = {
           ...claimFormData,
-          id: generateId(),
           claimNumber: `PL${new Date().getFullYear()}${String(Date.now()).slice(-8)}`,
           registeredById: user?.id,
         } as Claim

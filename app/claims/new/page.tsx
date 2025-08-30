@@ -57,9 +57,9 @@ export default function NewClaimPage() {
   const claimObjectTypeParam = searchParams.get("claimObjectType") || "1"
   const [claimObjectType, setClaimObjectType] = useState(claimObjectTypeParam)
   const { toast } = useToast()
-  const { createClaim, deleteClaim, initializeClaim } = useClaims()
+  const { createClaim, updateClaim, deleteClaim } = useClaims()
   const { user } = useAuth()
-  const [claimId, setClaimId] = useState<string>("")
+  const [claimId, setClaimId] = useState<string | null>(null)
   const [activeClaimSection, setActiveClaimSection] = useState("teczka-szkodowa")
   const [isSaving, setIsSaving] = useState(false)
   const contentRef = useRef<HTMLDivElement>(null)
@@ -97,17 +97,8 @@ export default function NewClaimPage() {
     handleDriverChange,
     handleAddDriver,
     handleRemoveDriver,
-    resetForm,
   } = useClaimForm()
 
-  useEffect(() => {
-    initializeClaim().then((id) => {
-      if (id) {
-        setClaimId(id)
-        setClaimFormData((prev) => ({ ...prev, id }))
-      }
-    })
-  }, [initializeClaim, setClaimFormData])
 
   useEffect(() => {
     if (user) {
@@ -308,28 +299,32 @@ export default function NewClaimPage() {
 
     const savedScheduleIds: string[] = []
     const savedDetailIds: string[] = []
-    let createdClaimId: string | null = null
+    const isUpdate = Boolean(claimId)
+    let savedClaimId = claimId
 
     try {
-      const currentClaimId = claimId || claimFormData.id
-      if (!currentClaimId) {
-        throw new Error("Brak zainicjalizowanego ID szkody")
-      }
-      const newClaimData = {
+      const claimPayload = {
         ...claimFormData,
-        id: currentClaimId,
         claimNumber:
           claimFormData.claimNumber ||
           `PL${new Date().getFullYear()}${String(Date.now()).slice(-8)}`,
         registeredById: user?.id,
       } as Claim
 
-      const createdClaim = await createClaim(newClaimData)
-
-      if (!createdClaim) {
-        throw new Error("Nie udało się utworzyć szkody")
+      let savedClaim: Claim | null
+      if (isUpdate && savedClaimId) {
+        savedClaim = await updateClaim(savedClaimId, claimPayload)
+      } else {
+        savedClaim = await createClaim(claimPayload)
       }
-      createdClaimId = createdClaim.id
+
+      if (!savedClaim || !savedClaim.id) {
+        throw new Error("Nie udało się zapisać szkody")
+      }
+
+      savedClaimId = savedClaim.id
+      setClaimId(savedClaimId)
+      setClaimFormData(savedClaim)
 
       // Save repair schedules sequentially
       for (const schedule of repairSchedules) {
@@ -337,7 +332,7 @@ export default function NewClaimPage() {
           method: "POST",
           credentials: "omit",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ ...schedule, claimId: currentClaimId }),
+          body: JSON.stringify({ ...schedule, claimId: savedClaimId }),
         })
         if (!response.ok) {
           throw new Error("Nie udało się zapisać harmonogramu naprawy")
@@ -352,7 +347,7 @@ export default function NewClaimPage() {
           method: "POST",
           credentials: "omit",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ ...detail, claimId: currentClaimId }),
+          body: JSON.stringify({ ...detail, claimId: savedClaimId }),
         })
         if (!response.ok) {
           throw new Error("Nie udało się zapisać szczegółów naprawy")
@@ -362,37 +357,28 @@ export default function NewClaimPage() {
       }
 
       toast({
-        title: "Szkoda dodana",
-        description: `Nowa szkoda ${createdClaim.spartaNumber} została pomyślnie dodana.`,
+        title: isUpdate ? "Szkoda zaktualizowana" : "Szkoda dodana",
+        description: `Szkoda ${savedClaim.spartaNumber || savedClaim.claimNumber} została pomyślnie zapisana.`,
       })
 
       if (exitAfterSave) {
         router.push("/claims")
-      } else {
-        resetForm()
-        setRepairSchedules([])
-        setRepairDetails([])
       }
     } catch (error) {
-      // rollback
       for (const id of savedDetailIds) {
         await fetch(`${process.env.NEXT_PUBLIC_API_URL}/repair-details/${id}`, {
           method: "DELETE",
           credentials: "omit",
-        }).catch(
-          () => {},
-        )
+        }).catch(() => {})
       }
       for (const id of savedScheduleIds) {
         await fetch(`${process.env.NEXT_PUBLIC_API_URL}/repair-schedules/${id}`, {
           method: "DELETE",
           credentials: "omit",
-        }).catch(
-          () => {},
-        )
+        }).catch(() => {})
       }
-      if (createdClaimId) {
-        await deleteClaim(createdClaimId)
+      if (!isUpdate && savedClaimId) {
+        await deleteClaim(savedClaimId)
       }
       console.error("Error saving claim:", error)
       toast({

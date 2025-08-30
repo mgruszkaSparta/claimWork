@@ -54,6 +54,11 @@ namespace AutomotiveClaimsApi.Controllers
             _eventDocumentStore = eventDocumentStore ?? throw new ArgumentNullException(nameof(eventDocumentStore));
         }
 
+        private static Guid EnsureClaimId(Guid? id)
+        {
+            return !id.HasValue || id == Guid.Empty ? Guid.NewGuid() : id.Value;
+        }
+
         [HttpGet]
         public async Task<ActionResult<IEnumerable<ClaimListItemDto>>> GetClaims(
             [FromQuery] string? search = null,
@@ -337,10 +342,8 @@ namespace AutomotiveClaimsApi.Controllers
         {
             try
             {
-                if (!eventDto.Id.HasValue || eventDto.Id == Guid.Empty)
-                {
-                    return BadRequest("Claim ID is required. Use the initialize endpoint to obtain one.");
-                }
+                var claimId = EnsureClaimId(eventDto.Id);
+                eventDto.Id = claimId;
 
                 var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
                 ApplicationUser? currentUser = null;

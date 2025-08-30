@@ -5,6 +5,7 @@ import { useAuth } from "@/hooks/use-auth";
 import HandlerDropdown from "@/components/handler-dropdown";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import type { HandlerSelectionEvent } from "@/types/handler";
 import { API_BASE_URL } from "@/lib/api";
 
@@ -55,35 +56,50 @@ export default function VacationPage() {
   return (
     <div className="p-6 space-y-4">
       <h1 className="text-xl font-semibold">Wniosek urlopowy</h1>
-      <div className="space-y-2">
-        <label>Data rozpoczęcia</label>
-        <Input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} />
+      <div className="flex items-center gap-2">
+        <Label className="w-40" htmlFor="start-date">Data rozpoczęcia</Label>
+        <Input
+          id="start-date"
+          type="date"
+          value={startDate}
+          onChange={(e) => setStartDate(e.target.value)}
+        />
       </div>
-      <div className="space-y-2">
-        <label>Data zakończenia</label>
-        <Input type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} />
+      <div className="flex items-center gap-2">
+        <Label className="w-40" htmlFor="end-date">Data zakończenia</Label>
+        <Input
+          id="end-date"
+          type="date"
+          value={endDate}
+          onChange={(e) => setEndDate(e.target.value)}
+        />
       </div>
-      <div className="space-y-2">
-        <label>Zastępca</label>
-        <HandlerDropdown selectedHandlerId={substituteId} onHandlerSelected={onSubstitute} />
+      <div className="flex items-center gap-2">
+        <Label className="w-40">Zastępca</Label>
+        <HandlerDropdown
+          selectedHandlerId={substituteId}
+          onHandlerSelected={onSubstitute}
+        />
       </div>
-      <div className="space-y-2">
-        <label>Menadżerowie</label>
-        <div className="flex items-center gap-2">
-          <HandlerDropdown
-            key={managers.length}
-            selectedHandlerId={managerSelection?.handlerId}
-            onHandlerSelected={onManager}
-          />
-          <Button type="button" variant="secondary" onClick={addManager}>
-            Dodaj
-          </Button>
+      <div className="flex items-start gap-2">
+        <Label className="w-40">Menadżerowie</Label>
+        <div className="space-y-2">
+          <div className="flex items-center gap-2">
+            <HandlerDropdown
+              key={managers.length}
+              selectedHandlerId={managerSelection?.handlerId}
+              onHandlerSelected={onManager}
+            />
+            <Button type="button" variant="secondary" onClick={addManager}>
+              Dodaj
+            </Button>
+          </div>
+          <ul className="list-disc list-inside">
+            {managers.map((m) => (
+              <li key={m.id}>{m.name}</li>
+            ))}
+          </ul>
         </div>
-        <ul className="list-disc list-inside">
-          {managers.map((m) => (
-            <li key={m.id}>{m.name}</li>
-          ))}
-        </ul>
       </div>
       <Button onClick={submit}>Zapisz</Button>
     </div>

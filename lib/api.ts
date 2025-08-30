@@ -259,6 +259,7 @@ export interface UserListItemDto {
   lastLogin?: string
   fullAccess?: boolean
   clientIds?: number[]
+  caseHandlerId?: number
 }
 
 export interface UpdateUsersBulkDto {
@@ -975,6 +976,7 @@ class ApiService {
     status?: string
     fullAccess?: boolean
     clientIds?: number[]
+    caseHandlerId?: number
   }> {
     return await this.request<{
       id: string
@@ -989,6 +991,7 @@ class ApiService {
       status?: string
       fullAccess?: boolean
       clientIds?: number[]
+      caseHandlerId?: number
     }>(`/auth/users/${id}`)
 
   }
@@ -1005,6 +1008,7 @@ class ApiService {
       phone?: string
       fullAccess?: boolean
       clientIds?: number[]
+      caseHandlerId?: number
     },
   ): Promise<void> {
     await this.request<void>(`/auth/users/${id}`, {
@@ -1023,6 +1027,7 @@ class ApiService {
     status?: "active" | "inactive"
     fullAccess?: boolean
     clientIds?: number[]
+    caseHandlerId?: number
   }): Promise<void> {
     await this.request<void>("/auth/register", {
       method: "POST",

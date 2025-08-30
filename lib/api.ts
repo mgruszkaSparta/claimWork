@@ -153,6 +153,12 @@ export interface AdminSettings {
   serverTime: string
 }
 
+export interface DashboardStats {
+  totalClaims: number
+  activeClaims: number
+  closedClaims: number
+}
+
 export interface EventUpsertDto {
   id?: string
   rowVersion?: string
@@ -941,6 +947,10 @@ class ApiService {
     }
     const query = search.toString()
     return this.request<NoteDto[]>(`/notes${query ? `?${query}` : ""}`)
+  }
+
+  async getDashboardStats(scope: "user" | "client" = "user"): Promise<DashboardStats> {
+    return this.request<DashboardStats>(`/dashboard/${scope}`)
   }
 
   async getCurrentUser(): Promise<{ id: string; username: string; email?: string; caseHandlerId?: number; roles?: string[]; createdAt?: string; lastLogin?: string } | undefined> {

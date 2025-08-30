@@ -301,24 +301,24 @@ namespace AutomotiveClaimsApi.Tests
         }
 
         [Fact]
-        public async Task GetClaims_Filters_By_RegisteredById()
+        public async Task GetClaims_Filters_By_CaseHandlerId()
         {
             var options = new DbContextOptionsBuilder<ApplicationDbContext>()
                 .UseInMemoryDatabase(Guid.NewGuid().ToString())
                 .Options;
 
             await using var context = new ApplicationDbContext(options);
-            var ev1 = new Event { Id = Guid.NewGuid(), RegisteredById = "user1", CreatedAt = DateTime.UtcNow, UpdatedAt = DateTime.UtcNow, IsDraft = false };
-            var ev2 = new Event { Id = Guid.NewGuid(), RegisteredById = "user2", CreatedAt = DateTime.UtcNow, UpdatedAt = DateTime.UtcNow, IsDraft = false };
+            var ev1 = new Event { Id = Guid.NewGuid(), HandlerId = 1, CreatedAt = DateTime.UtcNow, UpdatedAt = DateTime.UtcNow, IsDraft = false };
+            var ev2 = new Event { Id = Guid.NewGuid(), HandlerId = 2, CreatedAt = DateTime.UtcNow, UpdatedAt = DateTime.UtcNow, IsDraft = false };
             context.Events.AddRange(ev1, ev2);
             await context.SaveChangesAsync();
 
             var controller = MakeController(context);
-            var response = await controller.GetClaims(registeredById: "user1");
+            var response = await controller.GetClaims(caseHandlerId: 1);
             var ok = Assert.IsType<OkObjectResult>(response.Result);
             var items = Assert.IsAssignableFrom<IEnumerable<ClaimListItemDto>>(ok.Value);
             var item = Assert.Single(items);
-            Assert.Equal("user1", item.RegisteredById);
+            Assert.Equal(1, item.HandlerId);
         }
 
         [Fact]

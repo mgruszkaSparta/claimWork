@@ -204,13 +204,12 @@ export function ClaimsListDesktop({
             status: filterStatus !== "all" ? filterStatus : undefined,
             riskType: filterRisk !== "all" ? filterRisk : undefined,
             brand: filterRegistration || undefined,
-            handler: showMyClaims ? undefined : filterHandler || undefined,
+            handler: filterHandler || undefined,
             caseHandlerId: showMyClaims
-              ? undefined
+              ? user?.caseHandlerId
               : selectedSubstituteId
               ? parseInt(selectedSubstituteId, 10)
               : undefined,
-            registeredById: showMyClaims ? user?.id : undefined,
             claimObjectTypeId,
             sortBy,
             sortOrder,
@@ -242,7 +241,6 @@ export function ClaimsListDesktop({
     filterHandler,
     selectedSubstituteId,
     showMyClaims,
-    user?.id,
     user?.caseHandlerId,
     dateFilters,
     claimObjectTypeId,
@@ -369,13 +367,12 @@ export function ClaimsListDesktop({
           status: filterStatus !== "all" ? filterStatus : undefined,
           riskType: filterRisk !== "all" ? filterRisk : undefined,
           brand: filterRegistration || undefined,
-          handler: showMyClaims ? undefined : filterHandler || undefined,
+          handler: filterHandler || undefined,
           caseHandlerId: showMyClaims
-            ? undefined
+            ? user?.caseHandlerId
             : selectedSubstituteId
             ? parseInt(selectedSubstituteId, 10)
             : undefined,
-          registeredById: showMyClaims ? user?.id : undefined,
           claimObjectTypeId,
           sortBy,
           sortOrder,

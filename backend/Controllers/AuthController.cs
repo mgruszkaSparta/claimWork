@@ -100,7 +100,12 @@ namespace AutomotiveClaimsApi.Controllers
 
             if (!string.IsNullOrEmpty(dto.Role))
             {
-                await _userManager.AddToRoleAsync(user, dto.Role);
+                var roleResult = await _userManager.AddToRoleAsync(user, dto.Role);
+                if (!roleResult.Succeeded)
+                {
+                    await _userManager.DeleteAsync(user);
+                    return BadRequest(roleResult.Errors);
+                }
             }
 
             return Ok();

@@ -33,6 +33,14 @@ import { getRequiredDocumentsByObjectType } from "@/lib/required-documents"
 
 type PageMode = "new" | "view" | "edit"
 
+const NO_SAVE_SECTIONS = new Set([
+  "decyzje",
+  "odwolanie",
+  "regres",
+  "ugody",
+  "roszczenia",
+])
+
 export default function ClaimPage() {
   const params = useParams()
   const router = useRouter()
@@ -305,6 +313,7 @@ export default function ClaimPage() {
 
   // Form mode (new or edit)
   if (mode === "new" || mode === "edit") {
+    const hideSaveButtons = NO_SAVE_SECTIONS.has(activeClaimSection)
     return (
       <div className="flex flex-col h-screen bg-white">
         <ClaimTopHeader claimFormData={claimFormData} onClose={handleClose} />
@@ -385,42 +394,46 @@ export default function ClaimPage() {
               Podgląd
             </Button>
           )}
-          <Button
-            size="sm"
-            className="bg-[#1a3a6c] hover:bg-[#1a3a6c]/90 shadow-lg"
-            onClick={() => handleSaveClaim(false)}
-            disabled={isSaving}
-          >
-            {isSaving ? (
-              <>
-                <div className="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin mr-1" />
-                Zapisywanie...
-              </>
-            ) : (
-              <>
-                <Save className="h-3 w-3 mr-1" />
-                Zapisz
-              </>
-            )}
-          </Button>
-          <Button
-            size="sm"
-            className="bg-green-600 hover:bg-green-700 shadow-lg"
-            onClick={() => handleSaveClaim(true)}
-            disabled={isSaving}
-          >
-            {isSaving ? (
-              <>
-                <div className="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin mr-1" />
-                Zapisywanie...
-              </>
-            ) : (
-              <>
-                <Save className="h-3 w-3 mr-1" />
-                Zapisz i wyjdź
-              </>
-            )}
-          </Button>
+          {!hideSaveButtons && (
+            <>
+              <Button
+                size="sm"
+                className="bg-[#1a3a6c] hover:bg-[#1a3a6c]/90 shadow-lg"
+                onClick={() => handleSaveClaim(false)}
+                disabled={isSaving}
+              >
+                {isSaving ? (
+                  <>
+                    <div className="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin mr-1" />
+                    Zapisywanie...
+                  </>
+                ) : (
+                  <>
+                    <Save className="h-3 w-3 mr-1" />
+                    Zapisz
+                  </>
+                )}
+              </Button>
+              <Button
+                size="sm"
+                className="bg-green-600 hover:bg-green-700 shadow-lg"
+                onClick={() => handleSaveClaim(true)}
+                disabled={isSaving}
+              >
+                {isSaving ? (
+                  <>
+                    <div className="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin mr-1" />
+                    Zapisywanie...
+                  </>
+                ) : (
+                  <>
+                    <Save className="h-3 w-3 mr-1" />
+                    Zapisz i wyjdź
+                  </>
+                )}
+              </Button>
+            </>
+          )}
         </div>
         <Toaster />
       </div>

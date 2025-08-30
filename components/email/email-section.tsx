@@ -10,6 +10,7 @@ import { emailFolders, sampleEmails } from "@/lib/email-data"
 import type { Email, EmailCompose, EmailAttachment } from "@/types/email"
 import type { UploadedFile, RequiredDocument } from "@/types"
 import { API_BASE_URL } from "@/lib/api"
+import { slugify } from "@/utils/slugify"
 
 interface EmailSectionProps {
   claimId?: string
@@ -63,8 +64,22 @@ export const EmailSection = ({
   const updateDocuments = setUploadedFiles ?? setInternalDocuments
 
   const [internalRequiredDocs, setInternalRequiredDocs] = useState<RequiredDocument[]>([
-    { id: "req1", name: "Umowa", required: true, uploaded: false, description: "" },
-    { id: "req2", name: "Protokół", required: false, uploaded: false, description: "" },
+    {
+      id: "req1",
+      name: "Umowa",
+      required: true,
+      uploaded: false,
+      description: "",
+      category: slugify("Umowa"),
+    },
+    {
+      id: "req2",
+      name: "Protokół",
+      required: false,
+      uploaded: false,
+      description: "",
+      category: slugify("Protokół"),
+    },
   ])
   const reqDocuments = requiredDocuments ?? internalRequiredDocs
   const updateRequiredDocs = setRequiredDocuments ?? setInternalRequiredDocs

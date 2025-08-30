@@ -266,6 +266,90 @@ const transportDocuments: RequiredDocument[] = [
     required: true,
     uploaded: false,
     description: ""
+  },
+  {
+    id: "17",
+    name: "Licencja",
+    required: true,
+    uploaded: false,
+    description: ""
+  },
+  {
+    id: "18",
+    name: "Zlecenie transportowe",
+    required: true,
+    uploaded: false,
+    description: ""
+  },
+  {
+    id: "19",
+    name: "List przewozowy",
+    required: true,
+    uploaded: false,
+    description: ""
+  },
+  {
+    id: "20",
+    name: "Dokumenty załadunkowe",
+    required: true,
+    uploaded: false,
+    description: ""
+  },
+  {
+    id: "21",
+    name: "Zlecenia",
+    required: true,
+    uploaded: false,
+    description: ""
+  },
+  {
+    id: "22",
+    name: "ZTP",
+    required: true,
+    uploaded: false,
+    description: ""
+  },
+  {
+    id: "23",
+    name: "Zgłoszenie szkody",
+    required: true,
+    uploaded: false,
+    description: "",
+  },
+  {
+    id: "24",
+    name: "Faktura ratownictwo",
+    required: true,
+    uploaded: false,
+    description: ""
+  },
+  {
+    id: "25",
+    name: "Nota",
+    required: true,
+    uploaded: false,
+    description: ""
+  },
+  {
+    id: "26",
+    name: "Wypis",
+    required: true,
+    uploaded: false,
+    description: ""
+  },
+  {
+    id: "27",
+    name: "Raport",
+    required: true,
+    uploaded: false,
+    description: ""
+  },
+  {
+    id: "28",
+    name: "Tachograf",
+    required: true,
+    uploaded: false,
+    description: ""
   }
 ]
 

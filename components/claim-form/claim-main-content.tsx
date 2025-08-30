@@ -1366,7 +1366,7 @@ export const ClaimMainContent = ({
           <Card className="overflow-hidden shadow-sm border-gray-200 rounded-xl">
             <FormHeader icon={HandHeart} title="Ugoda" />
             <CardContent className="p-0 bg-white">
-              <SettlementsSection eventId={eventId || ""} />
+              {eventId && <SettlementsSection eventId={eventId} />}
             </CardContent>
           </Card>
         </div>

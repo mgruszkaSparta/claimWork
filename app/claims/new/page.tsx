@@ -49,7 +49,10 @@ interface RepairSchedule {
   status: "draft" | "submitted" | "approved" | "completed"
   createdAt?: string
   updatedAt?: string
+  isPersisted?: boolean
 }
+
+type LocalRepairDetail = RepairDetail & { isPersisted?: boolean }
 
 export default function NewClaimPage() {
   const router = useRouter()
@@ -66,7 +69,7 @@ export default function NewClaimPage() {
   
   // Repair schedules and details state
   const [repairSchedules, setRepairSchedules] = useState<RepairSchedule[]>([])
-  const [repairDetails, setRepairDetails] = useState<RepairDetail[]>([])
+  const [repairDetails, setRepairDetails] = useState<LocalRepairDetail[]>([])
   const [isAddingSchedule, setIsAddingSchedule] = useState(false)
   const [isAddingRepairDetail, setIsAddingRepairDetail] = useState(false)
   const [scheduleFormData, setScheduleFormData] = useState<Partial<RepairSchedule>>({})
@@ -219,6 +222,7 @@ export default function NewClaimPage() {
       id: generateId(),
       eventId: claimId,
       createdAt: new Date().toISOString(),
+      isPersisted: false,
     } as RepairSchedule
 
     setRepairSchedules(prev => [...prev, newSchedule])
@@ -232,13 +236,14 @@ export default function NewClaimPage() {
   }
 
   const handleSaveRepairDetail = () => {
-    const newDetail: RepairDetail = {
+    const newDetail: LocalRepairDetail = {
       ...repairDetailFormData,
       id: generateId(),
       eventId: claimId,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
-    } as RepairDetail
+      isPersisted: false,
+    } as LocalRepairDetail
 
     setRepairDetails(prev => [...prev, newDetail])
     setIsAddingRepairDetail(false)
@@ -328,33 +333,85 @@ export default function NewClaimPage() {
 
       // Save repair schedules sequentially
       for (const schedule of repairSchedules) {
-        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/repair-schedules`, {
-          method: "POST",
-          credentials: "omit",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ ...schedule, claimId: savedClaimId }),
-        })
-        if (!response.ok) {
-          throw new Error("Nie udało się zapisać harmonogramu naprawy")
+
+        const { id, isPersisted, eventId, createdAt, updatedAt, ...payload } = schedule
+        if (isPersisted && id) {
+          const response = await fetch(
+            `${process.env.NEXT_PUBLIC_API_URL}/repair-schedules/${id}`,
+            {
+              method: "PUT",
+              credentials: "omit",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify(payload),
+            },
+          )
+          if (!response.ok) {
+            throw new Error("Nie udało się zaktualizować harmonogramu naprawy")
+          }
+        } else {
+          const response = await fetch(
+            `${process.env.NEXT_PUBLIC_API_URL}/repair-schedules`,
+            {
+              method: "POST",
+              credentials: "omit",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ ...payload, claimId: savedClaimId }),
+            },
+          )
+          if (!response.ok) {
+            throw new Error("Nie udało się zapisać harmonogramu naprawy")
+          }
+          const saved = await response.json()
+          if (saved?.id) {
+            schedule.id = saved.id
+            schedule.isPersisted = true
+            savedScheduleIds.push(saved.id)
+          }
+
         }
-        const saved = await response.json()
-        if (saved?.id) savedScheduleIds.push(saved.id)
       }
+      setRepairSchedules([...repairSchedules])
 
       // Save repair details sequentially
       for (const detail of repairDetails) {
-        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/repair-details`, {
-          method: "POST",
-          credentials: "omit",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ ...detail, claimId: savedClaimId }),
-        })
-        if (!response.ok) {
-          throw new Error("Nie udało się zapisać szczegółów naprawy")
+
+        const { id, isPersisted, eventId, createdAt, updatedAt, ...payload } = detail
+        if (isPersisted && id) {
+          const response = await fetch(
+            `${process.env.NEXT_PUBLIC_API_URL}/repair-details/${id}`,
+            {
+              method: "PUT",
+              credentials: "omit",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify(payload),
+            },
+          )
+          if (!response.ok) {
+            throw new Error("Nie udało się zaktualizować szczegółów naprawy")
+          }
+        } else {
+          const response = await fetch(
+            `${process.env.NEXT_PUBLIC_API_URL}/repair-details`,
+            {
+              method: "POST",
+              credentials: "omit",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ ...payload, claimId: savedClaimId }),
+            },
+          )
+          if (!response.ok) {
+            throw new Error("Nie udało się zapisać szczegółów naprawy")
+          }
+          const saved = await response.json()
+          if (saved?.id) {
+            detail.id = saved.id
+            detail.isPersisted = true
+            savedDetailIds.push(saved.id)
+          }
+
         }
-        const saved = await response.json()
-        if (saved?.id) savedDetailIds.push(saved.id)
       }
+      setRepairDetails([...repairDetails])
 
       toast({
         title: isUpdate ? "Szkoda zaktualizowana" : "Szkoda dodana",

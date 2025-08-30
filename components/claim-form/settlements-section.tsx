@@ -19,7 +19,7 @@ import type { Settlement } from "@/lib/api/settlements"
 import type { DocumentDto } from "@/lib/api"
 
 interface SettlementsSectionProps {
-  eventId: string
+  eventId?: string
 }
 
 interface SettlementFormData {
@@ -46,6 +46,8 @@ const initialFormData: SettlementFormData = {
 
 export const SettlementsSection: React.FC<SettlementsSectionProps> = ({ eventId }) => {
   const { toast } = useToast()
+
+  if (!eventId) return null
 
   const [settlements, setSettlements] = useState<Settlement[]>([])
   const [isListLoading, setIsListLoading] = useState(false)

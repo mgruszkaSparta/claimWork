@@ -685,6 +685,7 @@ namespace AutomotiveClaimsApi.Controllers
                 await _context.SaveChangesAsync();
 
                 var updatedEvent = await _context.Events
+                    .AsSplitQuery()
                     .Include(e => e.Participants).ThenInclude(p => p.Drivers)
                     .Include(e => e.Documents.Where(d => !d.IsDeleted))
                     .Include(e => e.Damages)

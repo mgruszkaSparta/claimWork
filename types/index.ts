@@ -4,7 +4,7 @@ import type { Settlement } from "@/lib/api/settlements"
 
 export type { Settlement } from "@/lib/api/settlements"
 
-export enum ClaimStatus {
+export enum ClaimStatusCode {
   DoPrzydzielenia = 1,
   NowaSzkoda = 2,
   Zarejestrowana = 3,
@@ -14,6 +14,13 @@ export enum ClaimStatus {
   WOdwolaniu = 9,
   Zamknieta = 10,
 }
+
+export type ClaimStatus =
+  | "Złożone"
+  | "W trakcie analizy"
+  | "Zaakceptowane"
+  | "Odrzucone"
+  | "Częściowo zaakceptowane"
 
 export interface Note {
   id?: string

@@ -66,24 +66,8 @@ function HomePage({ user, onLogout }: PageProps) {
   useEffect(() => {
     async function loadStats() {
       try {
-        const res = await fetch("/api/dashboard");
-        if (!res.ok) {
-          console.warn(
-            "Failed to fetch dashboard stats:",
-            res.status,
-            res.statusText,
-          );
-          return;
-        }
-        const contentType = res.headers.get("content-type");
-        if (!contentType || !contentType.includes("application/json")) {
-          console.warn(
-            "Unexpected response format for dashboard stats:",
-            contentType,
-          );
-          return;
-        }
-        const data = await res.json();
+        const scope = isBasicUser ? "user" : "client";
+        const data = await apiService.getDashboardStats(scope);
         setStats([
           { ...initialStats[0], value: data.totalClaims?.toString() },
           { ...initialStats[1], value: data.activeClaims?.toString() },

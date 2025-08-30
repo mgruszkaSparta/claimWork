@@ -210,7 +210,6 @@ export function ClaimsListDesktop({
               : selectedSubstituteId
               ? parseInt(selectedSubstituteId, 10)
               : undefined,
-            registeredById: showMyClaims ? user?.id : undefined,
             claimObjectTypeId,
             sortBy,
             sortOrder,
@@ -242,7 +241,6 @@ export function ClaimsListDesktop({
     filterHandler,
     selectedSubstituteId,
     showMyClaims,
-    user?.id,
     user?.caseHandlerId,
     dateFilters,
     claimObjectTypeId,
@@ -375,7 +373,6 @@ export function ClaimsListDesktop({
             : selectedSubstituteId
             ? parseInt(selectedSubstituteId, 10)
             : undefined,
-          registeredById: showMyClaims ? user?.id : undefined,
           claimObjectTypeId,
           sortBy,
           sortOrder,

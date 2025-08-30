@@ -198,9 +198,11 @@ export function ClaimsListMobile({
             riskType: filterRisk !== "all" ? filterRisk : undefined,
             brand: filterRegistration || undefined,
             handler: filterHandler || undefined,
-            claimHandlerId:
-              showMyClaims ? user?.id : selectedSubstituteId || undefined,
-            registeredById: showMyClaims ? user?.id : undefined,
+            caseHandlerId: showMyClaims
+              ? user?.caseHandlerId
+              : selectedSubstituteId
+              ? parseInt(selectedSubstituteId, 10)
+              : undefined,
             claimObjectTypeId,
             sortBy,
             sortOrder,
@@ -232,8 +234,7 @@ export function ClaimsListMobile({
     filterHandler,
     selectedSubstituteId,
     showMyClaims,
-    user?.id,
-    user?.username,
+    user?.caseHandlerId,
     dateFilters,
     claimObjectTypeId,
     sortBy,
@@ -359,8 +360,12 @@ export function ClaimsListMobile({
           status: filterStatus !== "all" ? filterStatus : undefined,
           riskType: filterRisk !== "all" ? filterRisk : undefined,
           brand: filterRegistration || undefined,
-          handler: showMyClaims ? user?.username : filterHandler || undefined,
-          registeredById: showMyClaims ? user?.id : undefined,
+          handler: filterHandler || undefined,
+          caseHandlerId: showMyClaims
+            ? user?.caseHandlerId
+            : selectedSubstituteId
+            ? parseInt(selectedSubstituteId, 10)
+            : undefined,
           claimObjectTypeId,
           sortBy,
           sortOrder,

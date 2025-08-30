@@ -21,10 +21,9 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { LeaveAttachments } from "@/components/leaves/LeaveAttachments";
 import { LeaveRequestSummary } from "@/components/leaves/LeaveRequestSummary";
-import HandlerDropdown from "@/components/handler-dropdown";
-import type { HandlerSelectionEvent } from "@/types/handler";
 import { Employee } from "@/types/employee";
 import { useAuth } from "@/hooks/use-auth";
+import { getEmployees } from "@/services/employees-service";
 
 export default function LeaveRequestFormPage() {
   const router = useRouter();
@@ -38,6 +37,12 @@ export default function LeaveRequestFormPage() {
     email: user?.email,
     caseHandlerId: user?.caseHandlerId,
   };
+
+  const { data: employees } = useQuery<Employee[]>({
+    queryKey: ["employees"],
+    queryFn: () => getEmployees(),
+    enabled: !!currentUser.id,
+  });
 
   const { data: existingRequest, isLoading } = useQuery({
     queryKey: ["leaveRequest", id],
@@ -281,14 +286,26 @@ export default function LeaveRequestFormPage() {
             <div className="grid sm:grid-cols-2 gap-4">
               <div className="grid gap-2">
                 <Label htmlFor="substitute">Osoba zastępująca *</Label>
-                <HandlerDropdown
-                  selectedHandlerId={substituteId || undefined}
-                  onHandlerSelected={(e: HandlerSelectionEvent) => {
-                    setSubstituteId(e.handlerId);
-                    setSubstituteName(e.handlerName);
-                    setSubstituteEmail(e.handlerEmail || "");
+                <Select
+                  value={substituteId}
+                  onValueChange={(value) => {
+                    setSubstituteId(value);
+                    const emp = employees?.find((e) => e.id === value);
+                    setSubstituteName(emp?.name || "");
+                    setSubstituteEmail(emp?.email || "");
                   }}
-                />
+                >
+                  <SelectTrigger id="substitute">
+                    <SelectValue placeholder="Wybierz zastępcę" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {employees?.map((e) => (
+                      <SelectItem key={e.id} value={e.id}>
+                        {e.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
               <div className="grid gap-2">
                 <Label>Status akceptacji zastępstwa</Label>

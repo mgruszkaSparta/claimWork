@@ -333,6 +333,7 @@ export default function NewClaimPage() {
 
       // Save repair schedules sequentially
       for (const schedule of repairSchedules) {
+
         const { id, isPersisted, eventId, createdAt, updatedAt, ...payload } = schedule
         if (isPersisted && id) {
           const response = await fetch(
@@ -366,12 +367,14 @@ export default function NewClaimPage() {
             schedule.isPersisted = true
             savedScheduleIds.push(saved.id)
           }
+
         }
       }
       setRepairSchedules([...repairSchedules])
 
       // Save repair details sequentially
       for (const detail of repairDetails) {
+
         const { id, isPersisted, eventId, createdAt, updatedAt, ...payload } = detail
         if (isPersisted && id) {
           const response = await fetch(
@@ -405,6 +408,7 @@ export default function NewClaimPage() {
             detail.isPersisted = true
             savedDetailIds.push(saved.id)
           }
+
         }
       }
       setRepairDetails([...repairDetails])

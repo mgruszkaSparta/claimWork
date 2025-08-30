@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { DocumentPreview, type FileType } from "@/components/document-preview"
 import { useToast } from "@/hooks/use-toast"
 import { useDragDrop } from "@/hooks/use-drag-drop"
 import InsuranceDropdown from "@/components/insurance-dropdown"
@@ -26,8 +26,6 @@ import {
   AlertTriangle,
   Minus,
   Loader2,
-  ChevronLeft,
-  ChevronRight,
 } from "lucide-react"
 import {
   AlertDialog,
@@ -1017,72 +1015,23 @@ export function RecourseSection({ eventId }: RecourseSectionProps) {
         </div>
       )}
 
-      {/* File Preview Modal */}
-      <Dialog open={isPreviewVisible} onOpenChange={closePreview}>
-        <DialogContent className="max-w-4xl w-full max-h-[90vh] flex flex-col">
-          <DialogHeader>
-            <DialogTitle>Podgląd: {previewFileName}</DialogTitle>
-          </DialogHeader>
-
-          <div className="flex-1 overflow-auto flex items-center justify-center bg-muted/50 rounded-lg">
-            {previewFileType === "pdf" && previewUrl && (
-              <iframe src={previewUrl} className="w-full h-[70vh] border-0" title="PDF Preview" />
-            )}
-
-            {previewFileType === "image" && previewUrl && (
-              <img
-                src={previewUrl || "/placeholder.svg"}
-                className="max-w-full max-h-[70vh] object-contain"
-                alt="Preview"
-              />
-            )}
-
-            {previewFileType === "excel" && previewUrl && (
-              <iframe
-                src={`https://view.officeapps.live.com/op/embed.aspx?src=${encodeURIComponent(previewUrl)}`}
-                className="w-full h-[70vh] border-0"
-                title="Excel Preview"
-              />
-            )}
-
-            {previewFileType === "other" && (
-              <div className="text-center p-8">
-                <FileText className="mx-auto mb-4 h-12 w-12 text-muted-foreground" />
-                <p className="text-muted-foreground">Podgląd niedostępny dla tego typu pliku.</p>
-                <p className="text-muted-foreground text-sm mt-2">Możesz pobrać plik, aby go otworzyć.</p>
-              </div>
-            )}
-          </div>
-
-          <div className="flex justify-between pt-4">
-            {previewDocs.length > 1 && (
-              <div className="flex gap-2">
-                <Button variant="ghost" size="sm" onClick={showPrevDoc}>
-                  <ChevronLeft className="h-4 w-4" />
-                  <span className="sr-only">Poprzedni</span>
-                </Button>
-                <Button variant="ghost" size="sm" onClick={showNextDoc}>
-                  <ChevronRight className="h-4 w-4" />
-                  <span className="sr-only">Następny</span>
-                </Button>
-              </div>
-            )}
-            <Button
-              onClick={() =>
-                previewRecourse &&
-                downloadFile(
-                  previewRecourse,
-                  previewDocs.length ? previewDocs[previewIndex] : previewDoc || undefined
-                )
-              }
-              className="flex items-center gap-2"
-            >
-              <Download className="h-4 w-4" />
-              Pobierz plik
-            </Button>
-          </div>
-        </DialogContent>
-      </Dialog>
+      <DocumentPreview
+        isOpen={isPreviewVisible}
+        onClose={closePreview}
+        url={previewUrl || ""}
+        fileName={previewFileName}
+        fileType={previewFileType as FileType}
+        canNavigate={previewDocs.length > 1}
+        onPrev={showPrevDoc}
+        onNext={showNextDoc}
+        onDownload={() =>
+          previewRecourse &&
+          downloadFile(
+            previewRecourse,
+            previewDocs.length ? previewDocs[previewIndex] : previewDoc || undefined,
+          )
+        }
+      />
     </div>
   </div>
   )

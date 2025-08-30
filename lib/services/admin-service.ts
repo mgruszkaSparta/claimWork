@@ -74,6 +74,7 @@ export const adminService = {
       avatar: undefined,
       fullAccess: dto.fullAccess ?? false,
       clientIds: dto.clientIds ?? [],
+      caseHandlerId: dto.caseHandlerId,
     };
   },
 
@@ -88,6 +89,7 @@ export const adminService = {
       phone: undefined,
       fullAccess: data.fullAccess,
       clientIds: data.clientIds,
+      caseHandlerId: data.caseHandlerId,
     });
   },
 
@@ -102,6 +104,7 @@ export const adminService = {
       status: data.status,
       fullAccess: data.fullAccess,
       clientIds: data.clientIds,
+      caseHandlerId: data.caseHandlerId,
     })
   },
 
@@ -143,5 +146,6 @@ function mapUserDto(dto: UserListItemDto): User {
     avatar: undefined,
     fullAccess: dto.fullAccess,
     clientIds: dto.clientIds,
+    caseHandlerId: dto.caseHandlerId,
   };
 }

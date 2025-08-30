@@ -9,6 +9,7 @@ interface User {
   email?: string
   caseHandlerId?: number
   roles?: string[]
+  departmentId?: string
 }
 
 interface AuthState {

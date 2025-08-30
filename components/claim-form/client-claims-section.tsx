@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Badge } from "@/components/ui/badge"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { DocumentPreview } from "@/components/document-preview"
 import { useToast } from "@/hooks/use-toast"
 import {
   FileText,
@@ -28,8 +28,6 @@ import {
   AlertCircle,
   Minus,
   Loader2,
-  ChevronLeft,
-  ChevronRight,
 } from "lucide-react"
 import type { ClientClaim, ClaimStatus } from "@/types"
 import type { DocumentDto } from "@/lib/api"
@@ -1047,66 +1045,23 @@ export function ClientClaimsSection({ clientClaims, onClientClaimsChange, claimI
         </div>
       )}
 
-      {/* Preview Modal */}
-      <Dialog open={previewModal.isOpen} onOpenChange={closePreview}>
-        <DialogContent className="max-w-4xl w-full max-h-[90vh] flex flex-col">
-          <DialogHeader>
-            <DialogTitle>Podgląd: {previewModal.fileName}</DialogTitle>
-          </DialogHeader>
-
-          <div className="flex-1 overflow-auto flex items-center justify-center bg-muted/50 rounded-lg">
-            {previewModal.fileType === "pdf" ? (
-              <iframe src={previewModal.url} className="w-full h-[70vh] border-0" title="Document Preview" />
-            ) : previewModal.fileType === "image" ? (
-              <img
-                src={previewModal.url || "/placeholder.svg"}
-                alt="Preview"
-                className="max-w-full max-h-[70vh] object-contain"
-              />
-            ) : previewModal.fileType === "excel" ? (
-              <iframe
-                src={`https://view.officeapps.live.com/op/embed.aspx?src=${encodeURIComponent(previewModal.url)}`}
-                className="w-full h-[70vh] border-0"
-                title="Document Preview"
-              />
-            ) : (
-              <div className="text-center p-8">
-                <FileText className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                <p className="text-gray-600">Podgląd niedostępny dla tego typu pliku.</p>
-                <p className="text-gray-500 text-sm mt-2">Możesz pobrać plik, aby go otworzyć.</p>
-              </div>
-            )}
-          </div>
-
-          <div className="flex justify-between pt-4">
-            {previewDocs.length > 1 && (
-              <div className="flex gap-2">
-                <Button variant="ghost" size="sm" onClick={showPrevDoc}>
-                  <ChevronLeft className="h-4 w-4" />
-                  <span className="sr-only">Poprzedni</span>
-                </Button>
-                <Button variant="ghost" size="sm" onClick={showNextDoc}>
-                  <ChevronRight className="h-4 w-4" />
-                  <span className="sr-only">Następny</span>
-                </Button>
-              </div>
-            )}
-            <Button
-              onClick={() =>
-                previewModal.claim &&
-                downloadFile(
-                  previewModal.claim,
-                  previewDocs.length ? previewDocs[previewIndex] : previewModal.doc || undefined,
-                )
-              }
-              className="flex items-center gap-2"
-            >
-              <Download className="h-4 w-4" />
-              Pobierz plik
-            </Button>
-          </div>
-        </DialogContent>
-      </Dialog>
+      <DocumentPreview
+        isOpen={previewModal.isOpen}
+        onClose={closePreview}
+        url={previewModal.url}
+        fileName={previewModal.fileName}
+        fileType={previewModal.fileType}
+        canNavigate={previewDocs.length > 1}
+        onPrev={showPrevDoc}
+        onNext={showNextDoc}
+        onDownload={() =>
+          previewModal.claim &&
+          downloadFile(
+            previewModal.claim,
+            previewDocs.length ? previewDocs[previewIndex] : previewModal.doc || undefined,
+          )
+        }
+      />
     </div>
   </div>
   )

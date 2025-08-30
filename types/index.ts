@@ -4,6 +4,17 @@ import type { Settlement } from "@/lib/api/settlements"
 
 export type { Settlement } from "@/lib/api/settlements"
 
+export enum ClaimStatusCode {
+  DoPrzydzielenia = 1,
+  NowaSzkoda = 2,
+  Zarejestrowana = 3,
+  WLikwidacji = 5,
+  CzescowoZlikwidowana = 6,
+  Regres = 8,
+  WOdwolaniu = 9,
+  Zamknieta = 10,
+}
+
 export type ClaimStatus =
   | "Złożone"
   | "W trakcie analizy"
@@ -55,7 +66,7 @@ export interface Claim
     | "clientId"
     | "insuranceCompanyId"
     | "leasingCompanyId"
-    | "claimHandlerId"
+    | "caseHandlerId"
     | "servicesCalled"
     | "participants"
     | "damages"
@@ -87,7 +98,7 @@ export interface Claim
   clientId?: string
   insuranceCompanyId?: string
   leasingCompanyId?: string
-  claimHandlerId?: string
+  caseHandlerId?: string
   isDraft?: boolean
   /**
    * List of services called.
@@ -295,7 +306,8 @@ export interface RequiredDocument {
   required: boolean
   uploaded: boolean
   description: string
-  category?: string
+  /** Machine readable category identifier */
+  category: string
 }
 
 export interface DocumentsSectionProps {

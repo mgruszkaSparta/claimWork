@@ -66,24 +66,8 @@ function HomePage({ user, onLogout }: PageProps) {
   useEffect(() => {
     async function loadStats() {
       try {
-        const res = await fetch("/api/dashboard");
-        if (!res.ok) {
-          console.warn(
-            "Failed to fetch dashboard stats:",
-            res.status,
-            res.statusText,
-          );
-          return;
-        }
-        const contentType = res.headers.get("content-type");
-        if (!contentType || !contentType.includes("application/json")) {
-          console.warn(
-            "Unexpected response format for dashboard stats:",
-            contentType,
-          );
-          return;
-        }
-        const data = await res.json();
+        const scope = isBasicUser ? "user" : "client";
+        const data = await apiService.getDashboardStats(scope);
         setStats([
           { ...initialStats[0], value: data.totalClaims?.toString() },
           { ...initialStats[1], value: data.activeClaims?.toString() },
@@ -166,10 +150,10 @@ function HomePage({ user, onLogout }: PageProps) {
                
                 {/* Stats Cards */}
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {stats.map((stat, index) => {
-                    const Icon = stat.icon
-                    return (
-                      <Card key={`stat-${stat.title}`} className="hover:shadow-lg transition-shadow">
+                {stats.map((stat, index) => {
+                  const Icon = stat.icon
+                  return (
+                    <Card key={`stat-${stat.title}`} className="hover:shadow-lg transition-shadow">
                         <CardContent className="p-6">
                           <div className="flex items-center justify-between">
                             <div>

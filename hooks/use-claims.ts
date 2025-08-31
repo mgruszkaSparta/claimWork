@@ -42,6 +42,8 @@ export const transformApiClaimToFrontend = (apiClaim: ClaimDto): Claim => {
     inspectionContactName,
     inspectionContactPhone,
     inspectionContactEmail,
+    handlerId,
+    caseHandlerId,
     ...rest
   } = apiClaim
 
@@ -70,7 +72,7 @@ export const transformApiClaimToFrontend = (apiClaim: ClaimDto): Claim => {
     objectTypeId: rest.objectTypeId,
     insuranceCompanyId: rest.insuranceCompanyId?.toString(),
     leasingCompanyId: rest.leasingCompanyId?.toString(),
-    caseHandlerId: rest.caseHandlerId?.toString(),
+    caseHandlerId: (caseHandlerId ?? handlerId)?.toString(),
     clientId: rest.clientId?.toString(),
     totalClaim: rest.totalClaim ?? 0,
     payout: rest.payout ?? 0,
@@ -268,7 +270,7 @@ export const transformFrontendClaimToApiPayload = (
     insuranceCompanyId: insuranceCompanyId ? parseInt(insuranceCompanyId, 10) : undefined,
     leasingCompanyId: leasingCompanyId ? parseInt(leasingCompanyId, 10) : undefined,
     clientId: clientId ? parseInt(clientId, 10) : undefined,
-    caseHandlerId: caseHandlerId ? parseInt(caseHandlerId, 10) : undefined,
+    handlerId: caseHandlerId ? parseInt(caseHandlerId, 10) : undefined,
     victimRegistrationNumber: injuredParty?.vehicleRegistration,
     perpetratorRegistrationNumber: perpetrator?.vehicleRegistration,
     riskType,
@@ -420,7 +422,9 @@ export function useClaims() {
           clientId: claim.clientId?.toString(),
           insuranceCompanyId: claim.insuranceCompanyId?.toString(),
           leasingCompanyId: claim.leasingCompanyId?.toString(),
-          caseHandlerId: claim.caseHandlerId?.toString(),
+          caseHandlerId: (claim as any).caseHandlerId
+            ? (claim as any).caseHandlerId.toString()
+            : claim.handlerId?.toString(),
         })) as Claim[]
 
         setClaims((prev) =>

@@ -18,7 +18,7 @@ test('includes dropdown selections in payload', () => {
   assert.equal(payload.damageType, 'DT')
   assert.equal(payload.insuranceCompanyId, 5)
   assert.equal(payload.clientId, 7)
-  assert.equal(payload.caseHandlerId, 9)
+  assert.equal(payload.handlerId, 9)
 })
 
 test('maps transportDamage fields', () => {

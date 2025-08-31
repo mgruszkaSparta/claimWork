@@ -58,10 +58,10 @@ export interface EventListItemDto {
   reportDate?: string
   riskType?: string
   damageType?: string
-  leasingCompanyId?: number
-  leasingCompany?: string
-  caseHandlerId?: number
-  handler?: string
+    leasingCompanyId?: number
+    leasingCompany?: string
+    handlerId?: number
+    handler?: string
   objectTypeId?: number
   registeredById?: string
   registeredByName?: string
@@ -91,7 +91,7 @@ export interface EventDto extends EventListItemDto {
   perpetratorData?: string
 
   insuranceCompanyId?: number
-  caseHandlerId?: number
+  handlerId?: number
   riskType?: string
   damageType?: string
   subcontractorName?: string
@@ -188,7 +188,7 @@ export interface EventUpsertDto {
   insuranceCompany?: string
   leasingCompanyId?: number
   leasingCompany?: string
-  caseHandlerId?: number
+  handlerId?: number
   handler?: string
   damageDate?: string
   reportDate?: string

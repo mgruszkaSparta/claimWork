@@ -1,5 +1,6 @@
 import { Button } from "./ui/button";
-import { Home, Plus, List, User } from "lucide-react";
+import { Home, Plus, List, User, Bell } from "lucide-react";
+import { useNotifications } from "../hooks/useNotifications";
 
 interface BottomNavigationProps {
   activeSection: string;
@@ -7,6 +8,8 @@ interface BottomNavigationProps {
 }
 
 export function BottomNavigation({ activeSection, onNavigate }: BottomNavigationProps) {
+  const { unreadCount } = useNotifications();
+
   const navItems = [
     {
       id: "dashboard",
@@ -15,10 +18,16 @@ export function BottomNavigation({ activeSection, onNavigate }: BottomNavigation
       color: "#1a3a6c"
     },
     {
-      id: "report", 
+      id: "report",
       label: "Zgłoś",
       icon: Plus,
       color: "#059669"
+    },
+    {
+      id: "notifications",
+      label: "Powiad.",
+      icon: Bell,
+      color: "#3b82f6"
     },
     {
       id: "claims",
@@ -60,8 +69,13 @@ export function BottomNavigation({ activeSection, onNavigate }: BottomNavigation
             >
               <div className={`relative ${isActive ? 'scale-110' : 'scale-100'} transition-transform duration-200`}>
                 <Icon className={`w-6 h-6`} style={{ color: isActive ? item.color : '#64748b' }} />
+                {item.id === 'notifications' && unreadCount > 0 && (
+                  <div className="absolute -top-1 -right-1 w-4 h-4 bg-[#dc2626] rounded-full flex items-center justify-center">
+                    <span className="text-[10px] text-white font-medium">{Math.min(unreadCount, 9)}</span>
+                  </div>
+                )}
                 {isActive && (
-                  <div 
+                  <div
                     className="absolute -bottom-1 left-1/2 transform -translate-x-1/2 w-1 h-1 rounded-full"
                     style={{ backgroundColor: item.color }}
                   />

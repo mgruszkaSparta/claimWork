@@ -251,7 +251,11 @@ export const DocumentsSection = React.forwardRef<
     }
     if (searchQuery.trim()) {
       const q = searchQuery.toLowerCase()
-      docs = docs.filter((d) => d.fileName.toLowerCase().includes(q))
+      docs = docs.filter(
+        (d) =>
+          d.fileName.toLowerCase().includes(q) ||
+          d.originalFileName.toLowerCase().includes(q),
+      )
     }
     return docs
   }, [allDocuments, hiddenCategories, showRequiredOnly, requiredDocuments, searchQuery])

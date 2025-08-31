@@ -10,7 +10,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover";
 import { CalendarIcon, Car, Home, Truck, ArrowLeft, Bell } from "lucide-react";
 import { format } from "date-fns";
 import { pl } from "date-fns/locale";
-import { toast } from "sonner@2.0.3";
+import { toast } from "sonner";
 import { useNotifications } from "../hooks/useNotifications";
 
 interface ReportClaimProps {

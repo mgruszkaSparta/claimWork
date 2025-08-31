@@ -115,6 +115,7 @@ export default function NewClaimPage() {
       if (id) {
         setClaimId(id)
         setClaimFormData((prev) => ({ ...prev, id }))
+        setIsPersisted(true)
       }
     }
     init()

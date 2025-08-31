@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
 import { Button } from "./ui/button";
 import { Badge } from "./ui/badge";
@@ -6,6 +6,37 @@ import { Input } from "./ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
 import { ArrowLeft, Car, Home, Truck, Search, Eye, Bell } from "lucide-react";
 import { useNotifications } from "../hooks/useNotifications";
+
+interface MobileEventDto {
+  id: string;
+  claimNumber?: string;
+  damageType?: string;
+  damageDate?: string;
+  status?: string;
+  totalClaim?: number;
+  currency?: string;
+  eventLocation?: string;
+  eventDescription?: string;
+  handler?: string;
+  handlerPhone?: string;
+  handlerEmail?: string;
+}
+
+interface Claim {
+  id: string;
+  type: string;
+  date: string;
+  status: string;
+  amount: string;
+  location: string;
+  description: string;
+  contact: {
+    person: string;
+    phone: string;
+    email: string;
+  };
+  progress: number;
+}
 
 interface ActiveClaimsProps {
   onNavigate: (section: string, claimId?: string) => void;
@@ -16,69 +47,37 @@ export function ActiveClaims({ onNavigate }: ActiveClaimsProps) {
   const [searchTerm, setSearchTerm] = useState("");
   const [filterType, setFilterType] = useState("all");
   const [filterStatus, setFilterStatus] = useState("all");
+  const [claims, setClaims] = useState<Claim[]>([]);
 
-  const mockClaims = [
-    {
-      id: "SK-2024-001",
-      type: "komunikacyjna",
-      date: "2024-08-25",
-      status: "w trakcie",
-      amount: "8,500 PLN",
-      location: "ul. Marszałkowska 15, Warszawa",
-      description: "Kolizja z pojazdem jadącym z przeciwka. Uszkodzony przód pojazdu, konieczna wymiana zderzaka i reflektorów.",
-      contact: {
-        person: "Jan Kowalski",
-        phone: "+48 123 456 789",
-        email: "jan.kowalski@email.com"
-      },
-      progress: 65
-    },
-    {
-      id: "SK-2024-002", 
-      type: "mienie",
-      date: "2024-08-20",
-      status: "oczekuje",
-      amount: "2,300 PLN",
-      location: "ul. Długa 8, Kraków",
-      description: "Zalanie mieszkania w wyniku awarii instalacji wodnej. Uszkodzone podłogi i ściany w pokoju dziennym.",
-      contact: {
-        person: "Anna Nowak",
-        phone: "+48 987 654 321", 
-        email: "anna.nowak@email.com"
-      },
-      progress: 25
-    },
-    {
-      id: "SK-2024-003",
-      type: "transport",
-      date: "2024-08-18",
-      status: "w trakcie",
-      amount: "15,200 PLN",
-      location: "A4 km 120",
-      description: "Uszkodzenie ładunku elektroniki podczas transportu. Wymaga ekspertyzy technicznej.",
-      contact: {
-        person: "Marek Wiśniewski",
-        phone: "+48 555 666 777",
-        email: "marek.wisniewski@transport.pl"
-      },
-      progress: 80
-    },
-    {
-      id: "SK-2024-004",
-      type: "komunikacyjna", 
-      date: "2024-08-15",
-      status: "zakończona",
-      amount: "3,200 PLN",
-      location: "ul. Królewska 22, Gdańsk",
-      description: "Szkoda parkingowa - zarysowania na karoserii pojazdu.",
-      contact: {
-        person: "Piotr Zieliński",
-        phone: "+48 111 222 333",
-        email: "piotr.zielinski@email.com"
-      },
-      progress: 100
-    }
-  ];
+  useEffect(() => {
+    const fetchClaims = async () => {
+      try {
+        const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5200/api";
+        const res = await fetch(`${apiUrl}/mobile/events`);
+        if (!res.ok) throw new Error("Failed to fetch events");
+        const data: MobileEventDto[] = await res.json();
+        const mapped: Claim[] = data.map((e) => ({
+          id: e.claimNumber || e.id,
+          type: e.damageType || "",
+          date: e.damageDate?.split("T")[0] || "",
+          status: e.status || "",
+          amount: e.totalClaim ? `${e.totalClaim} ${e.currency || ""}` : "",
+          location: e.eventLocation || "",
+          description: e.eventDescription || "",
+          contact: {
+            person: e.handler || "",
+            phone: e.handlerPhone || "",
+            email: e.handlerEmail || "",
+          },
+          progress: 0,
+        }));
+        setClaims(mapped);
+      } catch (err) {
+        console.error("Error fetching events", err);
+      }
+    };
+    fetchClaims();
+  }, []);
 
   const getTypeIcon = (type: string) => {
     const iconProps = "w-5 h-5";
@@ -105,7 +104,7 @@ export function ActiveClaims({ onNavigate }: ActiveClaimsProps) {
     return '#059669';
   };
 
-  const filteredClaims = mockClaims.filter(claim => {
+  const filteredClaims = claims.filter(claim => {
     const matchesSearch = claim.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          claim.description.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesType = filterType === 'all' || claim.type === filterType;

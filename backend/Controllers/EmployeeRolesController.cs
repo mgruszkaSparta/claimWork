@@ -2,6 +2,7 @@ using AutomotiveClaimsApi.Data;
 using AutomotiveClaimsApi.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System.Linq;
 
 namespace AutomotiveClaimsApi.Controllers
 {
@@ -33,6 +34,14 @@ namespace AutomotiveClaimsApi.Controllers
         [HttpPost]
         public async Task<ActionResult<EmployeeRole>> Create(EmployeeRole role)
         {
+            if (role.Id == 0)
+            {
+                var nextId = await _context.EmployeeRoles
+                    .Select(r => (int?)r.Id)
+                    .MaxAsync() ?? 0;
+                role.Id = nextId + 1;
+            }
+
             _context.EmployeeRoles.Add(role);
             await _context.SaveChangesAsync();
             return CreatedAtAction(nameof(Get), new { id = role.Id }, role);

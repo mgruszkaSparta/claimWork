@@ -252,6 +252,7 @@ namespace AutomotiveClaimsApi.Migrations
             modelBuilder.Entity("AutomotiveClaimsApi.Models.Appeal", b =>
                 {
                     b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
                         .HasColumnType("integer");
 
                     b.Property<decimal?>("AppealAmount")
@@ -577,6 +578,7 @@ namespace AutomotiveClaimsApi.Migrations
             modelBuilder.Entity("AutomotiveClaimsApi.Models.RiskType", b =>
                 {
                     b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
                         .HasColumnType("integer");
 
                     b.Property<string>("Code")
@@ -1402,6 +1404,7 @@ namespace AutomotiveClaimsApi.Migrations
             modelBuilder.Entity("AutomotiveClaimsApi.Models.Dictionary.CaseHandler", b =>
                 {
                     b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
                         .HasColumnType("integer");
 
                     b.Property<string>("Code")

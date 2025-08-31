@@ -180,12 +180,15 @@ export function UserFormDialog({ open, onOpenChange, user, roles, onSave }: User
           )}
           <div>
             <Label>Likwidator</Label>
-            <Select value={caseHandlerId} onValueChange={setCaseHandlerId}>
+            <Select
+              value={caseHandlerId || "none"}
+              onValueChange={(v) => setCaseHandlerId(v === "none" ? "" : v)}
+            >
               <SelectTrigger>
                 <SelectValue placeholder="Wybierz likwidatora" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Brak</SelectItem>
+                <SelectItem value="none">Brak</SelectItem>
                 {caseHandlers.map((h) => (
                   <SelectItem key={h.id} value={String(h.id)}>
                     {h.name}

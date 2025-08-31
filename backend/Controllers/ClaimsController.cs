@@ -15,6 +15,7 @@ using System.Security.Claims;
 using Microsoft.AspNetCore.Identity;
 using AutomotiveClaimsApi.Services;
 using AutomotiveClaimsApi.Services.EventSearch;
+using AutomotiveClaimsApi.Common;
 
 using Microsoft.AspNetCore.Http;
 
@@ -372,8 +373,10 @@ namespace AutomotiveClaimsApi.Controllers
                     handler = await _context.CaseHandlers.FindAsync(currentUser.CaseHandlerId.Value);
                 }
 
-                var statusCode = (handler != null || isHandler) ? "NEW" : "TO_ASSIGN";
-                var statusEntity = await _context.ClaimStatuses.FirstOrDefaultAsync(cs => cs.Code == statusCode);
+                var statusId = (handler != null || isHandler)
+                    ? (int)ClaimStatusCode.New
+                    : (int)ClaimStatusCode.ToAssign;
+                var statusEntity = await _context.ClaimStatuses.FindAsync(statusId);
 
                 var existingEvent = await _context.Events
                     .AsSplitQuery()

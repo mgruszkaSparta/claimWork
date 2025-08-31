@@ -1,6 +1,7 @@
 import { createRoot } from "react-dom/client";
 import App from "./App.tsx";
 import "./styles/globals.css";
+import { NotificationsProvider } from "./hooks/useNotifications";
 
 // Request notification permission and register service worker
 if (typeof window !== "undefined") {
@@ -33,4 +34,8 @@ if (typeof window !== "undefined") {
   }
 }
 
-createRoot(document.getElementById("root")!).render(<App />);
+createRoot(document.getElementById("root")!).render(
+  <NotificationsProvider>
+    <App />
+  </NotificationsProvider>
+);

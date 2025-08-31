@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
 
 export interface Notification {
   id: string;
@@ -11,7 +11,19 @@ export interface Notification {
   actionType?: 'status_update' | 'new_claim' | 'reminder' | 'system';
 }
 
-export function useNotifications() {
+interface NotificationsContextValue {
+  notifications: Notification[];
+  unreadCount: number;
+  markAsRead: (id: string) => void;
+  markAllAsRead: () => void;
+  addNotification: (notification: Omit<Notification, 'id' | 'timestamp' | 'read'>) => void;
+  removeNotification: (id: string) => void;
+  getFormattedTime: (timestamp: Date) => string;
+}
+
+const NotificationsContext = createContext<NotificationsContextValue | undefined>(undefined);
+
+export function NotificationsProvider({ children }: { children: ReactNode }) {
   const [notifications, setNotifications] = useState<Notification[]>([]);
 
   useEffect(() => {
@@ -86,7 +98,7 @@ export function useNotifications() {
     return timestamp.toLocaleDateString('pl-PL');
   };
 
-  return {
+  const value: NotificationsContextValue = {
     notifications,
     unreadCount,
     markAsRead,
@@ -95,4 +107,18 @@ export function useNotifications() {
     removeNotification,
     getFormattedTime
   };
+
+  return (
+    <NotificationsContext.Provider value={value}>
+      {children}
+    </NotificationsContext.Provider>
+  );
+}
+
+export function useNotifications() {
+  const context = useContext(NotificationsContext);
+  if (!context) {
+    throw new Error('useNotifications must be used within NotificationsProvider');
+  }
+  return context;
 }

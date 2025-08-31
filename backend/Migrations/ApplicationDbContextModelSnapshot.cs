@@ -252,9 +252,7 @@ namespace AutomotiveClaimsApi.Migrations
             modelBuilder.Entity("AutomotiveClaimsApi.Models.Appeal", b =>
                 {
                     b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer")
-                        .HasAnnotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn);
+                        .HasColumnType("integer");
 
                     b.Property<decimal?>("AppealAmount")
                         .HasColumnType("decimal(18,2)");
@@ -579,9 +577,7 @@ namespace AutomotiveClaimsApi.Migrations
             modelBuilder.Entity("AutomotiveClaimsApi.Models.RiskType", b =>
                 {
                     b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer")
-                        .HasAnnotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn);
+                        .HasColumnType("integer");
 
                     b.Property<string>("Code")
                         .IsRequired()
@@ -1406,9 +1402,7 @@ namespace AutomotiveClaimsApi.Migrations
             modelBuilder.Entity("AutomotiveClaimsApi.Models.Dictionary.CaseHandler", b =>
                 {
                     b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer")
-                        .HasAnnotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn);
+                        .HasColumnType("integer");
 
                     b.Property<string>("Code")
                         .HasMaxLength(20)
@@ -1444,9 +1438,7 @@ namespace AutomotiveClaimsApi.Migrations
             modelBuilder.Entity("AutomotiveClaimsApi.Models.Department", b =>
                 {
                     b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer")
-                        .HasAnnotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn);
+                        .HasColumnType("integer");
 
                     b.Property<string>("Name")
                         .IsRequired()
@@ -1461,9 +1453,7 @@ namespace AutomotiveClaimsApi.Migrations
             modelBuilder.Entity("AutomotiveClaimsApi.Models.EmployeeRole", b =>
                 {
                     b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer")
-                        .HasAnnotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn);
+                        .HasColumnType("integer");
 
                     b.Property<string>("Name")
                         .IsRequired()
@@ -1478,9 +1468,7 @@ namespace AutomotiveClaimsApi.Migrations
             modelBuilder.Entity("AutomotiveClaimsApi.Models.Employee", b =>
                 {
                     b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer")
-                        .HasAnnotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn);
+                        .HasColumnType("integer");
 
                     b.Property<int?>("DepartmentId")
                         .HasColumnType("integer");

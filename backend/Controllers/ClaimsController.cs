@@ -54,6 +54,11 @@ namespace AutomotiveClaimsApi.Controllers
             _eventDocumentStore = eventDocumentStore ?? throw new ArgumentNullException(nameof(eventDocumentStore));
         }
 
+        private static Guid EnsureClaimId(Guid? id)
+        {
+            return !id.HasValue || id == Guid.Empty ? Guid.NewGuid() : id.Value;
+        }
+
         [HttpGet]
         public async Task<ActionResult<IEnumerable<ClaimListItemDto>>> GetClaims(
             [FromQuery] string? search = null,
@@ -307,28 +312,17 @@ namespace AutomotiveClaimsApi.Controllers
         }
 
         [HttpPost("initialize")]
-        public async Task<ActionResult<object>> InitializeClaim()
+        public ActionResult<object> InitializeClaim()
         {
             try
             {
                 var id = Guid.NewGuid();
-                var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-                var eventEntity = new Event
-                {
-                    Id = id,
-                    CreatedAt = DateTime.UtcNow,
-                    UpdatedAt = DateTime.UtcNow,
-                    RegisteredById = userId,
-                    IsDraft = true
-                };
-                _context.Events.Add(eventEntity);
-                await _context.SaveChangesAsync();
                 return Ok(new { id });
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error initializing event");
-                return StatusCode(500, new { error = "Failed to initialize event" });
+                _logger.LogError(ex, "Error initializing event id");
+                return StatusCode(500, new { error = "Failed to initialize event id" });
             }
         }
 
@@ -337,10 +331,8 @@ namespace AutomotiveClaimsApi.Controllers
         {
             try
             {
-                if (!eventDto.Id.HasValue || eventDto.Id == Guid.Empty)
-                {
-                    return BadRequest("Claim ID is required. Use the initialize endpoint to obtain one.");
-                }
+                var claimId = EnsureClaimId(eventDto.Id);
+                eventDto.Id = claimId;
 
                 var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
                 ApplicationUser? currentUser = null;
@@ -682,6 +674,7 @@ namespace AutomotiveClaimsApi.Controllers
                 await _context.SaveChangesAsync();
 
                 var updatedEvent = await _context.Events
+                    .AsSplitQuery()
                     .Include(e => e.Participants).ThenInclude(p => p.Drivers)
                     .Include(e => e.Documents.Where(d => !d.IsDeleted))
                     .Include(e => e.Damages)

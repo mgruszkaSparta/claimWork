@@ -15,7 +15,10 @@ export interface RepairSchedulePayload {
   status: "draft" | "submitted" | "approved" | "completed"
 }
 
-function ensureRequired(data: { vehicleFleetNumber?: string }) {
+function ensureRequired(data: { eventId?: string; vehicleFleetNumber?: string }) {
+  if (!data?.eventId) {
+    throw new Error('eventId is required')
+  }
   if (!data.vehicleFleetNumber) {
     throw new Error('vehicleFleetNumber is required')
   }

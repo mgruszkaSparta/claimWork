@@ -26,6 +26,13 @@ export async function POST(request: NextRequest) {
 
     const eventId = body.eventId || body.claimId
 
+    if (!eventId) {
+      return NextResponse.json(
+        { error: "eventId is required" },
+        { status: 400 },
+      )
+    }
+
     const newRepairDetail: RepairDetail = {
       id: Math.random().toString(36).substr(2, 9),
       eventId,

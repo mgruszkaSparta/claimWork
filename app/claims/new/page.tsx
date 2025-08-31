@@ -49,7 +49,10 @@ interface RepairSchedule {
   status: "draft" | "submitted" | "approved" | "completed"
   createdAt?: string
   updatedAt?: string
+  isPersisted?: boolean
 }
+
+type LocalRepairDetail = RepairDetail & { isPersisted?: boolean }
 
 export default function NewClaimPage() {
   const router = useRouter()
@@ -57,16 +60,17 @@ export default function NewClaimPage() {
   const claimObjectTypeParam = searchParams.get("claimObjectType") || "1"
   const [claimObjectType, setClaimObjectType] = useState(claimObjectTypeParam)
   const { toast } = useToast()
-  const { createClaim, deleteClaim, initializeClaim } = useClaims()
+  const { initializeClaim, createClaim, updateClaim, deleteClaim } = useClaims()
   const { user } = useAuth()
-  const [claimId, setClaimId] = useState<string>("")
+  const [claimId, setClaimId] = useState<string | null>(null)
+  const [isPersisted, setIsPersisted] = useState(false)
   const [activeClaimSection, setActiveClaimSection] = useState("teczka-szkodowa")
   const [isSaving, setIsSaving] = useState(false)
   const contentRef = useRef<HTMLDivElement>(null)
   
   // Repair schedules and details state
   const [repairSchedules, setRepairSchedules] = useState<RepairSchedule[]>([])
-  const [repairDetails, setRepairDetails] = useState<RepairDetail[]>([])
+  const [repairDetails, setRepairDetails] = useState<LocalRepairDetail[]>([])
   const [isAddingSchedule, setIsAddingSchedule] = useState(false)
   const [isAddingRepairDetail, setIsAddingRepairDetail] = useState(false)
   const [scheduleFormData, setScheduleFormData] = useState<Partial<RepairSchedule>>({})
@@ -85,6 +89,8 @@ export default function NewClaimPage() {
     },
   ])
 
+  const [pendingFiles, setPendingFiles] = useState<UploadedFile[]>([])
+
   const [requiredDocuments, setRequiredDocuments] = useState<RequiredDocument[]>(() =>
     getRequiredDocumentsByObjectType(claimObjectTypeParam)
   )
@@ -97,17 +103,20 @@ export default function NewClaimPage() {
     handleDriverChange,
     handleAddDriver,
     handleRemoveDriver,
-    resetForm,
   } = useClaimForm()
 
+
   useEffect(() => {
-    initializeClaim().then((id) => {
+    const init = async () => {
+      const id = await initializeClaim()
       if (id) {
         setClaimId(id)
         setClaimFormData((prev) => ({ ...prev, id }))
       }
-    })
+    }
+    init()
   }, [initializeClaim, setClaimFormData])
+
 
   useEffect(() => {
     if (user) {
@@ -228,6 +237,7 @@ export default function NewClaimPage() {
       id: generateId(),
       eventId: claimId,
       createdAt: new Date().toISOString(),
+      isPersisted: false,
     } as RepairSchedule
 
     setRepairSchedules(prev => [...prev, newSchedule])
@@ -241,13 +251,14 @@ export default function NewClaimPage() {
   }
 
   const handleSaveRepairDetail = () => {
-    const newDetail: RepairDetail = {
+    const newDetail: LocalRepairDetail = {
       ...repairDetailFormData,
       id: generateId(),
       eventId: claimId,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
-    } as RepairDetail
+      isPersisted: false,
+    } as LocalRepairDetail
 
     setRepairDetails(prev => [...prev, newDetail])
     setIsAddingRepairDetail(false)
@@ -308,91 +319,148 @@ export default function NewClaimPage() {
 
     const savedScheduleIds: string[] = []
     const savedDetailIds: string[] = []
-    let createdClaimId: string | null = null
+    const isUpdate = isPersisted && Boolean(claimId)
+    let savedClaimId = claimId
 
     try {
-      const currentClaimId = claimId || claimFormData.id
-      if (!currentClaimId) {
-        throw new Error("Brak zainicjalizowanego ID szkody")
-      }
-      const newClaimData = {
+      const claimPayload = {
         ...claimFormData,
-        id: currentClaimId,
         claimNumber:
           claimFormData.claimNumber ||
           `PL${new Date().getFullYear()}${String(Date.now()).slice(-8)}`,
         registeredById: user?.id,
       } as Claim
 
-      const createdClaim = await createClaim(newClaimData)
-
-      if (!createdClaim) {
-        throw new Error("Nie udało się utworzyć szkody")
+      let savedClaim: Claim | null = null
+      if (isUpdate && savedClaimId) {
+        // PUT /claims/{id} returns 204 with no body when successful.
+        // In that case updateClaim resolves to the existing claim merged
+        // with the provided data. Fall back to the known id if the body
+        // is empty to avoid treating the save as a failure.
+        savedClaim = await updateClaim(savedClaimId, claimPayload)
+      } else {
+        savedClaim = await createClaim(claimPayload)
       }
-      createdClaimId = createdClaim.id
+
+      const finalClaimId = savedClaim?.id || savedClaimId
+      if (!finalClaimId) {
+        throw new Error("Nie udało się zapisać szkody")
+      }
+
+      savedClaimId = finalClaimId
+      setClaimId(finalClaimId)
+      if (savedClaim) {
+        setClaimFormData(savedClaim)
+      }
+      setIsPersisted(true)
 
       // Save repair schedules sequentially
       for (const schedule of repairSchedules) {
-        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/repair-schedules`, {
-          method: "POST",
-          credentials: "omit",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ ...schedule, claimId: currentClaimId }),
-        })
-        if (!response.ok) {
-          throw new Error("Nie udało się zapisać harmonogramu naprawy")
+        const { id, isPersisted, eventId, createdAt, updatedAt, ...payload } = schedule
+        if (isPersisted && id) {
+          const response = await fetch(
+            `${process.env.NEXT_PUBLIC_API_URL}/repair-schedules/${id}`,
+            {
+              method: "PUT",
+              credentials: "omit",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify(payload),
+            },
+          )
+          if (!response.ok) {
+            throw new Error("Nie udało się zaktualizować harmonogramu naprawy")
+          }
+        } else {
+          const response = await fetch(
+            `${process.env.NEXT_PUBLIC_API_URL}/repair-schedules`,
+            {
+              method: "POST",
+              credentials: "omit",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ ...payload, claimId: savedClaimId }),
+            },
+          )
+          if (!response.ok) {
+            throw new Error("Nie udało się zapisać harmonogramu naprawy")
+          }
+          const saved = await response.json()
+          if (saved?.id) {
+            schedule.id = saved.id
+            schedule.isPersisted = true
+            savedScheduleIds.push(saved.id)
+          }
         }
-        const saved = await response.json()
-        if (saved?.id) savedScheduleIds.push(saved.id)
       }
+      setRepairSchedules([...repairSchedules])
 
       // Save repair details sequentially
       for (const detail of repairDetails) {
-        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/repair-details`, {
-          method: "POST",
-          credentials: "omit",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ ...detail, claimId: currentClaimId }),
-        })
-        if (!response.ok) {
-          throw new Error("Nie udało się zapisać szczegółów naprawy")
+        const { id, isPersisted, eventId, createdAt, updatedAt, ...payload } = detail
+        if (isPersisted && id) {
+          const response = await fetch(
+            `${process.env.NEXT_PUBLIC_API_URL}/repair-details/${id}`,
+            {
+              method: "PUT",
+              credentials: "omit",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify(payload),
+            },
+          )
+          if (!response.ok) {
+            throw new Error("Nie udało się zaktualizować szczegółów naprawy")
+          }
+        } else {
+          const response = await fetch(
+            `${process.env.NEXT_PUBLIC_API_URL}/repair-details`,
+            {
+              method: "POST",
+              credentials: "omit",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ ...payload, claimId: savedClaimId }),
+            },
+          )
+          if (!response.ok) {
+            throw new Error("Nie udało się zapisać szczegółów naprawy")
+          }
+          const saved = await response.json()
+          if (saved?.id) {
+            detail.id = saved.id
+            detail.isPersisted = true
+            savedDetailIds.push(saved.id)
+          }
         }
-        const saved = await response.json()
-        if (saved?.id) savedDetailIds.push(saved.id)
       }
+      setRepairDetails([...repairDetails])
+
+      const claimIdentifier =
+        savedClaim?.spartaNumber ||
+        savedClaim?.claimNumber ||
+        claimFormData.spartaNumber ||
+        claimFormData.claimNumber
 
       toast({
-        title: "Szkoda dodana",
-        description: `Nowa szkoda ${createdClaim.spartaNumber} została pomyślnie dodana.`,
+        title: isUpdate ? "Szkoda zaktualizowana" : "Szkoda dodana",
+        description: `Szkoda ${claimIdentifier} została pomyślnie zapisana.`,
       })
 
       if (exitAfterSave) {
         router.push("/claims")
-      } else {
-        resetForm()
-        setRepairSchedules([])
-        setRepairDetails([])
       }
     } catch (error) {
-      // rollback
       for (const id of savedDetailIds) {
         await fetch(`${process.env.NEXT_PUBLIC_API_URL}/repair-details/${id}`, {
           method: "DELETE",
           credentials: "omit",
-        }).catch(
-          () => {},
-        )
+        }).catch(() => {})
       }
       for (const id of savedScheduleIds) {
         await fetch(`${process.env.NEXT_PUBLIC_API_URL}/repair-schedules/${id}`, {
           method: "DELETE",
           credentials: "omit",
-        }).catch(
-          () => {},
-        )
+        }).catch(() => {})
       }
-      if (createdClaimId) {
-        await deleteClaim(createdClaimId)
+      if (!isUpdate && savedClaimId) {
+        await deleteClaim(savedClaimId)
       }
       console.error("Error saving claim:", error)
       toast({
@@ -445,6 +513,8 @@ export default function NewClaimPage() {
               handleRemoveDriver={handleRemoveDriver}
               uploadedFiles={uploadedFiles}
               setUploadedFiles={setUploadedFiles}
+              pendingFiles={pendingFiles}
+              setPendingFiles={setPendingFiles}
               requiredDocuments={requiredDocuments}
               setRequiredDocuments={setRequiredDocuments}
               initialClaimObjectType={claimObjectType}

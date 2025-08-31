@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useEffect, useRef } from 'react'
+import React, { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { FormHeader } from '@/components/ui/form-header'
@@ -21,7 +21,6 @@ import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 import type { Claim, ParticipantInfo, UploadedFile, RequiredDocument } from '@/types'
 import { getRequiredDocumentsByObjectType } from '@/lib/required-documents'
 import { authFetch } from '@/lib/auth-fetch'
-import { generateId } from '@/lib/constants'
 
 interface ClaimFormProps {
   initialData?: Claim
@@ -30,13 +29,13 @@ interface ClaimFormProps {
 
 export function ClaimForm({ initialData, mode }: ClaimFormProps) {
   const router = useRouter()
-  const { createClaim, updateClaim, initializeClaim, loading, error } = useClaims()
+  const { createClaim, updateClaim, loading, error } = useClaims()
   const { toast } = useToast()
-  useUnsavedChangesWarning(mode !== 'view')
-  const initialized = useRef(false)
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false)
+  useUnsavedChangesWarning(mode !== 'view' && hasUnsavedChanges)
   const [formData, setFormData] = useState<Claim>({
 
-    id: initialData?.id || generateId(),
+    id: initialData?.id,
 
     spartaNumber: '',
     claimNumber: '',
@@ -104,21 +103,14 @@ export function ClaimForm({ initialData, mode }: ClaimFormProps) {
   const mapCategoryNameToCode = (name?: string | null) =>
     requiredDocuments.find((d) => d.name === name)?.category || name || 'Inne dokumenty'
 
-  useEffect(() => {
-    if (!initialized.current && mode === 'create' && !formData.id) {
-      initialized.current = true
-      initializeClaim().then((id) => {
-        if (id) {
-          setFormData((prev) => ({ ...prev, id }))
-        }
-      })
-    }
-  }, [mode, formData.id, initializeClaim])
+
+  const markDirty = () => setHasUnsavedChanges(true)
 
   const handleInputChange = (field: keyof Claim, value: any) => {
+    markDirty()
     setFormData(prev => ({
       ...prev,
-      [field]: value
+      [field]: value,
     }))
   }
 
@@ -127,31 +119,34 @@ export function ClaimForm({ initialData, mode }: ClaimFormProps) {
   }, [formData.objectTypeId])
 
   const handleInjuredPartyChange = (participant: ParticipantInfo | undefined) => {
+    markDirty()
     setFormData(prev => ({
       ...prev,
-      injuredParty: participant
+      injuredParty: participant,
     }))
   }
 
   const handlePerpetratorChange = (participant: ParticipantInfo | undefined) => {
+    markDirty()
     setFormData(prev => ({
       ...prev,
-      perpetrator: participant
+      perpetrator: participant,
     }))
   }
 
   const handleServiceChange = (service: string, checked: boolean) => {
+    markDirty()
     setFormData(prev => {
       const currentServices = prev.servicesCalled || []
       if (checked) {
         return {
           ...prev,
-          servicesCalled: [...currentServices, service as any]
+          servicesCalled: [...currentServices, service as any],
         }
       } else {
         return {
           ...prev,
-          servicesCalled: currentServices.filter(s => s !== service)
+          servicesCalled: currentServices.filter(s => s !== service),
         }
       }
     })
@@ -207,6 +202,7 @@ export function ClaimForm({ initialData, mode }: ClaimFormProps) {
         }
 
         setFormData(saved)
+        setHasUnsavedChanges(false)
         router.push(`/claims/${saved.id}/view`)
       }
     } catch (err) {

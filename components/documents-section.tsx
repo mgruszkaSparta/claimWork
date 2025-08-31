@@ -103,6 +103,9 @@ export const DocumentsSection = React.forwardRef<
   const [selectedRequiredDocs, setSelectedRequiredDocs] = useState<string[]>([])
 
   const [showRequiredOnly, setShowRequiredOnly] = useState(false)
+  const [showWithFilesOnly, setShowWithFilesOnly] = useState(false)
+  const [showEmptyOnly, setShowEmptyOnly] = useState(false)
+  const [sortRecentFirst, setSortRecentFirst] = useState(false)
   const [searchQuery, setSearchQuery] = useState("")
   const [requiredDocsSearchQuery, setRequiredDocsSearchQuery] = useState("")
 
@@ -351,12 +354,57 @@ export const DocumentsSection = React.forwardRef<
   }
 
   const documentCategories = React.useMemo(() => {
-    const categoriesFromRequired = requiredDocuments.filter((d) => d.uploaded).map((d) => d.name)
+    const categoriesFromRequired = requiredDocuments.map((d) => d.name)
     const categoriesFromDocuments = [...new Set(visibleDocuments.map((d) => d.documentType))]
-    return [
+    let categories = [
       ...new Set(["Inne dokumenty", ...categoriesFromRequired, ...categoriesFromDocuments]),
     ].filter((c) => !hiddenCategories.includes(c))
-  }, [requiredDocuments, visibleDocuments, hiddenCategories])
+
+    if (showRequiredOnly) {
+      const requiredNames = requiredDocuments.map((d) => d.name)
+      categories = categories.filter((c) => requiredNames.includes(c))
+    }
+
+    if (showWithFilesOnly) {
+      categories = categories.filter((c) =>
+        visibleDocuments.some((d) => d.documentType === c),
+      )
+    }
+
+    if (showEmptyOnly) {
+      categories = categories.filter(
+        (c) => !visibleDocuments.some((d) => d.documentType === c),
+      )
+    }
+
+    if (sortRecentFirst) {
+      categories = categories.sort((a, b) => {
+        const latestA = Math.max(
+          ...visibleDocuments
+            .filter((d) => d.documentType === a)
+            .map((d) => new Date(d.uploadedAt).getTime()),
+          0,
+        )
+        const latestB = Math.max(
+          ...visibleDocuments
+            .filter((d) => d.documentType === b)
+            .map((d) => new Date(d.uploadedAt).getTime()),
+          0,
+        )
+        return latestB - latestA
+      })
+    }
+
+    return categories
+  }, [
+    requiredDocuments,
+    visibleDocuments,
+    hiddenCategories,
+    showRequiredOnly,
+    showWithFilesOnly,
+    showEmptyOnly,
+    sortRecentFirst,
+  ])
 
   const handleFileUpload = async (files: FileList | null, categoryName: string | null) => {
 
@@ -1466,13 +1514,31 @@ export const DocumentsSection = React.forwardRef<
               >
                 Wymagane
               </Badge>
-              <Badge variant="secondary" className="cursor-pointer px-2">
+              <Badge
+                variant="secondary"
+                className={`cursor-pointer px-2 ${showWithFilesOnly ? "bg-blue-600 text-white" : "bg-blue-100 text-blue-800"}`}
+                onClick={() => {
+                  setShowWithFilesOnly((prev) => !prev)
+                  if (!showWithFilesOnly) setShowEmptyOnly(false)
+                }}
+              >
                 Z plikami
               </Badge>
-              <Badge variant="secondary" className="cursor-pointer px-2">
+              <Badge
+                variant="secondary"
+                className={`cursor-pointer px-2 ${showEmptyOnly ? "bg-blue-600 text-white" : "bg-blue-100 text-blue-800"}`}
+                onClick={() => {
+                  setShowEmptyOnly((prev) => !prev)
+                  if (!showEmptyOnly) setShowWithFilesOnly(false)
+                }}
+              >
                 Puste
               </Badge>
-              <Badge variant="secondary" className="cursor-pointer px-2">
+              <Badge
+                variant="secondary"
+                className={`cursor-pointer px-2 ${sortRecentFirst ? "bg-blue-600 text-white" : "bg-blue-100 text-blue-800"}`}
+                onClick={() => setSortRecentFirst((prev) => !prev)}
+              >
                 Ostatnie
               </Badge>
             </div>

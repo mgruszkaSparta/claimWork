@@ -608,6 +608,22 @@ export const DocumentsSection = React.forwardRef<
     if (e.target) e.target.value = ""
   }
 
+  useEffect(() => {
+    if (!eventId || !isGuid(eventId) || pendingFiles.length === 0) return
+
+    const uploadPending = async () => {
+      for (const file of pendingFiles) {
+        if (!file.file) continue
+        const dt = new DataTransfer()
+        dt.items.add(file.file)
+        await handleFileUpload(dt.files, file.category || "Inne dokumenty")
+      }
+      setPendingFiles?.([])
+    }
+
+    uploadPending()
+  }, [eventId, pendingFiles])
+
   const handleFileDelete = async (documentId: string | number) => {
 
     const isPending = pendingFiles.some((f) => f.id === documentId)

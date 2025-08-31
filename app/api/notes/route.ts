@@ -41,6 +41,13 @@ export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
 
+    if (!body?.eventId) {
+      return NextResponse.json(
+        { error: "eventId is required" },
+        { status: 400 },
+      )
+    }
+
     const response = await fetch(`${API_BASE_URL}/notes`, {
       method: "POST",
       headers: {

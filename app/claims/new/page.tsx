@@ -60,9 +60,12 @@ export default function NewClaimPage() {
   const claimObjectTypeParam = searchParams.get("claimObjectType") || "1"
   const [claimObjectType, setClaimObjectType] = useState(claimObjectTypeParam)
   const { toast } = useToast()
-  const { createClaim, updateClaim, deleteClaim } = useClaims()
+
+  const { initializeClaim, createClaim, updateClaim, deleteClaim } = useClaims()
   const { user } = useAuth()
   const [claimId, setClaimId] = useState<string | null>(null)
+  const [isPersisted, setIsPersisted] = useState(false)
+
   const [activeClaimSection, setActiveClaimSection] = useState("teczka-szkodowa")
   const [isSaving, setIsSaving] = useState(false)
   const contentRef = useRef<HTMLDivElement>(null)
@@ -88,6 +91,8 @@ export default function NewClaimPage() {
     },
   ])
 
+  const [pendingFiles, setPendingFiles] = useState<UploadedFile[]>([])
+
   const [requiredDocuments, setRequiredDocuments] = useState<RequiredDocument[]>(() =>
     getRequiredDocumentsByObjectType(claimObjectTypeParam)
   )
@@ -101,6 +106,20 @@ export default function NewClaimPage() {
     handleAddDriver,
     handleRemoveDriver,
   } = useClaimForm()
+
+
+
+  useEffect(() => {
+    const init = async () => {
+      const id = await initializeClaim()
+      if (id) {
+        setClaimId(id)
+        setClaimFormData((prev) => ({ ...prev, id }))
+      }
+    }
+    init()
+  }, [initializeClaim, setClaimFormData])
+
 
 
   useEffect(() => {
@@ -304,7 +323,9 @@ export default function NewClaimPage() {
 
     const savedScheduleIds: string[] = []
     const savedDetailIds: string[] = []
-    const isUpdate = Boolean(claimId)
+
+    const isUpdate = isPersisted && Boolean(claimId)
+
     let savedClaimId = claimId
 
     try {
@@ -330,6 +351,8 @@ export default function NewClaimPage() {
       savedClaimId = savedClaim.id
       setClaimId(savedClaimId)
       setClaimFormData(savedClaim)
+
+      setIsPersisted(true)
 
       // Save repair schedules sequentially
       for (const schedule of repairSchedules) {
@@ -488,6 +511,8 @@ export default function NewClaimPage() {
               handleRemoveDriver={handleRemoveDriver}
               uploadedFiles={uploadedFiles}
               setUploadedFiles={setUploadedFiles}
+              pendingFiles={pendingFiles}
+              setPendingFiles={setPendingFiles}
               requiredDocuments={requiredDocuments}
               setRequiredDocuments={setRequiredDocuments}
               initialClaimObjectType={claimObjectType}

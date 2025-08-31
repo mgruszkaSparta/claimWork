@@ -86,11 +86,19 @@ export async function POST(request: NextRequest) {
   try {
     const formData = await request.formData()
 
-    const eventId = (formData.get("eventId") as string | null) || (formData.get("claimId") as string | null)
-    if (eventId) {
-      formData.set("eventId", eventId)
-      formData.delete("claimId")
+    const eventId =
+      (formData.get("eventId") as string | null) ||
+      (formData.get("claimId") as string | null)
+
+    if (!eventId) {
+      return NextResponse.json(
+        { error: "eventId is required" },
+        { status: 400 },
+      )
     }
+
+    formData.set("eventId", eventId)
+    formData.delete("claimId")
 
     const response = await fetchWithRetry(`${API_BASE_URL}/settlements`, {
       method: "POST",

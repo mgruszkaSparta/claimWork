@@ -83,6 +83,8 @@ interface ClaimMainContentProps {
   handleRemoveDriver: (party: "injuredParty" | "perpetrator", driverIndex: number) => void
   uploadedFiles: UploadedFile[]
   setUploadedFiles: React.Dispatch<React.SetStateAction<UploadedFile[]>>
+  pendingFiles?: UploadedFile[]
+  setPendingFiles?: React.Dispatch<React.SetStateAction<UploadedFile[]>>
   requiredDocuments: RequiredDocument[]
   setRequiredDocuments: React.Dispatch<React.SetStateAction<RequiredDocument[]>>
   initialClaimObjectType?: string
@@ -190,6 +192,8 @@ export const ClaimMainContent = ({
   handleRemoveDriver,
   uploadedFiles = [],
   setUploadedFiles,
+  pendingFiles = [],
+  setPendingFiles,
   requiredDocuments = [],
   setRequiredDocuments,
   initialClaimObjectType = "1",
@@ -1316,17 +1320,17 @@ export const ClaimMainContent = ({
               </Button>
             </FormHeader>
             <CardContent className="p-0 bg-white">
-              {eventId && (
-                <DocumentsSection
-                  uploadedFiles={uploadedFiles}
-                  setUploadedFiles={setUploadedFiles}
-                  requiredDocuments={requiredDocuments}
-                  setRequiredDocuments={setRequiredDocuments}
-                  eventId={eventId}
-                  storageKey={`main-documents-${eventId}`}
-                  ref={documentsSectionRef}
-                />
-              )}
+              <DocumentsSection
+                uploadedFiles={uploadedFiles}
+                setUploadedFiles={setUploadedFiles}
+                requiredDocuments={requiredDocuments}
+                setRequiredDocuments={setRequiredDocuments}
+                eventId={eventId}
+                storageKey={`main-documents-${eventId || 'new'}`}
+                pendingFiles={pendingFiles}
+                setPendingFiles={setPendingFiles}
+                ref={documentsSectionRef}
+              />
             </CardContent>
           </Card>
         </div>

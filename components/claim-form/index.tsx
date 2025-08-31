@@ -101,7 +101,9 @@ export function ClaimForm({ initialData, mode }: ClaimFormProps) {
   const { createDamage } = useDamages(formData.id)
 
   const mapCategoryNameToCode = (name?: string | null) =>
-    requiredDocuments.find((d) => d.name === name)?.category || name || 'Inne dokumenty'
+    requiredDocuments.find((d) => d.name === name)?.category ||
+    name?.toLowerCase().replace(/\s+/g, '-') ||
+    'Inne dokumenty'
 
 
   const markDirty = () => setHasUnsavedChanges(true)

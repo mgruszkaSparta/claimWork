@@ -36,6 +36,7 @@ namespace AutomotiveClaimsApi.Controllers
         private readonly IDocumentService _documentService;
         private readonly IConfiguration _config;
         private readonly IEventDocumentStore _eventDocumentStore;
+        private readonly IMobileNotificationStore? _mobileNotificationStore;
 
         public ClaimsController(
             ApplicationDbContext context,
@@ -44,7 +45,8 @@ namespace AutomotiveClaimsApi.Controllers
             UserManager<ApplicationUser>? userManager = null,
             INotificationService? notificationService = null,
             IDocumentService? documentService = null,
-            IEventDocumentStore? eventDocumentStore = null)
+            IEventDocumentStore? eventDocumentStore = null,
+            IMobileNotificationStore? mobileNotificationStore = null)
         {
             _context = context;
             _logger = logger;
@@ -53,6 +55,7 @@ namespace AutomotiveClaimsApi.Controllers
             _notificationService = notificationService;
             _documentService = documentService ?? throw new ArgumentNullException(nameof(documentService));
             _eventDocumentStore = eventDocumentStore ?? throw new ArgumentNullException(nameof(eventDocumentStore));
+            _mobileNotificationStore = mobileNotificationStore;
         }
 
         private static Guid EnsureClaimId(Guid? id)
@@ -437,9 +440,22 @@ namespace AutomotiveClaimsApi.Controllers
 
                     await _context.SaveChangesAsync();
 
-                    if (!isHandler && currentUser != null && _notificationService != null)
+                    if (!isHandler && currentUser != null)
                     {
-                        await _notificationService.NotifyAsync(existingEvent, currentUser, ClaimNotificationEvent.ClaimCreated);
+                        var claimIdentifier = existingEvent.ClaimNumber ?? existingEvent.SpartaNumber ?? existingEvent.Id.ToString();
+                        _mobileNotificationStore?.Add(new MobileNotificationDto
+                        {
+                            Title = "Nowa szkoda",
+                            Message = $"Dodano nowe zgłoszenie szkody {claimIdentifier}",
+                            Type = "success",
+                            ClaimId = claimIdentifier,
+                            ActionType = "new_claim"
+                        });
+
+                        if (_notificationService != null)
+                        {
+                            await _notificationService.NotifyAsync(existingEvent, currentUser, ClaimNotificationEvent.ClaimCreated);
+                        }
                     }
 
                     await _eventDocumentStore.SaveAsync(existingEvent);
@@ -506,9 +522,22 @@ namespace AutomotiveClaimsApi.Controllers
                     .Include(e => e.RegisteredBy)
                     .FirstOrDefaultAsync(e => e.Id == eventEntity.Id);
 
-                if (!isHandler && currentUser != null && _notificationService != null && createdEvent != null)
+                if (!isHandler && currentUser != null && createdEvent != null)
                 {
-                    await _notificationService.NotifyAsync(createdEvent, currentUser, ClaimNotificationEvent.ClaimCreated);
+                    var claimIdentifier = createdEvent.ClaimNumber ?? createdEvent.SpartaNumber ?? createdEvent.Id.ToString();
+                    _mobileNotificationStore?.Add(new MobileNotificationDto
+                    {
+                        Title = "Nowa szkoda",
+                        Message = $"Dodano nowe zgłoszenie szkody {claimIdentifier}",
+                        Type = "success",
+                        ClaimId = claimIdentifier,
+                        ActionType = "new_claim"
+                    });
+
+                    if (_notificationService != null)
+                    {
+                        await _notificationService.NotifyAsync(createdEvent, currentUser, ClaimNotificationEvent.ClaimCreated);
+                    }
                 }
 
                 if (createdEvent != null)

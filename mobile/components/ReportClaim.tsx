@@ -22,11 +22,16 @@ export function ReportClaim({ onNavigate }: ReportClaimProps) {
   const [selectedType, setSelectedType] = useState<string>("");
   const [date, setDate] = useState<Date>();
   const [formData, setFormData] = useState({
+    damageNumber: "",
+    time: "",
     location: "",
     description: "",
     estimatedValue: "",
     contactPerson: "",
-    phone: ""
+    phone: "",
+    driverFirstName: "",
+    driverLastName: "",
+    driverLicense: ""
   });
 
   const claimTypes = [
@@ -50,32 +55,50 @@ export function ReportClaim({ onNavigate }: ReportClaimProps) {
     }
   ];
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    // Generuj ID szkody
-    const claimId = `SK-2024-${String(Math.floor(Math.random() * 999) + 100).padStart(3, '0')}`;
-    
-    // Dodaj powiadomienie
-    addNotification({
-      title: 'Szkoda zgłoszona',
-      message: `Pomyślnie utworzono zgłoszenie ${claimId}`,
-      type: 'success',
-      actionType: 'new_claim',
-      claimId: claimId
-    });
-    
-    // Pokaż toast
-    toast.success('Szkoda zgłoszona pomyślnie!', {
-      description: `Numer zgłoszenia: ${claimId}`,
-      action: {
-        label: 'Zobacz szczegóły',
-        onClick: () => onNavigate('claim-details', claimId)
-      },
-      duration: 5000
-    });
-    
-    onNavigate('dashboard');
+
+    try {
+      const apiUrl =
+        process.env.NEXT_PUBLIC_API_URL || "http://localhost:5200/api";
+      const response = await fetch(`${apiUrl}/mobile/claims`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          type: selectedType,
+          date: date?.toISOString(),
+          ...formData,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to submit claim');
+      }
+
+      const { id: claimId } = await response.json();
+
+      addNotification({
+        title: 'Szkoda zgłoszona',
+        message: `Pomyślnie utworzono zgłoszenie ${claimId}`,
+        type: 'success',
+        actionType: 'new_claim',
+        claimId
+      });
+
+      toast.success('Szkoda zgłoszona pomyślnie!', {
+        description: `Numer zgłoszenia: ${claimId}`,
+        action: {
+          label: 'Zobacz szczegóły',
+          onClick: () => onNavigate('claim-details', claimId)
+        },
+        duration: 5000
+      });
+
+      onNavigate('dashboard');
+    } catch (err) {
+      console.error(err);
+      toast.error('Nie udało się wysłać zgłoszenia');
+    }
   };
 
   const handleInputChange = (field: string, value: string) => {
@@ -180,6 +203,16 @@ export function ReportClaim({ onNavigate }: ReportClaimProps) {
           </RadioGroup>
         </div>
 
+        {/* Numer szkody */}
+        <div className="space-y-2">
+          <Label>Numer szkody</Label>
+          <Input
+            placeholder="Wprowadź numer szkody"
+            value={formData.damageNumber}
+            onChange={(e) => handleInputChange('damageNumber', e.target.value)}
+          />
+        </div>
+
         {/* Data szkody */}
         <div className="space-y-2">
           <Label>Data wystąpienia szkody</Label>
@@ -202,6 +235,16 @@ export function ReportClaim({ onNavigate }: ReportClaimProps) {
               />
             </PopoverContent>
           </Popover>
+        </div>
+
+        {/* Godzina szkody */}
+        <div className="space-y-2">
+          <Label>Godzina wystąpienia szkody</Label>
+          <Input
+            type="time"
+            value={formData.time}
+            onChange={(e) => handleInputChange('time', e.target.value)}
+          />
         </div>
 
         {/* Miejsce */}
@@ -258,10 +301,39 @@ export function ReportClaim({ onNavigate }: ReportClaimProps) {
           </div>
         </div>
 
-        <Button 
-          type="submit" 
+        {/* Dane kierowcy */}
+        <div className="space-y-4">
+          <h3>Dane kierowcy</h3>
+          <div className="space-y-2">
+            <Label>Imię</Label>
+            <Input
+              placeholder="Imię kierowcy"
+              value={formData.driverFirstName}
+              onChange={(e) => handleInputChange('driverFirstName', e.target.value)}
+            />
+          </div>
+          <div className="space-y-2">
+            <Label>Nazwisko</Label>
+            <Input
+              placeholder="Nazwisko kierowcy"
+              value={formData.driverLastName}
+              onChange={(e) => handleInputChange('driverLastName', e.target.value)}
+            />
+          </div>
+          <div className="space-y-2">
+            <Label>Numer prawa jazdy</Label>
+            <Input
+              placeholder="AB1234567"
+              value={formData.driverLicense}
+              onChange={(e) => handleInputChange('driverLicense', e.target.value)}
+            />
+          </div>
+        </div>
+
+        <Button
+          type="submit"
           className="w-full h-14 bg-[#4285f4] hover:bg-[#3367d6] text-white shadow-lg hover:shadow-xl transition-all rounded-lg text-base font-medium"
-          disabled={!selectedType || !date || !formData.description}
+          disabled={!selectedType || !date || !formData.damageNumber || !formData.description || !formData.driverFirstName || !formData.driverLastName}
         >
           Zgłoś szkodę
         </Button>

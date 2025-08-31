@@ -12,56 +12,30 @@ export interface Notification {
 }
 
 export function useNotifications() {
-  const [notifications, setNotifications] = useState<Notification[]>([
-    {
-      id: '1',
-      title: 'Aktualizacja statusu',
-      message: 'Szkoda SK-2024-001 przeszła do etapu realizacji naprawy',
-      type: 'info',
-      timestamp: new Date(Date.now() - 1000 * 60 * 30), // 30 minut temu
-      read: false,
-      claimId: 'SK-2024-001',
-      actionType: 'status_update'
-    },
-    {
-      id: '2',
-      title: 'Nowa szkoda',
-      message: 'Otrzymano nowe zgłoszenie szkody komunikacyjnej',
-      type: 'success',
-      timestamp: new Date(Date.now() - 1000 * 60 * 120), // 2 godziny temu
-      read: false,
-      actionType: 'new_claim'
-    },
-    {
-      id: '3',
-      title: 'Przypomnienie',
-      message: 'Szkoda SK-2024-002 oczekuje na Twoją reakcję',
-      type: 'warning',
-      timestamp: new Date(Date.now() - 1000 * 60 * 60 * 4), // 4 godziny temu
-      read: false,
-      claimId: 'SK-2024-002',
-      actionType: 'reminder'
-    },
-    {
-      id: '4',
-      title: 'Szkoda zakończona',
-      message: 'Pomyślnie zakończono realizację szkody SK-2024-004',
-      type: 'success',
-      timestamp: new Date(Date.now() - 1000 * 60 * 60 * 8), // 8 godzin temu
-      read: true,
-      claimId: 'SK-2024-004',
-      actionType: 'status_update'
-    },
-    {
-      id: '5',
-      title: 'Konserwacja systemu',
-      message: 'Planowana konserwacja systemu w niedzielę 15.09 od 2:00 do 6:00',
-      type: 'info',
-      timestamp: new Date(Date.now() - 1000 * 60 * 60 * 24), // 1 dzień temu
-      read: true,
-      actionType: 'system'
-    }
-  ]);
+  const [notifications, setNotifications] = useState<Notification[]>([]);
+
+  useEffect(() => {
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5200/api';
+
+    const fetchNotifications = async () => {
+      try {
+        const res = await fetch(`${apiUrl}/mobile/notifications`);
+        if (!res.ok) return;
+        const data = await res.json();
+        const parsed = data.map((n: any) => ({
+          ...n,
+          timestamp: new Date(n.timestamp)
+        }));
+        setNotifications(parsed);
+      } catch (err) {
+        console.error('Failed to fetch notifications', err);
+      }
+    };
+
+    fetchNotifications();
+    const interval = setInterval(fetchNotifications, 30000);
+    return () => clearInterval(interval);
+  }, []);
 
   const unreadCount = notifications.filter(n => !n.read).length;
 

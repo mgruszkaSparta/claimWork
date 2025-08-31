@@ -376,6 +376,7 @@ namespace AutomotiveClaimsApi.Controllers
                 var statusEntity = await _context.ClaimStatuses.FirstOrDefaultAsync(cs => cs.Code == statusCode);
 
                 var existingEvent = await _context.Events
+                    .AsSplitQuery()
                     .Include(e => e.Participants).ThenInclude(p => p.Drivers)
                     .Include(e => e.Damages)
                     .Include(e => e.Appeals)

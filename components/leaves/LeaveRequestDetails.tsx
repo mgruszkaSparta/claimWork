@@ -1,3 +1,5 @@
+"use client";
+
 import { useState } from "react";
 import { LeaveRequest } from "@/types/leave";
 import { Button } from "@/components/ui/button";

@@ -12,7 +12,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Textarea } from "@/components/ui/textarea"
 import { Checkbox } from "@/components/ui/checkbox"
 import { AlertTriangle, User, Wrench, Car, X, MessageSquare, Clock, FileCheck, FileText, Mail, Plus, CheckCircle, Trash2, Save, Calendar, Phone, Paperclip, DollarSign, Gavel, ArrowUpDown, HandHeart, Users, CreditCard, Shield, UserCheck, Download, Edit } from 'lucide-react'
-import { DamageDiagram } from "@/components/damage-diagram"
+import { DamageDiagram, DamageLevel } from "@/components/damage-diagram"
 import { ParticipantForm } from "./participant-form"
 import { DocumentsSection } from "../documents-section"
 import { DecisionsSection } from "./decisions-section"
@@ -402,25 +402,30 @@ export const ClaimMainContent = ({
     }
   }
 
-  const handleDamagePartToggle = async (partName: string) => {
+  const handleDamagePartToggle = async (partName: string, level: DamageLevel) => {
     const currentDamages = claimFormData.damages || []
     const existing = currentDamages.find((d) => d.description === partName)
 
     try {
-      if (existing) {
-
-        if (existing.eventId && existing.id) {
-          await deleteDamage(existing.id)
-
+      if (level === DamageLevel.NONE) {
+        if (existing) {
+          if (existing.eventId && existing.id) {
+            await deleteDamage(existing.id)
+          }
+          const newDamages = currentDamages.filter((d) => d.description !== partName)
+          handleFormChange("damages", newDamages)
         }
-        const newDamages = currentDamages.filter((d) => d.description !== partName)
-        handleFormChange("damages", newDamages)
       } else {
-
-        const unsaved = createDamageDraft({ description: partName, detail: "Do opisu" })
-        const newDamages = [...currentDamages, unsaved]
-
-        handleFormChange("damages", newDamages)
+        if (existing) {
+          const updated = currentDamages.map((d) =>
+            d.description === partName ? { ...d, level } : d,
+          )
+          handleFormChange("damages", updated)
+        } else {
+          const unsaved = createDamageDraft({ description: partName, detail: "Do opisu", level })
+          const newDamages = [...currentDamages, unsaved]
+          handleFormChange("damages", newDamages)
+        }
       }
     } catch (error: any) {
       toast({
@@ -428,6 +433,19 @@ export const ClaimMainContent = ({
         description: error.message || "Nie udało się zapisać szkody",
         variant: "destructive",
       })
+    }
+  }
+
+  const getDamageLevelName = (level: DamageLevel): string => {
+    switch (level) {
+      case DamageLevel.LIGHT:
+        return "Lekkie"
+      case DamageLevel.MEDIUM:
+        return "Średnie"
+      case DamageLevel.HEAVY:
+        return "Duże"
+      default:
+        return "Brak"
     }
   }
 
@@ -1184,7 +1202,9 @@ export const ClaimMainContent = ({
                           >
                             <span className="font-medium">
                               {index + 1}. {damage.description} {"-"}
-                              <span className="text-gray-600 font-normal">{damage.detail}</span>
+                              <span className="text-gray-600 font-normal">
+                                {getDamageLevelName(damage.level ?? DamageLevel.LIGHT)}
+                              </span>
                             </span>
                             <Button
                               variant="ghost"
@@ -1204,7 +1224,12 @@ export const ClaimMainContent = ({
                 </div>
                 <div>
                   <DamageDiagram
-                    damagedParts={(claimFormData.damages || []).map((d) => d.description)}
+                    damageData={Object.fromEntries(
+                      (claimFormData.damages || []).map((d) => [
+                        d.description,
+                        d.level ?? DamageLevel.LIGHT,
+                      ]),
+                    )}
                     onPartClick={handleDamagePartToggle}
                   />
                 </div>

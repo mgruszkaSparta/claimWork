@@ -3,6 +3,7 @@
 import { useCallback } from "react"
 import { API_ENDPOINTS, generateId } from "@/lib/constants"
 import { authFetch } from "@/lib/auth-fetch"
+import { DamageLevel } from "@/components/damage-diagram"
 
 export interface Damage {
   id?: string
@@ -14,6 +15,7 @@ export interface Damage {
   estimatedCost?: number
   actualCost?: number
   isSaved?: boolean
+  level?: DamageLevel
 }
 
 export interface DamageInit {
@@ -24,6 +26,7 @@ export function createDamageDraft(params: Partial<Damage> = {}): Damage {
   return {
     description: "",
     isSaved: false,
+    level: DamageLevel.LIGHT,
     ...params,
   }
 }

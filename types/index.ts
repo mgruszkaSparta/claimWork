@@ -1,6 +1,7 @@
 import type React from "react"
 import type { ClaimDto, DocumentDto } from "@/lib/api"
 import type { Settlement } from "@/lib/api/settlements"
+import type { DamageLevel } from "@/components/damage-diagram"
 
 export type { Settlement } from "@/lib/api/settlements"
 
@@ -212,6 +213,7 @@ export interface DamageItem {
   description: string
   detail: string
   isSaved?: boolean
+  level?: DamageLevel
 }
 
 export interface Decision {

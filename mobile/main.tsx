@@ -1,6 +1,6 @@
 import { createRoot } from "react-dom/client";
 import App from "./App.tsx";
-import "./index.css";
+import "./styles/globals.css";
 
 // Request notification permission and register service worker
 if (typeof window !== "undefined") {

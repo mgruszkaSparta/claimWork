@@ -312,28 +312,17 @@ namespace AutomotiveClaimsApi.Controllers
         }
 
         [HttpPost("initialize")]
-        public async Task<ActionResult<object>> InitializeClaim()
+        public ActionResult<object> InitializeClaim()
         {
             try
             {
                 var id = Guid.NewGuid();
-                var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-                var eventEntity = new Event
-                {
-                    Id = id,
-                    CreatedAt = DateTime.UtcNow,
-                    UpdatedAt = DateTime.UtcNow,
-                    RegisteredById = userId,
-                    IsDraft = true
-                };
-                _context.Events.Add(eventEntity);
-                await _context.SaveChangesAsync();
                 return Ok(new { id });
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error initializing event");
-                return StatusCode(500, new { error = "Failed to initialize event" });
+                _logger.LogError(ex, "Error initializing event id");
+                return StatusCode(500, new { error = "Failed to initialize event id" });
             }
         }
 

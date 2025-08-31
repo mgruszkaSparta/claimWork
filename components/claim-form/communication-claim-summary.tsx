@@ -1,7 +1,7 @@
 "use client"
 
 import type React from "react"
-import { DamageDiagram } from "@/components/damage-diagram"
+import { DamageDiagram, DamageLevel } from "@/components/damage-diagram"
 import { DocumentsSection } from "../documents-section"
 import {
   AlertTriangle,
@@ -32,6 +32,19 @@ interface ClaimStatus {
 interface RiskType {
   value: string
   label: string
+}
+
+const getDamageLevelName = (level: DamageLevel): string => {
+  switch (level) {
+    case DamageLevel.LIGHT:
+      return "Lekkie"
+    case DamageLevel.MEDIUM:
+      return "Średnie"
+    case DamageLevel.HEAVY:
+      return "Duże"
+    default:
+      return "Brak"
+  }
 }
 
 interface CommunicationClaimSummaryProps {
@@ -374,7 +387,9 @@ const CommunicationClaimSummary = ({
                         className="text-sm text-gray-900 p-2 bg-white rounded border"
                       >
                         <span className="font-medium">{damage.description}</span>
-                        <span className="text-gray-600 ml-2">- {damage.detail}</span>
+                        <span className="text-gray-600 ml-2">
+                          - {getDamageLevelName(damage.level ?? DamageLevel.LIGHT)}
+                        </span>
                       </div>
                     ))
                   ) : (
@@ -385,7 +400,12 @@ const CommunicationClaimSummary = ({
             </div>
             <div>
               <DamageDiagram
-                damagedParts={(claimFormData.damages || []).map((d) => d.description)}
+                damageData={Object.fromEntries(
+                  (claimFormData.damages || []).map((d) => [
+                    d.description,
+                    d.level ?? DamageLevel.LIGHT,
+                  ]),
+                )}
                 onPartClick={() => {}}
               />
             </div>

@@ -13,7 +13,8 @@ export enum VehicleType {
 export enum DamageLevel {
   NONE = 0,
   LIGHT = 1,
-  HEAVY = 2,
+  MEDIUM = 2,
+  HEAVY = 3,
 }
 
 interface DamageDiagramProps {
@@ -87,6 +88,9 @@ export function DamageDiagram({
             newLevel = DamageLevel.LIGHT
             break
           case DamageLevel.LIGHT:
+            newLevel = DamageLevel.MEDIUM
+            break
+          case DamageLevel.MEDIUM:
             newLevel = DamageLevel.HEAVY
             break
           case DamageLevel.HEAVY:
@@ -109,6 +113,12 @@ export function DamageDiagram({
           svgElement.style.stroke = "#f59e0b"
           svgElement.style.strokeWidth = "2"
           svgElement.style.opacity = "0.8"
+          break
+        case DamageLevel.MEDIUM:
+          svgElement.style.fill = "#fb923c" // Orange for medium damage
+          svgElement.style.stroke = "#f97316"
+          svgElement.style.strokeWidth = "3"
+          svgElement.style.opacity = "0.85"
           break
         case DamageLevel.HEAVY:
           svgElement.style.fill = "#dc2626" // Red for heavy damage
@@ -150,6 +160,8 @@ export function DamageDiagram({
     switch (level) {
       case DamageLevel.LIGHT:
         return "Lekkie"
+      case DamageLevel.MEDIUM:
+        return "Średnie"
       case DamageLevel.HEAVY:
         return "Duże"
       default:
@@ -272,6 +284,7 @@ export function DamageDiagram({
   const getDamagedPartsByLevel = () => {
     const partsByLevel = {
       [DamageLevel.LIGHT]: [] as string[],
+      [DamageLevel.MEDIUM]: [] as string[],
       [DamageLevel.HEAVY]: [] as string[],
     }
 
@@ -309,6 +322,10 @@ export function DamageDiagram({
               <span className="text-sm text-gray-600">Lekkie uszkodzenia</span>
             </div>
             <div className="flex items-center gap-2">
+              <div className="w-4 h-4 border-2 border-orange-500 bg-orange-400 rounded"></div>
+              <span className="text-sm text-gray-600">Średnie uszkodzenia</span>
+            </div>
+            <div className="flex items-center gap-2">
               <div className="w-4 h-4 border-2 border-red-700 bg-red-600 rounded"></div>
               <span className="text-sm text-gray-600">Duże uszkodzenia</span>
             </div>
@@ -333,7 +350,9 @@ export function DamageDiagram({
                               className={`w-3 h-3 rounded border-2 ${
                                   damageLevel === DamageLevel.LIGHT
                                       ? "bg-yellow-400 border-amber-600"
-                                      : "bg-red-600 border-red-700"
+                                      : damageLevel === DamageLevel.MEDIUM
+                                          ? "bg-orange-400 border-orange-500"
+                                          : "bg-red-600 border-red-700"
                               }`}
                           ></div>
                           <span className="text-sm font-medium text-gray-700">

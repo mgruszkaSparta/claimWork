@@ -1490,14 +1490,6 @@ export const DocumentsSection = React.forwardRef<
           <Button
             variant="outline"
             size="sm"
-            onClick={() => handleDownloadAll()}
-            disabled={visibleDocuments.length === 0}
-          >
-            <Download className="mr-2 h-4 w-4" /> Pobierz wszystkie
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
             onClick={() => handleDownloadSelected()}
             disabled={selectedDocumentIds.length === 0}
           >

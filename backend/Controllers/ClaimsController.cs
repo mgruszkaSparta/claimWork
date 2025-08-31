@@ -658,19 +658,6 @@ namespace AutomotiveClaimsApi.Controllers
                         _context.Entry(entity).State = EntityState.Detached;
                     }
 
-                    var existingDto = JsonSerializer.Deserialize<ClaimUpsertDto>(
-                        JsonSerializer.Serialize(MapEventToDto(existing)));
-                    var options = new JsonSerializerOptions
-                    {
-                        DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
-                    };
-                    var existingJson = JsonSerializer.Serialize(existingDto, options);
-                    var incomingJson = JsonSerializer.Serialize(eventDto, options);
-                    if (existingJson == incomingJson)
-                    {
-                        return NoContent();
-                    }
-
                     _context.Entry(existing).State = EntityState.Detached;
                 }
 

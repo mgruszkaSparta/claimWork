@@ -726,7 +726,7 @@ export function ClaimsListMobile({
                 <Loader2 className="h-6 w-6 animate-spin text-[#1a3a6c]" />
               </div>
             )}
-            <div ref={loaderRef} />
+            <div ref={loaderRef} className="h-1" />
           </div>
 
           {/* Empty State */}

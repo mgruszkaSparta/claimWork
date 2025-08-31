@@ -337,20 +337,30 @@ export default function NewClaimPage() {
         registeredById: user?.id,
       } as Claim
 
-      let savedClaim: Claim | null
+
+      let savedClaim: Claim | null = null
       if (isUpdate && savedClaimId) {
+        // PUT /claims/{id} returns 204 with no body when successful.
+        // In that case updateClaim resolves to the existing claim merged
+        // with the provided data. Fall back to the known id if the body
+        // is empty to avoid treating the save as a failure.
+
         savedClaim = await updateClaim(savedClaimId, claimPayload)
       } else {
         savedClaim = await createClaim(claimPayload)
       }
 
-      if (!savedClaim || !savedClaim.id) {
+
+      const finalClaimId = savedClaim?.id || savedClaimId
+      if (!finalClaimId) {
         throw new Error("Nie udało się zapisać szkody")
       }
 
-      savedClaimId = savedClaim.id
-      setClaimId(savedClaimId)
-      setClaimFormData(savedClaim)
+      savedClaimId = finalClaimId
+      setClaimId(finalClaimId)
+      if (savedClaim) {
+        setClaimFormData(savedClaim)
+      }
 
       setIsPersisted(true)
 
@@ -436,9 +446,16 @@ export default function NewClaimPage() {
       }
       setRepairDetails([...repairDetails])
 
+      const claimIdentifier =
+        savedClaim?.spartaNumber ||
+        savedClaim?.claimNumber ||
+        claimFormData.spartaNumber ||
+        claimFormData.claimNumber
+
       toast({
         title: isUpdate ? "Szkoda zaktualizowana" : "Szkoda dodana",
-        description: `Szkoda ${savedClaim.spartaNumber || savedClaim.claimNumber} została pomyślnie zapisana.`,
+        description: `Szkoda ${claimIdentifier} została pomyślnie zapisana.`,
+
       })
 
       if (exitAfterSave) {

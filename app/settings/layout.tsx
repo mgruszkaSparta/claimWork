@@ -13,9 +13,12 @@ import { useAuth } from '@/hooks/use-auth'
 const BASE_SETTINGS_NAV = [
   { href: '/settings/casehandlers', label: 'Likwidatorzy' },
   { href: '/settings/clients', label: 'Klienci' },
+  { href: '/settings/departments', label: 'Departamenty' },
   { href: '/settings/damage-types', label: 'Typy szkód' },
   { href: '/settings/dictionaries', label: 'Słowniki' },
   { href: '/settings/notifications', label: 'Powiadomienia' },
+  { href: '/settings/employee-roles', label: 'Role pracowników' },
+  { href: '/settings/employees', label: 'Pracownicy' },
   { href: '/settings/risk-types', label: 'Typy ryzyka' },
   { href: '/settings/users', label: 'Użytkownicy' },
 ]

@@ -1441,6 +1441,76 @@ namespace AutomotiveClaimsApi.Migrations
                     b.ToTable("CaseHandlers", "dict");
                 });
 
+            modelBuilder.Entity("AutomotiveClaimsApi.Models.Department", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasAnnotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn);
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Departments");
+                });
+
+            modelBuilder.Entity("AutomotiveClaimsApi.Models.EmployeeRole", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasAnnotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn);
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("EmployeeRoles");
+                });
+
+            modelBuilder.Entity("AutomotiveClaimsApi.Models.Employee", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasAnnotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn);
+
+                    b.Property<int?>("DepartmentId")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Email")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<string>("FirstName")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<string>("LastName")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<int?>("RoleId")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("DepartmentId");
+
+                    b.HasIndex("RoleId");
+
+                    b.ToTable("Employees");
+                });
+
             modelBuilder.Entity("AutomotiveClaimsApi.Models.Appeal", b =>
                 {
                     b.HasOne("AutomotiveClaimsApi.Models.Event", "Event")
@@ -1621,6 +1691,31 @@ namespace AutomotiveClaimsApi.Migrations
             modelBuilder.Entity("AutomotiveClaimsApi.Models.Participant", b =>
                 {
                     b.Navigation("Drivers");
+                });
+
+            modelBuilder.Entity("AutomotiveClaimsApi.Models.Employee", b =>
+                {
+                    b.HasOne("AutomotiveClaimsApi.Models.Department", "Department")
+                        .WithMany("Employees")
+                        .HasForeignKey("DepartmentId");
+
+                    b.HasOne("AutomotiveClaimsApi.Models.EmployeeRole", "Role")
+                        .WithMany("Employees")
+                        .HasForeignKey("RoleId");
+
+                    b.Navigation("Department");
+
+                    b.Navigation("Role");
+                });
+
+            modelBuilder.Entity("AutomotiveClaimsApi.Models.Department", b =>
+                {
+                    b.Navigation("Employees");
+                });
+
+            modelBuilder.Entity("AutomotiveClaimsApi.Models.EmployeeRole", b =>
+                {
+                    b.Navigation("Employees");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>

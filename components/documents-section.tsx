@@ -90,7 +90,7 @@ export const DocumentsSection = React.forwardRef<
     return "list"
   })
   const fileInputRef = React.useRef<HTMLInputElement>(null)
-  const [openCategories, setOpenCategories] = useState<Record<string, boolean>>({ "Inne dokumenty": true })
+  const [openCategories, setOpenCategories] = useState<Record<string, boolean>>({})
   const [uploadingForCategory, setUploadingForCategory] = useState<string | null>(null)
   const [documents, setDocuments] = useState<Document[]>([])
   const [loading, setLoading] = useState(false)
@@ -1761,7 +1761,7 @@ export const DocumentsSection = React.forwardRef<
                       </table>
                       {documentsForCategory.length === 0 && (
                         <div
-                          className={`flex flex-col items-center justify-center text-center py-12 text-gray-500 border-2 border-dashed rounded-lg cursor-pointer transition-colors m-4 ${
+                          className={`flex flex-col items-center justify-center text-center py-4 text-gray-500 border-2 border-dashed rounded-lg cursor-pointer transition-colors m-4 ${
                             dragActive && dragCategory === category
                               ? "border-blue-500 bg-blue-50"
                               : "border-gray-300 hover:bg-gray-50"
@@ -1793,7 +1793,7 @@ export const DocumentsSection = React.forwardRef<
                     </div>
                   ) : (
                     <div
-                      className={`flex flex-col items-center justify-center text-center py-12 text-gray-500 border-2 border-dashed rounded-lg cursor-pointer transition-colors ${
+                      className={`flex flex-col items-center justify-center text-center py-4 text-gray-500 border-2 border-dashed rounded-lg cursor-pointer transition-colors ${
                         dragActive && dragCategory === category
                           ? "border-blue-500 bg-blue-50"
                           : "border-gray-300 hover:bg-gray-50"

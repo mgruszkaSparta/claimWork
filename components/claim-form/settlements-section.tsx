@@ -1,7 +1,7 @@
 "use client"
 
 import type React from "react"
-import { useState, useCallback, useMemo, useEffect, useRef } from "react"
+import { useState, useCallback, useMemo, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { ConfirmDialog } from "@/components/ui/confirm-dialog"
 import { Input } from "@/components/ui/input"
@@ -10,7 +10,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Textarea } from "@/components/ui/textarea"
 import { Badge } from "@/components/ui/badge"
 import { useToast } from "@/hooks/use-toast"
-import { HandHeart, Plus, Minus, Edit, Trash2, Download, Eye, X, Upload, FileText, Info, Loader2, ChevronLeft, ChevronRight } from "lucide-react"
+import { HandHeart, Plus, Minus, Edit, Trash2, Download, Eye, X, Upload, FileText, Info, Loader2 } from "lucide-react"
+import { DocumentPreview, type FileType } from "@/components/document-preview"
 import { getSettlements, createSettlement, updateSettlement, deleteSettlement } from "@/lib/api/settlements"
 import { API_BASE_URL } from "@/lib/api"
 import { authFetch } from "@/lib/auth-fetch"
@@ -68,9 +69,7 @@ export const SettlementsSection: React.FC<SettlementsSectionProps> = ({ eventId 
   const [isPreviewVisible, setIsPreviewVisible] = useState(false)
   const [previewUrl, setPreviewUrl] = useState<string>("")
   const [previewFileName, setPreviewFileName] = useState<string>("")
-  const [previewFileType, setPreviewFileType] =
-    useState<"pdf" | "image" | "docx" | "excel" | "other">("other")
-  const docxPreviewRef = useRef<HTMLDivElement>(null)
+  const [previewFileType, setPreviewFileType] = useState<FileType>("other")
   const [currentPreviewSettlement, setCurrentPreviewSettlement] = useState<Settlement | null>(null)
   const [currentPreviewDoc, setCurrentPreviewDoc] = useState<DocumentDto | null>(null)
   const [previewDocs, setPreviewDocs] = useState<DocumentDto[]>([])
@@ -353,17 +352,6 @@ export const SettlementsSection: React.FC<SettlementsSectionProps> = ({ eventId 
     } else if (ext === "docx") {
       setPreviewFileType("docx")
       setPreviewUrl(objectUrl)
-      try {
-        const buffer = await blob.arrayBuffer()
-        const { renderAsync } = await import("docx-preview")
-        if (docxPreviewRef.current) {
-          docxPreviewRef.current.innerHTML = ""
-          await renderAsync(buffer, docxPreviewRef.current)
-        }
-      } catch (err) {
-        console.error("Error rendering docx preview:", err)
-        setPreviewFileType("other")
-      }
     } else if (ext === "xls" || ext === "xlsx") {
       setPreviewFileType("excel")
       setPreviewUrl(url)
@@ -398,17 +386,6 @@ export const SettlementsSection: React.FC<SettlementsSectionProps> = ({ eventId 
           } else if (ext === "docx") {
             setPreviewFileType("docx")
             setPreviewUrl(objectUrl)
-            try {
-              const buffer = await blob.arrayBuffer()
-              const { renderAsync } = await import("docx-preview")
-              if (docxPreviewRef.current) {
-                docxPreviewRef.current.innerHTML = ""
-                await renderAsync(buffer, docxPreviewRef.current)
-              }
-            } catch (err) {
-              console.error("Error rendering docx preview:", err)
-              setPreviewFileType("other")
-            }
           } else if (ext === "xls" || ext === "xlsx") {
             setPreviewFileType("excel")
             setPreviewUrl(url)
@@ -475,9 +452,6 @@ export const SettlementsSection: React.FC<SettlementsSectionProps> = ({ eventId 
     setCurrentPreviewSettlement(null)
     setCurrentPreviewDoc(null)
     setPreviewDocs([])
-    if (docxPreviewRef.current) {
-      docxPreviewRef.current.innerHTML = ""
-    }
   }, [previewUrl])
 
   const downloadFile = useCallback(
@@ -1012,94 +986,23 @@ export const SettlementsSection: React.FC<SettlementsSectionProps> = ({ eventId 
         )}
       </div>
 
-      {/* File Preview Modal */}
-      {isPreviewVisible && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] flex flex-col">
-            {/* Modal header */}
-            <div className="p-4 bg-[#f8fafc] border-b border-[#d1d9e6] flex justify-between items-center">
-              <h3 className="text-sm font-semibold text-[#1a3a6c]">Podgląd: {previewFileName}</h3>
-              <Button
-                onClick={closePreview}
-                variant="ghost"
-                size="sm"
-                className="p-1 text-gray-600 hover:text-gray-800 hover:bg-gray-100"
-              >
-                <X className="h-5 w-5" />
-              </Button>
-            </div>
-
-            {/* Preview content */}
-            <div className="flex-1 overflow-auto p-4 flex items-center justify-center bg-gray-100">
-              {/* PDF Preview */}
-              {previewFileType === "pdf" && (
-                <iframe src={previewUrl} className="w-full h-full border-0" title="PDF Preview" />
-              )}
-
-              {/* Image Preview */}
-              {previewFileType === "image" && (
-                <img
-                  src={previewUrl || "/placeholder.svg"}
-                  className="max-w-full max-h-[70vh] object-contain"
-                  alt="Preview"
-                />
-              )}
-
-              {/* DOCX Preview */}
-              {previewFileType === "docx" && (
-                <div ref={docxPreviewRef} className="w-full h-full overflow-auto bg-white"></div>
-              )}
-
-              {/* Excel Preview */}
-              {previewFileType === "excel" && (
-                <iframe
-                  src={`https://view.officeapps.live.com/op/embed.aspx?src=${encodeURIComponent(previewUrl)}`}
-                  className="w-full h-full border-0"
-                  title="Excel Preview"
-                />
-              )}
-
-              {/* Other File Types */}
-              {previewFileType === "other" && (
-                <div className="text-center p-8">
-                  <FileText className="mx-auto mb-4 text-gray-400 h-12 w-12" />
-                  <p className="text-gray-600">Podgląd niedostępny dla tego typu pliku.</p>
-                  <p className="text-gray-500 text-sm mt-2">Możesz pobrać plik, aby go otworzyć.</p>
-                </div>
-              )}
-            </div>
-
-            {/* Modal footer */}
-            <div className="p-4 bg-gray-50 border-t border-[#d1d9e6] flex justify-between">
-              {previewDocs.length > 1 && (
-                <div className="flex gap-2">
-                  <Button variant="ghost" size="sm" onClick={showPrevDoc} className="p-1 text-gray-600">
-                    <ChevronLeft className="h-4 w-4" />
-                    <span className="sr-only">Poprzedni</span>
-                  </Button>
-                  <Button variant="ghost" size="sm" onClick={showNextDoc} className="p-1 text-gray-600">
-                    <ChevronRight className="h-4 w-4" />
-                    <span className="sr-only">Następny</span>
-                  </Button>
-                </div>
-              )}
-              <Button
-                onClick={() =>
-                  currentPreviewSettlement &&
-                  downloadFile(
-                    currentPreviewSettlement,
-                    previewDocs.length ? previewDocs[previewIndex] : currentPreviewDoc || undefined,
-                  )
-                }
-                className="bg-[#1a3a6c] text-white hover:bg-[#15305a] flex items-center gap-2"
-              >
-                <Download className="h-4 w-4" />
-                Pobierz plik
-              </Button>
-            </div>
-          </div>
-        </div>
-      )}
+      <DocumentPreview
+        isOpen={isPreviewVisible}
+        onClose={closePreview}
+        url={previewUrl}
+        fileName={previewFileName}
+        fileType={previewFileType}
+        canNavigate={previewDocs.length > 1}
+        onPrev={showPrevDoc}
+        onNext={showNextDoc}
+        onDownload={() =>
+          currentPreviewSettlement &&
+          downloadFile(
+            currentPreviewSettlement,
+            previewDocs.length ? previewDocs[previewIndex] : currentPreviewDoc || undefined,
+          )
+        }
+      />
     </div>
   )
 }

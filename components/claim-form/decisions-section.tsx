@@ -8,9 +8,9 @@ import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
 import { Badge } from "@/components/ui/badge"
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { DocumentPreview, type FileType } from "@/components/document-preview"
 import { useToast } from "@/hooks/use-toast"
-import { Plus, Minus, Edit, Trash2, Download, Eye, Upload, X, FileText, Loader2, Gavel, ChevronLeft, ChevronRight, Printer } from 'lucide-react'
+import { Plus, Minus, Edit, Trash2, Download, Eye, Upload, X, FileText, Loader2, Gavel, Printer } from 'lucide-react'
 import type { Decision } from "@/types"
 import type { DocumentDto } from "@/lib/api"
 import {
@@ -1091,70 +1091,29 @@ export function DecisionsSection({ claimId, onChange }: DecisionsSectionProps) {
         </div>
       )}
 
-      {/* File Preview Modal */}
-      <Dialog open={isPreviewVisible} onOpenChange={handlePreviewOpenChange}>
-        <DialogContent className="max-w-4xl w-full max-h-[90vh] flex flex-col">
-          <DialogHeader>
-            <DialogTitle>Podgląd: {previewFileName}</DialogTitle>
-          </DialogHeader>
-
-          <div className="flex-1 overflow-auto flex items-center justify-center bg-muted/50 rounded-lg">
-            {previewFileType === "pdf" && previewUrl && (
-              <iframe src={previewUrl} className="w-full h-[70vh] border-0" title="PDF Preview" />
-            )}
-
-            {previewFileType === "image" && previewUrl && (
-              <img
-                src={previewUrl || "/placeholder.svg"}
-                className="max-w-full max-h-[70vh] object-contain"
-                alt="Preview"
-              />
-            )}
-
-            {previewFileType === "other" && (
-              <div className="text-center p-8">
-                <FileText className="mx-auto mb-4 h-12 w-12 text-muted-foreground" />
-                <p className="text-muted-foreground">Podgląd niedostępny dla tego typu pliku.</p>
-                <p className="text-muted-foreground text-sm mt-2">Możesz pobrać plik, aby go otworzyć.</p>
-              </div>
-            )}
-          </div>
-
-      <div className="flex justify-between pt-4">
-        {previewDocs.length > 1 && (
-          <div className="flex gap-2">
-            <Button variant="ghost" size="sm" onClick={showPrevDoc}>
-              <ChevronLeft className="h-4 w-4" />
-              <span className="sr-only">Poprzedni</span>
-            </Button>
-            <Button variant="ghost" size="sm" onClick={showNextDoc}>
-              <ChevronRight className="h-4 w-4" />
-              <span className="sr-only">Następny</span>
-            </Button>
-          </div>
-        )}
-        <div className="flex gap-2">
+      <DocumentPreview
+        isOpen={isPreviewVisible}
+        onClose={handlePreviewOpenChange}
+        url={previewUrl || ""}
+        fileName={previewFileName}
+        fileType={previewFileType as FileType}
+        canNavigate={previewDocs.length > 1}
+        onPrev={showPrevDoc}
+        onNext={showNextDoc}
+        onDownload={() =>
+          currentPreviewDecision &&
+          downloadFile(
+            currentPreviewDecision,
+            previewDocs.length ? previewDocs[previewIndex] : currentPreviewDoc || undefined,
+          )
+        }
+        extraActions={
           <Button onClick={handlePrintPdf} className="flex items-center gap-2">
             <Printer className="h-4 w-4" />
             Drukuj PDF
           </Button>
-          <Button
-            onClick={() =>
-              currentPreviewDecision &&
-              downloadFile(
-                currentPreviewDecision,
-                previewDocs.length ? previewDocs[previewIndex] : currentPreviewDoc || undefined
-              )
-            }
-            className="flex items-center gap-2"
-          >
-            <Download className="h-4 w-4" />
-            Pobierz plik
-          </Button>
-        </div>
-      </div>
-    </DialogContent>
-  </Dialog>
+        }
+      />
     </div>
   </div>
   )

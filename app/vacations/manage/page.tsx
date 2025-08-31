@@ -6,7 +6,7 @@ import { API_BASE_URL } from "@/lib/api";
 
 interface VacationRequest {
   id: string;
-  claimHandlerId: string;
+  caseHandlerId: string;
   substituteId: string;
   managerIds: string[];
   startDate: string;
@@ -32,7 +32,7 @@ export default function VacationManagePage() {
       <h1 className="text-xl font-semibold">Wnioski urlopowe</h1>
       {requests.map((r) => (
         <div key={r.id} className="p-4 border rounded space-y-2">
-          <p>Likwidator: {r.claimHandlerId}</p>
+          <p>Likwidator: {r.caseHandlerId}</p>
           <p>Od: {new Date(r.startDate).toLocaleDateString()}</p>
           <p>Do: {new Date(r.endDate).toLocaleDateString()}</p>
           <div className="space-x-2">

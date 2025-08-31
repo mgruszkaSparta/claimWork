@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button"
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select"
 import type { Role, User } from "@/lib/types/admin"
 import { Checkbox } from "@/components/ui/checkbox"
-import { apiService, type ClientDto } from "@/lib/api"
+import { apiService, type ClientDto, type CaseHandlerDto } from "@/lib/api"
 import { adminService } from "@/lib/services/admin-service"
 
 interface UserFormDialogProps {
@@ -30,9 +30,12 @@ export function UserFormDialog({ open, onOpenChange, user, roles, onSave }: User
   const [fullAccess, setFullAccess] = useState(false)
   const [clients, setClients] = useState<ClientDto[]>([])
   const [clientIds, setClientIds] = useState<number[]>([])
+  const [caseHandlers, setCaseHandlers] = useState<CaseHandlerDto[]>([])
+  const [caseHandlerId, setCaseHandlerId] = useState("")
 
   useEffect(() => {
     apiService.getClients().then(setClients)
+    apiService.getCaseHandlers().then(setCaseHandlers)
   }, [])
 
   useEffect(() => {
@@ -45,6 +48,7 @@ export function UserFormDialog({ open, onOpenChange, user, roles, onSave }: User
       adminService.getUser(user.id).then((u) => {
         setFullAccess(u.fullAccess ?? false)
         setClientIds(u.clientIds ?? [])
+        setCaseHandlerId(u.caseHandlerId ? String(u.caseHandlerId) : "")
       })
     } else {
       setFirstName("")
@@ -55,6 +59,7 @@ export function UserFormDialog({ open, onOpenChange, user, roles, onSave }: User
       setPassword("")
       setFullAccess(false)
       setClientIds([])
+      setCaseHandlerId("")
     }
   }, [user, roles])
 
@@ -75,6 +80,7 @@ export function UserFormDialog({ open, onOpenChange, user, roles, onSave }: User
       password: isEdit ? undefined : password,
       fullAccess,
       clientIds,
+      caseHandlerId: caseHandlerId ? parseInt(caseHandlerId) : undefined,
     })
   }
 
@@ -172,6 +178,25 @@ export function UserFormDialog({ open, onOpenChange, user, roles, onSave }: User
               </div>
             </div>
           )}
+          <div>
+            <Label>Likwidator</Label>
+            <Select
+              value={caseHandlerId || "none"}
+              onValueChange={(v) => setCaseHandlerId(v === "none" ? "" : v)}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Wybierz likwidatora" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="none">Brak</SelectItem>
+                {caseHandlers.map((h) => (
+                  <SelectItem key={h.id} value={String(h.id)}>
+                    {h.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
           <Button type="submit">{isEdit ? "Zapisz" : "Utwórz"}</Button>
         </form>
       </DialogContent>

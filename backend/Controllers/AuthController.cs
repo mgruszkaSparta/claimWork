@@ -90,7 +90,7 @@ namespace AutomotiveClaimsApi.Controllers
             if (dto.UserName == null || dto.Password == null)
                 return BadRequest();
 
-            var user = new ApplicationUser { UserName = dto.UserName, Email = dto.Email, MustChangePassword = true , CreatedAt = DateTime.UtcNow};
+            var user = new ApplicationUser { UserName = dto.UserName, Email = dto.Email, MustChangePassword = true , CreatedAt = DateTime.UtcNow, CaseHandlerId = dto.CaseHandlerId };
 
             var result = await _userManager.CreateAsync(user, dto.Password);
             if (!result.Succeeded)
@@ -100,7 +100,12 @@ namespace AutomotiveClaimsApi.Controllers
 
             if (!string.IsNullOrEmpty(dto.Role))
             {
-                await _userManager.AddToRoleAsync(user, dto.Role);
+                var roleResult = await _userManager.AddToRoleAsync(user, dto.Role);
+                if (!roleResult.Succeeded)
+                {
+                    await _userManager.DeleteAsync(user);
+                    return BadRequest(roleResult.Errors);
+                }
             }
 
             return Ok();
@@ -216,7 +221,8 @@ namespace AutomotiveClaimsApi.Controllers
                 CreatedAt = user.CreatedAt,
                 LastLogin = user.LastLogin,
                 FullAccess = user.FullAccess,
-                ClientIds = user.UserClients.Select(uc => uc.ClientId)
+                ClientIds = user.UserClients.Select(uc => uc.ClientId),
+                CaseHandlerId = user.CaseHandlerId
             };
         }
 
@@ -238,7 +244,8 @@ namespace AutomotiveClaimsApi.Controllers
                 CreatedAt = user.CreatedAt,
                 LastLogin = user.LastLogin,
                 FullAccess = user.FullAccess,
-                ClientIds = user.UserClients.Select(uc => uc.ClientId)
+                ClientIds = user.UserClients.Select(uc => uc.ClientId),
+                CaseHandlerId = user.CaseHandlerId
             };
         }
 
@@ -251,6 +258,7 @@ namespace AutomotiveClaimsApi.Controllers
             if (dto.UserName != null) user.UserName = dto.UserName;
             if (dto.Email != null) user.Email = dto.Email;
             if (dto.FullAccess.HasValue) user.FullAccess = dto.FullAccess.Value;
+            if (dto.CaseHandlerId.HasValue) user.CaseHandlerId = dto.CaseHandlerId;
 
             if (dto.ClientIds != null)
             {
@@ -305,7 +313,8 @@ namespace AutomotiveClaimsApi.Controllers
                     Role = roles.FirstOrDefault(),
                     Status = u.LockoutEnd.HasValue && u.LockoutEnd.Value.UtcDateTime > DateTime.UtcNow ? "inactive" : "active",
                     CreatedAt = u.CreatedAt,
-                    LastLogin = u.LastLogin
+                    LastLogin = u.LastLogin,
+                    CaseHandlerId = u.CaseHandlerId
                 });
             }
 

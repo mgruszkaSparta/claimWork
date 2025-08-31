@@ -23,9 +23,11 @@ import {
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
+import { Badge } from "@/components/ui/badge"
 import { emailService, type EmailDto, type AttachmentDto, type SendEmailRequestDto } from "@/lib/email-service"
 import { EmailFolder } from "@/types/email"
 import { useDebounce } from "@/hooks/use-debounce"
+import { DocumentPreview, type FileType } from "@/components/document-preview"
 
 interface EmailInboxProps {
   claimId?: string
@@ -574,6 +576,21 @@ export default function EmailInbox({ claimId, claimNumber, claimInsuranceNumber 
     }
   }, [])
 
+  const getStatusLabel = (status?: string): string => {
+    switch (status) {
+      case "Pending":
+        return "Do wysłania"
+      case "Sent":
+        return "Wysłany"
+      case "Failed":
+        return "Błąd"
+      case "Draft":
+        return "Szkic"
+      default:
+        return status || ""
+    }
+  }
+
   // Check if image
   const isImage = useCallback((contentType: string): boolean => {
     return contentType.startsWith("image/")
@@ -734,6 +751,11 @@ export default function EmailInbox({ claimId, claimNumber, claimInsuranceNumber 
                         <span className="email-mail-subject font-medium">{email.subject}</span>
                         <span className="email-mail-separator text-gray-400 mx-1">-</span>
                         <span className="email-mail-snippet text-gray-500">{stripHtml(email.body)}</span>
+                        {email.status && email.status !== "Received" && (
+                          <Badge variant="secondary" className="ml-2">
+                            {getStatusLabel(email.status)}
+                          </Badge>
+                        )}
                       </div>
                       <div className="flex items-center gap-2">
                         {emailService.hasAttachments(email) && (
@@ -1011,40 +1033,20 @@ export default function EmailInbox({ claimId, claimNumber, claimInsuranceNumber 
         </div>
       </div>
 
-      {/* Attachment Preview Modal */}
-      {isPreviewingAttachment && previewedAttachment && (
-        <div
-          className="file-preview-overlay fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 p-4"
-          onClick={closeAttachmentPreview}
-        >
-          <div
-            className="file-preview-modal bg-white rounded-lg shadow-lg w-[90vw] h-[90vh] flex flex-col"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="file-preview-header flex justify-between items-center p-3 border-b border-gray-200">
-              <span className="file-preview-filename font-medium">{previewedAttachment.fileName}</span>
-              <Button variant="ghost" size="sm" onClick={closeAttachmentPreview} title="Zamknij podgląd">
-                <X className="w-5 h-5" />
-              </Button>
-            </div>
-            <div className="file-preview-content flex-1 overflow-auto flex items-center justify-center p-4">
-              {isImage(previewedAttachment.contentType) ? (
-                <img
-                  src={previewedAttachment.url || "/placeholder.svg"}
-                  alt="Podgląd załącznika"
-                  className="preview-image max-w-full max-h-full object-contain"
-                />
-              ) : (
-                <iframe
-                  src={previewedAttachment.url}
-                  className="preview-iframe w-full h-full border-none"
-                  title="Podgląd załącznika"
-                />
-              )}
-            </div>
-          </div>
-        </div>
-      )}
+      <DocumentPreview
+        isOpen={isPreviewingAttachment && !!previewedAttachment}
+        onClose={closeAttachmentPreview}
+        url={previewedAttachment?.url || ""}
+        fileName={previewedAttachment?.fileName || ""}
+        fileType={
+          previewedAttachment && isImage(previewedAttachment.contentType)
+            ? ("image" as FileType)
+            : previewedAttachment?.contentType === "application/pdf"
+            ? ("pdf" as FileType)
+            : ("other" as FileType)
+        }
+        onDownload={() => previewedAttachment && downloadAttachment(previewedAttachment)}
+      />
     </div>
   )
 }

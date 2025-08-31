@@ -13,7 +13,8 @@ export enum VehicleType {
 export enum DamageLevel {
   NONE = 0,
   LIGHT = 1,
-  HEAVY = 2,
+  MEDIUM = 2,
+  HEAVY = 3,
 }
 
 interface DamageDiagramProps {
@@ -87,6 +88,9 @@ export function DamageDiagram({
             newLevel = DamageLevel.LIGHT
             break
           case DamageLevel.LIGHT:
+            newLevel = DamageLevel.MEDIUM
+            break
+          case DamageLevel.MEDIUM:
             newLevel = DamageLevel.HEAVY
             break
           case DamageLevel.HEAVY:
@@ -109,6 +113,12 @@ export function DamageDiagram({
           svgElement.style.stroke = "#f59e0b"
           svgElement.style.strokeWidth = "2"
           svgElement.style.opacity = "0.8"
+          break
+        case DamageLevel.MEDIUM:
+          svgElement.style.fill = "#fb923c" // Orange for medium damage
+          svgElement.style.stroke = "#f97316"
+          svgElement.style.strokeWidth = "3"
+          svgElement.style.opacity = "0.85"
           break
         case DamageLevel.HEAVY:
           svgElement.style.fill = "#dc2626" // Red for heavy damage
@@ -150,6 +160,8 @@ export function DamageDiagram({
     switch (level) {
       case DamageLevel.LIGHT:
         return "Lekkie"
+      case DamageLevel.MEDIUM:
+        return "Średnie"
       case DamageLevel.HEAVY:
         return "Duże"
       default:
@@ -197,6 +209,51 @@ export function DamageDiagram({
       "passenger-door": "Drzwi pasażera",
       "left-door": "Lewe drzwi",
       "right-door": "Prawe drzwi",
+
+      // Detailed car parts
+      "rear-left-door-handle": "Tylna lewa klamka",
+      "rear-left-door": "Tylne lewe drzwi",
+      "front-left-door": "Przednie lewe drzwi",
+      "part-49": "Część 49",
+      "front-left-tire": "Przednia lewa opona",
+      "front-left-rim": "Przednia lewa felga",
+      "part-48": "Część 48",
+      radiator: "Chłodnica",
+      "left-fog-light": "Lewa lampa przeciwmgielna",
+      "front-left-light": "Lewy przedni reflektor",
+      "front-left-wheel-arch": "Przednie lewe nadkole",
+      mask: "Maska",
+      "left-mirror": "Lewe lusterko",
+      "front-left-door-handle": "Przednia lewa klamka",
+      "left-sill-panel": "Lewy próg",
+      "front-left-side-window": "Przednia lewa szyba boczna",
+      windscreen: "Przednia szyba",
+      "rear-left-wheel-arch": "Tylne lewe nadkole",
+      sunroof: "Szyberdach",
+      "rear-left-side-window": "Tylna lewa szyba boczna",
+      "left-quarter-window": "Lewe okienko trójkątne",
+      "rear-left-inside-light": "Tylna lewa lampka wewnętrzna",
+      "rear-left-outside-light": "Tylna lewa lampa zewnętrzna",
+      "rear-left-tire": "Tylna lewa opona",
+      "rear-left-rim": "Tylna lewa felga",
+      "left-muffler": "Lewy tłumik",
+      "rear-right-side-window": "Tylna prawa szyba boczna",
+      "rear-right-wheel-arch": "Tylne prawe nadkole",
+      "rear-right-door": "Tylne prawe drzwi",
+      "front-right-side-window": "Przednia prawa szyba boczna",
+      "front-right-door": "Przednie prawe drzwi",
+      "right-mirror": "Prawe lusterko",
+      "front-right-wheel-arch": "Przednie prawe nadkole",
+      "front-right-light": "Prawy przedni reflektor",
+      "right-quarter-window": "Prawe okienko trójkątne",
+      "rear-right-inside-light": "Tylna prawa lampka wewnętrzna",
+      "rear-right-rim": "Tylna prawa felga",
+      "rear-right-tire": "Tylna prawa opona",
+      "front-right-tire": "Przednia prawa opona",
+      "front-right-rim": "Przednia prawa felga",
+      "rear-right-outside-light": "Tylna prawa lampa zewnętrzna",
+      "right-muffler": "Prawy tłumik",
+      "right-fog-light": "Prawa lampa przeciwmgielna",
     }
 
     // Try to find a translation based on part ID or common patterns
@@ -227,6 +284,7 @@ export function DamageDiagram({
   const getDamagedPartsByLevel = () => {
     const partsByLevel = {
       [DamageLevel.LIGHT]: [] as string[],
+      [DamageLevel.MEDIUM]: [] as string[],
       [DamageLevel.HEAVY]: [] as string[],
     }
 
@@ -264,6 +322,10 @@ export function DamageDiagram({
               <span className="text-sm text-gray-600">Lekkie uszkodzenia</span>
             </div>
             <div className="flex items-center gap-2">
+              <div className="w-4 h-4 border-2 border-orange-500 bg-orange-400 rounded"></div>
+              <span className="text-sm text-gray-600">Średnie uszkodzenia</span>
+            </div>
+            <div className="flex items-center gap-2">
               <div className="w-4 h-4 border-2 border-red-700 bg-red-600 rounded"></div>
               <span className="text-sm text-gray-600">Duże uszkodzenia</span>
             </div>
@@ -288,7 +350,9 @@ export function DamageDiagram({
                               className={`w-3 h-3 rounded border-2 ${
                                   damageLevel === DamageLevel.LIGHT
                                       ? "bg-yellow-400 border-amber-600"
-                                      : "bg-red-600 border-red-700"
+                                      : damageLevel === DamageLevel.MEDIUM
+                                          ? "bg-orange-400 border-orange-500"
+                                          : "bg-red-600 border-red-700"
                               }`}
                           ></div>
                           <span className="text-sm font-medium text-gray-700">

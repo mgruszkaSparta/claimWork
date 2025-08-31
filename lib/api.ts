@@ -60,7 +60,7 @@ export interface EventListItemDto {
   damageType?: string
   leasingCompanyId?: number
   leasingCompany?: string
-  claimHandlerId?: number
+  caseHandlerId?: number
   handler?: string
   objectTypeId?: number
   registeredById?: string
@@ -91,7 +91,7 @@ export interface EventDto extends EventListItemDto {
   perpetratorData?: string
 
   insuranceCompanyId?: number
-  claimHandlerId?: number
+  caseHandlerId?: number
   riskType?: string
   damageType?: string
   subcontractorName?: string
@@ -153,6 +153,12 @@ export interface AdminSettings {
   serverTime: string
 }
 
+export interface DashboardStats {
+  totalClaims: number
+  activeClaims: number
+  closedClaims: number
+}
+
 export interface EventUpsertDto {
   id?: string
   rowVersion?: string
@@ -182,7 +188,7 @@ export interface EventUpsertDto {
   insuranceCompany?: string
   leasingCompanyId?: number
   leasingCompany?: string
-  claimHandlerId?: number
+  caseHandlerId?: number
   handler?: string
   damageDate?: string
   reportDate?: string
@@ -253,6 +259,7 @@ export interface UserListItemDto {
   lastLogin?: string
   fullAccess?: boolean
   clientIds?: number[]
+  caseHandlerId?: number
 }
 
 export interface UpdateUsersBulkDto {
@@ -354,6 +361,49 @@ export interface UpdateCaseHandlerDto {
   department?: string
   isActive?: boolean
 }
+
+export interface DepartmentDto {
+  id: number
+  name: string
+}
+
+export interface CreateDepartmentDto {
+  name: string
+}
+
+export interface UpdateDepartmentDto extends CreateDepartmentDto {}
+
+export interface EmployeeRoleDto {
+  id: number
+  name: string
+}
+
+export interface CreateEmployeeRoleDto {
+  name: string
+}
+
+export interface UpdateEmployeeRoleDto extends CreateEmployeeRoleDto {}
+
+export interface EmployeeDto {
+  id: number
+  firstName: string
+  lastName: string
+  email?: string
+  departmentId?: number
+  department?: DepartmentDto
+  roleId?: number
+  role?: EmployeeRoleDto
+}
+
+export interface CreateEmployeeDto {
+  firstName: string
+  lastName: string
+  email?: string
+  departmentId?: number
+  roleId?: number
+}
+
+export interface UpdateEmployeeDto extends CreateEmployeeDto {}
 
 export interface CreateRiskTypeDto {
   code: string
@@ -900,6 +950,10 @@ class ApiService {
     return this.request<NoteDto[]>(`/notes${query ? `?${query}` : ""}`)
   }
 
+  async getDashboardStats(scope: "user" | "client" = "user"): Promise<DashboardStats> {
+    return this.request<DashboardStats>(`/dashboard/${scope}`)
+  }
+
   async getCurrentUser(): Promise<{ id: string; username: string; email?: string; caseHandlerId?: number; roles?: string[]; createdAt?: string; lastLogin?: string } | undefined> {
     const data = await this.request<{ id: string; userName: string; email: string; caseHandlerId?: number; roles: string[]; createdAt: string; lastLogin?: string }>("/auth/me")
     if (!data) return undefined
@@ -922,6 +976,7 @@ class ApiService {
     status?: string
     fullAccess?: boolean
     clientIds?: number[]
+    caseHandlerId?: number
   }> {
     return await this.request<{
       id: string
@@ -936,6 +991,7 @@ class ApiService {
       status?: string
       fullAccess?: boolean
       clientIds?: number[]
+      caseHandlerId?: number
     }>(`/auth/users/${id}`)
 
   }
@@ -952,6 +1008,7 @@ class ApiService {
       phone?: string
       fullAccess?: boolean
       clientIds?: number[]
+      caseHandlerId?: number
     },
   ): Promise<void> {
     await this.request<void>(`/auth/users/${id}`, {
@@ -970,6 +1027,7 @@ class ApiService {
     status?: "active" | "inactive"
     fullAccess?: boolean
     clientIds?: number[]
+    caseHandlerId?: number
   }): Promise<void> {
     await this.request<void>("/auth/register", {
       method: "POST",
@@ -1249,6 +1307,81 @@ class ApiService {
 
   async deleteDamageType(id: number): Promise<void> {
     await this.request<void>(`/damage-types/${id}`, {
+      method: 'DELETE',
+    })
+  }
+
+  // Departments API
+  async getDepartments(): Promise<DepartmentDto[]> {
+    return this.request<DepartmentDto[]>(`/Departments`)
+  }
+
+  async createDepartment(data: CreateDepartmentDto): Promise<DepartmentDto> {
+    return this.request<DepartmentDto>(`/Departments`, {
+      method: 'POST',
+      body: JSON.stringify(data),
+    })
+  }
+
+  async updateDepartment(id: number, data: UpdateDepartmentDto): Promise<void> {
+    await this.request<void>(`/Departments/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    })
+  }
+
+  async deleteDepartment(id: number): Promise<void> {
+    await this.request<void>(`/Departments/${id}`, {
+      method: 'DELETE',
+    })
+  }
+
+  // Employee Roles API
+  async getEmployeeRoles(): Promise<EmployeeRoleDto[]> {
+    return this.request<EmployeeRoleDto[]>(`/EmployeeRoles`)
+  }
+
+  async createEmployeeRole(data: CreateEmployeeRoleDto): Promise<EmployeeRoleDto> {
+    return this.request<EmployeeRoleDto>(`/EmployeeRoles`, {
+      method: 'POST',
+      body: JSON.stringify(data),
+    })
+  }
+
+  async updateEmployeeRole(id: number, data: UpdateEmployeeRoleDto): Promise<void> {
+    await this.request<void>(`/EmployeeRoles/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    })
+  }
+
+  async deleteEmployeeRole(id: number): Promise<void> {
+    await this.request<void>(`/EmployeeRoles/${id}`, {
+      method: 'DELETE',
+    })
+  }
+
+  // Employees API
+  async getEmployees(): Promise<EmployeeDto[]> {
+    return this.request<EmployeeDto[]>(`/Employees`)
+  }
+
+  async createEmployee(data: CreateEmployeeDto): Promise<EmployeeDto> {
+    return this.request<EmployeeDto>(`/Employees`, {
+      method: 'POST',
+      body: JSON.stringify(data),
+    })
+  }
+
+  async updateEmployee(id: number, data: UpdateEmployeeDto): Promise<void> {
+    await this.request<void>(`/Employees/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    })
+  }
+
+  async deleteEmployee(id: number): Promise<void> {
+    await this.request<void>(`/Employees/${id}`, {
       method: 'DELETE',
     })
   }

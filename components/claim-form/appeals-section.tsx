@@ -38,6 +38,7 @@ import {
 } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 import { useDragDrop } from "@/hooks/use-drag-drop"
+import { DocumentPreview, type FileType } from "@/components/document-preview"
 import {
   getAppeals,
   createAppeal,
@@ -71,15 +72,17 @@ export const AppealsSection = ({ claimId }: AppealsSectionProps) => {
   const [previewAppeal, setPreviewAppeal] = useState<Appeal | null>(null)
   const [isPreviewOpen, setIsPreviewOpen] = useState(false)
   const [previewUrl, setPreviewUrl] = useState<string | null>(null)
-  const [previewFileType, setPreviewFileType] = useState<string>("")
+  const [previewFileType, setPreviewFileType] = useState<FileType>("other")
   const [previewFileName, setPreviewFileName] = useState("")
   const [previewDoc, setPreviewDoc] = useState<DocumentDto | null>(null)
+  const [previewDocs, setPreviewDocs] = useState<DocumentDto[]>([])
+  const [previewIndex, setPreviewIndex] = useState(0)
 
   // Preview for newly selected files
   const [isSelectedPreviewOpen, setIsSelectedPreviewOpen] = useState(false)
   const [selectedPreviewIndex, setSelectedPreviewIndex] = useState(0)
   const [selectedPreviewUrl, setSelectedPreviewUrl] = useState<string | null>(null)
-  const [selectedPreviewType, setSelectedPreviewType] = useState<string>("")
+  const [selectedPreviewType, setSelectedPreviewType] = useState<FileType>("other")
 
   // Form data
   const [formData, setFormData] = useState({
@@ -346,10 +349,13 @@ export const AppealsSection = ({ claimId }: AppealsSectionProps) => {
     return path.split("/").pop()?.split("?")[0] || "document"
   }
 
-  const getFileType = (fileName: string): string => {
+  const getFileType = (fileName: string): FileType => {
+    if (!fileName) return "other"
     const ext = fileName.split(".").pop()?.toLowerCase()
-    if (["pdf"].includes(ext || "")) return "pdf"
+    if (ext === "pdf") return "pdf"
     if (["jpg", "jpeg", "png", "gif", "bmp"].includes(ext || "")) return "image"
+    if (ext === "xls" || ext === "xlsx") return "excel"
+    if (ext === "doc" || ext === "docx") return "docx"
     return "other"
   }
 
@@ -382,32 +388,100 @@ export const AppealsSection = ({ claimId }: AppealsSectionProps) => {
     }
   }
 
-  const previewFile = async (appeal: Appeal, doc?: DocumentDto) => {
-    try {
-      const url = doc
-        ? `${API_BASE_URL}/appeals/${appeal.id}/documents/${doc.id}/preview`
-        : `${API_BASE_URL}/appeals/${appeal.id}/preview`
-      const response = await authFetch(url, { method: "GET" })
-      if (!response.ok) {
-        throw new Error("Failed to preview file")
-      }
-      const blob = await response.blob()
-      const objectUrl = window.URL.createObjectURL(blob)
-      const name = doc?.originalFileName || doc?.fileName || appeal.documentName || ""
+  const loadPreview = async (appeal: Appeal, doc: DocumentDto) => {
+    const url = `${API_BASE_URL}/appeals/${appeal.id}/documents/${doc.id}/preview`
+    const response = await authFetch(url, { method: "GET" })
+    if (!response.ok) throw new Error("Failed to preview file")
+    const blob = await response.blob()
+    const objectUrl = window.URL.createObjectURL(blob)
+    const name = doc.originalFileName || doc.fileName || ""
+    const fileType = getFileType(name)
+    setPreviewFileName(name)
+    setPreviewFileType(fileType)
+    if (fileType === "excel") {
+      setPreviewUrl(url)
+      window.URL.revokeObjectURL(objectUrl)
+    } else {
       setPreviewUrl(objectUrl)
-      setPreviewFileType(getFileType(name))
-      setPreviewFileName(name)
-      setPreviewAppeal(appeal)
-      setPreviewDoc(doc || null)
+    }
+    setPreviewDoc(doc)
+  }
+
+  const previewFile = async (appeal: Appeal, doc?: DocumentDto) => {
+    const docs = appeal.documents || []
+    if (docs.length === 0) {
+      const url = `${API_BASE_URL}/appeals/${appeal.id}/preview`
+      try {
+        const response = await authFetch(url, { method: "GET" })
+        if (!response.ok) throw new Error("Failed to preview file")
+        const blob = await response.blob()
+        const objectUrl = window.URL.createObjectURL(blob)
+        const name = appeal.documentName || ""
+        const fileType = getFileType(name)
+        setPreviewDocs([])
+        setPreviewFileName(name)
+        setPreviewFileType(fileType)
+        if (fileType === "excel") {
+          setPreviewUrl(url)
+          window.URL.revokeObjectURL(objectUrl)
+        } else {
+          setPreviewUrl(objectUrl)
+        }
+        setPreviewAppeal(appeal)
+        setPreviewDoc(null)
+        setIsPreviewOpen(true)
+      } catch (error) {
+        console.error("Error previewing file:", error)
+        toast({ title: "Błąd", description: "Błąd podczas wczytywania podglądu", variant: "destructive" })
+      }
+      return
+    }
+
+    const startIndex = doc ? docs.findIndex((d) => d.id === doc.id) : 0
+    const index = startIndex >= 0 ? startIndex : 0
+    setPreviewDocs(docs)
+    setPreviewIndex(index)
+    setPreviewAppeal(appeal)
+    try {
+      await loadPreview(appeal, docs[index])
       setIsPreviewOpen(true)
     } catch (error) {
       console.error("Error previewing file:", error)
-      toast({
-        title: "Błąd",
-        description: "Błąd podczas wczytywania podglądu",
-        variant: "destructive",
-      })
+      toast({ title: "Błąd", description: "Błąd podczas wczytywania podglądu", variant: "destructive" })
     }
+  }
+
+  const showNextDoc = async () => {
+    if (!previewAppeal || previewDocs.length === 0) return
+    const next = (previewIndex + 1) % previewDocs.length
+    setPreviewIndex(next)
+    try {
+      await loadPreview(previewAppeal, previewDocs[next])
+    } catch (error) {
+      console.error("Error previewing file:", error)
+    }
+  }
+
+  const showPrevDoc = async () => {
+    if (!previewAppeal || previewDocs.length === 0) return
+    const prev = (previewIndex - 1 + previewDocs.length) % previewDocs.length
+    setPreviewIndex(prev)
+    try {
+      await loadPreview(previewAppeal, previewDocs[prev])
+    } catch (error) {
+      console.error("Error previewing file:", error)
+    }
+  }
+
+  const closePreview = () => {
+    setIsPreviewOpen(false)
+    setPreviewAppeal(null)
+    setPreviewDoc(null)
+    setPreviewDocs([])
+    if (previewUrl && previewUrl.startsWith("blob:")) {
+      window.URL.revokeObjectURL(previewUrl)
+    }
+    setPreviewUrl(null)
   }
 
   const handleDeleteDocument = async (doc: DocumentDto) => {
@@ -426,7 +500,7 @@ export const AppealsSection = ({ claimId }: AppealsSectionProps) => {
   const isPreviewable = (fileName?: string) => {
     if (!fileName) return false
     const fileType = getFileType(fileName)
-    return ["pdf", "image"].includes(fileType)
+    return ["pdf", "image", "excel", "docx"].includes(fileType)
   }
 
   const getStatusBadge = (status: Appeal["status"]) => {
@@ -1005,55 +1079,19 @@ export const AppealsSection = ({ claimId }: AppealsSectionProps) => {
         </div>
       )}
 
-      {/* File Preview Dialog */}
-      <Dialog
-        open={isPreviewOpen}
-        onOpenChange={(open) => {
-          setIsPreviewOpen(open)
-          if (!open && previewUrl) {
-            window.URL.revokeObjectURL(previewUrl)
-            setPreviewUrl(null)
-          }
-          if (!open) {
-            setPreviewAppeal(null)
-            setPreviewDoc(null)
-            setPreviewFileName("")
-          }
-        }}
-      >
-        <DialogContent className="max-w-4xl max-h-[90vh]">
-          <DialogHeader>
-            <DialogTitle>Podgląd: {previewFileName}</DialogTitle>
-            {previewDoc?.description && (
-              <p className="text-sm text-gray-600 mt-0.5">{previewDoc.description}</p>
-            )}
-          </DialogHeader>
-          <div className="flex-1 overflow-auto flex items-center justify-center bg-gray-100 rounded p-4 min-h-[400px]">
-            {previewFileType === "pdf" && previewUrl ? (
-              <iframe src={previewUrl} className="w-full h-full border-0" title="PDF Preview" />
-            ) : previewFileType === "image" && previewUrl ? (
-              <img src={previewUrl} alt="Preview" className="max-w-full max-h-[70vh] object-contain" />
-            ) : (
-              <div className="text-center p-8 space-y-4">
-                <FileText className="h-12 w-12 mx-auto text-gray-400" />
-                <div className="space-y-2">
-                  <p className="text-gray-600">Podgląd niedostępny dla tego typu pliku.</p>
-                  <p className="text-gray-500 text-sm">Możesz pobrać plik, aby go otworzyć.</p>
-                </div>
-              </div>
-            )}
-          </div>
-          <div className="flex justify-end pt-4 border-t border-gray-200">
-            <Button
-              onClick={() => previewAppeal && downloadFile(previewAppeal, previewDoc || undefined)}
-              className="bg-[#1a3a6c] hover:bg-[#15305a] text-white"
-            >
-              <Download className="h-4 w-4 mr-2" />
-              Pobierz plik
-            </Button>
-          </div>
-        </DialogContent>
-      </Dialog>
+      <DocumentPreview
+        isOpen={isPreviewOpen}
+        url={previewUrl || ""}
+        fileName={previewFileName}
+        fileType={previewFileType}
+        onClose={closePreview}
+        onDownload={() =>
+          previewAppeal && downloadFile(previewAppeal, previewDoc || undefined)
+        }
+        canNavigate={previewDocs.length > 1}
+        onNext={showNextDoc}
+        onPrev={showPrevDoc}
+      />
 
       {/* Selected Files Preview Dialog */}
       <Dialog

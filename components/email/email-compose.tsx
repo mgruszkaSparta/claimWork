@@ -42,7 +42,7 @@ interface EmailComposeProps {
   replyTo?: string
   replySubject?: string
   replyBody?: string
-  claimId: string
+  claimNumber: string
   availableDocuments?: UploadedFile[]
 }
 
@@ -53,7 +53,7 @@ export const EmailComposeComponent = ({
   replyTo,
   replySubject,
   replyBody,
-  claimId,
+  claimNumber,
   availableDocuments = [],
 }: EmailComposeProps) => {
   const { toast } = useToast()
@@ -159,9 +159,9 @@ export const EmailComposeComponent = ({
     if (template) {
       setEmailData((prev) => ({
         ...prev,
-        subject: template.subject.replace("{{claimNumber}}", claimId),
+        subject: template.subject.replace("{{claimNumber}}", claimNumber),
         body: template.body
-          .replace("{{claimNumber}}", claimId)
+          .replace("{{claimNumber}}", claimNumber)
           .replace("{{handlerName}}", "Piotr Raniecki")
           .replace("{{repairCost}}", "15,600.00")
           .replace("{{otherCosts}}", "0.00")

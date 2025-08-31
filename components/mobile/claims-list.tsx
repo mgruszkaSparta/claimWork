@@ -74,6 +74,8 @@ export function ClaimsListMobile({
   >([])
   const [filterRegistration, setFilterRegistration] = useState("")
   const [filterHandler, setFilterHandler] = useState("")
+  const [substituteOptions, setSubstituteOptions] = useState<{ id: string; name: string }[]>([])
+  const [selectedSubstituteId, setSelectedSubstituteId] = useState("")
   const [dateFilters, setDateFilters] = useState<
     { type: "reportDate" | "damageDate"; from: string; to: string }
   >([])
@@ -156,6 +158,31 @@ export function ClaimsListMobile({
   }, [])
 
   useEffect(() => {
+    const loadSubstitutions = async () => {
+      if (!user?.id) return
+      try {
+        const res = await fetch("/api/leaves")
+        const leaves = await res.json()
+        const today = new Date()
+        const options = leaves
+          .filter(
+            (l: any) =>
+              l.substituteId === user.id &&
+              l.status === "APPROVED" &&
+              new Date(l.startDate) <= today &&
+              new Date(l.endDate) >= today,
+          )
+          .map((l: any) => ({ id: l.employeeId, name: l.employeeName }))
+        const unique = Array.from(new Map(options.map((o: any) => [o.id, o])).values())
+        setSubstituteOptions(unique)
+      } catch (err) {
+        console.error("Failed to load leaves", err)
+      }
+    }
+    loadSubstitutions()
+  }, [user?.id])
+
+  useEffect(() => {
     if (initialClaims?.length) return
 
     const loadClaims = async () => {
@@ -170,8 +197,12 @@ export function ClaimsListMobile({
             status: filterStatus !== "all" ? filterStatus : undefined,
             riskType: filterRisk !== "all" ? filterRisk : undefined,
             brand: filterRegistration || undefined,
-            handler: showMyClaims ? user?.username : filterHandler || undefined,
-            registeredById: showMyClaims ? user?.id : undefined,
+            handler: filterHandler || undefined,
+            caseHandlerId: showMyClaims
+              ? user?.caseHandlerId
+              : selectedSubstituteId
+              ? parseInt(selectedSubstituteId, 10)
+              : undefined,
             claimObjectTypeId,
             sortBy,
             sortOrder,
@@ -201,9 +232,9 @@ export function ClaimsListMobile({
     filterRisk,
     filterRegistration,
     filterHandler,
+    selectedSubstituteId,
     showMyClaims,
-    user?.id,
-    user?.username,
+    user?.caseHandlerId,
     dateFilters,
     claimObjectTypeId,
     sortBy,
@@ -329,8 +360,12 @@ export function ClaimsListMobile({
           status: filterStatus !== "all" ? filterStatus : undefined,
           riskType: filterRisk !== "all" ? filterRisk : undefined,
           brand: filterRegistration || undefined,
-          handler: showMyClaims ? user?.username : filterHandler || undefined,
-          registeredById: showMyClaims ? user?.id : undefined,
+          handler: filterHandler || undefined,
+          caseHandlerId: showMyClaims
+            ? user?.caseHandlerId
+            : selectedSubstituteId
+            ? parseInt(selectedSubstituteId, 10)
+            : undefined,
           claimObjectTypeId,
           sortBy,
           sortOrder,
@@ -510,11 +545,31 @@ export function ClaimsListMobile({
               className={`h-9 text-sm ${showMyClaims ? "bg-[#1a3a6c] text-white hover:bg-[#1a3a6c]/90" : "bg-white"}`}
               onClick={() => {
                 setShowMyClaims((prev) => !prev)
+                setSelectedSubstituteId("")
                 setPage(1)
               }}
             >
               Moje szkody
             </Button>
+            {substituteOptions.map((opt) => (
+              <Button
+                key={opt.id}
+                variant="outline"
+                size="sm"
+                className={`h-9 text-sm ${
+                  selectedSubstituteId === opt.id
+                    ? "bg-[#1a3a6c] text-white hover:bg-[#1a3a6c]/90"
+                    : "bg-white"
+                }`}
+                onClick={() => {
+                  setSelectedSubstituteId(opt.id)
+                  setShowMyClaims(false)
+                  setPage(1)
+                }}
+              >
+                {opt.name}
+              </Button>
+            ))}
           </div>
         </div>
         {showFilters && (

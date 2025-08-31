@@ -214,6 +214,7 @@ public class EmailClient
                 await client.SendAsync(message);
                 await client.DisconnectAsync(true);
 
+                email.Direction = "Outbound";
                 email.NeedsSending = false;
                 email.Status = "Sent";
                 email.SentAt = DateTime.UtcNow;

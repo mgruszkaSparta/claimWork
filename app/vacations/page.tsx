@@ -22,7 +22,7 @@ export default function VacationPage() {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        claimHandlerId: user?.id,
+        caseHandlerId: user?.id,
         substituteId,
         managerIds: managers.map((m) => m.id),
         startDate,

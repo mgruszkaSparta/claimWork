@@ -60,10 +60,12 @@ export default function NewClaimPage() {
   const claimObjectTypeParam = searchParams.get("claimObjectType") || "1"
   const [claimObjectType, setClaimObjectType] = useState(claimObjectTypeParam)
   const { toast } = useToast()
+
   const { initializeClaim, createClaim, updateClaim, deleteClaim } = useClaims()
   const { user } = useAuth()
   const [claimId, setClaimId] = useState<string | null>(null)
   const [isPersisted, setIsPersisted] = useState(false)
+
   const [activeClaimSection, setActiveClaimSection] = useState("teczka-szkodowa")
   const [isSaving, setIsSaving] = useState(false)
   const contentRef = useRef<HTMLDivElement>(null)
@@ -106,6 +108,7 @@ export default function NewClaimPage() {
   } = useClaimForm()
 
 
+
   useEffect(() => {
     const init = async () => {
       const id = await initializeClaim()
@@ -116,6 +119,7 @@ export default function NewClaimPage() {
     }
     init()
   }, [initializeClaim, setClaimFormData])
+
 
 
   useEffect(() => {
@@ -319,7 +323,9 @@ export default function NewClaimPage() {
 
     const savedScheduleIds: string[] = []
     const savedDetailIds: string[] = []
+
     const isUpdate = isPersisted && Boolean(claimId)
+
     let savedClaimId = claimId
 
     try {
@@ -345,10 +351,12 @@ export default function NewClaimPage() {
       savedClaimId = savedClaim.id
       setClaimId(savedClaimId)
       setClaimFormData(savedClaim)
+
       setIsPersisted(true)
 
       // Save repair schedules sequentially
       for (const schedule of repairSchedules) {
+
         const { id, isPersisted, eventId, createdAt, updatedAt, ...payload } = schedule
         if (isPersisted && id) {
           const response = await fetch(
@@ -382,12 +390,14 @@ export default function NewClaimPage() {
             schedule.isPersisted = true
             savedScheduleIds.push(saved.id)
           }
+
         }
       }
       setRepairSchedules([...repairSchedules])
 
       // Save repair details sequentially
       for (const detail of repairDetails) {
+
         const { id, isPersisted, eventId, createdAt, updatedAt, ...payload } = detail
         if (isPersisted && id) {
           const response = await fetch(
@@ -421,6 +431,7 @@ export default function NewClaimPage() {
             detail.isPersisted = true
             savedDetailIds.push(saved.id)
           }
+
         }
       }
       setRepairDetails([...repairDetails])

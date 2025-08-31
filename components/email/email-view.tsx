@@ -53,6 +53,7 @@ export const EmailView = ({
   onAssignAttachment,
 }: EmailViewProps) => {
   const [showFullHeaders, setShowFullHeaders] = useState(false)
+  const availableDocs = requiredDocuments.filter((d) => d.required && !d.uploaded)
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString)
@@ -265,8 +266,8 @@ export const EmailView = ({
                                 <DialogTitle>Przypisz do dokumentu</DialogTitle>
                               </DialogHeader>
                               <div className="flex flex-col gap-2">
-                                {requiredDocuments.length ? (
-                                  requiredDocuments.map((doc) => (
+                                {availableDocs.length ? (
+                                  availableDocs.map((doc) => (
                                     <Button
                                       key={doc.id}
                                       variant="outline"

@@ -5,36 +5,71 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 import { Users, Shield, UserCheck, UserX, Activity, Clock, AlertTriangle } from "lucide-react"
 import { apiService, type AdminSettings, type UserListItemDto } from "@/lib/api"
+import { adminService } from "@/lib/services/admin-service"
+import type { Role } from "@/lib/types/admin"
 import Link from "next/link"
 
 export default function AdminDashboard() {
   const [users, setUsers] = useState<UserListItemDto[]>([])
-  const [roles, setRoles] = useState<string[]>([])
+  const [roles, setRoles] = useState<Role[]>([])
   const [adminInfo, setAdminInfo] = useState<AdminSettings | null>(null)
-  const [newUser, setNewUser] = useState({ userName: "", email: "", password: "" })
+  const [newUser, setNewUser] = useState({
+    userName: "",
+    email: "",
+    password: "",
+    role: "",
+  })
 
   useEffect(() => {
     apiService.getAdminSettings().then(setAdminInfo).catch((err) => {
       console.error("Failed to load admin settings", err)
     })
+    adminService
+      .getRoles()
+      .then((r) => {
+        setRoles(r)
+        if (r.length > 0) {
+          setNewUser((prev) => ({ ...prev, role: r[0].id }))
+        }
+      })
+      .catch((err) => console.error("Failed to load roles", err))
     apiService
       .getUsers()
       .then(({ items }) => {
         setUsers(items)
-        setRoles(Array.from(new Set(items.map((u) => u.role).filter(Boolean))) as string[])
       })
       .catch((err) => console.error("Failed to load users", err))
   }, [])
 
   const handleAddUser = async () => {
+    if (!newUser.role) {
+      console.error("Role is required")
+      return
+    }
     try {
-      await apiService.createUser(newUser)
-      setNewUser({ userName: "", email: "", password: "" })
+      await apiService.createUser({
+        userName: newUser.userName,
+        email: newUser.email,
+        password: newUser.password,
+        role: newUser.role,
+      })
+      setNewUser({
+        userName: "",
+        email: "",
+        password: "",
+        role: roles[0]?.id ?? "",
+      })
       const { items } = await apiService.getUsers()
       setUsers(items)
-      setRoles(Array.from(new Set(items.map((u) => u.role).filter(Boolean))) as string[])
     } catch (err) {
       console.error("Failed to add user", err)
     }
@@ -135,25 +170,30 @@ export default function AdminDashboard() {
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {recentUsers.map((user) => (
-                <div key={user.id} className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className="h-8 w-8 rounded-full bg-muted flex items-center justify-center">
-                      <span className="text-xs font-medium">
-                        {user.firstName[0]}
-                        {user.lastName[0]}
-                      </span>
+              {recentUsers.map((user) => {
+                const displayName =
+                  user.firstName && user.lastName
+                    ? `${user.firstName} ${user.lastName}`
+                    : user.email
+                const initials =
+                  user.firstName && user.lastName
+                    ? `${user.firstName[0]}${user.lastName[0]}`
+                    : user.email.slice(0, 2).toUpperCase()
+                return (
+                  <div key={user.id} className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="h-8 w-8 rounded-full bg-muted flex items-center justify-center">
+                        <span className="text-xs font-medium">{initials}</span>
+                      </div>
+                      <div>
+                        <p className="text-sm font-medium text-foreground">{displayName}</p>
+                        <p className="text-xs text-muted-foreground">{user.email}</p>
+                      </div>
                     </div>
-                    <div>
-                      <p className="text-sm font-medium text-foreground">
-                        {user.firstName} {user.lastName}
-                      </p>
-                      <p className="text-xs text-muted-foreground">{user.email}</p>
-                    </div>
+                    {getStatusBadge(user.status)}
                   </div>
-                  {getStatusBadge(user.status)}
-                </div>
-              ))}
+                )
+              })}
             </div>
             <div className="mt-4">
               <Button asChild variant="outline" className="w-full bg-transparent">
@@ -228,7 +268,7 @@ export default function AdminDashboard() {
           <CardDescription>Utwórz nowego użytkownika w systemie</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="grid gap-4 md:grid-cols-3">
+          <div className="grid gap-4 md:grid-cols-4">
             <Input
               placeholder="Nazwa użytkownika"
               value={newUser.userName}
@@ -245,6 +285,21 @@ export default function AdminDashboard() {
               value={newUser.password}
               onChange={(e) => setNewUser({ ...newUser, password: e.target.value })}
             />
+            <Select
+              value={newUser.role}
+              onValueChange={(v) => setNewUser({ ...newUser, role: v })}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Rola" />
+              </SelectTrigger>
+              <SelectContent>
+                {roles.map((r) => (
+                  <SelectItem key={r.id} value={r.id}>
+                    {r.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
           <Button className="mt-4" onClick={handleAddUser}>
             Dodaj użytkownika

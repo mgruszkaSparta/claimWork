@@ -10,9 +10,11 @@ import { emailFolders, sampleEmails } from "@/lib/email-data"
 import type { Email, EmailCompose, EmailAttachment } from "@/types/email"
 import type { UploadedFile, RequiredDocument } from "@/types"
 import { API_BASE_URL } from "@/lib/api"
+import { slugify } from "@/utils/slugify"
 
 interface EmailSectionProps {
   claimId?: string
+  claimNumber?: string
   uploadedFiles?: UploadedFile[]
   setUploadedFiles?: Dispatch<SetStateAction<UploadedFile[]>>
   requiredDocuments?: RequiredDocument[]
@@ -21,6 +23,7 @@ interface EmailSectionProps {
 
 export const EmailSection = ({
   claimId,
+  claimNumber,
   uploadedFiles,
   setUploadedFiles,
   requiredDocuments,
@@ -36,7 +39,7 @@ export const EmailSection = ({
     replyTo?: string
     replySubject?: string
     replyBody?: string
-    claimId?: string
+    claimNumber?: string
   }>({})
 
   const [internalDocuments, setInternalDocuments] = useState<UploadedFile[]>([
@@ -61,8 +64,22 @@ export const EmailSection = ({
   const updateDocuments = setUploadedFiles ?? setInternalDocuments
 
   const [internalRequiredDocs, setInternalRequiredDocs] = useState<RequiredDocument[]>([
-    { id: "req1", name: "Umowa", required: true, uploaded: false, description: "" },
-    { id: "req2", name: "Protokół", required: false, uploaded: false, description: "" },
+    {
+      id: "req1",
+      name: "Umowa",
+      required: true,
+      uploaded: false,
+      description: "",
+      category: slugify("Umowa"),
+    },
+    {
+      id: "req2",
+      name: "Protokół",
+      required: false,
+      uploaded: false,
+      description: "",
+      category: slugify("Protokół"),
+    },
   ])
   const reqDocuments = requiredDocuments ?? internalRequiredDocs
   const updateRequiredDocs = setRequiredDocuments ?? setInternalRequiredDocs
@@ -169,7 +186,7 @@ export const EmailSection = ({
       replyTo: email.from,
       replySubject: email.subject.startsWith("Re:") ? email.subject : `Re: ${email.subject}`,
       replyBody: email.body,
-      claimId: claimId,
+      claimNumber: claimNumber,
     })
     setCurrentView("compose")
   }
@@ -183,7 +200,7 @@ export const EmailSection = ({
       replyTo: allRecipients,
       replySubject: email.subject.startsWith("Re:") ? email.subject : `Re: ${email.subject}`,
       replyBody: email.body,
-      claimId: claimId,
+      claimNumber: claimNumber,
     })
     setCurrentView("compose")
   }
@@ -192,7 +209,7 @@ export const EmailSection = ({
     setComposeData({
       replySubject: email.subject.startsWith("Fwd:") ? email.subject : `Fwd: ${email.subject}`,
       replyBody: `\n\n--- Przekazana wiadomość ---\nOd: ${email.fromName} <${email.from}>\nData: ${email.date}\nTemat: ${email.subject}\n\n${email.body}`,
-      claimId: claimId,
+      claimNumber: claimNumber,
     })
     setCurrentView("compose")
   }
@@ -312,7 +329,7 @@ export const EmailSection = ({
             replyTo={composeData.replyTo}
             replySubject={composeData.replySubject}
             replyBody={composeData.replyBody}
-            claimId={composeData.claimId || ""}
+            claimNumber={composeData.claimNumber || claimNumber || ""}
             availableDocuments={documents}
           />
         </div>

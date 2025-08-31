@@ -130,6 +130,7 @@ namespace AutomotiveClaimsApi.Services
                 return false;
 
             email.NeedsSending = true;
+            email.Direction = "Outbound";
             email.Status = "Pending";
             email.UpdatedAt = DateTime.UtcNow;
             await _context.SaveChangesAsync();

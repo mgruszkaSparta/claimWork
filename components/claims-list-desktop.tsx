@@ -174,7 +174,10 @@ export function ClaimsListDesktop({
               new Date(l.startDate) <= today &&
               new Date(l.endDate) >= today,
           )
-          .map((l: any) => ({ id: l.employeeId, name: l.employeeName }))
+          .map((l: any) => ({
+            id: String(l.caseHandlerId),
+            name: l.employeeName,
+          }))
         const unique = Array.from(
           new Map(options.map((o: any) => [o.id, o])).values(),
         )
@@ -202,9 +205,11 @@ export function ClaimsListDesktop({
             riskType: filterRisk !== "all" ? filterRisk : undefined,
             brand: filterRegistration || undefined,
             handler: filterHandler || undefined,
-            claimHandlerId:
-              showMyClaims ? user?.id : selectedSubstituteId || undefined,
-            registeredById: showMyClaims ? user?.id : undefined,
+            caseHandlerId: showMyClaims
+              ? user?.caseHandlerId
+              : selectedSubstituteId
+              ? parseInt(selectedSubstituteId, 10)
+              : undefined,
             claimObjectTypeId,
             sortBy,
             sortOrder,
@@ -236,7 +241,7 @@ export function ClaimsListDesktop({
     filterHandler,
     selectedSubstituteId,
     showMyClaims,
-    user?.id,
+    user?.caseHandlerId,
     dateFilters,
     claimObjectTypeId,
     sortBy,
@@ -363,9 +368,11 @@ export function ClaimsListDesktop({
           riskType: filterRisk !== "all" ? filterRisk : undefined,
           brand: filterRegistration || undefined,
           handler: filterHandler || undefined,
-          claimHandlerId:
-            showMyClaims ? user?.id : selectedSubstituteId || undefined,
-          registeredById: showMyClaims ? user?.id : undefined,
+          caseHandlerId: showMyClaims
+            ? user?.caseHandlerId
+            : selectedSubstituteId
+            ? parseInt(selectedSubstituteId, 10)
+            : undefined,
           claimObjectTypeId,
           sortBy,
           sortOrder,
@@ -551,27 +558,25 @@ export function ClaimsListDesktop({
             >
               Moje szkody
             </Button>
-            {substituteOptions.length > 0 && (
-              <Select
-                value={selectedSubstituteId}
-                onValueChange={(value) => {
-                  setSelectedSubstituteId(value)
+            {substituteOptions.map((opt) => (
+              <Button
+                key={opt.id}
+                variant="outline"
+                size="sm"
+                className={`h-9 text-sm ${
+                  selectedSubstituteId === opt.id
+                    ? "bg-[#1a3a6c] text-white hover:bg-[#1a3a6c]/90"
+                    : "bg-white"
+                }`}
+                onClick={() => {
+                  setSelectedSubstituteId(opt.id)
                   setShowMyClaims(false)
                   setPage(1)
                 }}
               >
-                <SelectTrigger className="w-48 h-9 text-sm">
-                  <SelectValue placeholder="Zastępuję" />
-                </SelectTrigger>
-                <SelectContent>
-                  {substituteOptions.map((opt) => (
-                    <SelectItem key={opt.id} value={opt.id}>
-                      {opt.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            )}
+                {opt.name}
+              </Button>
+            ))}
           </div>
         </div>
         {showFilters && (

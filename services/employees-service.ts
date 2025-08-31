@@ -1,13 +1,12 @@
+import { apiService } from "@/lib/api";
 import { Employee } from "@/types/employee";
 
-const API_BASE = "/api/employees";
-
-export async function getEmployees(currentUserId: string): Promise<Employee[]> {
-  const res = await fetch(API_BASE, {
-    headers: { "X-User-Id": currentUserId },
-  });
-  if (!res.ok) {
-    throw new Error("Failed to fetch employees");
-  }
-  return res.json();
+export async function getEmployees(): Promise<Employee[]> {
+  const res = await apiService.getEmployees();
+  return res.map((e) => ({
+    id: e.id.toString(),
+    name: `${e.firstName} ${e.lastName}`.trim(),
+    email: e.email,
+    departmentId: e.departmentId?.toString(),
+  }));
 }

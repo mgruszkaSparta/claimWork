@@ -113,33 +113,33 @@ export default function UsersPage() {
           className="max-w-xs"
         />
         <Select
-          value={role ?? ""}
+          value={role ?? "all"}
           onValueChange={(v) => {
             setPage(1)
-            setRole(v || undefined)
+            setRole(v === "all" ? undefined : v)
           }}
         >
           <SelectTrigger className="w-[180px]">
             <SelectValue placeholder="Rola" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="">Wszystkie role</SelectItem>
+            <SelectItem value="all">Wszystkie role</SelectItem>
             <SelectItem value="user">Użytkownik</SelectItem>
             <SelectItem value="admin">Administrator</SelectItem>
           </SelectContent>
         </Select>
         <Select
-          value={status ?? ""}
+          value={status ?? "all"}
           onValueChange={(v) => {
             setPage(1)
-            setStatus(v || undefined)
+            setStatus(v === "all" ? undefined : v)
           }}
         >
           <SelectTrigger className="w-[180px]">
             <SelectValue placeholder="Status" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="">Wszystkie statusy</SelectItem>
+            <SelectItem value="all">Wszystkie statusy</SelectItem>
             <SelectItem value="active">Aktywny</SelectItem>
             <SelectItem value="inactive">Nieaktywny</SelectItem>
           </SelectContent>

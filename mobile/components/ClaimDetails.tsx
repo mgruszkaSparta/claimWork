@@ -2,8 +2,22 @@ import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
 import { Button } from "./ui/button";
 import { Badge } from "./ui/badge";
 import { Progress } from "./ui/progress";
-import { Separator } from "./ui/separator";
-import { ArrowLeft, Car, Home, Truck, AlertCircle, Phone, Mail, MapPin, Calendar, Clock, DollarSign, FileText, User } from "lucide-react";
+import {
+  AlertCircle,
+  ArrowLeft,
+  Calendar,
+  Car,
+  Clock,
+  DollarSign,
+  FileText,
+  Handshake,
+  Home,
+  Mail,
+  MapPin,
+  Phone,
+  Truck,
+  User,
+} from "lucide-react";
 
 interface ClaimDetailsProps {
   onNavigate: (section: string) => void;
@@ -58,7 +72,13 @@ export function ClaimDetails({ onNavigate, claimId }: ClaimDetailsProps) {
         description: "Planowane zakończenie naprawy",
         completed: false
       }
-    ]
+    ],
+    settlement: {
+      number: "UG-2024-001",
+      decision: "Zaakceptowana",
+      date: "2024-09-02",
+      amount: "7,500 PLN"
+    }
   };
 
   const getTypeIcon = (type: string) => {
@@ -77,6 +97,17 @@ export function ClaimDetails({ onNavigate, claimId }: ClaimDetailsProps) {
       case 'oczekuje': return 'bg-[#fef3c7] text-[#d97706] border-[#d97706]/20';
       case 'zakończona': return 'bg-[#d1fae5] text-[#059669] border-[#059669]/20';
       default: return 'bg-[#f1f5f9] text-[#64748b] border-[#e2e8f0]';
+    }
+  };
+
+  const getDecisionColor = (decision: string) => {
+    switch (decision) {
+      case 'Zaakceptowana':
+        return 'bg-[#d1fae5] text-[#059669] border-[#059669]/20';
+      case 'Odrzucona':
+        return 'bg-[#fee2e2] text-[#dc2626] border-[#dc2626]/20';
+      default:
+        return 'bg-[#e1e7ef] text-[#1a3a6c] border-[#1a3a6c]/20';
     }
   };
 
@@ -200,6 +231,41 @@ export function ClaimDetails({ onNavigate, claimId }: ClaimDetailsProps) {
             </div>
           </CardContent>
         </Card>
+
+        {/* Decyzja ugody */}
+        {claim.settlement && (
+          <Card className="shadow-sm border-[#e2e8f0] bg-white">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-[#1e293b] flex items-center gap-2">
+                <Handshake className="w-5 h-5 text-[#1a3a6c]" />
+                Decyzja ugody
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              <div className="flex items-center gap-2 text-sm text-[#64748b]">
+                <FileText className="w-4 h-4" />
+                <span>Numer ugody:</span>
+                <span className="font-medium text-[#1e293b]">{claim.settlement.number}</span>
+              </div>
+              <div className="flex items-center gap-2 text-sm text-[#64748b]">
+                <Calendar className="w-4 h-4" />
+                <span>Data decyzji:</span>
+                <span className="font-medium text-[#1e293b]">{claim.settlement.date}</span>
+              </div>
+              <div className="flex items-center gap-2 text-sm text-[#64748b]">
+                <DollarSign className="w-4 h-4" />
+                <span>Kwota ugody:</span>
+                <span className="font-medium text-[#1e293b]">{claim.settlement.amount}</span>
+              </div>
+              <div className="flex items-center gap-2 text-sm text-[#64748b]">
+                <span>Status:</span>
+                <Badge className={`${getDecisionColor(claim.settlement.decision)} font-medium px-2 py-1`}>
+                  {claim.settlement.decision}
+                </Badge>
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
         {/* Dane kontaktowe */}
         <Card className="shadow-sm border-[#e2e8f0] bg-white">

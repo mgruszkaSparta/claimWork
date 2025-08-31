@@ -278,13 +278,13 @@ export const DocumentsSection = React.forwardRef<
 
   const mapCategoryCodeToName = (code?: string) =>
     requiredDocuments.find((d) => d.category === code)?.name ||
-    code?.replace(/-/g, " ") ||
-    "Inne dokumenty"
+    (code
+      ? code.replace(/-/g, " ").replace(/^./, (c) => c.toUpperCase())
+      : "Inne dokumenty")
 
   const mapCategoryNameToCode = (name?: string | null) =>
     requiredDocuments.find((d) => d.name === name)?.category ||
-    name?.toLowerCase().replace(/\s+/g, "-") ||
-    "Inne dokumenty"
+    (name ? name.toLowerCase().replace(/\s+/g, "-") : "inne-dokumenty")
 
   const loadDocuments = async () => {
     if (!eventId || !isGuid(eventId)) return

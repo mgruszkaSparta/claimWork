@@ -5,6 +5,32 @@ import { API_ENDPOINTS, generateId } from "@/lib/constants"
 import { authFetch } from "@/lib/auth-fetch"
 import { DamageLevel } from "@/components/damage-diagram"
 
+const severityToLevel = (severity?: string): DamageLevel => {
+  switch (severity?.toLowerCase()) {
+    case "light":
+      return DamageLevel.LIGHT
+    case "medium":
+      return DamageLevel.MEDIUM
+    case "heavy":
+      return DamageLevel.HEAVY
+    default:
+      return DamageLevel.NONE
+  }
+}
+
+const levelToSeverity = (level?: DamageLevel): string | undefined => {
+  switch (level) {
+    case DamageLevel.LIGHT:
+      return "light"
+    case DamageLevel.MEDIUM:
+      return "medium"
+    case DamageLevel.HEAVY:
+      return "heavy"
+    default:
+      return undefined
+  }
+}
+
 export interface Damage {
   id?: string
   eventId?: string
@@ -71,7 +97,11 @@ export function useDamages(eventId?: string) {
         throw new Error(errorText || "Nie udało się pobrać szkód")
       }
 
-      return response.json()
+      const data = await response.json()
+      return data.map((d: any) => ({
+        ...d,
+        level: severityToLevel(d.severity),
+      }))
     },
     [eventId],
   )
@@ -82,16 +112,16 @@ export function useDamages(eventId?: string) {
         throw new Error("Brak identyfikatora zdarzenia")
       }
 
+      const { level, ...rest } = damage
       const response = await authFetch(API_ENDPOINTS.DAMAGES, {
         method: "POST",
 
         headers: { "Content-Type": "application/json" },
 
         body: JSON.stringify({
-          ...damage,
-
+          ...rest,
+          severity: levelToSeverity(level),
           id: damage.id || generateId(),
-
           eventId: (damage as any).eventId || eventId,
         }),
       })
@@ -108,12 +138,17 @@ export function useDamages(eventId?: string) {
 
   const updateDamage = useCallback(
     async (id: string, damage: Partial<Damage>): Promise<void> => {
+      const { level, ...rest } = damage
       const response = await authFetch(`${API_ENDPOINTS.DAMAGES}/${id}`, {
         method: "PUT",
 
         headers: { "Content-Type": "application/json" },
 
-        body: JSON.stringify({ ...damage, eventId }),
+        body: JSON.stringify({
+          ...rest,
+          ...(level !== undefined ? { severity: levelToSeverity(level) } : {}),
+          eventId,
+        }),
       })
 
       if (!response.ok) {

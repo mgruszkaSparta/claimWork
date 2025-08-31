@@ -312,11 +312,25 @@ namespace AutomotiveClaimsApi.Controllers
         }
 
         [HttpPost("initialize")]
-        public ActionResult<object> InitializeClaim()
+        public async Task<ActionResult<object>> InitializeClaim()
         {
             try
             {
                 var id = Guid.NewGuid();
+                var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+                var draftEvent = new Event
+                {
+                    Id = id,
+                    CreatedAt = DateTime.UtcNow,
+                    UpdatedAt = DateTime.UtcNow,
+                    RegisteredById = userId,
+                    IsDraft = true
+                };
+
+                _context.Events.Add(draftEvent);
+                await _context.SaveChangesAsync();
+
                 return Ok(new { id });
             }
             catch (Exception ex)
@@ -377,6 +391,7 @@ namespace AutomotiveClaimsApi.Controllers
                 {
                     await UpsertClaimAsync(existingEvent, eventDto);
                     existingEvent.UpdatedAt = DateTime.UtcNow;
+                    existingEvent.IsDraft = false;
 
                     if (string.IsNullOrEmpty(existingEvent.RegisteredById))
                     {
@@ -430,7 +445,8 @@ namespace AutomotiveClaimsApi.Controllers
                     Id = eventDto.Id.Value,
                     CreatedAt = DateTime.UtcNow,
                     UpdatedAt = DateTime.UtcNow,
-                    RegisteredById = userId
+                    RegisteredById = userId,
+                    IsDraft = false
                 };
 
                 await UpsertClaimAsync(eventEntity, eventDto);

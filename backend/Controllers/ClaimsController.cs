@@ -364,16 +364,19 @@ namespace AutomotiveClaimsApi.Controllers
                 }
 
                 CaseHandler? handler = null;
+                var hasAssignedHandler = false;
                 if (eventDto.HandlerId.HasValue)
                 {
                     handler = await _context.CaseHandlers.FindAsync(eventDto.HandlerId.Value);
+                    hasAssignedHandler = true;
                 }
                 else if (currentUser?.CaseHandlerId != null)
                 {
                     handler = await _context.CaseHandlers.FindAsync(currentUser.CaseHandlerId.Value);
+                    hasAssignedHandler = true;
                 }
 
-                var statusId = (handler != null || isHandler)
+                var statusId = (hasAssignedHandler || isHandler)
                     ? (int)ClaimStatusCode.New
                     : (int)ClaimStatusCode.ToAssign;
                 var statusEntity = await _context.ClaimStatuses.FindAsync(statusId);

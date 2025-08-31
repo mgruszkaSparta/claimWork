@@ -1835,9 +1835,6 @@ export const DocumentsSection = React.forwardRef<
               <CardTitle>Wymagane dokumenty</CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="mb-4 text-sm text-gray-500">
-                Dodaj kategorię, aby móc załączyć odpowiednie pliki.
-              </p>
               <div className="relative mb-4">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
                 <Input

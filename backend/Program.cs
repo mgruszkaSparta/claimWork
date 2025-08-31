@@ -108,6 +108,7 @@ builder.Services.AddScoped<IRiskTypeService, RiskTypeService>();
 builder.Services.AddScoped<IDamageTypeService, DamageTypeService>();
 builder.Services.AddScoped<ICaseHandlerService, CaseHandlerService>();
 builder.Services.AddEventDocumentStore(builder.Configuration);
+builder.Services.AddSingleton<IMobileNotificationStore, InMemoryMobileNotificationStore>();
 
 // Add background services
 builder.Services.AddHostedService<EmailBackgroundService>();

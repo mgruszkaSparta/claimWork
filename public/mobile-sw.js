@@ -25,3 +25,9 @@ self.addEventListener('activate', event => {
   fetchNotifications();
   setInterval(fetchNotifications, POLL_INTERVAL);
 });
+
+self.addEventListener('periodicsync', event => {
+  if (event.tag === 'fetch-notifications') {
+    event.waitUntil(fetchNotifications());
+  }
+});

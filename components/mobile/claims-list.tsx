@@ -203,6 +203,8 @@ export function ClaimsListMobile({
               : selectedSubstituteId
               ? parseInt(selectedSubstituteId, 10)
               : undefined,
+            registeredById:
+              showMyClaims && !user?.caseHandlerId ? user?.id : undefined,
             claimObjectTypeId,
             sortBy,
             sortOrder,
@@ -235,6 +237,7 @@ export function ClaimsListMobile({
     selectedSubstituteId,
     showMyClaims,
     user?.caseHandlerId,
+    user?.id,
     dateFilters,
     claimObjectTypeId,
     sortBy,
@@ -366,6 +369,8 @@ export function ClaimsListMobile({
             : selectedSubstituteId
             ? parseInt(selectedSubstituteId, 10)
             : undefined,
+          registeredById:
+            showMyClaims && !user?.caseHandlerId ? user?.id : undefined,
           claimObjectTypeId,
           sortBy,
           sortOrder,

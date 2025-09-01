@@ -79,6 +79,7 @@ export function ClaimsListDesktop({
   onEditClaim,
   onNewClaim,
   claimObjectTypeId,
+  totalCount: initialTotalCount,
 }: ClaimsListProps) {
   const router = useRouter()
   const [searchTerm, setSearchTerm] = useState("")
@@ -137,14 +138,16 @@ export function ClaimsListDesktop({
     deleteClaim,
     fetchClaims,
     clearError,
-    totalCount,
+    totalCount: fetchedTotalCount,
   } = useClaims()
   const { toast } = useToast()
   const { user } = useAuth()
   const isAdmin = user?.roles?.some((r) => r.toLowerCase() === "admin")
 
   const claims = initialClaims?.length ? initialClaims : fetchedClaims
-  const totalRecords = initialClaims?.length ? initialClaims.length : totalCount
+  const totalRecords = initialClaims?.length
+    ? initialTotalCount ?? initialClaims.length
+    : fetchedTotalCount
 
   useEffect(() => {
     setSearchInput(searchTerm)
@@ -260,7 +263,7 @@ export function ClaimsListDesktop({
   }, [user?.id])
 
   useEffect(() => {
-    if (initialClaims?.length) return
+    if (initialClaims?.length && page === 1) return
 
     const loadClaims = async () => {
       try {
@@ -272,42 +275,38 @@ export function ClaimsListDesktop({
         const insurerReportFilter = dateFilters.find(
           (f) => f.type === "insurerReportDate",
         )
-        await fetchClaims(
-          {
-            page,
-            pageSize,
-            search: searchTerm,
-            status: filterStatuses.length
-              ? filterStatuses.join(",")
-              : undefined,
-            riskType: filterRisks.length
-              ? filterRisks.join(",")
-              : undefined,
-            brand: filterRegistration || undefined,
-            caseHandlerId: showMyClaims
-              ? user?.caseHandlerId
-              : selectedSubstituteId
-              ? parseInt(selectedSubstituteId, 10)
-              : filterHandlerId
-              ? parseInt(filterHandlerId, 10)
-              : undefined,
-            registeredById:
-              showMyClaims && !user?.caseHandlerId ? user?.id : undefined,
-            claimObjectTypeId,
-            sortBy,
-            sortOrder,
-            reportFromDate: reportFilter?.from || undefined,
-
-            reportToDate: reportFilter?.to || undefined,
-            damageFromDate: damageFilter?.from || undefined,
-            damageToDate: damageFilter?.to || undefined,
-            registrationFromDate: registrationFilter?.from || undefined,
-            registrationToDate: registrationFilter?.to || undefined,
-            reportToInsurerFromDate: insurerReportFilter?.from || undefined,
-            reportToInsurerToDate: insurerReportFilter?.to || undefined,
-          },
-          { append: page > 1 },
-        )
+        await fetchClaims({
+          page,
+          pageSize,
+          search: searchTerm,
+          status: filterStatuses.length
+            ? filterStatuses.join(",")
+            : undefined,
+          riskType: filterRisks.length
+            ? filterRisks.join(",")
+            : undefined,
+          brand: filterRegistration || undefined,
+          caseHandlerId: showMyClaims
+            ? user?.caseHandlerId
+            : selectedSubstituteId
+            ? parseInt(selectedSubstituteId, 10)
+            : filterHandlerId
+            ? parseInt(filterHandlerId, 10)
+            : undefined,
+          registeredById:
+            showMyClaims && !user?.caseHandlerId ? user?.id : undefined,
+          claimObjectTypeId,
+          sortBy,
+          sortOrder,
+          reportFromDate: reportFilter?.from || undefined,
+          reportToDate: reportFilter?.to || undefined,
+          damageFromDate: damageFilter?.from || undefined,
+          damageToDate: damageFilter?.to || undefined,
+          registrationFromDate: registrationFilter?.from || undefined,
+          registrationToDate: registrationFilter?.to || undefined,
+          reportToInsurerFromDate: insurerReportFilter?.from || undefined,
+          reportToInsurerToDate: insurerReportFilter?.to || undefined,
+        })
 
       } catch (err) {
         toast({

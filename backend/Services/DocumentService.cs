@@ -8,8 +8,6 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
-using Microsoft.Extensions.Configuration;
-
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -29,6 +27,7 @@ namespace AutomotiveClaimsApi.Services
         private readonly bool _cloudEnabled;
 
         private readonly IConfiguration _config;
+        private readonly IEmailService _emailService;
 
 
         public DocumentService(
@@ -36,7 +35,7 @@ namespace AutomotiveClaimsApi.Services
             ILogger<DocumentService> logger,
             IWebHostEnvironment environment,
             IConfiguration config,
-
+            IEmailService emailService,
             IGoogleCloudStorageService? cloudStorage = null,
             IOptions<GoogleCloudStorageSettings>? cloudSettings = null)
 
@@ -50,6 +49,7 @@ namespace AutomotiveClaimsApi.Services
             _cloudEnabled = cloudSettings?.Value.Enabled ?? false;
 
             _config = config;
+            _emailService = emailService;
 
 
 
@@ -155,7 +155,31 @@ namespace AutomotiveClaimsApi.Services
             await _context.SaveChangesAsync();
 
             _logger.LogInformation("Document uploaded and created with ID {DocumentId}", document.Id);
-      
+
+            if (createDto.EventId.HasValue)
+            {
+                var evt = await _context.Events.FindAsync(createDto.EventId.Value);
+                if (evt != null && !string.IsNullOrWhiteSpace(evt.HandlerEmail))
+                {
+                    try
+                    {
+                        await _emailService.SendEmailAsync(new SendEmailDto
+                        {
+                            To = evt.HandlerEmail,
+                            Subject = $"Document added to claim {evt.ClaimNumber ?? evt.SpartaNumber}",
+                            Body = $"A new document \"{document.OriginalFileName}\" has been added to claim {evt.ClaimNumber ?? evt.SpartaNumber}.",
+                            ClaimId = evt.Id.ToString(),
+                            ClaimNumber = evt.ClaimNumber,
+                            EventId = evt.Id
+                        });
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError(ex, "Failed to send document added notification for event {EventId}", evt.Id);
+                    }
+                }
+            }
+
             return MapToDto(document);
         }
 

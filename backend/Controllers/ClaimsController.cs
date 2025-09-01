@@ -37,6 +37,8 @@ namespace AutomotiveClaimsApi.Controllers
         private readonly IConfiguration _config;
         private readonly IEventDocumentStore _eventDocumentStore;
         private readonly IMobileNotificationStore? _mobileNotificationStore;
+        private readonly IPushSubscriptionStore? _pushSubscriptionStore;
+        private readonly IPushNotificationService? _pushNotificationService;
 
         public ClaimsController(
             ApplicationDbContext context,
@@ -46,7 +48,9 @@ namespace AutomotiveClaimsApi.Controllers
             INotificationService? notificationService = null,
             IDocumentService? documentService = null,
             IEventDocumentStore? eventDocumentStore = null,
-            IMobileNotificationStore? mobileNotificationStore = null)
+            IMobileNotificationStore? mobileNotificationStore = null,
+            IPushSubscriptionStore? pushSubscriptionStore = null,
+            IPushNotificationService? pushNotificationService = null)
         {
             _context = context;
             _logger = logger;
@@ -56,6 +60,8 @@ namespace AutomotiveClaimsApi.Controllers
             _documentService = documentService ?? throw new ArgumentNullException(nameof(documentService));
             _eventDocumentStore = eventDocumentStore ?? throw new ArgumentNullException(nameof(eventDocumentStore));
             _mobileNotificationStore = mobileNotificationStore;
+            _pushSubscriptionStore = pushSubscriptionStore;
+            _pushNotificationService = pushNotificationService;
         }
 
         private static Guid EnsureClaimId(Guid? id)
@@ -449,19 +455,25 @@ namespace AutomotiveClaimsApi.Controllers
                     if (!isHandler && currentUser != null)
                     {
                         var claimIdentifier = existingEvent.ClaimNumber ?? existingEvent.SpartaNumber ?? existingEvent.Id.ToString();
-                        _mobileNotificationStore?.Add(new MobileNotificationDto
-                        {
-                            Title = "Nowa szkoda",
-                            Message = $"Dodano nowe zgłoszenie szkody {claimIdentifier}",
-                            Type = "success",
-                            ClaimId = claimIdentifier,
-                            ActionType = "new_claim"
-                        });
+                    _mobileNotificationStore?.Add(new MobileNotificationDto
+                    {
+                        Title = "Nowa szkoda",
+                        Message = $"Dodano nowe zgłoszenie szkody {claimIdentifier}",
+                        Type = "success",
+                        ClaimId = claimIdentifier,
+                        ActionType = "new_claim"
+                    });
 
-                        if (_notificationService != null)
-                        {
-                            await _notificationService.NotifyAsync(existingEvent, currentUser, ClaimNotificationEvent.ClaimCreated);
-                        }
+                    if (_pushSubscriptionStore != null && _pushNotificationService != null)
+                    {
+                        var subs = _pushSubscriptionStore.GetAll();
+                        await _pushNotificationService.SendAsync(subs, "Nowa szkoda", $"Dodano nowe zgłoszenie szkody {claimIdentifier}");
+                    }
+
+                    if (_notificationService != null)
+                    {
+                        await _notificationService.NotifyAsync(existingEvent, currentUser, ClaimNotificationEvent.ClaimCreated);
+                    }
                     }
 
                     await _eventDocumentStore.SaveAsync(existingEvent);
@@ -539,6 +551,12 @@ namespace AutomotiveClaimsApi.Controllers
                         ClaimId = claimIdentifier,
                         ActionType = "new_claim"
                     });
+
+                    if (_pushSubscriptionStore != null && _pushNotificationService != null)
+                    {
+                        var subs = _pushSubscriptionStore.GetAll();
+                        await _pushNotificationService.SendAsync(subs, "Nowa szkoda", $"Dodano nowe zgłoszenie szkody {claimIdentifier}");
+                    }
 
                     if (_notificationService != null)
                     {

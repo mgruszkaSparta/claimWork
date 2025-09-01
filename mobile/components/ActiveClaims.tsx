@@ -9,7 +9,7 @@ import {
   DropdownMenuContent,
   DropdownMenuTrigger,
 } from "./ui/dropdown-menu";
-import { ArrowLeft, Car, Home, Truck, Search, Eye, Bell } from "lucide-react";
+import { ArrowLeft, Car, Home, Truck, Search, Eye, Bell, X } from "lucide-react";
 import { useNotifications } from "../hooks/useNotifications";
 
 interface MobileEventDto {
@@ -182,8 +182,17 @@ export function ActiveClaims({ onNavigate }: ActiveClaimsProps) {
                 placeholder="Wyszukaj po numerze lub opisie..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-12 h-12 border-[#e2e8f0] bg-[#f8fafc] focus:bg-white focus:border-[#1a3a6c] transition-colors"
+                className="pl-12 pr-12 h-12 border-[#e2e8f0] bg-[#f8fafc] focus:bg-white focus:border-[#1a3a6c] transition-colors"
               />
+              {searchTerm && (
+                <button
+                  type="button"
+                  onClick={() => setSearchTerm("")}
+                  className="absolute right-4 top-1/2 -translate-y-1/2 text-[#64748b] hover:text-[#1a3a6c]"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              )}
             </div>
             
             <div className="flex gap-3">

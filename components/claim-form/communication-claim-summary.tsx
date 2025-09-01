@@ -134,6 +134,19 @@ const getStatusIcon = (status: string) => {
   }
 }
 
+const getDriverRoleLabel = (role?: string) => {
+  switch (role) {
+    case "kierowca":
+      return "Kierowca"
+    case "wlasciciel":
+      return "Właściciel"
+    case "wspol_wlasciciel":
+      return "Współwłaściciel"
+    default:
+      return role || ""
+  }
+}
+
 const CommunicationClaimSummary = ({
   claimFormData,
   notes,
@@ -227,27 +240,43 @@ const CommunicationClaimSummary = ({
 
           {participant.drivers && participant.drivers.length > 0 && (
             <div className="space-y-3 pt-4 border-t border-gray-200">
-              <h4 className="text-sm font-semibold text-gray-900">Kierowcy</h4>
-              {participant.drivers.map((driver, index) => (
-                <div
-                  key={driver.id || index}
-                  className="bg-gray-50 rounded-lg p-3 space-y-2 border border-gray-200"
-                >
-                  <InfoCard
-                    label="Imię i nazwisko"
-                    value=
-                      {driver.name ||
-                        [driver.firstName, driver.lastName]
-                          .filter(Boolean)
-                          .join(" ")}
-                  />
-                  {driver.licenseNumber && (
-                    <InfoCard label="Nr prawa jazdy" value={driver.licenseNumber} />
-                  )}
-                  {driver.phone && <InfoCard label="Telefon" value={driver.phone} />}
-                  {driver.email && <InfoCard label="E-mail" value={driver.email} />}
-                </div>
-              ))}
+              <h4 className="text-sm font-semibold text-gray-900">Dane osobowe uczestnika</h4>
+              {participant.drivers.map((driver, index) => {
+                const firstName = driver.firstName || driver.name?.split(" ")[0]
+                const lastName =
+                  driver.lastName || driver.name?.split(" ").slice(1).join(" ")
+
+                return (
+                  <div
+                    key={driver.id || index}
+                    className="bg-gray-50 rounded-lg p-3 space-y-2 border border-gray-200"
+                  >
+                    <h5 className="text-sm font-medium text-gray-700">
+                      Osoba {index + 1}
+                    </h5>
+                    {[{ label: "Rola", value: getDriverRoleLabel(driver.role) },
+                      { label: "Imię", value: firstName },
+                      { label: "Nazwisko", value: lastName },
+                      { label: "Numer identyfikacyjny", value: driver.personalId },
+                      { label: "Nr prawa jazdy", value: driver.licenseNumber },
+                      { label: "Telefon", value: driver.phone },
+                      { label: "E-mail", value: driver.email },
+                      { label: "Adres", value: driver.address },
+                      { label: "Miasto", value: driver.city },
+                      { label: "Kod pocztowy", value: driver.postalCode },
+                      { label: "Kraj", value: driver.country },
+                    ]
+                      .filter((info) => info.value)
+                      .map((info) => (
+                        <InfoCard
+                          key={info.label}
+                          label={info.label}
+                          value={info.value as string}
+                        />
+                      ))}
+                  </div>
+                )
+              })}
             </div>
           )}
         </div>

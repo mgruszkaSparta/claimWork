@@ -12,6 +12,11 @@ import { format } from "date-fns";
 import { pl } from "date-fns/locale";
 import { toast } from "sonner";
 import { useNotifications } from "../hooks/useNotifications";
+import {
+  DamageDiagram,
+  DamageLevel,
+  VehicleType,
+} from "@/components/damage-diagram";
 
 interface ReportClaimProps {
   onNavigate: (section: string, claimId?: string) => void;
@@ -33,6 +38,7 @@ export function ReportClaim({ onNavigate }: ReportClaimProps) {
     driverLastName: "",
     driverLicense: ""
   });
+  const [damageData, setDamageData] = useState<{ [key: string]: DamageLevel }>({});
 
   const claimTypes = [
     {
@@ -68,6 +74,7 @@ export function ReportClaim({ onNavigate }: ReportClaimProps) {
           type: selectedType,
           date: date?.toISOString(),
           ...formData,
+          damageData,
         }),
       });
 
@@ -106,6 +113,16 @@ export function ReportClaim({ onNavigate }: ReportClaimProps) {
       ...prev,
       [field]: value
     }));
+  };
+
+  const handlePartClick = (partName: string, newLevel: DamageLevel) => {
+    setDamageData(prev => {
+      const updated = { ...prev, [partName]: newLevel };
+      if (newLevel === DamageLevel.NONE) {
+        delete updated[partName];
+      }
+      return updated;
+    });
   };
 
   return (
@@ -147,7 +164,13 @@ export function ReportClaim({ onNavigate }: ReportClaimProps) {
         {/* Typ szkody */}
         <div className="space-y-4">
           <Label className="text-[#202124]">Typ szkody</Label>
-          <RadioGroup value={selectedType} onValueChange={setSelectedType}>
+          <RadioGroup
+            value={selectedType}
+            onValueChange={(value) => {
+              setSelectedType(value);
+              setDamageData({});
+            }}
+          >
             {claimTypes.map((type, index) => {
               const colors = ['#1a3a6c', '#059669', '#dc2626'];
               const bgColors = ['#e1e7ef', '#d1fae5', '#fee2e2'];
@@ -267,6 +290,15 @@ export function ReportClaim({ onNavigate }: ReportClaimProps) {
             onChange={(e) => handleInputChange('description', e.target.value)}
           />
         </div>
+
+        {/* Diagram uszkodzeń */}
+        {selectedType === "komunikacyjna" && (
+          <DamageDiagram
+            damageData={damageData}
+            onPartClick={handlePartClick}
+            vehicleType={VehicleType.PASSENGER_CAR}
+          />
+        )}
 
         {/* Szacowana wartość */}
         <div className="space-y-2">

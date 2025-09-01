@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Security.Claims;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using AutomotiveClaimsApi.DTOs;
 using AutomotiveClaimsApi.Services;
@@ -12,10 +13,14 @@ namespace AutomotiveClaimsApi.Controllers
     public class MobileNotificationsController : ControllerBase
     {
         private readonly IMobileNotificationStore _store;
+        private readonly IPushSubscriptionStore _pushStore;
+        private readonly IPushNotificationService _pushService;
 
-        public MobileNotificationsController(IMobileNotificationStore store)
+        public MobileNotificationsController(IMobileNotificationStore store, IPushSubscriptionStore pushStore, IPushNotificationService pushService)
         {
             _store = store;
+            _pushStore = pushStore;
+            _pushService = pushService;
         }
 
         [HttpGet]
@@ -39,9 +44,11 @@ namespace AutomotiveClaimsApi.Controllers
         }
 
         [HttpPost]
-        public IActionResult Create([FromBody] MobileNotificationDto notification)
+        public async Task<IActionResult> Create([FromBody] MobileNotificationDto notification)
         {
             _store.Add(notification);
+            var subs = _pushStore.GetAll(notification.RecipientId);
+            await _pushService.SendAsync(subs, notification.Title ?? "Notification", notification.Message ?? "");
             return CreatedAtAction(nameof(Get), new { id = notification.Id }, notification);
         }
 

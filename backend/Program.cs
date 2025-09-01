@@ -109,6 +109,10 @@ builder.Services.AddScoped<IDamageTypeService, DamageTypeService>();
 builder.Services.AddScoped<ICaseHandlerService, CaseHandlerService>();
 builder.Services.AddEventDocumentStore(builder.Configuration);
 builder.Services.AddSingleton<IMobileNotificationStore, InMemoryMobileNotificationStore>();
+var vapidOptions = builder.Configuration.GetSection("Vapid").Get<VapidOptions>() ?? new VapidOptions();
+builder.Services.AddSingleton(vapidOptions);
+builder.Services.AddSingleton<IPushSubscriptionStore, InMemoryPushSubscriptionStore>();
+builder.Services.AddSingleton<IPushNotificationService, PushNotificationService>();
 
 // Add background services
 builder.Services.AddHostedService<EmailBackgroundService>();

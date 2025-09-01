@@ -1892,9 +1892,6 @@ export const DocumentsSection = React.forwardRef<
               <CardTitle>Wymagane dokumenty</CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="mb-4 text-sm text-gray-500">
-                Dodaj kategorię, aby móc załączyć odpowiednie pliki.
-              </p>
               <Button
                 className="mb-4"
                 onClick={handleAddSelectedRequired}

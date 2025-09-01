@@ -1610,6 +1610,17 @@ export const DocumentsSection = React.forwardRef<
                 onClick={() => setOpenCategories((prev) => ({ ...prev, [category]: !isCategoryOpen }))}
               >
                 <div className="flex items-center gap-1.5">
+                  <Button
+                    size="sm"
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      triggerUpload(category)
+                    }}
+                    disabled={uploading}
+                  >
+                    <Upload className="mr-2 h-4 w-4" />
+                    {uploading ? "PRZESYŁANIE..." : "UPLOAD"}
+                  </Button>
                   <h3 className="font-semibold">{category}</h3>
                   <Badge variant="secondary" className="px-2 bg-green-100 text-green-800">
                     {documentsForCategory.length}
@@ -1631,17 +1642,6 @@ export const DocumentsSection = React.forwardRef<
                   )}
                 </div>
                 <div className="flex items-center gap-1.5">
-                  <Button
-                    size="sm"
-                    onClick={(e) => {
-                      e.stopPropagation()
-                      triggerUpload(category)
-                    }}
-                    disabled={uploading}
-                  >
-                    <Upload className="mr-2 h-4 w-4" />
-                    {uploading ? "PRZESYŁANIE..." : "UPLOAD"}
-                  </Button>
                   <Button
                     variant="ghost"
                     size="icon"

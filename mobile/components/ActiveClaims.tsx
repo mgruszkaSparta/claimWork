@@ -15,6 +15,8 @@ import { useNotifications } from "../hooks/useNotifications";
 interface MobileEventDto {
   id: string;
   claimNumber?: string;
+  spartaNumber?: string;
+  insurerClaimNumber?: string;
   damageType?: string;
   damageDate?: string;
   status?: string;
@@ -30,6 +32,8 @@ interface MobileEventDto {
 
 export interface Claim {
   id: string;
+  spartaNumber?: string;
+  insurerClaimNumber?: string;
   type: string;
   date: string;
   status: string;
@@ -70,6 +74,8 @@ export function ActiveClaims({ onNavigate }: ActiveClaimsProps) {
         };
         const mapped: Claim[] = data.map((e) => ({
           id: e.claimNumber || e.id,
+          spartaNumber: e.spartaNumber || "",
+          insurerClaimNumber: e.insurerClaimNumber || "",
           type: e.damageType || typeLabelMap[e.objectTypeId ?? 0] || "",
           date: e.damageDate?.split("T")[0] || "",
           status: e.status || "",
@@ -130,8 +136,11 @@ export function ActiveClaims({ onNavigate }: ActiveClaimsProps) {
   };
 
   const filteredClaims = claims.filter(claim => {
-    const matchesSearch = claim.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         claim.description.toLowerCase().includes(searchTerm.toLowerCase());
+    const lower = searchTerm.toLowerCase();
+    const matchesSearch = claim.id.toLowerCase().includes(lower) ||
+                         (claim.spartaNumber?.toLowerCase().includes(lower) ?? false) ||
+                         (claim.insurerClaimNumber?.toLowerCase().includes(lower) ?? false) ||
+                         claim.description.toLowerCase().includes(lower);
     const matchesType = filterTypes.length === 0 || filterTypes.includes(claim.type);
     const matchesStatus = filterStatuses.length === 0 || filterStatuses.includes(claim.status);
     
@@ -271,7 +280,12 @@ export function ActiveClaims({ onNavigate }: ActiveClaimsProps) {
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
                       {getTypeIcon(claim.type)}
-                      <span className="font-medium text-[#1e293b]">{claim.id}</span>
+                      <div className="flex flex-col">
+                        <span className="font-medium text-[#1e293b]">TU: {claim.insurerClaimNumber || "-"}</span>
+                        {claim.spartaNumber && (
+                          <span className="text-sm text-[#64748b]">Sparta: {claim.spartaNumber}</span>
+                        )}
+                      </div>
                     </div>
                     <Badge className={`${getStatusColor(claim.status)} font-medium px-3 py-1`}>
                       {claim.status}
@@ -308,6 +322,10 @@ export function ActiveClaims({ onNavigate }: ActiveClaimsProps) {
                     <div className="flex justify-between items-start">
                       <span className="text-[#64748b]">Miejsce:</span>
                       <span className="text-right flex-1 ml-4 text-[#1e293b]">{claim.location}</span>
+                    </div>
+                    <div className="flex justify-between items-start">
+                      <span className="text-[#64748b]">Okoliczności:</span>
+                      <span className="text-right flex-1 ml-4 text-[#1e293b]">{claim.description}</span>
                     </div>
                   </div>
 

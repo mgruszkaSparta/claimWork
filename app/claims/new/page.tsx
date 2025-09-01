@@ -69,6 +69,7 @@ export default function NewClaimPage() {
   const [activeClaimSection, setActiveClaimSection] = useState("teczka-szkodowa")
   const [isSaving, setIsSaving] = useState(false)
   const contentRef = useRef<HTMLDivElement>(null)
+  const hasInitialized = useRef(false)
   
   // Repair schedules and details state
   const [repairSchedules, setRepairSchedules] = useState<RepairSchedule[]>([])
@@ -110,6 +111,9 @@ export default function NewClaimPage() {
 
 
   useEffect(() => {
+    if (hasInitialized.current) return
+    hasInitialized.current = true
+
     const init = async () => {
       const id = await initializeClaim()
       if (id) {

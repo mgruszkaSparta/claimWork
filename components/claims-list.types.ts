@@ -5,4 +5,5 @@ export interface ClaimsListProps {
   onEditClaim?: (claimId: string) => void
   onNewClaim?: () => void
   claimObjectTypeId?: string
+  totalCount?: number
 }

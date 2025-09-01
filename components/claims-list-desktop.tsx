@@ -145,7 +145,7 @@ export function ClaimsListDesktop({
   const isAdmin = user?.roles?.some((r) => r.toLowerCase() === "admin")
 
   const claims = initialClaims?.length ? initialClaims : fetchedClaims
-  const totalRecords = initialClaims?.length
+  const totalCount = initialClaims?.length
     ? initialTotalCount ?? initialClaims.length
     : fetchedTotalCount
 
@@ -358,7 +358,7 @@ export function ClaimsListDesktop({
     () => claims.reduce((sum, claim) => sum + (claim.totalClaim || 0), 0),
     [claims],
   )
-  const totalPages = Math.ceil(totalRecords / pageSize)
+  const totalPages = Math.ceil((totalCount || 0) / pageSize)
 
   const handleSort = (field: string) => {
     setPage(1)

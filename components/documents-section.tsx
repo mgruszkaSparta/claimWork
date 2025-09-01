@@ -247,10 +247,12 @@ export const DocumentsSection = React.forwardRef<
   )
 
   const visibleDocuments = React.useMemo(() => {
+    const requiredNames = requiredDocuments.map((d) => d.name)
     let docs = allDocuments.filter((d) => !hiddenCategories.includes(d.documentType))
     if (showRequiredOnly) {
-      const requiredNames = requiredDocuments.map((d) => d.name)
       docs = docs.filter((d) => requiredNames.includes(d.documentType))
+    } else {
+      docs = docs.filter((d) => !requiredNames.includes(d.documentType))
     }
     if (searchQuery.trim()) {
       const q = searchQuery.toLowerCase()
@@ -354,6 +356,7 @@ export const DocumentsSection = React.forwardRef<
   }
 
   const documentCategories = React.useMemo(() => {
+
     const categoriesFromRequired = requiredDocuments.map((d) => d.name)
     const categoriesFromDocuments = [...new Set(visibleDocuments.map((d) => d.documentType))]
     let categories = [
@@ -1897,6 +1900,11 @@ export const DocumentsSection = React.forwardRef<
               <CardTitle>Wymagane dokumenty</CardTitle>
             </CardHeader>
             <CardContent>
+
+              <p className="mb-4 text-sm text-gray-500">
+                Dodaj kategorię, aby móc załączyć odpowiednie pliki.
+              </p>
+
               <div className="relative mb-4">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
                 <Input

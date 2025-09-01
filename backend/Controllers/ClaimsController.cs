@@ -83,6 +83,10 @@ namespace AutomotiveClaimsApi.Controllers
             [FromQuery] DateTime? reportToDate = null,
             [FromQuery] DateTime? damageFromDate = null,
             [FromQuery] DateTime? damageToDate = null,
+            [FromQuery] DateTime? registrationFromDate = null,
+            [FromQuery] DateTime? registrationToDate = null,
+            [FromQuery] DateTime? reportToInsurerFromDate = null,
+            [FromQuery] DateTime? reportToInsurerToDate = null,
             [FromQuery] DateTime? fromDate = null,
             [FromQuery] DateTime? toDate = null,
             [FromQuery] int page = 1,
@@ -195,6 +199,30 @@ namespace AutomotiveClaimsApi.Controllers
                 {
                     var to = damageToDate.Value.Date;
                     query = query.Where(e => e.DamageDate.HasValue && e.DamageDate.Value.Date <= to);
+                }
+
+                if (registrationFromDate.HasValue)
+                {
+                    var from = registrationFromDate.Value.Date;
+                    query = query.Where(e => e.CreatedAt.Date >= from);
+                }
+
+                if (registrationToDate.HasValue)
+                {
+                    var to = registrationToDate.Value.Date;
+                    query = query.Where(e => e.CreatedAt.Date <= to);
+                }
+
+                if (reportToInsurerFromDate.HasValue)
+                {
+                    var from = reportToInsurerFromDate.Value.Date;
+                    query = query.Where(e => e.ReportDateToInsurer.HasValue && e.ReportDateToInsurer.Value.Date >= from);
+                }
+
+                if (reportToInsurerToDate.HasValue)
+                {
+                    var to = reportToInsurerToDate.Value.Date;
+                    query = query.Where(e => e.ReportDateToInsurer.HasValue && e.ReportDateToInsurer.Value.Date <= to);
                 }
 
                 if (fromDate.HasValue)

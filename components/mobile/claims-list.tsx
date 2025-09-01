@@ -14,14 +14,9 @@ import {
   SelectContent,
   SelectItem,
 } from "@/components/ui/select"
-import {
-  Pagination,
-  PaginationContent,
-  PaginationItem,
-  PaginationPrevious,
-  PaginationNext,
-  PaginationLink,
-} from "@/components/ui/pagination"
+
+import HandlerDropdown from "@/components/handler-dropdown"
+
 
 import {
   Search,
@@ -82,11 +77,16 @@ export function ClaimsListMobile({
     { id: number; code: string; name: string; claimObjectTypeId?: number }[]
   >([])
   const [filterRegistration, setFilterRegistration] = useState("")
-  const [filterHandler, setFilterHandler] = useState("")
+  const [filterHandlerId, setFilterHandlerId] = useState("")
   const [substituteOptions, setSubstituteOptions] = useState<{ id: string; name: string }[]>([])
   const [selectedSubstituteId, setSelectedSubstituteId] = useState("")
+  type DateFilterType =
+    | "reportDate"
+    | "damageDate"
+    | "registrationDate"
+    | "insurerReportDate"
   const [dateFilters, setDateFilters] = useState<
-    { type: "reportDate" | "damageDate"; from: string; to: string }
+    { type: DateFilterType; from: string; to: string }[]
   >([])
   const [showFilters, setShowFilters] = useState(false)
   const [showMyClaims, setShowMyClaims] = useState(false)
@@ -231,6 +231,12 @@ export function ClaimsListMobile({
       try {
         const reportFilter = dateFilters.find((f) => f.type === "reportDate")
         const damageFilter = dateFilters.find((f) => f.type === "damageDate")
+        const registrationFilter = dateFilters.find(
+          (f) => f.type === "registrationDate",
+        )
+        const insurerReportFilter = dateFilters.find(
+          (f) => f.type === "insurerReportDate",
+        )
         await fetchClaims(
           {
             page,
@@ -239,11 +245,12 @@ export function ClaimsListMobile({
             status: filterStatus !== "all" ? filterStatus : undefined,
             riskType: filterRisk !== "all" ? filterRisk : undefined,
             brand: filterRegistration || undefined,
-            handler: filterHandler || undefined,
             caseHandlerId: showMyClaims
               ? user?.caseHandlerId
               : selectedSubstituteId
               ? parseInt(selectedSubstituteId, 10)
+              : filterHandlerId
+              ? parseInt(filterHandlerId, 10)
               : undefined,
             registeredById:
               showMyClaims && !user?.caseHandlerId ? user?.id : undefined,
@@ -251,12 +258,18 @@ export function ClaimsListMobile({
             sortBy,
             sortOrder,
             reportFromDate: reportFilter?.from || undefined,
-          reportToDate: reportFilter?.to || undefined,
-          damageFromDate: damageFilter?.from || undefined,
-          damageToDate: damageFilter?.to || undefined,
-        },
-        { append: false },
-      )
+
+            reportToDate: reportFilter?.to || undefined,
+            damageFromDate: damageFilter?.from || undefined,
+            damageToDate: damageFilter?.to || undefined,
+            registrationFromDate: registrationFilter?.from || undefined,
+            registrationToDate: registrationFilter?.to || undefined,
+            reportToInsurerFromDate: insurerReportFilter?.from || undefined,
+            reportToInsurerToDate: insurerReportFilter?.to || undefined,
+          },
+          { append: page > 1 },
+        )
+
       } catch (err) {
         toast({
           title: "Błąd",
@@ -275,7 +288,7 @@ export function ClaimsListMobile({
     filterStatus,
     filterRisk,
     filterRegistration,
-    filterHandler,
+    filterHandlerId,
     selectedSubstituteId,
     showMyClaims,
     user?.caseHandlerId,
@@ -370,6 +383,12 @@ export function ClaimsListMobile({
       setPage(1)
       const reportFilter = dateFilters.find((f) => f.type === "reportDate")
       const damageFilter = dateFilters.find((f) => f.type === "damageDate")
+      const registrationFilter = dateFilters.find(
+        (f) => f.type === "registrationDate",
+      )
+      const insurerReportFilter = dateFilters.find(
+        (f) => f.type === "insurerReportDate",
+      )
       await fetchClaims(
         {
           page: 1,
@@ -378,11 +397,12 @@ export function ClaimsListMobile({
           status: filterStatus !== "all" ? filterStatus : undefined,
           riskType: filterRisk !== "all" ? filterRisk : undefined,
           brand: filterRegistration || undefined,
-          handler: filterHandler || undefined,
           caseHandlerId: showMyClaims
             ? user?.caseHandlerId
             : selectedSubstituteId
             ? parseInt(selectedSubstituteId, 10)
+            : filterHandlerId
+            ? parseInt(filterHandlerId, 10)
             : undefined,
           registeredById:
             showMyClaims && !user?.caseHandlerId ? user?.id : undefined,
@@ -393,6 +413,10 @@ export function ClaimsListMobile({
           reportToDate: reportFilter?.to || undefined,
           damageFromDate: damageFilter?.from || undefined,
           damageToDate: damageFilter?.to || undefined,
+          registrationFromDate: registrationFilter?.from || undefined,
+          registrationToDate: registrationFilter?.to || undefined,
+          reportToInsurerFromDate: insurerReportFilter?.from || undefined,
+          reportToInsurerToDate: insurerReportFilter?.to || undefined,
         },
         { append: false },
       )
@@ -601,19 +625,24 @@ export function ClaimsListMobile({
                 onChange={(e) => setFilterRegistration(e.target.value)}
                 className="h-9 text-sm"
               />
-              <Input
-                placeholder="Filtruj po opiekunie..."
-                value={filterHandler}
-                onChange={(e) => setFilterHandler(e.target.value)}
-                className="h-9 text-sm"
-              />
+              <div className="w-48">
+                <HandlerDropdown
+                  selectedHandlerId={filterHandlerId}
+                  onHandlerSelected={(e) => {
+                    setFilterHandlerId(e.handlerId)
+                    setPage(1)
+                  }}
+                  showDetails={false}
+                  className="h-9"
+                />
+              </div>
               <Select
                 value=""
                 onValueChange={(value) => {
                   if (!dateFilters.find((f) => f.type === value)) {
                     setDateFilters((prev) => [
                       ...prev,
-                      { type: value as "reportDate" | "damageDate", from: "", to: "" },
+                      { type: value as DateFilterType, from: "", to: "" },
                     ])
                   }
                 }}
@@ -624,13 +653,21 @@ export function ClaimsListMobile({
                 <SelectContent>
                   <SelectItem value="reportDate">Data zgłoszenia</SelectItem>
                   <SelectItem value="damageDate">Data szkody</SelectItem>
+                  <SelectItem value="registrationDate">Data rejestracji</SelectItem>
+                  <SelectItem value="insurerReportDate">Data zgłoszenia do TU</SelectItem>
                 </SelectContent>
               </Select>
             </div>
             {dateFilters.map((f) => (
               <div key={f.type} className="flex items-center gap-2 flex-wrap">
                 <span className="text-sm w-32">
-                  {f.type === "reportDate" ? "Data zgłoszenia" : "Data szkody"}
+                  {f.type === "reportDate"
+                    ? "Data zgłoszenia"
+                    : f.type === "damageDate"
+                    ? "Data szkody"
+                    : f.type === "registrationDate"
+                    ? "Data rejestracji"
+                    : "Data zgłoszenia do TU"}
                 </span>
                 <Input
                   type="date"

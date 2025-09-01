@@ -1899,17 +1899,19 @@ export const DocumentsSection = React.forwardRef<
                 {missingRequiredDocs.map((doc, index, arr) => (
                   <div
                     key={`required-${doc.id ?? doc.name}`}
-                    className={`flex items-center gap-3 p-4 ${index < arr.length - 1 ? "border-b" : ""}`}
+                    className={`flex items-center gap-1.5 p-2 ${index < arr.length - 1 ? "border-b" : ""}`}
                   >
                     <Button
                       variant="outline"
                       size="sm"
+                      className="h-7 px-2"
                       onClick={() => handleAddRequiredCategory(doc.name)}
                     >
                       <Plus className="mr-2 h-4 w-4" />
                       Dodaj
                     </Button>
                     <Checkbox
+                      className="h-4 w-4"
                       checked={selectedRequiredDocs.includes(doc.name)}
                       onCheckedChange={(checked) =>
                         setSelectedRequiredDocs((prev) =>
@@ -1919,10 +1921,10 @@ export const DocumentsSection = React.forwardRef<
                         )
                       }
                     />
-                    <div className="flex items-center gap-3">
-                      <span className="font-medium text-gray-800">{doc.name}</span>
+                    <div className="flex items-center gap-1.5">
+                      <span className="font-medium text-sm text-gray-800">{doc.name}</span>
                       <div
-                        className="h-2 w-2 rounded-full bg-red-500 animate-pulse"
+                        className="h-1.5 w-1.5 rounded-full bg-red-500 animate-pulse"
                         title="Brakujący"
                       ></div>
                     </div>

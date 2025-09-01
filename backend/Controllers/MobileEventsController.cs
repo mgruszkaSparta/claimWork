@@ -29,6 +29,8 @@ namespace AutomotiveClaimsApi.Controllers
                 {
                     Id = e.Id.ToString(),
                     ClaimNumber = e.ClaimNumber,
+                    SpartaNumber = e.SpartaNumber,
+                    InsurerClaimNumber = e.InsurerClaimNumber,
                     DamageType = e.DamageType,
                     DamageDate = e.DamageDate,
                     Status = e.Status,

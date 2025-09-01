@@ -6,6 +6,8 @@ namespace AutomotiveClaimsApi.DTOs
     {
         public string Id { get; set; } = string.Empty;
         public string? ClaimNumber { get; set; }
+        public string? SpartaNumber { get; set; }
+        public string? InsurerClaimNumber { get; set; }
         public string? DamageType { get; set; }
         public DateTime? DamageDate { get; set; }
         public string? Status { get; set; }

@@ -266,7 +266,7 @@ export const transformFrontendClaimToApiPayload = (
 
       id: d.id && isGuid(d.id) ? d.id : undefined,
 
-      name: d.name,
+      name: d.name || [d.firstName, d.lastName].filter(Boolean).join(" "),
       licenseNumber: d.licenseNumber,
       firstName: d.firstName,
       lastName: d.lastName,

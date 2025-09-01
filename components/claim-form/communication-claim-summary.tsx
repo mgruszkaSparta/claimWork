@@ -193,26 +193,37 @@ const CommunicationClaimSummary = ({
           </div>
         </div>
         <div className="p-4 space-y-3">
-          {showPersonalInfo && (
-            <>
-              <InfoCard label="Imię i nazwisko" value={participantName} />
-              <InfoCard label="Adres" value={participant.address} />
-              <InfoCard label="Miasto" value={participant.city} />
-              <InfoCard label="Kod pocztowy" value={participant.postalCode} />
-              <InfoCard label="Kraj" value={participant.country} />
-              <InfoCard label="Telefon" value={participant.phone} />
-            </>
-          )}
-          <InfoCard label="Rejestracja" value={participant.vehicleRegistration} />
-          <InfoCard label="VIN" value={participant.vehicleVin} />
-          <InfoCard label="Rodzaj pojazdu" value={participant.vehicleType} />
-          <InfoCard label="Marka" value={participant.vehicleBrand} />
-          <InfoCard label="Model" value={participant.vehicleModel} />
-          {participant.vehicleYear && (
-            <InfoCard label="Rok" value={participant.vehicleYear.toString()} />
-          )}
-          <InfoCard label="Ubezpieczyciel" value={participant.insuranceCompany} />
-          <InfoCard label="Nr polisy" value={participant.policyNumber} />
+          {showPersonalInfo &&
+            [
+              { label: "Imię i nazwisko", value: participantName },
+              { label: "Adres", value: participant.address },
+              { label: "Miasto", value: participant.city },
+              { label: "Kod pocztowy", value: participant.postalCode },
+              { label: "Kraj", value: participant.country },
+              { label: "Telefon", value: participant.phone },
+              { label: "E-mail", value: participant.email },
+            ]
+              .filter((info) => info.value)
+              .map((info) => (
+                <InfoCard key={info.label} label={info.label} value={info.value as string} />
+              ))}
+          {[
+            { label: "Rejestracja", value: participant.vehicleRegistration },
+            { label: "VIN", value: participant.vehicleVin },
+            { label: "Rodzaj pojazdu", value: participant.vehicleType },
+            { label: "Marka", value: participant.vehicleBrand },
+            { label: "Model", value: participant.vehicleModel },
+            {
+              label: "Rok",
+              value: participant.vehicleYear ? participant.vehicleYear.toString() : undefined,
+            },
+            { label: "Ubezpieczyciel", value: participant.insuranceCompany },
+            { label: "Nr polisy", value: participant.policyNumber },
+          ]
+            .filter((info) => info.value)
+            .map((info) => (
+              <InfoCard key={info.label} label={info.label} value={info.value as string} />
+            ))}
 
           {participant.drivers && participant.drivers.length > 0 && (
             <div className="space-y-3 pt-4 border-t border-gray-200">
@@ -347,7 +358,6 @@ const CommunicationClaimSummary = ({
             "Sprawca",
             <AlertTriangle className="h-4 w-4 text-red-600" />,
             "bg-gradient-to-r from-red-50 to-red-100",
-            false,
           )}
         </div>
       </div>

@@ -103,11 +103,7 @@ export const DocumentsSection = React.forwardRef<
   const [selectedRequiredDocs, setSelectedRequiredDocs] = useState<string[]>([])
 
   const [showRequiredOnly, setShowRequiredOnly] = useState(false)
-  const [showWithFilesOnly, setShowWithFilesOnly] = useState(false)
-  const [showEmptyOnly, setShowEmptyOnly] = useState(false)
-  const [sortRecentFirst, setSortRecentFirst] = useState(false)
   const [searchQuery, setSearchQuery] = useState("")
-  const [requiredDocsSearchQuery, setRequiredDocsSearchQuery] = useState("")
 
   // Preview modal states
   const [previewZoom, setPreviewZoom] = useState(1)
@@ -247,26 +243,14 @@ export const DocumentsSection = React.forwardRef<
   )
 
   const visibleDocuments = React.useMemo(() => {
-    const requiredNames = requiredDocuments.map((d) => d.name)
-    let docs = allDocuments
-      .filter((d) => !hiddenCategories.includes(d.documentType))
-      .map((d) =>
-        requiredNames.includes(d.documentType)
-          ? d
-          : { ...d, documentType: "Inne dokumenty" },
-      )
-
+    let docs = allDocuments.filter((d) => !hiddenCategories.includes(d.documentType))
     if (showRequiredOnly) {
+      const requiredNames = requiredDocuments.map((d) => d.name)
       docs = docs.filter((d) => requiredNames.includes(d.documentType))
     }
-
     if (searchQuery.trim()) {
       const q = searchQuery.toLowerCase()
-      docs = docs.filter(
-        (d) =>
-          d.fileName.toLowerCase().includes(q) ||
-          d.originalFileName.toLowerCase().includes(q),
-      )
+      docs = docs.filter((d) => d.fileName.toLowerCase().includes(q))
     }
     return docs
   }, [allDocuments, hiddenCategories, showRequiredOnly, requiredDocuments, searchQuery])
@@ -293,14 +277,10 @@ export const DocumentsSection = React.forwardRef<
   }, [eventId])
 
   const mapCategoryCodeToName = (code?: string) =>
-    requiredDocuments.find((d) => d.category === code)?.name ||
-    (code
-      ? code.replace(/-/g, " ").replace(/^./, (c) => c.toUpperCase())
-      : "Inne dokumenty")
+    requiredDocuments.find((d) => d.category === code)?.name || code || "Inne dokumenty"
 
   const mapCategoryNameToCode = (name?: string | null) =>
-    requiredDocuments.find((d) => d.name === name)?.category ||
-    (name ? name.toLowerCase().replace(/\s+/g, "-") : "inne-dokumenty")
+    requiredDocuments.find((d) => d.name === name)?.category || name || "Inne dokumenty"
 
   const loadDocuments = async () => {
     if (!eventId || !isGuid(eventId)) return
@@ -362,63 +342,12 @@ export const DocumentsSection = React.forwardRef<
   }
 
   const documentCategories = React.useMemo(() => {
-
-    const categoriesFromRequired = requiredDocuments.map((d) => d.name)
-    const categoriesFromDocuments = [
-      ...new Set(visibleDocuments.map((d) => d.documentType)),
-
-    let categories = [
+    const categoriesFromRequired = requiredDocuments.filter((d) => d.uploaded).map((d) => d.name)
+    const categoriesFromDocuments = [...new Set(visibleDocuments.map((d) => d.documentType))]
+    return [
       ...new Set(["Inne dokumenty", ...categoriesFromRequired, ...categoriesFromDocuments]),
     ].filter((c) => !hiddenCategories.includes(c))
-
-    if (showRequiredOnly) {
-      const requiredNames = requiredDocuments.map((d) => d.name)
-      categories = categories.filter((c) => requiredNames.includes(c))
-    }
-
-    if (showWithFilesOnly) {
-      categories = categories.filter((c) =>
-        visibleDocuments.some((d) => d.documentType === c),
-      )
-    }
-
-    if (showEmptyOnly) {
-      categories = categories.filter(
-        (c) => !visibleDocuments.some((d) => d.documentType === c),
-      )
-    }
-
-    if (sortRecentFirst) {
-      categories = categories.sort((a, b) => {
-        const latestA = Math.max(
-          ...visibleDocuments
-            .filter((d) => d.documentType === a)
-            .map((d) => new Date(d.uploadedAt).getTime()),
-          0,
-        )
-        const latestB = Math.max(
-          ...visibleDocuments
-            .filter((d) => d.documentType === b)
-            .map((d) => new Date(d.uploadedAt).getTime()),
-          0,
-        )
-        return latestB - latestA
-      })
-    }
-
-    // Display only the "Inne dokumenty" category
-    categories = categories.filter((c) => c === "Inne dokumenty")
-
-    return categories
-  }, [
-    requiredDocuments,
-    visibleDocuments,
-    hiddenCategories,
-    showRequiredOnly,
-    showWithFilesOnly,
-    showEmptyOnly,
-    sortRecentFirst,
-  ])
+  }, [requiredDocuments, visibleDocuments, hiddenCategories])
 
   const handleFileUpload = async (files: FileList | null, categoryName: string | null) => {
 
@@ -678,22 +607,6 @@ export const DocumentsSection = React.forwardRef<
     setUploadingForCategory(null)
     if (e.target) e.target.value = ""
   }
-
-  useEffect(() => {
-    if (!eventId || !isGuid(eventId) || pendingFiles.length === 0) return
-
-    const uploadPending = async () => {
-      for (const file of pendingFiles) {
-        if (!file.file) continue
-        const dt = new DataTransfer()
-        dt.items.add(file.file)
-        await handleFileUpload(dt.files, file.category || "Inne dokumenty")
-      }
-      setPendingFiles?.([])
-    }
-
-    uploadPending()
-  }, [eventId, pendingFiles])
 
   const handleFileDelete = async (documentId: string | number) => {
 
@@ -1479,11 +1392,6 @@ export const DocumentsSection = React.forwardRef<
   }
 
   const missingRequiredDocs = requiredDocuments.filter((doc) => !doc.uploaded)
-  const filteredMissingRequiredDocs = React.useMemo(() => {
-    if (!requiredDocsSearchQuery.trim()) return missingRequiredDocs
-    const q = requiredDocsSearchQuery.toLowerCase()
-    return missingRequiredDocs.filter((doc) => doc.name.toLowerCase().includes(q))
-  }, [missingRequiredDocs, requiredDocsSearchQuery])
 
   if (loading && documents.length === 0) {
     return (
@@ -1528,31 +1436,13 @@ export const DocumentsSection = React.forwardRef<
               >
                 Wymagane
               </Badge>
-              <Badge
-                variant="secondary"
-                className={`cursor-pointer px-2 ${showWithFilesOnly ? "bg-blue-600 text-white" : "bg-blue-100 text-blue-800"}`}
-                onClick={() => {
-                  setShowWithFilesOnly((prev) => !prev)
-                  if (!showWithFilesOnly) setShowEmptyOnly(false)
-                }}
-              >
+              <Badge variant="secondary" className="cursor-pointer px-2">
                 Z plikami
               </Badge>
-              <Badge
-                variant="secondary"
-                className={`cursor-pointer px-2 ${showEmptyOnly ? "bg-blue-600 text-white" : "bg-blue-100 text-blue-800"}`}
-                onClick={() => {
-                  setShowEmptyOnly((prev) => !prev)
-                  if (!showEmptyOnly) setShowWithFilesOnly(false)
-                }}
-              >
+              <Badge variant="secondary" className="cursor-pointer px-2">
                 Puste
               </Badge>
-              <Badge
-                variant="secondary"
-                className={`cursor-pointer px-2 ${sortRecentFirst ? "bg-blue-600 text-white" : "bg-blue-100 text-blue-800"}`}
-                onClick={() => setSortRecentFirst((prev) => !prev)}
-              >
+              <Badge variant="secondary" className="cursor-pointer px-2">
                 Ostatnie
               </Badge>
             </div>
@@ -1566,6 +1456,14 @@ export const DocumentsSection = React.forwardRef<
             disabled={visibleDocuments.length === 0}
           >
             <Eye className="mr-2 h-4 w-4" /> Podgląd wszystkich
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => handleDownloadAll()}
+            disabled={visibleDocuments.length === 0}
+          >
+            <Download className="mr-2 h-4 w-4" /> Pobierz wszystkie
           </Button>
           <Button
             variant="outline"
@@ -1847,7 +1745,7 @@ export const DocumentsSection = React.forwardRef<
                       </table>
                       {documentsForCategory.length === 0 && (
                         <div
-                          className={`flex flex-col items-center justify-center text-center py-4 text-gray-500 border-2 border-dashed rounded-lg cursor-pointer transition-colors m-4 ${
+                          className={`flex flex-col items-center justify-center text-center py-12 text-gray-500 border-2 border-dashed rounded-lg cursor-pointer transition-colors m-4 ${
                             dragActive && dragCategory === category
                               ? "border-blue-500 bg-blue-50"
                               : "border-gray-300 hover:bg-gray-50"
@@ -1879,7 +1777,7 @@ export const DocumentsSection = React.forwardRef<
                     </div>
                   ) : (
                     <div
-                      className={`flex flex-col items-center justify-center text-center py-4 text-gray-500 border-2 border-dashed rounded-lg cursor-pointer transition-colors ${
+                      className={`flex flex-col items-center justify-center text-center py-12 text-gray-500 border-2 border-dashed rounded-lg cursor-pointer transition-colors ${
                         dragActive && dragCategory === category
                           ? "border-blue-500 bg-blue-50"
                           : "border-gray-300 hover:bg-gray-50"
@@ -1911,20 +1809,9 @@ export const DocumentsSection = React.forwardRef<
               <CardTitle>Wymagane dokumenty</CardTitle>
             </CardHeader>
             <CardContent>
-
               <p className="mb-4 text-sm text-gray-500">
                 Dodaj kategorię, aby móc załączyć odpowiednie pliki.
               </p>
-
-              <div className="relative mb-4">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-                <Input
-                  placeholder="Szukaj dokumentu..."
-                  className="pl-10"
-                  value={requiredDocsSearchQuery}
-                  onChange={(e) => setRequiredDocsSearchQuery(e.target.value)}
-                />
-              </div>
               <Button
                 className="mb-4"
                 onClick={handleAddSelectedRequired}
@@ -1933,42 +1820,38 @@ export const DocumentsSection = React.forwardRef<
                 Dodaj zaznaczone
               </Button>
               <div className="border rounded-md">
-                {filteredMissingRequiredDocs.length > 0 ? (
-                  filteredMissingRequiredDocs.map((doc, index, arr) => (
-                    <div
-                      key={`required-${doc.id ?? doc.name}`}
-                      className={`flex items-center gap-3 p-4 ${index < arr.length - 1 ? "border-b" : ""}`}
+                {missingRequiredDocs.map((doc, index, arr) => (
+                  <div
+                    key={`required-${doc.id ?? doc.name}`}
+                    className={`flex items-center gap-3 p-4 ${index < arr.length - 1 ? "border-b" : ""}`}
+                  >
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleAddRequiredCategory(doc.name)}
                     >
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handleAddRequiredCategory(doc.name)}
-                      >
-                        <Plus className="mr-2 h-4 w-4" />
-                        Dodaj
-                      </Button>
-                      <Checkbox
-                        checked={selectedRequiredDocs.includes(doc.name)}
-                        onCheckedChange={(checked) =>
-                          setSelectedRequiredDocs((prev) =>
-                            checked
-                              ? [...prev, doc.name]
-                              : prev.filter((name) => name !== doc.name),
-                          )
-                        }
-                      />
-                      <div className="flex items-center gap-3">
-                        <span className="font-medium text-gray-800">{doc.name}</span>
-                        <div
-                          className="h-2 w-2 rounded-full bg-red-500 animate-pulse"
-                          title="Brakujący"
-                        ></div>
-                      </div>
+                      <Plus className="mr-2 h-4 w-4" />
+                      Dodaj
+                    </Button>
+                    <Checkbox
+                      checked={selectedRequiredDocs.includes(doc.name)}
+                      onCheckedChange={(checked) =>
+                        setSelectedRequiredDocs((prev) =>
+                          checked
+                            ? [...prev, doc.name]
+                            : prev.filter((name) => name !== doc.name),
+                        )
+                      }
+                    />
+                    <div className="flex items-center gap-3">
+                      <span className="font-medium text-gray-800">{doc.name}</span>
+                      <div
+                        className="h-2 w-2 rounded-full bg-red-500 animate-pulse"
+                        title="Brakujący"
+                      ></div>
                     </div>
-                  ))
-                ) : (
-                  <div className="p-4 text-sm text-gray-500">Brak wyników</div>
-                )}
+                  </div>
+                ))}
               </div>
             </CardContent>
           </Card>

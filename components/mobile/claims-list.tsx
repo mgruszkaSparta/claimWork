@@ -497,7 +497,7 @@ export function ClaimsListMobile({
       )}
 
       {/* Search and Filters */}
-      <div className="p-6 pb-4 flex-shrink-0">
+      <div className="p-6 pb-4 flex-shrink-0 sticky top-0 z-20 bg-white">
         <div className="flex flex-col sm:flex-row gap-3">
           <div className="relative flex-1">
             <Search className="absolute left-3 top-2.5 h-4 w-4 text-gray-400" />

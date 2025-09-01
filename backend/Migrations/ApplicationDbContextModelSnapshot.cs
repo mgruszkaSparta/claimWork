@@ -1054,6 +1054,9 @@ namespace AutomotiveClaimsApi.Migrations
                         .HasMaxLength(500)
                         .HasColumnType("character varying(500)");
 
+                    b.Property<string>("DocumentCategories")
+                        .HasColumnType("text");
+
                     b.Property<string>("SpartaNumber")
                         .HasMaxLength(100)
                         .HasColumnType("character varying(100)");

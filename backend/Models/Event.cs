@@ -138,6 +138,9 @@ namespace AutomotiveClaimsApi.Models
         [MaxLength(500)]
         public string? ServicesCalled { get; set; }
 
+        [Column(TypeName = "text")]
+        public string? DocumentCategories { get; set; }
+
         [MaxLength(500)]
         public string? PoliceUnitDetails { get; set; }
 

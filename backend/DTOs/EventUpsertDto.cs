@@ -133,6 +133,9 @@ namespace AutomotiveClaimsApi.DTOs
         [StringLength(500)]
         public string? ServicesCalled { get; set; }
 
+        [StringLength(2000)]
+        public string? DocumentCategories { get; set; }
+
         [StringLength(500)]
         public string? PoliceUnitDetails { get; set; }
 

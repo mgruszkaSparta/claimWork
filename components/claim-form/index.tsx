@@ -93,9 +93,11 @@ export function ClaimForm({ initialData, mode }: ClaimFormProps) {
 
   const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([])
   const [pendingFiles, setPendingFiles] = useState<UploadedFile[]>([])
-  const [requiredDocuments, setRequiredDocuments] = useState<RequiredDocument[]>(() =>
-    getRequiredDocumentsByObjectType(initialData?.objectTypeId)
-  )
+  const [requiredDocuments, setRequiredDocuments] = useState<RequiredDocument[]>(() => {
+    const docs = getRequiredDocumentsByObjectType(initialData?.objectTypeId)
+    const selected = new Set(initialData?.documentCategories ?? [])
+    return docs.map((d) => ({ ...d, uploaded: selected.has(d.name) }))
+  })
 
   const isDisabled = mode === 'view'
   const { createDamage } = useDamages(formData.id)
@@ -117,8 +119,19 @@ export function ClaimForm({ initialData, mode }: ClaimFormProps) {
   }
 
   useEffect(() => {
-    setRequiredDocuments(getRequiredDocumentsByObjectType(formData.objectTypeId))
-  }, [formData.objectTypeId])
+    const docs = getRequiredDocumentsByObjectType(formData.objectTypeId)
+    const selected = new Set(formData.documentCategories ?? [])
+    setRequiredDocuments(docs.map((d) => ({ ...d, uploaded: selected.has(d.name) })))
+  }, [formData.objectTypeId, formData.documentCategories])
+
+  useEffect(() => {
+    setFormData((prev) => ({
+      ...prev,
+      documentCategories: requiredDocuments
+        .filter((d) => d.uploaded)
+        .map((d) => d.name),
+    }))
+  }, [requiredDocuments])
 
   const handleInjuredPartyChange = (participant: ParticipantInfo | undefined) => {
     markDirty()
@@ -175,6 +188,9 @@ export function ClaimForm({ initialData, mode }: ClaimFormProps) {
             id: mode === 'create' ? undefined : d.id,
           })) || [],
         documents: uploadedFiles,
+        documentCategories: requiredDocuments
+          .filter((d) => d.uploaded)
+          .map((d) => d.name),
       }
 
       let saved: Claim | null = null

@@ -147,6 +147,8 @@ export interface Claim
   handlerPhone?: string
   documents?: UploadedFile[]
   pendingFiles?: UploadedFile[]
+  /** Names of document categories that should be displayed even if empty */
+  documentCategories?: string[]
   documentsSectionProps?: DocumentsSectionProps
   subcontractor?: SubcontractorInfo
 }

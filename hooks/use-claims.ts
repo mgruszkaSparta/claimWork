@@ -71,6 +71,7 @@ export const transformApiClaimToFrontend = (apiClaim: ClaimDto): Claim => {
     inspectionContactEmail,
     handlerId,
     caseHandlerId,
+    documentCategories,
     ...rest
   } = apiClaim
 
@@ -110,6 +111,9 @@ export const transformApiClaimToFrontend = (apiClaim: ClaimDto): Claim => {
     servicesCalled: Array.isArray(servicesCalled)
       ? servicesCalled
       : (servicesCalled?.split(",").filter(Boolean) ?? []),
+    documentCategories: Array.isArray(documentCategories)
+      ? documentCategories
+      : (documentCategories?.split(",").filter(Boolean) ?? []),
 
     damages: damages?.map((d: any) => ({
       id: d.id?.toString(),
@@ -199,6 +203,7 @@ export const transformFrontendClaimToApiPayload = (
     perpetrator,
     servicesCalled,
     documents,
+    documentCategories,
     insuranceCompanyId,
     leasingCompanyId,
     caseHandlerId,
@@ -313,6 +318,7 @@ export const transformFrontendClaimToApiPayload = (
       "eventTime",
     ),
     servicesCalled: servicesCalled?.join(","),
+    documentCategories: documentCategories?.join(","),
     ...(transportDamage
       ? {
           cargoDescription: transportDamage.cargoDescription,

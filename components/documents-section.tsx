@@ -358,7 +358,9 @@ export const DocumentsSection = React.forwardRef<
   const documentCategories = React.useMemo(() => {
 
     const categoriesFromRequired = requiredDocuments.map((d) => d.name)
-    const categoriesFromDocuments = [...new Set(visibleDocuments.map((d) => d.documentType))]
+    const categoriesFromDocuments = [
+      ...new Set(visibleDocuments.map((d) => d.documentType)),
+    ].filter((c) => c === "Inne dokumenty")
     let categories = [
       ...new Set(["Inne dokumenty", ...categoriesFromRequired, ...categoriesFromDocuments]),
     ].filter((c) => !hiddenCategories.includes(c))

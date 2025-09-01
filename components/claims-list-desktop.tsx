@@ -8,6 +8,14 @@ import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import {
+  DropdownMenu,
+  DropdownMenuCheckboxItem,
+  DropdownMenuContent,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
+import {
   Select,
   SelectTrigger,
   SelectValue,
@@ -40,6 +48,7 @@ import { useToast } from "@/hooks/use-toast"
 import { useAuth } from "@/hooks/use-auth"
 import type { Claim } from "@/types"
 import { dictionaryService } from "@/lib/dictionary-service"
+import HandlerDropdown from "@/components/handler-dropdown"
 
 
 const typeLabelMap: Record<number, string> = {
@@ -64,22 +73,27 @@ export function ClaimsListDesktop({
   const router = useRouter()
   const [searchTerm, setSearchTerm] = useState("")
   const [searchInput, setSearchInput] = useState("")
-  const [filterStatus, setFilterStatus] = useState("all")
+  const [filterStatuses, setFilterStatuses] = useState<string[]>([])
   const [claimStatuses, setClaimStatuses] = useState<
     { id: number; code: string; name: string; color?: string }[]
   >([])
-  const [filterRisk, setFilterRisk] = useState("all")
+  const [filterRisks, setFilterRisks] = useState<string[]>([])
   const [riskTypes, setRiskTypes] = useState<
     { id: number; code: string; name: string; claimObjectTypeId?: number }[]
   >([])
   const [filterRegistration, setFilterRegistration] = useState("")
-  const [filterHandler, setFilterHandler] = useState("")
+  const [filterHandlerId, setFilterHandlerId] = useState("")
   const [substituteOptions, setSubstituteOptions] = useState<
     { id: string; name: string }[]
   >([])
   const [selectedSubstituteId, setSelectedSubstituteId] = useState("")
+  type DateFilterType =
+    | "reportDate"
+    | "damageDate"
+    | "registrationDate"
+    | "insurerReportDate"
   const [dateFilters, setDateFilters] = useState<
-    { type: "reportDate" | "damageDate"; from: string; to: string }
+    { type: DateFilterType; from: string; to: string }[]
   >([])
   const [showFilters, setShowFilters] = useState(false)
   const [showMyClaims, setShowMyClaims] = useState(false)
@@ -90,6 +104,22 @@ export function ClaimsListDesktop({
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc")
   const loaderRef = useRef<HTMLDivElement | null>(null)
   const containerRef = useRef<HTMLDivElement | null>(null)
+
+  const toggleStatus = (value: string) => {
+    setFilterStatuses((prev) =>
+      prev.includes(value)
+        ? prev.filter((v) => v !== value)
+        : [...prev, value],
+    )
+  }
+
+  const toggleRisk = (value: string) => {
+    setFilterRisks((prev) =>
+      prev.includes(value)
+        ? prev.filter((v) => v !== value)
+        : [...prev, value],
+    )
+  }
 
   const {
     claims: fetchedClaims,
@@ -196,19 +226,30 @@ export function ClaimsListDesktop({
       try {
         const reportFilter = dateFilters.find((f) => f.type === "reportDate")
         const damageFilter = dateFilters.find((f) => f.type === "damageDate")
+        const registrationFilter = dateFilters.find(
+          (f) => f.type === "registrationDate",
+        )
+        const insurerReportFilter = dateFilters.find(
+          (f) => f.type === "insurerReportDate",
+        )
         await fetchClaims(
           {
             page,
             pageSize,
             search: searchTerm,
-            status: filterStatus !== "all" ? filterStatus : undefined,
-            riskType: filterRisk !== "all" ? filterRisk : undefined,
+            status: filterStatuses.length
+              ? filterStatuses.join(",")
+              : undefined,
+            riskType: filterRisks.length
+              ? filterRisks.join(",")
+              : undefined,
             brand: filterRegistration || undefined,
-            handler: filterHandler || undefined,
             caseHandlerId: showMyClaims
               ? user?.caseHandlerId
               : selectedSubstituteId
               ? parseInt(selectedSubstituteId, 10)
+              : filterHandlerId
+              ? parseInt(filterHandlerId, 10)
               : undefined,
             registeredById:
               showMyClaims && !user?.caseHandlerId ? user?.id : undefined,
@@ -219,6 +260,10 @@ export function ClaimsListDesktop({
             reportToDate: reportFilter?.to || undefined,
             damageFromDate: damageFilter?.from || undefined,
             damageToDate: damageFilter?.to || undefined,
+            registrationFromDate: registrationFilter?.from || undefined,
+            registrationToDate: registrationFilter?.to || undefined,
+            reportToInsurerFromDate: insurerReportFilter?.from || undefined,
+            reportToInsurerToDate: insurerReportFilter?.to || undefined,
           },
           { append: page > 1 },
         )
@@ -237,10 +282,10 @@ export function ClaimsListDesktop({
     page,
     pageSize,
     searchTerm,
-    filterStatus,
-    filterRisk,
+    filterStatuses,
+    filterRisks,
     filterRegistration,
-    filterHandler,
+    filterHandlerId,
     selectedSubstituteId,
     showMyClaims,
     user?.caseHandlerId,
@@ -362,19 +407,30 @@ export function ClaimsListDesktop({
       setPage(1)
       const reportFilter = dateFilters.find((f) => f.type === "reportDate")
       const damageFilter = dateFilters.find((f) => f.type === "damageDate")
+      const registrationFilter = dateFilters.find(
+        (f) => f.type === "registrationDate",
+      )
+      const insurerReportFilter = dateFilters.find(
+        (f) => f.type === "insurerReportDate",
+      )
       await fetchClaims(
         {
           page: 1,
           pageSize,
           search: searchTerm,
-          status: filterStatus !== "all" ? filterStatus : undefined,
-          riskType: filterRisk !== "all" ? filterRisk : undefined,
+          status: filterStatuses.length
+            ? filterStatuses.join(",")
+            : undefined,
+          riskType: filterRisks.length
+            ? filterRisks.join(",")
+            : undefined,
           brand: filterRegistration || undefined,
-          handler: filterHandler || undefined,
           caseHandlerId: showMyClaims
             ? user?.caseHandlerId
             : selectedSubstituteId
             ? parseInt(selectedSubstituteId, 10)
+            : filterHandlerId
+            ? parseInt(filterHandlerId, 10)
             : undefined,
           registeredById:
             showMyClaims && !user?.caseHandlerId ? user?.id : undefined,
@@ -385,6 +441,10 @@ export function ClaimsListDesktop({
           reportToDate: reportFilter?.to || undefined,
           damageFromDate: damageFilter?.from || undefined,
           damageToDate: damageFilter?.to || undefined,
+          registrationFromDate: registrationFilter?.from || undefined,
+          registrationToDate: registrationFilter?.to || undefined,
+          reportToInsurerFromDate: insurerReportFilter?.from || undefined,
+          reportToInsurerToDate: insurerReportFilter?.to || undefined,
         },
         { append: false },
       )
@@ -508,40 +568,78 @@ export function ClaimsListDesktop({
             />
           </div>
           <div className="flex gap-2">
-            <select
-              value={filterStatus}
-              onChange={(e) => setFilterStatus(e.target.value)}
-              className="px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#1a3a6c] focus:border-[#1a3a6c] bg-white"
-            >
-              <option value="all">Wszystkie statusy</option>
-              {claimStatuses.map((status) => (
-                <option key={status.id} value={status.id.toString()}>
-                  {status.name}
-                </option>
-              ))}
-            </select>
-            <select
-              value={filterRisk}
-              onChange={(e) => setFilterRisk(e.target.value)}
-              className="px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#1a3a6c] focus:border-[#1a3a6c] bg-white"
-            >
-              <option value="all">Wszystkie ryzyka</option>
-              {[1, 2, 3].map((type) => {
-                const grouped = riskTypes.filter(
-                  (r) => r.claimObjectTypeId === type,
-                )
-                if (grouped.length === 0) return null
-                return (
-                  <optgroup key={type} label={typeLabelMap[type]}>
-                    {grouped.map((risk) => (
-                      <option key={risk.id} value={risk.id.toString()}>
-                        {risk.name}
-                      </option>
-                    ))}
-                  </optgroup>
-                )
-              })}
-            </select>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="h-9 text-sm bg-white"
+                >
+                  {filterStatuses.length
+                    ? claimStatuses
+                        .filter((s) => filterStatuses.includes(s.id.toString()))
+                        .map((s) => s.name)
+                        .join(", ")
+                    : "Wszystkie statusy"}
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent className="max-h-64 overflow-y-auto">
+                {claimStatuses.map((status) => (
+                  <DropdownMenuCheckboxItem
+                    key={status.id}
+                    checked={filterStatuses.includes(status.id.toString())}
+                    onCheckedChange={() =>
+                      toggleStatus(status.id.toString())
+                    }
+                  >
+                    {status.name}
+                  </DropdownMenuCheckboxItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="h-9 text-sm bg-white"
+                >
+                  {filterRisks.length
+                    ? riskTypes
+                        .filter((r) => filterRisks.includes(r.id.toString()))
+                        .map((r) => r.name)
+                        .join(", ")
+                    : "Wszystkie ryzyka"}
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent className="max-h-64 overflow-y-auto">
+                {[1, 2, 3].map((type) => {
+                  const grouped = riskTypes.filter(
+                    (r) => r.claimObjectTypeId === type,
+                  )
+                  if (grouped.length === 0) return null
+                  return (
+                    <div key={type}>
+                      <DropdownMenuLabel className="px-2 py-1.5 text-xs text-muted-foreground">
+                        {typeLabelMap[type]}
+                      </DropdownMenuLabel>
+                      {grouped.map((risk) => (
+                        <DropdownMenuCheckboxItem
+                          key={risk.id}
+                          checked={filterRisks.includes(risk.id.toString())}
+                          onCheckedChange={() =>
+                            toggleRisk(risk.id.toString())
+                          }
+                        >
+                          {risk.name}
+                        </DropdownMenuCheckboxItem>
+                      ))}
+                      {type !== 3 && <DropdownMenuSeparator />}
+                    </div>
+                  )
+                })}
+              </DropdownMenuContent>
+            </DropdownMenu>
             <Button
               variant="outline"
               size="sm"
@@ -593,19 +691,24 @@ export function ClaimsListDesktop({
                 onChange={(e) => setFilterRegistration(e.target.value)}
                 className="h-9 text-sm"
               />
-              <Input
-                placeholder="Filtruj po opiekunie..."
-                value={filterHandler}
-                onChange={(e) => setFilterHandler(e.target.value)}
-                className="h-9 text-sm"
-              />
+              <div className="w-48">
+                <HandlerDropdown
+                  selectedHandlerId={filterHandlerId}
+                  onHandlerSelected={(e) => {
+                    setFilterHandlerId(e.handlerId)
+                    setPage(1)
+                  }}
+                  showDetails={false}
+                  className="h-9"
+                />
+              </div>
               <Select
                 value=""
                 onValueChange={(value) => {
                   if (!dateFilters.find((f) => f.type === value)) {
                     setDateFilters((prev) => [
                       ...prev,
-                      { type: value as "reportDate" | "damageDate", from: "", to: "" },
+                      { type: value as DateFilterType, from: "", to: "" },
                     ])
                   }
                 }}
@@ -616,13 +719,21 @@ export function ClaimsListDesktop({
                 <SelectContent>
                   <SelectItem value="reportDate">Data zgłoszenia</SelectItem>
                   <SelectItem value="damageDate">Data szkody</SelectItem>
+                  <SelectItem value="registrationDate">Data rejestracji</SelectItem>
+                  <SelectItem value="insurerReportDate">Data zgłoszenia do TU</SelectItem>
                 </SelectContent>
               </Select>
             </div>
             {dateFilters.map((f) => (
               <div key={f.type} className="flex items-center gap-2 flex-wrap">
                 <span className="text-sm w-32">
-                  {f.type === "reportDate" ? "Data zgłoszenia" : "Data szkody"}
+                  {f.type === "reportDate"
+                    ? "Data zgłoszenia"
+                    : f.type === "damageDate"
+                    ? "Data szkody"
+                    : f.type === "registrationDate"
+                    ? "Data rejestracji"
+                    : "Data zgłoszenia do TU"}
                 </span>
                 <Input
                   type="date"
@@ -841,16 +952,16 @@ export function ClaimsListDesktop({
                   <Search className="h-8 w-8 text-gray-400" />
                 </div>
                 <h3 className="text-sm font-medium text-gray-900 mb-1">
-                  {searchTerm || filterStatus !== "all" || filterRisk !== "all"
+                  {searchTerm || filterStatuses.length > 0 || filterRisks.length > 0
                     ? "Brak szkód spełniających kryteria"
                     : "Brak szkód w systemie"}
                 </h3>
                 <p className="text-sm text-gray-500 mb-4">
-                  {searchTerm || filterStatus !== "all" || filterRisk !== "all"
+                  {searchTerm || filterStatuses.length > 0 || filterRisks.length > 0
                     ? "Spróbuj zmienić kryteria wyszukiwania"
                     : "Dodaj pierwszą szkodę, aby rozpocząć"}
                 </p>
-                {!searchTerm && filterStatus === "all" && filterRisk === "all" && (
+                {!searchTerm && filterStatuses.length === 0 && filterRisks.length === 0 && (
                   <Button className="bg-[#1a3a6c] hover:bg-[#1a3a6c]/90" onClick={onNewClaim || handleNewClaimDirect}>
                     <Plus className="h-4 w-4 mr-2" />
                     Dodaj pierwszą szkodę

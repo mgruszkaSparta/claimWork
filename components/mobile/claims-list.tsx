@@ -536,8 +536,21 @@ export function ClaimsListMobile({
                   setSearchTerm(searchInput)
                 }
               }}
-              className="pl-9 h-9 text-sm"
+              className="pl-9 pr-9 h-9 text-sm"
             />
+            {searchInput && (
+              <button
+                type="button"
+                onClick={() => {
+                  setSearchInput("")
+                  setSearchTerm("")
+                  setPage(1)
+                }}
+                className="absolute right-3 top-2.5 text-gray-400 hover:text-gray-600"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            )}
           </div>
           <div className="flex gap-2">
             <select

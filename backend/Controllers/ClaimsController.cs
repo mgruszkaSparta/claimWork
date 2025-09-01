@@ -32,7 +32,7 @@ namespace AutomotiveClaimsApi.Controllers
         private readonly ILogger<ClaimsController> _logger;
         private readonly UserManager<ApplicationUser>? _userManager;
         private readonly INotificationService? _notificationService;
-
+        private readonly IEmailSender? _emailSender;
         private readonly IDocumentService _documentService;
         private readonly IConfiguration _config;
         private readonly IEventDocumentStore _eventDocumentStore;
@@ -46,6 +46,7 @@ namespace AutomotiveClaimsApi.Controllers
             IConfiguration config,
             UserManager<ApplicationUser>? userManager = null,
             INotificationService? notificationService = null,
+            IEmailSender? emailSender = null,
             IDocumentService? documentService = null,
             IEventDocumentStore? eventDocumentStore = null,
             IMobileNotificationStore? mobileNotificationStore = null,
@@ -57,6 +58,7 @@ namespace AutomotiveClaimsApi.Controllers
             _config = config;
             _userManager = userManager;
             _notificationService = notificationService;
+            _emailSender = emailSender;
             _documentService = documentService ?? throw new ArgumentNullException(nameof(documentService));
             _eventDocumentStore = eventDocumentStore ?? throw new ArgumentNullException(nameof(eventDocumentStore));
             _mobileNotificationStore = mobileNotificationStore;
@@ -480,6 +482,15 @@ namespace AutomotiveClaimsApi.Controllers
 
                     await _context.SaveChangesAsync();
 
+                    if (handler != null && hasAssignedHandler && _emailSender != null)
+                    {
+                        var baseUrl = (_config["App:BaseUrl"] ?? string.Empty).TrimEnd('/');
+                        var claimIdValue = existingEvent.Id;
+                        var claimIdentifier = existingEvent.ClaimNumber ?? existingEvent.SpartaNumber ?? claimIdValue.ToString();
+                        var claimLink = $"{baseUrl}/claims/{claimIdValue}";
+                        await _emailSender.SendEmailAsync(handler.Email, $"Claim assigned: {claimIdentifier}", $"Claim {claimIdentifier} has been assigned to you. View it at {claimLink}");
+                    }
+
                     if (!isHandler && currentUser != null)
                     {
                         var claimIdentifier = existingEvent.ClaimNumber ?? existingEvent.SpartaNumber ?? existingEvent.Id.ToString();
@@ -619,6 +630,7 @@ namespace AutomotiveClaimsApi.Controllers
                 var existing = await _context.Events
                     .AsNoTracking()
                     .FirstOrDefaultAsync(e => e.Id == id);
+                var previousHandlerId = existing?.HandlerId;
 
                 ApplicationUser? currentUser = null;
                 bool isHandler = false;
@@ -776,6 +788,15 @@ namespace AutomotiveClaimsApi.Controllers
                 }
 
                 await _context.SaveChangesAsync();
+
+                if (_emailSender != null && handler != null && previousHandlerId == null && existing.HandlerId != null)
+                {
+                    var baseUrl = (_config["App:BaseUrl"] ?? string.Empty).TrimEnd('/');
+                    var claimIdValue = existing.Id;
+                    var claimIdentifier = existing.ClaimNumber ?? existing.SpartaNumber ?? claimIdValue.ToString();
+                    var claimLink = $"{baseUrl}/claims/{claimIdValue}";
+                    await _emailSender.SendEmailAsync(handler.Email, $"Claim assigned: {claimIdentifier}", $"Claim {claimIdentifier} has been assigned to you. View it at {claimLink}");
+                }
 
                 var updatedEvent = await _context.Events
                     .AsSplitQuery()

@@ -103,7 +103,8 @@ export const DocumentsSection = React.forwardRef<
   const [selectedRequiredDocs, setSelectedRequiredDocs] = useState<string[]>([])
 
   const [showRequiredOnly, setShowRequiredOnly] = useState(false)
-  const [searchQuery, setSearchQuery] = useState("")
+  const [documentsSearchQuery, setDocumentsSearchQuery] = useState("")
+  const [requiredSearchQuery, setRequiredSearchQuery] = useState("")
 
   // Preview modal states
   const [previewZoom, setPreviewZoom] = useState(1)
@@ -283,12 +284,18 @@ export const DocumentsSection = React.forwardRef<
       const requiredNames = requiredDocuments.map((d) => d.name)
       docs = docs.filter((d) => requiredNames.includes(d.documentType))
     }
-    if (searchQuery.trim()) {
-      const q = searchQuery.toLowerCase()
+    if (documentsSearchQuery.trim()) {
+      const q = documentsSearchQuery.toLowerCase()
       docs = docs.filter((d) => d.fileName.toLowerCase().includes(q))
     }
     return docs
-  }, [allDocuments, hiddenCategories, showRequiredOnly, requiredDocuments, searchQuery])
+  }, [
+    allDocuments,
+    hiddenCategories,
+    showRequiredOnly,
+    requiredDocuments,
+    documentsSearchQuery,
+  ])
 
   useEffect(() => {
     const validIds = selectedDocumentIds.filter((id) =>
@@ -1096,7 +1103,7 @@ export const DocumentsSection = React.forwardRef<
   useImperativeHandle(ref, () => ({
     downloadAll: handleDownloadAll,
     downloadSelected: handleDownloadSelected,
-    search: (query: string) => setSearchQuery(query),
+    search: (query: string) => setDocumentsSearchQuery(query),
   }))
 
   const handleDrag = (e: React.DragEvent) => {
@@ -1461,12 +1468,12 @@ export const DocumentsSection = React.forwardRef<
 
   const missingRequiredDocs = React.useMemo(() => {
     let docs = requiredDocuments.filter((doc) => !doc.uploaded)
-    if (searchQuery.trim()) {
-      const q = searchQuery.toLowerCase()
+    if (requiredSearchQuery.trim()) {
+      const q = requiredSearchQuery.toLowerCase()
       docs = docs.filter((doc) => doc.name.toLowerCase().includes(q))
     }
     return docs
-  }, [requiredDocuments, searchQuery])
+  }, [requiredDocuments, requiredSearchQuery])
 
   if (loading && documents.length === 0) {
     return (
@@ -1498,8 +1505,8 @@ export const DocumentsSection = React.forwardRef<
               <Input
                 placeholder="Szukaj po nazwie..."
                 className="pl-10"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
+                value={documentsSearchQuery}
+                onChange={(e) => setDocumentsSearchQuery(e.target.value)}
               />
             </div>
             <div className="flex flex-wrap items-center gap-1.5">
@@ -1892,6 +1899,15 @@ export const DocumentsSection = React.forwardRef<
               <CardTitle>Wymagane dokumenty</CardTitle>
             </CardHeader>
             <CardContent>
+              <div className="relative mb-4">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                <Input
+                  placeholder="Szukaj wymaganych dokumentów..."
+                  className="pl-10"
+                  value={requiredSearchQuery}
+                  onChange={(e) => setRequiredSearchQuery(e.target.value)}
+                />
+              </div>
               <Button
                 className="mb-4"
                 onClick={handleAddSelectedRequired}

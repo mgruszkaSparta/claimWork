@@ -1,6 +1,7 @@
 
 using System;
 using System.IO;
+using System.Net.Http;
 using System.Linq;
 using System.Text.RegularExpressions;
 using Microsoft.EntityFrameworkCore;
@@ -13,6 +14,7 @@ using MimeKit;
 using EmailService.Data;
 using EmailService.Models;
 using EmailService.Storage;
+using Google.Cloud.Storage.V1;
 
 
 namespace EmailService;
@@ -198,11 +200,41 @@ public class EmailClient
                 else
                     bodyBuilder.TextBody = email.Body;
 
+                using var httpClient = new HttpClient();
                 foreach (var attachment in email.Attachments)
                 {
                     if (!string.IsNullOrEmpty(attachment.FilePath) && File.Exists(attachment.FilePath))
                     {
                         bodyBuilder.Attachments.Add(attachment.FilePath);
+                    }
+                    else if (!string.IsNullOrEmpty(attachment.CloudUrl))
+                    {
+                        try
+                        {
+                            if (attachment.CloudUrl.Contains("storage.googleapis.com"))
+                            {
+                                var uri = new Uri(attachment.CloudUrl);
+                                var parts = uri.AbsolutePath.TrimStart('/').Split('/', 2);
+                                if (parts.Length == 2)
+                                {
+                                    var storageClient = StorageClient.Create();
+                                    using var ms = new MemoryStream();
+                                    await storageClient.DownloadObjectAsync(parts[0], parts[1], ms);
+                                    var fileName = attachment.FileName ?? Path.GetFileName(uri.LocalPath);
+                                    bodyBuilder.Attachments.Add(fileName, ms.ToArray());
+                                }
+                            }
+                            else
+                            {
+                                var data = await httpClient.GetByteArrayAsync(attachment.CloudUrl);
+                                var fileName = attachment.FileName ?? Path.GetFileName(attachment.CloudUrl);
+                                bodyBuilder.Attachments.Add(fileName, data);
+                            }
+                        }
+                        catch
+                        {
+                            // Ignore failures to download attachments
+                        }
                     }
                 }
 

@@ -104,6 +104,7 @@ export const DocumentsSection = React.forwardRef<
 
   const [showRequiredOnly, setShowRequiredOnly] = useState(false)
   const [searchQuery, setSearchQuery] = useState("")
+  const [requiredDocsSearchQuery, setRequiredDocsSearchQuery] = useState("")
 
   // Preview modal states
   const [previewZoom, setPreviewZoom] = useState(1)
@@ -1412,6 +1413,13 @@ export const DocumentsSection = React.forwardRef<
   }
 
   const missingRequiredDocs = requiredDocuments.filter((doc) => !doc.uploaded)
+  const visibleRequiredDocs = React.useMemo(() => {
+    if (!requiredDocsSearchQuery.trim()) return missingRequiredDocs
+    const q = requiredDocsSearchQuery.toLowerCase()
+    return missingRequiredDocs.filter((doc) =>
+      doc.name.toLowerCase().includes(q),
+    )
+  }, [missingRequiredDocs, requiredDocsSearchQuery])
 
   if (loading && documents.length === 0) {
     return (
@@ -1832,6 +1840,15 @@ export const DocumentsSection = React.forwardRef<
               <p className="mb-4 text-sm text-gray-500">
                 Dodaj kategorię, aby móc załączyć odpowiednie pliki.
               </p>
+              <div className="relative mb-4">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                <Input
+                  placeholder="Szukaj dokumentów..."
+                  className="pl-10"
+                  value={requiredDocsSearchQuery}
+                  onChange={(e) => setRequiredDocsSearchQuery(e.target.value)}
+                />
+              </div>
               <Button
                 className="mb-4"
                 onClick={handleAddSelectedRequired}
@@ -1840,38 +1857,42 @@ export const DocumentsSection = React.forwardRef<
                 Dodaj zaznaczone
               </Button>
               <div className="border rounded-md">
-                {missingRequiredDocs.map((doc, index, arr) => (
-                  <div
-                    key={`required-${doc.id ?? doc.name}`}
-                    className={`flex items-center gap-3 p-4 ${index < arr.length - 1 ? "border-b" : ""}`}
-                  >
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleAddRequiredCategory(doc.name)}
+                {visibleRequiredDocs.length > 0 ? (
+                  visibleRequiredDocs.map((doc, index, arr) => (
+                    <div
+                      key={`required-${doc.id ?? doc.name}`}
+                      className={`flex items-center gap-3 p-4 ${index < arr.length - 1 ? "border-b" : ""}`}
                     >
-                      <Plus className="mr-2 h-4 w-4" />
-                      Dodaj
-                    </Button>
-                    <Checkbox
-                      checked={selectedRequiredDocs.includes(doc.name)}
-                      onCheckedChange={(checked) =>
-                        setSelectedRequiredDocs((prev) =>
-                          checked
-                            ? [...prev, doc.name]
-                            : prev.filter((name) => name !== doc.name),
-                        )
-                      }
-                    />
-                    <div className="flex items-center gap-3">
-                      <span className="font-medium text-gray-800">{doc.name}</span>
-                      <div
-                        className="h-2 w-2 rounded-full bg-red-500 animate-pulse"
-                        title="Brakujący"
-                      ></div>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleAddRequiredCategory(doc.name)}
+                      >
+                        <Plus className="mr-2 h-4 w-4" />
+                        Dodaj
+                      </Button>
+                      <Checkbox
+                        checked={selectedRequiredDocs.includes(doc.name)}
+                        onCheckedChange={(checked) =>
+                          setSelectedRequiredDocs((prev) =>
+                            checked
+                              ? [...prev, doc.name]
+                              : prev.filter((name) => name !== doc.name),
+                          ),
+                        }
+                      />
+                      <div className="flex items-center gap-3">
+                        <span className="font-medium text-gray-800">{doc.name}</span>
+                        <div
+                          className="h-2 w-2 rounded-full bg-red-500 animate-pulse"
+                          title="Brakujący"
+                        ></div>
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  ))
+                ) : (
+                  <p className="p-4 text-sm text-gray-500">Brak wyników</p>
+                )}
               </div>
             </CardContent>
           </Card>

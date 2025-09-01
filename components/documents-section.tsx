@@ -304,11 +304,16 @@ export const DocumentsSection = React.forwardRef<
     return () => clearTimeout(handler)
   }, [eventId])
 
+  const humanizeCategory = (value?: string) => {
+    if (!value) return "Inne dokumenty"
+    return value.replace(/[-_]+/g, " ")
+  }
+
   const mapCategoryCodeToName = (code?: string) =>
-    requiredDocuments.find((d) => d.category === code)?.name || code || "Inne dokumenty"
+    requiredDocuments.find((d) => d.category === code)?.name || humanizeCategory(code)
 
   const mapCategoryNameToCode = (name?: string | null) =>
-    requiredDocuments.find((d) => d.name === name)?.category || name || "Inne dokumenty"
+    requiredDocuments.find((d) => d.name === name)?.category || name?.replace(/\s+/g, "") || "Inne dokumenty"
 
   const loadDocuments = async () => {
     if (!eventId || !isGuid(eventId)) return

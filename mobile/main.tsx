@@ -16,12 +16,12 @@ function urlBase64ToUint8Array(base64String: string) {
 
 // Request notification permission and register service worker
 if (typeof window !== "undefined") {
-  if ("Notification" in window && Notification.permission === "default") {
-    Notification.requestPermission();
-  }
+  window.addEventListener("load", async () => {
+    if ("Notification" in window && Notification.permission !== "granted") {
+      await Notification.requestPermission();
+    }
 
-  if ("serviceWorker" in navigator) {
-    window.addEventListener("load", () => {
+    if ("serviceWorker" in navigator) {
       navigator.serviceWorker
         .register("/mobile-sw.js")
         .then(async (reg) => {
@@ -42,10 +42,13 @@ if (typeof window !== "undefined") {
             try {
               const res = await fetch("/api/push/public-key");
               const data = await res.json();
-              const sub = await reg.pushManager.subscribe({
-                userVisibleOnly: true,
-                applicationServerKey: urlBase64ToUint8Array(data.key),
-              });
+              let sub = await reg.pushManager.getSubscription();
+              if (!sub) {
+                sub = await reg.pushManager.subscribe({
+                  userVisibleOnly: true,
+                  applicationServerKey: urlBase64ToUint8Array(data.key),
+                });
+              }
               await fetch("/api/push/subscribe", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
@@ -59,8 +62,8 @@ if (typeof window !== "undefined") {
         .catch(() => {
           // ignore registration errors
         });
-    });
-  }
+    }
+  });
 }
 
 createRoot(document.getElementById("root")!).render(

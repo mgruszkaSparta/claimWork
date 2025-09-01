@@ -398,6 +398,9 @@ export const DocumentsSection = React.forwardRef<
       })
     }
 
+    // Display only the "Inne dokumenty" category
+    categories = categories.filter((c) => c === "Inne dokumenty")
+
     return categories
   }, [
     requiredDocuments,

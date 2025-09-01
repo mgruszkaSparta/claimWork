@@ -55,6 +55,9 @@ const menuItems = [
 
 export function Sidebar(props: SidebarProps) {
   const { user } = useAuth()
+  const isBasicUser =
+    user?.roles?.length === 1 && user.roles[0].toLowerCase() === "user"
+
   return (
     <div className="fixed left-0 top-0 z-40 h-full w-16 bg-[#1a3a6c] border-r border-[#2a4a7c] flex flex-col">
       {/* Header */}
@@ -65,13 +68,17 @@ export function Sidebar(props: SidebarProps) {
       {/* Navigation */}
       <nav className="flex-1 p-2 space-y-2">
         {menuItems
-          .filter(
-            (item) =>
+          .filter((item) => {
+            if (isBasicUser) {
+              return item.id === "claims"
+            }
+            return (
               !item.roles ||
               item.roles.some((role) =>
                 user?.roles?.some((r) => r.toLowerCase() === role.toLowerCase())
               )
-          )
+            )
+          })
           .map((item) => {
             const Icon = item.icon
             const isActive = props.activeTab === item.id

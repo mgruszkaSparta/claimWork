@@ -1155,6 +1155,7 @@ namespace AutomotiveClaimsApi.Controllers
             entity.StatementWithPerpetrator = dto.StatementWithPerpetrator;
             entity.PerpetratorFined = dto.PerpetratorFined;
             entity.ServicesCalled = dto.ServicesCalled;
+            entity.DocumentCategories = dto.DocumentCategories;
             entity.PoliceUnitDetails = dto.PoliceUnitDetails;
             entity.PropertyDamageSubject = dto.PropertyDamageSubject;
             entity.DamageListing = dto.DamageListing;
@@ -1975,6 +1976,7 @@ namespace AutomotiveClaimsApi.Controllers
             StatementWithPerpetrator = e.StatementWithPerpetrator ?? false,
             PerpetratorFined = e.PerpetratorFined ?? false,
             ServicesCalled = e.ServicesCalled?.Split(',', StringSplitOptions.RemoveEmptyEntries),
+            DocumentCategories = e.DocumentCategories?.Split(',', StringSplitOptions.RemoveEmptyEntries),
             PoliceUnitDetails = e.PoliceUnitDetails,
             PropertyDamageSubject = e.PropertyDamageSubject,
             DamageListing = e.DamageListing,

@@ -77,8 +77,13 @@ export interface EventDto extends EventListItemDto {
   /**
    * Comma-separated list of services that were called
    * e.g. "policja,pogotowie,straz".
-   */
+  */
   servicesCalled?: string
+
+  /**
+   * List of document category names to persist even when no files are present
+   */
+  documentCategories?: string[]
 
   propertyDamageSubject?: string
   damageListing?: string
@@ -200,8 +205,13 @@ export interface EventUpsertDto {
   /**
    * Comma-separated list of services that were called
    * e.g. "policja,pogotowie,straz".
-   */
+  */
   servicesCalled?: string
+
+  /**
+   * Comma-separated list of document category names to keep
+   */
+  documentCategories?: string
 
   propertyDamageSubject?: string
   damageListing?: string

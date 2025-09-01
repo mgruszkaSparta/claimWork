@@ -38,3 +38,27 @@ self.addEventListener('periodicsync', event => {
     event.waitUntil(fetchNotifications());
   }
 });
+
+self.addEventListener('push', event => {
+  let data = {};
+  try {
+    data = event.data ? event.data.json() : {};
+  } catch {
+    data = {};
+  }
+  const title = data.title || 'Notification';
+  const options = { body: data.message || '' };
+  event.waitUntil(self.registration.showNotification(title, options));
+});
+
+self.addEventListener('notificationclick', event => {
+  event.notification.close();
+  event.waitUntil(
+    clients.matchAll({ type: 'window', includeUncontrolled: true }).then(list => {
+      if (list.length > 0) {
+        return list[0].focus();
+      }
+      return clients.openWindow('/');
+    })
+  );
+});

@@ -248,12 +248,18 @@ export const DocumentsSection = React.forwardRef<
 
   const visibleDocuments = React.useMemo(() => {
     const requiredNames = requiredDocuments.map((d) => d.name)
-    let docs = allDocuments.filter((d) => !hiddenCategories.includes(d.documentType))
+    let docs = allDocuments
+      .filter((d) => !hiddenCategories.includes(d.documentType))
+      .map((d) =>
+        requiredNames.includes(d.documentType)
+          ? d
+          : { ...d, documentType: "Inne dokumenty" },
+      )
+
     if (showRequiredOnly) {
       docs = docs.filter((d) => requiredNames.includes(d.documentType))
-    } else {
-      docs = docs.filter((d) => !requiredNames.includes(d.documentType))
     }
+
     if (searchQuery.trim()) {
       const q = searchQuery.toLowerCase()
       docs = docs.filter(
@@ -360,7 +366,7 @@ export const DocumentsSection = React.forwardRef<
     const categoriesFromRequired = requiredDocuments.map((d) => d.name)
     const categoriesFromDocuments = [
       ...new Set(visibleDocuments.map((d) => d.documentType)),
-    ].filter((c) => c === "Inne dokumenty")
+
     let categories = [
       ...new Set(["Inne dokumenty", ...categoriesFromRequired, ...categoriesFromDocuments]),
     ].filter((c) => !hiddenCategories.includes(c))

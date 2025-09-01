@@ -745,6 +745,7 @@ namespace AutomotiveClaimsApi.Controllers
                     _context.Entry(existing).State = EntityState.Detached;
                 }
 
+                var originalHandlerId = existing.HandlerId;
                 var originalStatus = existing.Status;
 
                 await UpsertClaimAsync(existing, eventDto);
@@ -760,6 +761,18 @@ namespace AutomotiveClaimsApi.Controllers
                 {
                     existing.Handler = currentUser.UserName;
                     existing.HandlerEmail = currentUser.Email;
+                }
+
+                if (!originalHandlerId.HasValue && existing.HandlerId.HasValue)
+                {
+                    var statusEntity = await _context.ClaimStatuses.FindAsync((int)ClaimStatusCode.New);
+                    if (statusEntity != null)
+                    {
+                        existing.ClaimStatusId = statusEntity.Id;
+                        existing.Status = statusEntity.Name;
+                        eventDto.Status = statusEntity.Name;
+                        eventDto.ClaimStatusId = statusEntity.Id;
+                    }
                 }
 
                 await _context.SaveChangesAsync();

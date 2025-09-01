@@ -125,6 +125,34 @@ export const DocumentsSection = React.forwardRef<
     }
   }, [viewMode, storageKey])
 
+  // Restore uploaded required documents from localStorage
+  useEffect(() => {
+    if (!storageKey) return
+    try {
+      const stored = localStorage.getItem(`required-documents-${storageKey}`)
+      if (stored) {
+        const uploadedNames: string[] = JSON.parse(stored)
+        setRequiredDocuments((prev) =>
+          prev.map((doc) => ({ ...doc, uploaded: uploadedNames.includes(doc.name) })),
+        )
+      }
+    } catch (e) {
+      console.error("Failed to load required documents from storage", e)
+    }
+  }, [storageKey, setRequiredDocuments])
+
+  // Persist uploaded required documents to localStorage
+  useEffect(() => {
+    if (!storageKey) return
+    const uploadedNames = requiredDocuments
+      .filter((d) => d.uploaded)
+      .map((d) => d.name)
+    localStorage.setItem(
+      `required-documents-${storageKey}`,
+      JSON.stringify(uploadedNames),
+    )
+  }, [requiredDocuments, storageKey])
+
   const closePreview = useCallback(() => {
     if (document.fullscreenElement) {
       document.exitFullscreen()

@@ -25,9 +25,10 @@ interface MobileEventDto {
   handler?: string;
   handlerPhone?: string;
   handlerEmail?: string;
+  objectTypeId?: number;
 }
 
-interface Claim {
+export interface Claim {
   id: string;
   type: string;
   date: string;
@@ -41,10 +42,11 @@ interface Claim {
     email: string;
   };
   progress: number;
+  objectTypeId?: number;
 }
 
 interface ActiveClaimsProps {
-  onNavigate: (section: string, claimId?: string) => void;
+  onNavigate: (section: string, claim?: Claim) => void;
 }
 
 export function ActiveClaims({ onNavigate }: ActiveClaimsProps) {
@@ -61,9 +63,14 @@ export function ActiveClaims({ onNavigate }: ActiveClaimsProps) {
         const res = await fetch(`${apiUrl}/mobile/events`);
         if (!res.ok) throw new Error("Failed to fetch events");
         const data: MobileEventDto[] = await res.json();
+        const typeLabelMap: Record<number, string> = {
+          1: "komunikacyjna",
+          2: "mienie",
+          3: "transport",
+        };
         const mapped: Claim[] = data.map((e) => ({
           id: e.claimNumber || e.id,
-          type: e.damageType || "",
+          type: e.damageType || typeLabelMap[e.objectTypeId ?? 0] || "",
           date: e.damageDate?.split("T")[0] || "",
           status: e.status || "",
           amount: e.totalClaim ? `${e.totalClaim} ${e.currency || ""}` : "",
@@ -75,6 +82,7 @@ export function ActiveClaims({ onNavigate }: ActiveClaimsProps) {
             email: e.handlerEmail || "",
           },
           progress: 0,
+          objectTypeId: e.objectTypeId,
         }));
         setClaims(mapped);
       } catch (err) {
@@ -299,7 +307,7 @@ export function ActiveClaims({ onNavigate }: ActiveClaimsProps) {
                     <Button 
                       variant="outline" 
                       className="w-full h-11 border-[#1a3a6c] text-[#1a3a6c] hover:bg-[#e1e7ef] transition-colors"
-                      onClick={() => onNavigate('claim-details', claim.id)}
+                      onClick={() => onNavigate('claim-details', claim)}
                     >
                       <Eye className="w-4 h-4 mr-2" />
                       Zobacz szczegóły

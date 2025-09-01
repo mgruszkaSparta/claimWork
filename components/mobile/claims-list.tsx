@@ -14,7 +14,9 @@ import {
   SelectContent,
   SelectItem,
 } from "@/components/ui/select"
+
 import HandlerDropdown from "@/components/handler-dropdown"
+
 
 import {
   Search,
@@ -39,6 +41,7 @@ import {
 import { useClaims } from "@/hooks/use-claims"
 import { useToast } from "@/hooks/use-toast"
 import { useAuth } from "@/hooks/use-auth"
+import { apiService } from "@/lib/api"
 import type { Claim } from "@/types"
 import { dictionaryService } from "@/lib/dictionary-service"
 
@@ -92,7 +95,6 @@ export function ClaimsListMobile({
   const pageSize = 50
   const [sortBy, setSortBy] = useState<string>("spartaNumber")
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc")
-  const loaderRef = useRef<HTMLDivElement | null>(null)
   const containerRef = useRef<HTMLDivElement | null>(null)
 
   const {
@@ -170,7 +172,7 @@ export function ClaimsListMobile({
         const res = await fetch("/api/leaves")
         const leaves = await res.json()
         const today = new Date()
-        const options = leaves
+        const options: { id: string; name: string }[] = leaves
           .filter(
             (l: any) =>
               l.substituteId === user.id &&
@@ -178,7 +180,41 @@ export function ClaimsListMobile({
               new Date(l.startDate) <= today &&
               new Date(l.endDate) >= today,
           )
-          .map((l: any) => ({ id: l.employeeId, name: l.employeeName }))
+          .map((l: any) => ({
+            id: String(l.caseHandlerId),
+            name: `Pokaż szkody ${l.employeeName}`,
+          }))
+
+        const myLeaves = leaves.filter(
+          (l: any) =>
+            l.employeeId === user.id &&
+            l.substituteId &&
+            l.status === "APPROVED" &&
+            new Date(l.startDate) <= today &&
+            new Date(l.endDate) >= today,
+        )
+
+        const substituteButtons = await Promise.all(
+          myLeaves.map(async (l: any) => {
+            try {
+              const substitute = await apiService.getUser(l.substituteId)
+              if (substitute.caseHandlerId) {
+                return {
+                  id: String(substitute.caseHandlerId),
+                  name: `Pokaż szkody ${l.substituteName || substitute.userName}`,
+                }
+              }
+            } catch (error) {
+              console.error("Failed to load substitute user", error)
+            }
+            return null
+          }),
+        )
+
+        options.push(
+          ...substituteButtons.filter((o): o is { id: string; name: string } => Boolean(o)),
+        )
+
         const unique = Array.from(new Map(options.map((o: any) => [o.id, o])).values())
         setSubstituteOptions(unique)
       } catch (err) {
@@ -222,6 +258,7 @@ export function ClaimsListMobile({
             sortBy,
             sortOrder,
             reportFromDate: reportFilter?.from || undefined,
+
             reportToDate: reportFilter?.to || undefined,
             damageFromDate: damageFilter?.from || undefined,
             damageToDate: damageFilter?.to || undefined,
@@ -232,6 +269,7 @@ export function ClaimsListMobile({
           },
           { append: page > 1 },
         )
+
       } catch (err) {
         toast({
           title: "Błąd",
@@ -282,34 +320,7 @@ export function ClaimsListMobile({
     () => claims.reduce((sum, claim) => sum + (claim.totalClaim || 0), 0),
     [claims],
   )
-
-  useEffect(() => {
-
-    if (initialClaims?.length) return
-
-    const node = loaderRef.current
-    const observer = new IntersectionObserver(
-      (entries) => {
-        if (
-          entries[0].isIntersecting &&
-          !loading &&
-          claims.length < totalRecords
-        ) {
-          setPage((p) => p + 1)
-        }
-      },
-      { root: containerRef.current || undefined, rootMargin: "200px" },
-    )
-    if (node) {
-      observer.observe(node)
-    }
-    return () => {
-      if (node) {
-        observer.unobserve(node)
-      }
-    }
-
-  }, [loading, claims.length, totalRecords, initialClaims])
+  const totalPages = Math.ceil(totalRecords / pageSize)
 
   const handleSort = (field: string) => {
     setPage(1)
@@ -438,7 +449,7 @@ export function ClaimsListMobile({
   }
 
   // Loading state
-  if (loading) {
+  if (loading && claims.length === 0) {
     return (
       <div className="w-full h-full bg-white flex flex-col">
         <div className="flex items-center justify-between p-6 border-b border-gray-200">
@@ -510,7 +521,7 @@ export function ClaimsListMobile({
       )}
 
       {/* Search and Filters */}
-      <div className="p-6 pb-4 flex-shrink-0">
+      <div className="p-6 pb-4 flex-shrink-0 sticky top-0 z-20 bg-white">
         <div className="flex flex-col sm:flex-row gap-3">
           <div className="relative flex-1">
             <Search className="absolute left-3 top-2.5 h-4 w-4 text-gray-400" />
@@ -767,14 +778,40 @@ export function ClaimsListMobile({
                 </div>
               ))}
             </div>
-            {loading && page > 1 && (
+            {loading && (
               <div className="flex justify-center py-4">
                 <Loader2 className="h-6 w-6 animate-spin text-[#1a3a6c]" />
               </div>
             )}
-            <div ref={loaderRef} className="h-1" />
           </div>
-
+          {claims.length > 0 && totalPages > 1 && (
+            <Pagination className="p-4 border-t">
+              <PaginationContent>
+                <PaginationItem>
+                  <PaginationPrevious
+                    onClick={() => setPage((p) => Math.max(1, p - 1))}
+                    className={page <= 1 ? "pointer-events-none opacity-50" : ""}
+                  />
+                </PaginationItem>
+                {Array.from({ length: totalPages }).map((_, i) => (
+                  <PaginationItem key={i}>
+                    <PaginationLink
+                      isActive={page === i + 1}
+                      onClick={() => setPage(i + 1)}
+                    >
+                      {i + 1}
+                    </PaginationLink>
+                  </PaginationItem>
+                ))}
+                <PaginationItem>
+                  <PaginationNext
+                    onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                    className={page >= totalPages ? "pointer-events-none opacity-50" : ""}
+                  />
+                </PaginationItem>
+              </PaginationContent>
+            </Pagination>
+          )}
           {/* Empty State */}
           {claims.length === 0 && !loading && (
             <div className="flex-1 flex items-center justify-center">

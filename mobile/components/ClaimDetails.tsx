@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
 import { Button } from "./ui/button";
 import { Badge } from "./ui/badge";
@@ -10,6 +11,7 @@ import {
   Clock,
   DollarSign,
   FileText,
+  CheckCircle,
   Handshake,
   Home,
   Mail,
@@ -18,28 +20,85 @@ import {
   Truck,
   User,
 } from "lucide-react";
+import { Claim } from "./ActiveClaims";
 
 interface ClaimDetailsProps {
-  onNavigate: (section: string) => void;
-  claimId?: string;
+  onNavigate: (section: string, claim?: Claim) => void;
+  claim?: Claim | null;
 }
 
-export function ClaimDetails({ onNavigate, claimId }: ClaimDetailsProps) {
-  // Mock data - w rzeczywistej aplikacji byłoby pobierane na podstawie claimId
-  const claim = {
-    id: claimId || "SK-2024-001",
-    type: "komunikacyjna",
-    status: "w trakcie",
-    progress: 65,
-    date: "2024-08-25",
-    amount: "8,500 PLN",
-    location: "ul. Marszałkowska 1, Warszawa",
-    description: "Kolizja drogowa na skrzyżowaniu z udziałem dwóch pojazdów. Uszkodzenia obejmują przód pojazdu oraz lewe drzwi. Konieczna naprawa lakieru i wymiana zderzaka.",
-    contact: {
-      person: "Jan Kowalski",
-      phone: "+48 123 456 789",
-      email: "jan.kowalski@email.com"
+interface MobileDocument {
+  id: string;
+  name: string;
+  size: number;
+  type: "image" | "pdf" | "doc" | "video" | "other";
+  uploadedAt: string;
+  url: string;
+  category?: string;
+  categoryCode?: string;
+  description?: string;
+  date?: string;
+  objectTypeId?: number;
+  finalized?: boolean;
+}
+
+export function ClaimDetails({ onNavigate, claim }: ClaimDetailsProps) {
+  // Dokumenty z "teczki szkodliwej" przeniesione 1:1 do zgłoszenia
+  const harmfulDocs: MobileDocument[] = [
+    {
+      id: "doc1",
+      name: "Protokol_szkody.pdf",
+      size: 24576,
+      type: "pdf",
+      uploadedAt: "2024-08-25T10:00:00Z",
+      url: "/docs/Protokol_szkody.pdf",
+      category: "protokoły",
+      categoryCode: "PROTOKOL",
+      description: "Protokół szkody",
+      objectTypeId: 1,
+      finalized: false,
     },
+    {
+      id: "doc2",
+      name: "Zdjecie_szkody.jpg",
+      size: 40960,
+      type: "image",
+      uploadedAt: "2024-08-25T10:05:00Z",
+      url: "/docs/Zdjecie_szkody.jpg",
+      category: "zdjęcia",
+      categoryCode: "PHOTO",
+      description: "Zdjęcie szkody",
+      objectTypeId: 2,
+      finalized: false,
+    },
+  ];
+
+  // Mock data - w rzeczywistej aplikacji byłoby pobierane na podstawie identyfikatora
+  const typeLabelMap: Record<number, string> = {
+    1: "komunikacyjna",
+    2: "mienie",
+    3: "transport",
+  };
+
+  const claimData = {
+    id: claim?.id || "SK-2024-001",
+    type: claim?.type || typeLabelMap[claim?.objectTypeId ?? 1],
+    status: claim?.status || "w trakcie",
+    progress: claim?.progress || 65,
+    date: claim?.date || "2024-08-25",
+    amount: claim?.amount || "8,500 PLN",
+    location: claim?.location || "ul. Marszałkowska 1, Warszawa",
+    description:
+      claim?.description ||
+      "Kolizja drogowa na skrzyżowaniu z udziałem dwóch pojazdów. Uszkodzenia obejmują przód pojazdu oraz lewe drzwi. Konieczna naprawa lakieru i wymiana zderzaka.",
+      contact:
+        claim?.contact || {
+          person: "Jan Kowalski",
+          phone: "+48 123 456 789",
+          email: "jan.kowalski@email.com",
+        },
+    objectTypeId: claim?.objectTypeId || 1,
+    documents: harmfulDocs,
     timeline: [
       {
         date: "2024-08-25",
@@ -81,12 +140,23 @@ export function ClaimDetails({ onNavigate, claimId }: ClaimDetailsProps) {
     }
   };
 
-  const getTypeIcon = (type: string) => {
+  const [documents, setDocuments] = useState(claimData.documents);
+  const visibleDocs = documents.filter(
+    (d) => !claimData.objectTypeId || d.objectTypeId === claimData.objectTypeId
+  );
+
+  const finalizeDocument = (id: string) => {
+    setDocuments((docs) =>
+      docs.map((d) => (d.id === id ? { ...d, finalized: true } : d))
+    );
+  };
+
+  const getTypeIcon = (objectTypeId?: number) => {
     const iconProps = "w-6 h-6";
-    switch(type) {
-      case 'komunikacyjna': return <Car className={`${iconProps} text-[#1a3a6c]`} />;
-      case 'mienie': return <Home className={`${iconProps} text-[#059669]`} />;
-      case 'transport': return <Truck className={`${iconProps} text-[#dc2626]`} />;
+    switch(objectTypeId) {
+      case 1: return <Car className={`${iconProps} text-[#1a3a6c]`} />;
+      case 2: return <Home className={`${iconProps} text-[#059669]`} />;
+      case 3: return <Truck className={`${iconProps} text-[#dc2626]`} />;
       default: return <AlertCircle className={`${iconProps} text-[#d97706]`} />;
     }
   };
@@ -126,15 +196,15 @@ export function ClaimDetails({ onNavigate, claimId }: ClaimDetailsProps) {
           </Button>
           <div className="flex-1">
             <div className="flex items-center gap-3">
-              {getTypeIcon(claim.type)}
+              {getTypeIcon(claimData.objectTypeId)}
               <div>
-                <h1 className="text-[#1e293b] font-semibold">{claim.id}</h1>
+                <h1 className="text-[#1e293b] font-semibold">{claimData.id}</h1>
                 <p className="text-[#64748b] text-sm">Szczegóły szkody</p>
               </div>
             </div>
           </div>
-          <Badge className={`${getStatusColor(claim.status)} font-medium px-3 py-1`}>
-            {claim.status}
+          <Badge className={`${getStatusColor(claimData.status)} font-medium px-3 py-1`}>
+            {claimData.status}
           </Badge>
         </div>
       </div>
@@ -152,18 +222,18 @@ export function ClaimDetails({ onNavigate, claimId }: ClaimDetailsProps) {
             <div className="space-y-2">
               <div className="flex justify-between items-center">
                 <span className="text-[#64748b]">Postęp realizacji</span>
-                <span className="text-[#1e293b] font-semibold">{claim.progress}%</span>
+                <span className="text-[#1e293b] font-semibold">{claimData.progress}%</span>
               </div>
-              <Progress value={claim.progress} className="h-3" />
+              <Progress value={claimData.progress} className="h-3" />
             </div>
             <div className="grid grid-cols-2 gap-4 pt-2">
               <div className="text-center p-3 bg-[#f8fafc] rounded-lg">
                 <div className="text-sm text-[#64748b]">Data zgłoszenia</div>
-                <div className="font-semibold text-[#1e293b]">{claim.date}</div>
+                <div className="font-semibold text-[#1e293b]">{claimData.date}</div>
               </div>
               <div className="text-center p-3 bg-[#f8fafc] rounded-lg">
                 <div className="text-sm text-[#64748b]">Wartość szkody</div>
-                <div className="font-semibold text-[#1e293b]">{claim.amount}</div>
+                <div className="font-semibold text-[#1e293b]">{claimData.amount}</div>
               </div>
             </div>
           </CardContent>
@@ -178,14 +248,56 @@ export function ClaimDetails({ onNavigate, claimId }: ClaimDetailsProps) {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-[#64748b] leading-relaxed">{claim.description}</p>
+            <p className="text-[#64748b] leading-relaxed">{claimData.description}</p>
             <div className="mt-4 p-3 bg-[#f8fafc] rounded-lg">
               <div className="flex items-center gap-2 text-sm">
                 <MapPin className="w-4 h-4 text-[#64748b]" />
                 <span className="text-[#64748b]">Miejsce zdarzenia:</span>
               </div>
-              <p className="text-[#1e293b] font-medium mt-1">{claim.location}</p>
+              <p className="text-[#1e293b] font-medium mt-1">{claimData.location}</p>
             </div>
+          </CardContent>
+        </Card>
+
+        {/* Dokumenty */}
+        <Card className="shadow-sm border-[#e2e8f0] bg-white">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-[#1e293b] flex items-center gap-2">
+              <FileText className="w-5 h-5 text-[#1a3a6c]" />
+              Dokumenty
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            {visibleDocs.map((doc) => (
+              <div
+                key={doc.id}
+                className="flex items-center justify-between p-3 bg-[#f8fafc] rounded-lg"
+              >
+                <div className="flex items-center gap-2">
+                  <FileText className="w-4 h-4 text-[#64748b]" />
+                  <div className="flex flex-col">
+                    <span className="text-sm text-[#1e293b]">{doc.name}</span>
+                    <span className="text-xs text-[#64748b]">
+                      {doc.type.toUpperCase()} • {(doc.size / 1024).toFixed(0)} KB
+                    </span>
+                  </div>
+                </div>
+                {doc.finalized ? (
+                  <Badge className="bg-[#d1fae5] text-[#059669] border-[#059669]/20 flex items-center gap-1">
+                    <CheckCircle className="w-4 h-4" />
+                    Zakończony
+                  </Badge>
+                ) : (
+                  <Button
+                    size="sm"
+                    className="bg-[#1a3a6c] hover:bg-[#153458] text-white"
+                    onClick={() => finalizeDocument(doc.id)}
+                  >
+                    Zakończ
+                  </Button>
+                )}
+              </div>
+            ))}
           </CardContent>
         </Card>
 
@@ -199,17 +311,17 @@ export function ClaimDetails({ onNavigate, claimId }: ClaimDetailsProps) {
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {claim.timeline.map((event, index) => (
+              {claimData.timeline.map((event, index) => (
                 <div key={index} className="flex gap-4">
                   <div className="flex flex-col items-center">
                     <div className={`w-3 h-3 rounded-full ${
-                      event.completed 
-                        ? 'bg-[#1a3a6c]' 
-                        : event.current 
-                          ? 'bg-[#d97706]' 
+                      event.completed
+                        ? 'bg-[#1a3a6c]'
+                        : event.current
+                          ? 'bg-[#d97706]'
                           : 'bg-[#e2e8f0]'
                     }`} />
-                    {index < claim.timeline.length - 1 && (
+                    {index < claimData.timeline.length - 1 && (
                       <div className={`w-0.5 h-8 ${
                         event.completed ? 'bg-[#1a3a6c]' : 'bg-[#e2e8f0]'
                       }`} />
@@ -233,7 +345,7 @@ export function ClaimDetails({ onNavigate, claimId }: ClaimDetailsProps) {
         </Card>
 
         {/* Decyzja ugody */}
-        {claim.settlement && (
+        {claimData.settlement && (
           <Card className="shadow-sm border-[#e2e8f0] bg-white">
             <CardHeader className="pb-3">
               <CardTitle className="text-[#1e293b] flex items-center gap-2">
@@ -245,22 +357,22 @@ export function ClaimDetails({ onNavigate, claimId }: ClaimDetailsProps) {
               <div className="flex items-center gap-2 text-sm text-[#64748b]">
                 <FileText className="w-4 h-4" />
                 <span>Numer ugody:</span>
-                <span className="font-medium text-[#1e293b]">{claim.settlement.number}</span>
+                <span className="font-medium text-[#1e293b]">{claimData.settlement.number}</span>
               </div>
               <div className="flex items-center gap-2 text-sm text-[#64748b]">
                 <Calendar className="w-4 h-4" />
                 <span>Data decyzji:</span>
-                <span className="font-medium text-[#1e293b]">{claim.settlement.date}</span>
+                <span className="font-medium text-[#1e293b]">{claimData.settlement.date}</span>
               </div>
               <div className="flex items-center gap-2 text-sm text-[#64748b]">
                 <DollarSign className="w-4 h-4" />
                 <span>Kwota ugody:</span>
-                <span className="font-medium text-[#1e293b]">{claim.settlement.amount}</span>
+                <span className="font-medium text-[#1e293b]">{claimData.settlement.amount}</span>
               </div>
               <div className="flex items-center gap-2 text-sm text-[#64748b]">
                 <span>Status:</span>
-                <Badge className={`${getDecisionColor(claim.settlement.decision)} font-medium px-2 py-1`}>
-                  {claim.settlement.decision}
+                <Badge className={`${getDecisionColor(claimData.settlement.decision)} font-medium px-2 py-1`}>
+                  {claimData.settlement.decision}
                 </Badge>
               </div>
             </CardContent>
@@ -281,21 +393,21 @@ export function ClaimDetails({ onNavigate, claimId }: ClaimDetailsProps) {
                 <User className="w-5 h-5 text-[#64748b]" />
                 <div>
                   <div className="text-sm text-[#64748b]">Zgłaszający</div>
-                  <div className="font-medium text-[#1e293b]">{claim.contact.person}</div>
+                  <div className="font-medium text-[#1e293b]">{claimData.contact.person}</div>
                 </div>
               </div>
               <div className="flex items-center gap-3 p-3 bg-[#f8fafc] rounded-lg">
                 <Phone className="w-5 h-5 text-[#64748b]" />
                 <div>
                   <div className="text-sm text-[#64748b]">Telefon</div>
-                  <div className="font-medium text-[#1e293b]">{claim.contact.phone}</div>
+                  <div className="font-medium text-[#1e293b]">{claimData.contact.phone}</div>
                 </div>
               </div>
               <div className="flex items-center gap-3 p-3 bg-[#f8fafc] rounded-lg">
                 <Mail className="w-5 h-5 text-[#64748b]" />
                 <div>
                   <div className="text-sm text-[#64748b]">Email</div>
-                  <div className="font-medium text-[#1e293b]">{claim.contact.email}</div>
+                  <div className="font-medium text-[#1e293b]">{claimData.contact.email}</div>
                 </div>
               </div>
             </div>

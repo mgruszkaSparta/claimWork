@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Login } from "./components/Login";
 import { Dashboard } from "./components/Dashboard";
 import { ReportClaim } from "./components/ReportClaim";
 import { ActiveClaims, Claim } from "./components/ActiveClaims";
@@ -8,8 +9,10 @@ import { NotificationCenter } from "./components/NotificationCenter";
 import { NotificationToast } from "./components/NotificationToast";
 import { BottomNavigation } from "./components/BottomNavigation";
 import { Toaster } from "./components/ui/sonner";
+import { useAuth } from "../hooks/use-auth";
 
 export default function App() {
+  const { isAuthenticated, isLoading } = useAuth();
   const [activeSection, setActiveSection] = useState("dashboard");
   const [selectedClaim, setSelectedClaim] = useState<Claim | null>(null);
 
@@ -37,27 +40,25 @@ export default function App() {
     }
   };
 
+  if (isLoading) {
+    return <div className="p-4">Ładowanie...</div>;
+  }
+
+  if (!isAuthenticated) {
+    return <Login />;
+  }
+
   return (
     <div className="min-h-screen bg-background">
       {/* Główna zawartość */}
-      <div className="pb-16">
-        {renderCurrentSection()}
-      </div>
-      
+      <div className="pb-16">{renderCurrentSection()}</div>
+
       {/* Dolna nawigacja */}
-      <BottomNavigation 
-        activeSection={activeSection}
-        onNavigate={handleNavigate}
-      />
-      
+      <BottomNavigation activeSection={activeSection} onNavigate={handleNavigate} />
+
       {/* Toast notifications */}
-      <Toaster 
-        position="top-center"
-        expand={false}
-        richColors
-        closeButton
-      />
-      
+      <Toaster position="top-center" expand={false} richColors closeButton />
+
       {/* Komponent do zarządzania automatycznymi powiadomieniami */}
       <NotificationToast />
     </div>

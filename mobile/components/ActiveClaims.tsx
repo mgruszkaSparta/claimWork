@@ -11,6 +11,7 @@ import {
 } from "./ui/dropdown-menu";
 import { ArrowLeft, Car, Home, Truck, Search, Eye, Bell, X } from "lucide-react";
 import { useNotifications } from "../hooks/useNotifications";
+import { authFetch } from "../../lib/auth-fetch";
 
 interface MobileEventDto {
   id: string;
@@ -63,8 +64,7 @@ export function ActiveClaims({ onNavigate }: ActiveClaimsProps) {
   useEffect(() => {
     const fetchClaims = async () => {
       try {
-        const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5200/api";
-        const res = await fetch(`${apiUrl}/mobile/events`);
+        const res = await authFetch('/mobile/events');
         if (!res.ok) throw new Error("Failed to fetch events");
         const data: MobileEventDto[] = await res.json();
         const typeLabelMap: Record<number, string> = {

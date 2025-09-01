@@ -12,6 +12,7 @@ import { format } from "date-fns";
 import { pl } from "date-fns/locale";
 import { toast } from "sonner";
 import { useNotifications } from "../hooks/useNotifications";
+import { authFetch } from "../../lib/auth-fetch";
 
 interface ReportClaimProps {
   onNavigate: (section: string, claimId?: string) => void;
@@ -59,11 +60,9 @@ export function ReportClaim({ onNavigate }: ReportClaimProps) {
     e.preventDefault();
 
     try {
-      const apiUrl =
-        process.env.NEXT_PUBLIC_API_URL || "http://localhost:5200/api";
-      const response = await fetch(`${apiUrl}/mobile/claims`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
+      const response = await authFetch('/mobile/claims', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           type: selectedType,
           date: date?.toISOString(),

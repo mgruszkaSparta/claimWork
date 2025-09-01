@@ -2,6 +2,7 @@ import { createRoot } from "react-dom/client";
 import App from "./App.tsx";
 import "./styles/globals.css";
 import { NotificationsProvider } from "./hooks/useNotifications";
+import { AuthProvider } from "../hooks/use-auth";
 
 function urlBase64ToUint8Array(base64String: string) {
   const padding = "=".repeat((4 - (base64String.length % 4)) % 4);
@@ -67,7 +68,9 @@ if (typeof window !== "undefined") {
 }
 
 createRoot(document.getElementById("root")!).render(
-  <NotificationsProvider>
-    <App />
-  </NotificationsProvider>
+  <AuthProvider>
+    <NotificationsProvider>
+      <App />
+    </NotificationsProvider>
+  </AuthProvider>
 );

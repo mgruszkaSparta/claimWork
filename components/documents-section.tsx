@@ -117,6 +117,7 @@ export const DocumentsSection = React.forwardRef<
 
   const [docxEditing, setDocxEditing] = useState(false)
   const originalDocxHtml = React.useRef<string>("")
+  const initializedRequiredDocs = React.useRef(false)
 
   // Persist view mode per section when storageKey provided
   useEffect(() => {
@@ -127,7 +128,9 @@ export const DocumentsSection = React.forwardRef<
 
   // Restore uploaded required documents from localStorage
   useEffect(() => {
-    if (!storageKey) return
+
+    if (!storageKey || initializedRequiredDocs.current || requiredDocuments.length === 0) return
+
     try {
       const stored = localStorage.getItem(`required-documents-${storageKey}`)
       if (stored) {
@@ -138,8 +141,12 @@ export const DocumentsSection = React.forwardRef<
       }
     } catch (e) {
       console.error("Failed to load required documents from storage", e)
+
+    } finally {
+      initializedRequiredDocs.current = true
     }
-  }, [storageKey, setRequiredDocuments])
+  }, [storageKey, requiredDocuments, setRequiredDocuments])
+
 
   // Persist uploaded required documents to localStorage
   useEffect(() => {

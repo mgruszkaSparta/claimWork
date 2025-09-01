@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Dashboard } from "./components/Dashboard";
 import { ReportClaim } from "./components/ReportClaim";
-import { ActiveClaims } from "./components/ActiveClaims";
+import { ActiveClaims, Claim } from "./components/ActiveClaims";
 import { Profile } from "./components/Profile";
 import { ClaimDetails } from "./components/ClaimDetails";
 import { NotificationCenter } from "./components/NotificationCenter";
@@ -11,15 +11,11 @@ import { Toaster } from "./components/ui/sonner";
 
 export default function App() {
   const [activeSection, setActiveSection] = useState("dashboard");
-  const [selectedClaimId, setSelectedClaimId] = useState<string | null>(null);
+  const [selectedClaim, setSelectedClaim] = useState<Claim | null>(null);
 
-  const handleNavigate = (section: string, claimId?: string) => {
+  const handleNavigate = (section: string, claim?: Claim) => {
     setActiveSection(section);
-    if (claimId) {
-      setSelectedClaimId(claimId);
-    } else {
-      setSelectedClaimId(null);
-    }
+    setSelectedClaim(claim ?? null);
   };
 
   const renderCurrentSection = () => {
@@ -31,7 +27,7 @@ export default function App() {
       case "claims":
         return <ActiveClaims onNavigate={handleNavigate} />;
       case "claim-details":
-        return <ClaimDetails onNavigate={handleNavigate} claimId={selectedClaimId} />;
+        return <ClaimDetails onNavigate={handleNavigate} claim={selectedClaim} />;
       case "notifications":
         return <NotificationCenter onNavigate={handleNavigate} />;
       case "profile":

@@ -1126,13 +1126,23 @@ class ApiService {
       throw new Error(`API Error: ${response.status} - ${errorText}`)
     }
 
-    const data = (await response.json()) as ClaimListItemDto[]
+    const json = await response.json()
     const totalCountHeader = response.headers.get("X-Total-Count")
-    const totalCount = totalCountHeader
-      ? parseInt(totalCountHeader, 10)
-      : data.length
 
-    return { items: data ?? [], totalCount }
+    // Support both array responses with X-Total-Count header and
+    // object responses containing items and totalCount in the body.
+    if (Array.isArray(json)) {
+      const totalCount = totalCountHeader
+        ? parseInt(totalCountHeader, 10)
+        : json.length
+      return { items: json ?? [], totalCount }
+    } else {
+      const items = (json?.items ?? []) as ClaimListItemDto[]
+      const totalCount = totalCountHeader
+        ? parseInt(totalCountHeader, 10)
+        : json?.totalCount ?? items.length
+      return { items, totalCount }
+    }
 
   }
 

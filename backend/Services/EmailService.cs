@@ -19,6 +19,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Text.RegularExpressions;
+using System.Net.Http;
 
 namespace AutomotiveClaimsApi.Services
 {
@@ -29,13 +30,15 @@ namespace AutomotiveClaimsApi.Services
         private readonly ILogger<EmailService> _logger;
         private readonly string _attachmentsPath;
         private readonly IConfiguration _config;
+        private readonly IGoogleCloudStorageService? _cloudStorage;
 
         public EmailService(
             ApplicationDbContext context,
             IOptions<SmtpSettings> smtpSettings,
             ILogger<EmailService> logger,
             IWebHostEnvironment environment,
-            IConfiguration config)
+            IConfiguration config,
+            IGoogleCloudStorageService? cloudStorage = null)
         {
             _context = context;
             _smtpSettings = smtpSettings.Value;
@@ -46,6 +49,7 @@ namespace AutomotiveClaimsApi.Services
                 Directory.CreateDirectory(_attachmentsPath);
             }
             _config = config;
+            _cloudStorage = cloudStorage;
         }
 
         public async Task<EmailDto> CreateEmailAsync(CreateEmailDto createEmailDto)
@@ -349,7 +353,7 @@ namespace AutomotiveClaimsApi.Services
             {
                 try
                 {
-                    var message = BuildMimeMessage(email);
+                    var message = await BuildMimeMessageAsync(email);
 
                     using var client = new SmtpClient();
                     await client.ConnectAsync(_smtpSettings.Host, _smtpSettings.Port, SecureSocketOptions.StartTls);
@@ -377,7 +381,7 @@ namespace AutomotiveClaimsApi.Services
             return processed;
         }
 
-        private MimeMessage BuildMimeMessage(Email email)
+        private async Task<MimeMessage> BuildMimeMessageAsync(Email email)
         {
             var message = new MimeMessage();
             message.From.Add(new MailboxAddress(_smtpSettings.FromName, _smtpSettings.FromEmail));
@@ -395,6 +399,7 @@ namespace AutomotiveClaimsApi.Services
             else
                 bodyBuilder.TextBody = email.Body;
 
+            using var httpClient = new HttpClient();
             foreach (var attachment in email.Attachments)
             {
                 if (!string.IsNullOrEmpty(attachment.FilePath))
@@ -403,6 +408,31 @@ namespace AutomotiveClaimsApi.Services
                     if (File.Exists(fullPath))
                     {
                         bodyBuilder.Attachments.Add(fullPath);
+                    }
+                }
+                else if (!string.IsNullOrEmpty(attachment.CloudUrl))
+                {
+                    try
+                    {
+                        if (_cloudStorage != null && Uri.TryCreate(attachment.CloudUrl, UriKind.Absolute, out var uri) &&
+                            (uri.Scheme == Uri.UriSchemeHttp || uri.Scheme == Uri.UriSchemeHttps))
+                        {
+                            await using var stream = await _cloudStorage.GetFileStreamAsync(attachment.CloudUrl);
+                            using var ms = new MemoryStream();
+                            await stream.CopyToAsync(ms);
+                            var fileName = attachment.FileName ?? Path.GetFileName(uri.LocalPath);
+                            bodyBuilder.Attachments.Add(fileName, ms.ToArray());
+                        }
+                        else
+                        {
+                            var data = await httpClient.GetByteArrayAsync(attachment.CloudUrl);
+                            var fileName = attachment.FileName ?? Path.GetFileName(attachment.CloudUrl);
+                            bodyBuilder.Attachments.Add(fileName, data);
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError(ex, "Error downloading attachment from {Url}", attachment.CloudUrl);
                     }
                 }
             }

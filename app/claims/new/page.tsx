@@ -516,7 +516,8 @@ export default function NewClaimPage() {
             regres: claimFormData.recourses?.length || 0,
             ugody: claimFormData.settlements?.length || 0,
             notatki: claimFormData.notes?.length || 0,
-            dokumenty: uploadedFiles.length,
+            dokumenty:
+              (claimFormData.documents?.length || 0) + uploadedFiles.length,
           }}
 
         />

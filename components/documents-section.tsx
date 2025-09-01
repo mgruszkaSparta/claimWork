@@ -347,13 +347,19 @@ export const DocumentsSection = React.forwardRef<
         })
       } else if (response.ok) {
         const data: Document[] = await response.json()
+        const token =
+          typeof window !== "undefined" ? localStorage.getItem("token") : null
         const mappedDocs: Document[] = data.map((d: any) => ({
           ...d,
           documentType: mapCategoryCodeToName(d.documentType || d.category),
           categoryCode: d.documentType || d.category,
 
-          previewUrl: `${process.env.NEXT_PUBLIC_API_URL}/documents/${d.id}/preview`,
-          downloadUrl: `${process.env.NEXT_PUBLIC_API_URL}/documents/${d.id}/download`,
+          previewUrl: `${process.env.NEXT_PUBLIC_API_URL}/documents/${d.id}/preview${
+            token ? `?token=${token}` : ""
+          }`,
+          downloadUrl: `${process.env.NEXT_PUBLIC_API_URL}/documents/${d.id}/download${
+            token ? `?token=${token}` : ""
+          }`,
 
         }))
         setDocuments(mappedDocs)
@@ -507,28 +513,34 @@ export const DocumentsSection = React.forwardRef<
         if (response.ok) {
           const documentDto = await response.json()
           const serverCategory = documentDto.documentType || documentDto.category
-         const doc: Document = {
-           ...documentDto,
-           documentType: serverCategory
-             ? mapCategoryCodeToName(serverCategory)
-             : categoryName || "Inne dokumenty",
-           categoryCode: serverCategory || mapCategoryNameToCode(categoryName),
-           canPreview:
-             documentDto.canPreview ??
-             (documentDto.contentType?.startsWith("image/") ||
-               documentDto.contentType === "application/pdf" ||
-               documentDto.contentType?.startsWith("video/") ||
-              documentDto.contentType ===
-                "application/vnd.openxmlformats-officedocument.wordprocessingml.document" ||
-              documentDto.contentType === "application/msword" ||
-              documentDto.contentType?.includes("ms-excel") ||
-              documentDto.contentType?.includes("spreadsheetml") ||
-              documentDto.contentType?.includes("excel")),
+          const token =
+            typeof window !== "undefined" ? localStorage.getItem("token") : null
+          const doc: Document = {
+            ...documentDto,
+            documentType: serverCategory
+              ? mapCategoryCodeToName(serverCategory)
+              : categoryName || "Inne dokumenty",
+            categoryCode: serverCategory || mapCategoryNameToCode(categoryName),
+            canPreview:
+              documentDto.canPreview ??
+              (documentDto.contentType?.startsWith("image/") ||
+                documentDto.contentType === "application/pdf" ||
+                documentDto.contentType?.startsWith("video/") ||
+                documentDto.contentType ===
+                  "application/vnd.openxmlformats-officedocument.wordprocessingml.document" ||
+                documentDto.contentType === "application/msword" ||
+                documentDto.contentType?.includes("ms-excel") ||
+                documentDto.contentType?.includes("spreadsheetml") ||
+                documentDto.contentType?.includes("excel")),
 
-          previewUrl: `/documents/${documentDto.id}/preview`,
-          downloadUrl: `/documents/${documentDto.id}/download`,
-        }
-        return doc
+            previewUrl: `${process.env.NEXT_PUBLIC_API_URL}/documents/${documentDto.id}/preview${
+              token ? `?token=${token}` : ""
+            }`,
+            downloadUrl: `${process.env.NEXT_PUBLIC_API_URL}/documents/${documentDto.id}/download${
+              token ? `?token=${token}` : ""
+            }`,
+          }
+          return doc
        } else {
 
           let errorMessage = `HTTP ${response.status}: ${response.statusText}`

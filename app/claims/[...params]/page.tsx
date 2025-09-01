@@ -339,8 +339,7 @@ export default function ClaimPage() {
                 (mode === "view"
                   ? claim?.notes?.length
                   : claimFormData.notes?.length) || 0,
-              dokumenty:
-                (mode === "view" ? claim?.documents?.length : uploadedFiles.length) || 0,
+              dokumenty: uploadedFiles.length,
 
             }}
           />

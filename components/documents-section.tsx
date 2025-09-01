@@ -2154,4 +2154,4 @@ export const DocumentsSection = React.forwardRef<
   )
 })
 
-DocumentsSection.displayName = "DocumentsSection"
+DocumentsSection.displayName = "DocumentSection"

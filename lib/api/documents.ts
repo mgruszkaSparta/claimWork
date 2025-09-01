@@ -29,3 +29,13 @@ export async function renameDocument(
   }
   return (await res.json()) as DocumentDto;
 }
+
+export async function notifyClient(id: string): Promise<void> {
+  const res = await authFetch(`${API_BASE_URL}/documents/${id}/notify-client`, {
+    method: "POST",
+  });
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(text || "Failed to notify client");
+  }
+}

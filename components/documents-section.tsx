@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Checkbox } from "@/components/ui/checkbox"
-import { renameDocument } from "@/lib/api/documents"
+import { renameDocument, notifyClient } from "@/lib/api/documents"
 import { authFetch } from "@/lib/auth-fetch"
 import { generateId } from "@/lib/constants"
 import {
@@ -16,7 +16,7 @@ import {
   DropdownMenuItem,
 } from "@/components/ui/dropdown-menu"
 import { useToast } from "@/hooks/use-toast"
-import { File, Search, Eye, Download, Upload, X, Trash2, Grid, List, Wand, Plus, FileText, Paperclip, ZoomIn, ZoomOut, ChevronLeft, ChevronRight, RotateCw, Maximize2, Minimize2, Pencil, Save, Move } from 'lucide-react'
+import { File, Search, Eye, Download, Upload, X, Trash2, Grid, List, Wand, Plus, FileText, Paperclip, ZoomIn, ZoomOut, ChevronLeft, ChevronRight, RotateCw, Maximize2, Minimize2, Pencil, Save, Move, Bell } from 'lucide-react'
 import type { DocumentsSectionProps, UploadedFile, DocumentsSectionRef } from "@/types"
 import JSZip from "jszip"
 import { saveAs } from "file-saver"
@@ -699,6 +699,23 @@ export const DocumentsSection = React.forwardRef<
       toast({
         title: "Błąd",
         description: "Nie udało się usunąć dokumentu",
+        variant: "destructive",
+      })
+    }
+  }
+
+  const handleNotifyClient = async (documentId: string | number) => {
+    try {
+      await notifyClient(documentId.toString())
+      toast({
+        title: "Powiadomienie wysłane",
+        description: "Klient został poinformowany o dokumencie.",
+      })
+    } catch (error) {
+      console.error("Error notifying client:", error)
+      toast({
+        title: "Błąd",
+        description: "Nie udało się wysłać powiadomienia",
         variant: "destructive",
       })
     }
@@ -1410,6 +1427,17 @@ export const DocumentsSection = React.forwardRef<
           className="h-8 w-8"
           onClick={(e) => {
             e.stopPropagation()
+            void handleNotifyClient(doc.id)
+          }}
+        >
+          <Bell className="h-4 w-4" />
+        </Button>
+        <Button
+          variant="ghost"
+          size="icon"
+          className="h-8 w-8"
+          onClick={(e) => {
+            e.stopPropagation()
             void handlePreview(doc)
           }}
         >
@@ -1752,6 +1780,14 @@ export const DocumentsSection = React.forwardRef<
                                           ))}
                                       </DropdownMenuContent>
                                     </DropdownMenu>
+                                    <Button
+                                      variant="ghost"
+                                      size="sm"
+                                      className="h-7"
+                                      onClick={() => handleNotifyClient(doc.id)}
+                                    >
+                                      <Bell className="h-4 w-4 mr-1" /> Powiadom
+                                    </Button>
                                     <Button
                                       variant="ghost"
                                       size="icon"

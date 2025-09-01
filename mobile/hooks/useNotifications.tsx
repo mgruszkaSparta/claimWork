@@ -1,4 +1,5 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
+import { authFetch } from '../../lib/auth-fetch';
 
 export interface Notification {
   id: string;
@@ -27,11 +28,9 @@ export function NotificationsProvider({ children }: { children: ReactNode }) {
   const [notifications, setNotifications] = useState<Notification[]>([]);
 
   useEffect(() => {
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5200/api';
-
     const fetchNotifications = async () => {
       try {
-        const res = await fetch(`${apiUrl}/mobile/notifications`);
+        const res = await authFetch('/mobile/notifications');
         if (!res.ok) return;
         const data = await res.json();
         const parsed = data.map((n: any) => ({

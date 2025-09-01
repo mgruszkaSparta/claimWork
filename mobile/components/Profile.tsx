@@ -4,20 +4,22 @@ import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import { Badge } from "./ui/badge";
 import { Separator } from "./ui/separator";
 import { User, Phone, Mail, MapPin, Calendar, Settings, LogOut, Shield, List, CheckCircle } from "lucide-react";
+import { useAuth } from "../../hooks/use-auth";
 
 interface ProfileProps {
   onNavigate: (section: string) => void;
 }
 
 export function Profile({ onNavigate }: ProfileProps) {
+  const { user, logout } = useAuth();
   const mockUser = {
-    name: "Jan Kowalski",
-    email: "jan.kowalski@email.com",
+    name: user?.username || "Jan Kowalski",
+    email: user?.email || "jan.kowalski@email.com",
     phone: "+48 123 456 789",
     address: "ul. Przykładowa 15, 00-001 Warszawa",
     memberSince: "2022-03-15",
     claimsCount: 18,
-    status: "Premium"
+    status: user?.roles?.[0] || "Premium"
   };
 
   return (
@@ -129,9 +131,10 @@ export function Profile({ onNavigate }: ProfileProps) {
                 Pomoc i kontakt
               </Button>
               <Separator className="bg-[#dadce0]" />
-              <Button 
-                variant="ghost" 
+              <Button
+                variant="ghost"
                 className="w-full justify-start h-14 rounded-none text-[#ea4335] hover:bg-[#fce8e6] hover:text-[#ea4335]"
+                onClick={logout}
               >
                 <LogOut className="w-5 h-5 mr-4" />
                 Wyloguj się

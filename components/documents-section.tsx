@@ -125,6 +125,34 @@ export const DocumentsSection = React.forwardRef<
     }
   }, [viewMode, storageKey])
 
+  // Restore uploaded required documents from localStorage
+  useEffect(() => {
+    if (!storageKey) return
+    try {
+      const stored = localStorage.getItem(`required-documents-${storageKey}`)
+      if (stored) {
+        const uploadedNames: string[] = JSON.parse(stored)
+        setRequiredDocuments((prev) =>
+          prev.map((doc) => ({ ...doc, uploaded: uploadedNames.includes(doc.name) })),
+        )
+      }
+    } catch (e) {
+      console.error("Failed to load required documents from storage", e)
+    }
+  }, [storageKey, setRequiredDocuments])
+
+  // Persist uploaded required documents to localStorage
+  useEffect(() => {
+    if (!storageKey) return
+    const uploadedNames = requiredDocuments
+      .filter((d) => d.uploaded)
+      .map((d) => d.name)
+    localStorage.setItem(
+      `required-documents-${storageKey}`,
+      JSON.stringify(uploadedNames),
+    )
+  }, [requiredDocuments, storageKey])
+
   const closePreview = useCallback(() => {
     if (document.fullscreenElement) {
       document.exitFullscreen()
@@ -276,11 +304,16 @@ export const DocumentsSection = React.forwardRef<
     return () => clearTimeout(handler)
   }, [eventId])
 
+  const humanizeCategory = (value?: string) => {
+    if (!value) return "Inne dokumenty"
+    return value.replace(/[-_]+/g, " ")
+  }
+
   const mapCategoryCodeToName = (code?: string) =>
-    requiredDocuments.find((d) => d.category === code)?.name || code || "Inne dokumenty"
+    requiredDocuments.find((d) => d.category === code)?.name || humanizeCategory(code)
 
   const mapCategoryNameToCode = (name?: string | null) =>
-    requiredDocuments.find((d) => d.name === name)?.category || name || "Inne dokumenty"
+    requiredDocuments.find((d) => d.name === name)?.category || name?.replace(/\s+/g, "") || "Inne dokumenty"
 
   const loadDocuments = async () => {
     if (!eventId || !isGuid(eventId)) return

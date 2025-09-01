@@ -24,6 +24,9 @@ namespace AutomotiveClaimsApi.Controllers
         private readonly ILogger<DocumentsController> _logger;
         private readonly UserManager<ApplicationUser>? _userManager;
         private readonly INotificationService? _notificationService;
+        private readonly IMobileNotificationStore? _mobileNotificationStore;
+        private readonly IPushSubscriptionStore? _pushSubscriptionStore;
+        private readonly IPushNotificationService? _pushNotificationService;
         private readonly IConfiguration _config;
 
         public DocumentsController(
@@ -32,7 +35,10 @@ namespace AutomotiveClaimsApi.Controllers
             ILogger<DocumentsController> logger,
             IConfiguration config,
             UserManager<ApplicationUser>? userManager = null,
-            INotificationService? notificationService = null)
+            INotificationService? notificationService = null,
+            IMobileNotificationStore? mobileNotificationStore = null,
+            IPushSubscriptionStore? pushSubscriptionStore = null,
+            IPushNotificationService? pushNotificationService = null)
         {
             _context = context;
             _documentService = documentService;
@@ -40,6 +46,9 @@ namespace AutomotiveClaimsApi.Controllers
             _config = config;
             _userManager = userManager;
             _notificationService = notificationService;
+            _mobileNotificationStore = mobileNotificationStore;
+            _pushSubscriptionStore = pushSubscriptionStore;
+            _pushNotificationService = pushNotificationService;
             _config = config;
         }
 
@@ -122,6 +131,22 @@ namespace AutomotiveClaimsApi.Controllers
                     if (eventEntity != null && !isHandler)
                     {
                         await _notificationService.NotifyAsync(eventEntity, currentUser, ClaimNotificationEvent.DocumentAdded);
+
+                        var claimIdentifier = eventEntity.ClaimNumber ?? eventEntity.SpartaNumber ?? eventEntity.Id.ToString();
+                        _mobileNotificationStore?.Add(new MobileNotificationDto
+                        {
+                            Title = "Nowy dokument",
+                            Message = $"Dodano nowy dokument do szkody {claimIdentifier}",
+                            Type = "info",
+                            ClaimId = claimIdentifier,
+                            ActionType = "new_document"
+                        });
+
+                        if (_pushSubscriptionStore != null && _pushNotificationService != null)
+                        {
+                            var subs = _pushSubscriptionStore.GetAll();
+                            await _pushNotificationService.SendAsync(subs, "Nowy dokument", $"Dodano nowy dokument do szkody {claimIdentifier}");
+                        }
                     }
                 }
 
@@ -184,6 +209,50 @@ namespace AutomotiveClaimsApi.Controllers
 
             await _context.SaveChangesAsync();
             return Ok(MapToDto(document));
+        }
+
+        [HttpPost("{id}/notify-client")]
+        public async Task<IActionResult> NotifyClient(Guid id)
+        {
+            var document = await _context.Documents.FindAsync(id);
+            if (document == null || document.IsDeleted)
+                return NotFound();
+
+            if (!document.EventId.HasValue)
+                return BadRequest(new { message = "Document is not associated with an event" });
+
+            var eventEntity = await _context.Events.FindAsync(document.EventId.Value);
+            if (eventEntity == null)
+                return NotFound(new { message = "Associated event not found" });
+
+            ApplicationUser? currentUser = null;
+            if (_userManager != null)
+            {
+                currentUser = await _userManager.GetUserAsync(User);
+            }
+
+            if (_notificationService != null)
+            {
+                await _notificationService.NotifyAsync(eventEntity, currentUser, ClaimNotificationEvent.DocumentAdded);
+            }
+
+            var claimIdentifier = eventEntity.ClaimNumber ?? eventEntity.SpartaNumber ?? eventEntity.Id.ToString();
+            _mobileNotificationStore?.Add(new MobileNotificationDto
+            {
+                Title = "Nowy dokument",
+                Message = $"Dodano nowy dokument do szkody {claimIdentifier}",
+                Type = "info",
+                ClaimId = claimIdentifier,
+                ActionType = "new_document"
+            });
+
+            if (_pushSubscriptionStore != null && _pushNotificationService != null)
+            {
+                var subs = _pushSubscriptionStore.GetAll();
+                await _pushNotificationService.SendAsync(subs, "Nowy dokument", $"Dodano nowy dokument do szkody {claimIdentifier}");
+            }
+
+            return NoContent();
         }
 
         [HttpDelete("{id}")]

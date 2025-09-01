@@ -3,7 +3,12 @@ import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
 import { Button } from "./ui/button";
 import { Badge } from "./ui/badge";
 import { Input } from "./ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
+import {
+  DropdownMenu,
+  DropdownMenuCheckboxItem,
+  DropdownMenuContent,
+  DropdownMenuTrigger,
+} from "./ui/dropdown-menu";
 import { ArrowLeft, Car, Home, Truck, Search, Eye, Bell } from "lucide-react";
 import { useNotifications } from "../hooks/useNotifications";
 
@@ -47,8 +52,8 @@ interface ActiveClaimsProps {
 export function ActiveClaims({ onNavigate }: ActiveClaimsProps) {
   const { unreadCount } = useNotifications();
   const [searchTerm, setSearchTerm] = useState("");
-  const [filterType, setFilterType] = useState("all");
-  const [filterStatus, setFilterStatus] = useState("all");
+  const [filterTypes, setFilterTypes] = useState<string[]>([]);
+  const [filterStatuses, setFilterStatuses] = useState<string[]>([]);
   const [claims, setClaims] = useState<Claim[]>([]);
 
   useEffect(() => {
@@ -112,11 +117,23 @@ export function ActiveClaims({ onNavigate }: ActiveClaimsProps) {
     return '#059669';
   };
 
+  const toggleType = (value: string) => {
+    setFilterTypes((prev) =>
+      prev.includes(value) ? prev.filter((v) => v !== value) : [...prev, value]
+    );
+  };
+
+  const toggleStatus = (value: string) => {
+    setFilterStatuses((prev) =>
+      prev.includes(value) ? prev.filter((v) => v !== value) : [...prev, value]
+    );
+  };
+
   const filteredClaims = claims.filter(claim => {
     const matchesSearch = claim.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          claim.description.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesType = filterType === 'all' || claim.type === filterType;
-    const matchesStatus = filterStatus === 'all' || claim.status === filterStatus;
+    const matchesType = filterTypes.length === 0 || filterTypes.includes(claim.type);
+    const matchesStatus = filterStatuses.length === 0 || filterStatuses.includes(claim.status);
     
     return matchesSearch && matchesType && matchesStatus;
   });
@@ -170,29 +187,67 @@ export function ActiveClaims({ onNavigate }: ActiveClaimsProps) {
             </div>
             
             <div className="flex gap-3">
-              <Select value={filterType} onValueChange={setFilterType}>
-                <SelectTrigger className="flex-1 h-12 border-[#e2e8f0] bg-[#f8fafc] focus:bg-white focus:border-[#1a3a6c]">
-                  <SelectValue placeholder="Typ szkody" />
-                </SelectTrigger>
-                <SelectContent className="border-[#e2e8f0]">
-                  <SelectItem value="all">Wszystkie typy</SelectItem>
-                  <SelectItem value="komunikacyjna">Komunikacyjna</SelectItem>
-                  <SelectItem value="mienie">Mienie</SelectItem>
-                  <SelectItem value="transport">Transport</SelectItem>
-                </SelectContent>
-              </Select>
-              
-              <Select value={filterStatus} onValueChange={setFilterStatus}>
-                <SelectTrigger className="flex-1 h-12 border-[#e2e8f0] bg-[#f8fafc] focus:bg-white focus:border-[#1a3a6c]">
-                  <SelectValue placeholder="Status" />
-                </SelectTrigger>
-                <SelectContent className="border-[#e2e8f0]">
-                  <SelectItem value="all">Wszystkie statusy</SelectItem>
-                  <SelectItem value="oczekuje">Oczekuje</SelectItem>
-                  <SelectItem value="w trakcie">W trakcie</SelectItem>
-                  <SelectItem value="zakończona">Zakończona</SelectItem>
-                </SelectContent>
-              </Select>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className="flex-1 h-12 border-[#e2e8f0] bg-[#f8fafc] justify-between"
+                  >
+                    {filterTypes.length ? filterTypes.join(", ") : "Typ szkody"}
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent className="border-[#e2e8f0]">
+                  <DropdownMenuCheckboxItem
+                    checked={filterTypes.includes("komunikacyjna")}
+                    onCheckedChange={() => toggleType("komunikacyjna")}
+                  >
+                    Komunikacyjna
+                  </DropdownMenuCheckboxItem>
+                  <DropdownMenuCheckboxItem
+                    checked={filterTypes.includes("mienie")}
+                    onCheckedChange={() => toggleType("mienie")}
+                  >
+                    Mienie
+                  </DropdownMenuCheckboxItem>
+                  <DropdownMenuCheckboxItem
+                    checked={filterTypes.includes("transport")}
+                    onCheckedChange={() => toggleType("transport")}
+                  >
+                    Transport
+                  </DropdownMenuCheckboxItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className="flex-1 h-12 border-[#e2e8f0] bg-[#f8fafc] justify-between"
+                  >
+                    {filterStatuses.length ? filterStatuses.join(", ") : "Status"}
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent className="border-[#e2e8f0]">
+                  <DropdownMenuCheckboxItem
+                    checked={filterStatuses.includes("oczekuje")}
+                    onCheckedChange={() => toggleStatus("oczekuje")}
+                  >
+                    Oczekuje
+                  </DropdownMenuCheckboxItem>
+                  <DropdownMenuCheckboxItem
+                    checked={filterStatuses.includes("w trakcie")}
+                    onCheckedChange={() => toggleStatus("w trakcie")}
+                  >
+                    W trakcie
+                  </DropdownMenuCheckboxItem>
+                  <DropdownMenuCheckboxItem
+                    checked={filterStatuses.includes("zakończona")}
+                    onCheckedChange={() => toggleStatus("zakończona")}
+                  >
+                    Zakończona
+                  </DropdownMenuCheckboxItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             </div>
           </CardContent>
         </Card>

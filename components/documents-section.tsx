@@ -366,7 +366,7 @@ export const DocumentsSection = React.forwardRef<
     const categoriesFromRequired = requiredDocuments.map((d) => d.name)
     const categoriesFromDocuments = [
       ...new Set(visibleDocuments.map((d) => d.documentType)),
-    ]
+
     let categories = [
       ...new Set(["Inne dokumenty", ...categoriesFromRequired, ...categoriesFromDocuments]),
     ].filter((c) => !hiddenCategories.includes(c))
@@ -405,6 +405,9 @@ export const DocumentsSection = React.forwardRef<
         return latestB - latestA
       })
     }
+
+    // Display only the "Inne dokumenty" category
+    categories = categories.filter((c) => c === "Inne dokumenty")
 
     return categories
   }, [

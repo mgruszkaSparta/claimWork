@@ -1459,7 +1459,14 @@ export const DocumentsSection = React.forwardRef<
   )
   }
 
-  const missingRequiredDocs = requiredDocuments.filter((doc) => !doc.uploaded)
+  const missingRequiredDocs = React.useMemo(() => {
+    let docs = requiredDocuments.filter((doc) => !doc.uploaded)
+    if (searchQuery.trim()) {
+      const q = searchQuery.toLowerCase()
+      docs = docs.filter((doc) => doc.name.toLowerCase().includes(q))
+    }
+    return docs
+  }, [requiredDocuments, searchQuery])
 
   if (loading && documents.length === 0) {
     return (

@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using AutomotiveClaimsApi.Models;
 using AutomotiveClaimsApi.Models.Dictionary;
+using AutomotiveClaimsApi.Common;
 
 namespace AutomotiveClaimsApi.Data
 {
@@ -143,6 +144,7 @@ namespace AutomotiveClaimsApi.Data
                       .WithMany(c => c.EmailClaims)
                       .HasForeignKey(ec => ec.ClaimId);
             });
+
         }
     }
 }

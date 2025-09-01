@@ -39,6 +39,12 @@ function HomePage({ user, onLogout }: PageProps) {
   }, [])
 
   useEffect(() => {
+    if (isBasicUser) {
+      setActiveTab("claims")
+    }
+  }, [isBasicUser])
+
+  useEffect(() => {
     async function loadTasks() {
       try {
         const data = await apiService.getNotes({ category: "task" })
@@ -121,12 +127,10 @@ function HomePage({ user, onLogout }: PageProps) {
     { title: "Filtry", icon: Filter, color: "bg-purple-600 hover:bg-purple-700" },
   ];
 
-  return (
-    <div className="min-h-screen bg-gray-50">
-      {!isBasicUser && (
+    return (
+      <div className="min-h-screen bg-gray-50">
         <Sidebar activeTab={activeTab} onTabChange={setActiveTab} />
-      )}
-      <div className={`${isBasicUser ? "" : "ml-16"} flex flex-col min-h-screen`}>
+        <div className="ml-16 flex flex-col min-h-screen">
         <Header onMenuClick={() => {}} user={user} onLogout={onLogout} />
         <main className="flex-1 px-4 md:px-6 lg:px-8">
           <div className="w-full">

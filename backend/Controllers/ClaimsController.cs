@@ -15,6 +15,7 @@ using System.Security.Claims;
 using Microsoft.AspNetCore.Identity;
 using AutomotiveClaimsApi.Services;
 using AutomotiveClaimsApi.Services.EventSearch;
+using AutomotiveClaimsApi.Common;
 
 using Microsoft.AspNetCore.Http;
 
@@ -35,6 +36,9 @@ namespace AutomotiveClaimsApi.Controllers
         private readonly IDocumentService _documentService;
         private readonly IConfiguration _config;
         private readonly IEventDocumentStore _eventDocumentStore;
+        private readonly IMobileNotificationStore? _mobileNotificationStore;
+        private readonly IPushSubscriptionStore? _pushSubscriptionStore;
+        private readonly IPushNotificationService? _pushNotificationService;
 
         public ClaimsController(
             ApplicationDbContext context,
@@ -43,7 +47,10 @@ namespace AutomotiveClaimsApi.Controllers
             UserManager<ApplicationUser>? userManager = null,
             INotificationService? notificationService = null,
             IDocumentService? documentService = null,
-            IEventDocumentStore? eventDocumentStore = null)
+            IEventDocumentStore? eventDocumentStore = null,
+            IMobileNotificationStore? mobileNotificationStore = null,
+            IPushSubscriptionStore? pushSubscriptionStore = null,
+            IPushNotificationService? pushNotificationService = null)
         {
             _context = context;
             _logger = logger;
@@ -52,6 +59,9 @@ namespace AutomotiveClaimsApi.Controllers
             _notificationService = notificationService;
             _documentService = documentService ?? throw new ArgumentNullException(nameof(documentService));
             _eventDocumentStore = eventDocumentStore ?? throw new ArgumentNullException(nameof(eventDocumentStore));
+            _mobileNotificationStore = mobileNotificationStore;
+            _pushSubscriptionStore = pushSubscriptionStore;
+            _pushNotificationService = pushNotificationService;
         }
 
         private static Guid EnsureClaimId(Guid? id)
@@ -67,6 +77,7 @@ namespace AutomotiveClaimsApi.Controllers
             [FromQuery] string? riskType = null,
             [FromQuery] string? policyNumber = null,
             [FromQuery] int? caseHandlerId = null,
+            [FromQuery] string? registeredById = null,
             [FromQuery] DateTime? damageDate = null,
             [FromQuery] DateTime? reportFromDate = null,
             [FromQuery] DateTime? reportToDate = null,
@@ -149,6 +160,11 @@ namespace AutomotiveClaimsApi.Controllers
                 if (caseHandlerId.HasValue)
                 {
                     query = query.Where(e => e.HandlerId == caseHandlerId.Value);
+                }
+
+                if (!string.IsNullOrEmpty(registeredById))
+                {
+                    query = query.Where(e => e.RegisteredById == registeredById);
                 }
 
                 if (damageDate.HasValue)
@@ -363,17 +379,22 @@ namespace AutomotiveClaimsApi.Controllers
                 }
 
                 CaseHandler? handler = null;
+                var hasAssignedHandler = false;
                 if (eventDto.HandlerId.HasValue)
                 {
                     handler = await _context.CaseHandlers.FindAsync(eventDto.HandlerId.Value);
+                    hasAssignedHandler = true;
                 }
                 else if (currentUser?.CaseHandlerId != null)
                 {
                     handler = await _context.CaseHandlers.FindAsync(currentUser.CaseHandlerId.Value);
+                    hasAssignedHandler = true;
                 }
 
-                var statusCode = (handler != null || isHandler) ? "NEW" : "TO_ASSIGN";
-                var statusEntity = await _context.ClaimStatuses.FirstOrDefaultAsync(cs => cs.Code == statusCode);
+                var statusId = (hasAssignedHandler || isHandler)
+                    ? (int)ClaimStatusCode.New
+                    : (int)ClaimStatusCode.ToAssign;
+                var statusEntity = await _context.ClaimStatuses.FindAsync(statusId);
 
                 var existingEvent = await _context.Events
                     .AsSplitQuery()
@@ -431,9 +452,28 @@ namespace AutomotiveClaimsApi.Controllers
 
                     await _context.SaveChangesAsync();
 
-                    if (!isHandler && currentUser != null && _notificationService != null)
+                    if (!isHandler && currentUser != null)
+                    {
+                        var claimIdentifier = existingEvent.ClaimNumber ?? existingEvent.SpartaNumber ?? existingEvent.Id.ToString();
+                    _mobileNotificationStore?.Add(new MobileNotificationDto
+                    {
+                        Title = "Nowa szkoda",
+                        Message = $"Dodano nowe zgłoszenie szkody {claimIdentifier}",
+                        Type = "success",
+                        ClaimId = claimIdentifier,
+                        ActionType = "new_claim"
+                    });
+
+                    if (_pushSubscriptionStore != null && _pushNotificationService != null)
+                    {
+                        var subs = _pushSubscriptionStore.GetAll();
+                        await _pushNotificationService.SendAsync(subs, "Nowa szkoda", $"Dodano nowe zgłoszenie szkody {claimIdentifier}");
+                    }
+
+                    if (_notificationService != null)
                     {
                         await _notificationService.NotifyAsync(existingEvent, currentUser, ClaimNotificationEvent.ClaimCreated);
+                    }
                     }
 
                     await _eventDocumentStore.SaveAsync(existingEvent);
@@ -500,9 +540,28 @@ namespace AutomotiveClaimsApi.Controllers
                     .Include(e => e.RegisteredBy)
                     .FirstOrDefaultAsync(e => e.Id == eventEntity.Id);
 
-                if (!isHandler && currentUser != null && _notificationService != null && createdEvent != null)
+                if (!isHandler && currentUser != null && createdEvent != null)
                 {
-                    await _notificationService.NotifyAsync(createdEvent, currentUser, ClaimNotificationEvent.ClaimCreated);
+                    var claimIdentifier = createdEvent.ClaimNumber ?? createdEvent.SpartaNumber ?? createdEvent.Id.ToString();
+                    _mobileNotificationStore?.Add(new MobileNotificationDto
+                    {
+                        Title = "Nowa szkoda",
+                        Message = $"Dodano nowe zgłoszenie szkody {claimIdentifier}",
+                        Type = "success",
+                        ClaimId = claimIdentifier,
+                        ActionType = "new_claim"
+                    });
+
+                    if (_pushSubscriptionStore != null && _pushNotificationService != null)
+                    {
+                        var subs = _pushSubscriptionStore.GetAll();
+                        await _pushNotificationService.SendAsync(subs, "Nowa szkoda", $"Dodano nowe zgłoszenie szkody {claimIdentifier}");
+                    }
+
+                    if (_notificationService != null)
+                    {
+                        await _notificationService.NotifyAsync(createdEvent, currentUser, ClaimNotificationEvent.ClaimCreated);
+                    }
                 }
 
                 if (createdEvent != null)
@@ -653,19 +712,6 @@ namespace AutomotiveClaimsApi.Controllers
                     foreach (var entity in existing.Emails)
                     {
                         _context.Entry(entity).State = EntityState.Detached;
-                    }
-
-                    var existingDto = JsonSerializer.Deserialize<ClaimUpsertDto>(
-                        JsonSerializer.Serialize(MapEventToDto(existing)));
-                    var options = new JsonSerializerOptions
-                    {
-                        DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
-                    };
-                    var existingJson = JsonSerializer.Serialize(existingDto, options);
-                    var incomingJson = JsonSerializer.Serialize(eventDto, options);
-                    if (existingJson == incomingJson)
-                    {
-                        return NoContent();
                     }
 
                     _context.Entry(existing).State = EntityState.Detached;

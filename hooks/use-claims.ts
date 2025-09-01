@@ -9,6 +9,33 @@ import {
   type ParticipantUpsertDto,
 } from "@/lib/api"
 import type { Claim, ParticipantInfo, DriverInfo, Note } from "@/types"
+import { DamageLevel } from "@/components/damage-diagram"
+
+const severityToLevel = (severity?: string): DamageLevel => {
+  switch (severity?.toLowerCase()) {
+    case "light":
+      return DamageLevel.LIGHT
+    case "medium":
+      return DamageLevel.MEDIUM
+    case "heavy":
+      return DamageLevel.HEAVY
+    default:
+      return DamageLevel.NONE
+  }
+}
+
+const levelToSeverity = (level?: DamageLevel): string | undefined => {
+  switch (level) {
+    case DamageLevel.LIGHT:
+      return "light"
+    case DamageLevel.MEDIUM:
+      return "medium"
+    case DamageLevel.HEAVY:
+      return "heavy"
+    default:
+      return undefined
+  }
+}
 
 const toIso = (value?: string, field?: string): string | undefined => {
   if (!value) return undefined
@@ -89,6 +116,7 @@ export const transformApiClaimToFrontend = (apiClaim: ClaimDto): Claim => {
       eventId: d.eventId?.toString(),
       description: d.description,
       detail: d.detail,
+      level: severityToLevel(d.severity),
     })) || [],
     notes:
       notes?.map((n: any) => ({
@@ -309,6 +337,9 @@ export const transformFrontendClaimToApiPayload = (
       eventId: d.eventId,
       description: d.description,
       detail: d.detail,
+      ...(d.level !== undefined
+        ? { severity: levelToSeverity(d.level) }
+        : {}),
     })),
     ...(Array.isArray(notes) && notes.length > 0
       ? {

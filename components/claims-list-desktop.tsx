@@ -14,6 +14,14 @@ import {
   SelectContent,
   SelectItem,
 } from "@/components/ui/select"
+import {
+  Pagination,
+  PaginationContent,
+  PaginationItem,
+  PaginationPrevious,
+  PaginationNext,
+  PaginationLink,
+} from "@/components/ui/pagination"
 
 import {
   Search,
@@ -88,7 +96,6 @@ export function ClaimsListDesktop({
   const pageSize = 50
   const [sortBy, setSortBy] = useState<string>("spartaNumber")
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc")
-  const loaderRef = useRef<HTMLDivElement | null>(null)
   const containerRef = useRef<HTMLDivElement | null>(null)
 
   const {
@@ -210,16 +217,18 @@ export function ClaimsListDesktop({
               : selectedSubstituteId
               ? parseInt(selectedSubstituteId, 10)
               : undefined,
+            registeredById:
+              showMyClaims && !user?.caseHandlerId ? user?.id : undefined,
             claimObjectTypeId,
             sortBy,
             sortOrder,
             reportFromDate: reportFilter?.from || undefined,
-            reportToDate: reportFilter?.to || undefined,
-            damageFromDate: damageFilter?.from || undefined,
-            damageToDate: damageFilter?.to || undefined,
-          },
-          { append: page > 1 },
-        )
+          reportToDate: reportFilter?.to || undefined,
+          damageFromDate: damageFilter?.from || undefined,
+          damageToDate: damageFilter?.to || undefined,
+        },
+        { append: false },
+      )
       } catch (err) {
         toast({
           title: "Błąd",
@@ -242,6 +251,7 @@ export function ClaimsListDesktop({
     selectedSubstituteId,
     showMyClaims,
     user?.caseHandlerId,
+    user?.id,
     dateFilters,
     claimObjectTypeId,
     sortBy,
@@ -269,34 +279,7 @@ export function ClaimsListDesktop({
     () => claims.reduce((sum, claim) => sum + (claim.totalClaim || 0), 0),
     [claims],
   )
-
-  useEffect(() => {
-
-    if (initialClaims?.length) return
-
-    const node = loaderRef.current
-    const observer = new IntersectionObserver(
-      (entries) => {
-        if (
-          entries[0].isIntersecting &&
-          !loading &&
-          claims.length < totalRecords
-        ) {
-          setPage((p) => p + 1)
-        }
-      },
-      { root: containerRef.current || undefined, rootMargin: "200px" },
-    )
-    if (node) {
-      observer.observe(node)
-    }
-    return () => {
-      if (node) {
-        observer.unobserve(node)
-      }
-    }
-
-  }, [loading, claims.length, totalRecords, initialClaims])
+  const totalPages = Math.ceil(totalRecords / pageSize)
 
   const handleSort = (field: string) => {
     setPage(1)
@@ -373,6 +356,8 @@ export function ClaimsListDesktop({
             : selectedSubstituteId
             ? parseInt(selectedSubstituteId, 10)
             : undefined,
+          registeredById:
+            showMyClaims && !user?.caseHandlerId ? user?.id : undefined,
           claimObjectTypeId,
           sortBy,
           sortOrder,
@@ -412,7 +397,7 @@ export function ClaimsListDesktop({
   }
 
   // Loading state
-  if (loading) {
+  if (loading && claims.length === 0) {
     return (
       <div className="w-full h-full bg-white flex flex-col">
         <div className="flex items-center justify-between p-6 border-b border-gray-200">
@@ -820,14 +805,40 @@ export function ClaimsListDesktop({
                 ))}
               </tbody>
             </table>
-            {loading && page > 1 && (
+            {loading && (
               <div className="flex justify-center py-4">
                 <Loader2 className="h-6 w-6 animate-spin text-[#1a3a6c]" />
               </div>
             )}
-            <div ref={loaderRef} />
           </div>
-
+          {claims.length > 0 && totalPages > 1 && (
+            <Pagination className="p-4 border-t">
+              <PaginationContent>
+                <PaginationItem>
+                  <PaginationPrevious
+                    onClick={() => setPage((p) => Math.max(1, p - 1))}
+                    className={page <= 1 ? "pointer-events-none opacity-50" : ""}
+                  />
+                </PaginationItem>
+                {Array.from({ length: totalPages }).map((_, i) => (
+                  <PaginationItem key={i}>
+                    <PaginationLink
+                      isActive={page === i + 1}
+                      onClick={() => setPage(i + 1)}
+                    >
+                      {i + 1}
+                    </PaginationLink>
+                  </PaginationItem>
+                ))}
+                <PaginationItem>
+                  <PaginationNext
+                    onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                    className={page >= totalPages ? "pointer-events-none opacity-50" : ""}
+                  />
+                </PaginationItem>
+              </PaginationContent>
+            </Pagination>
+          )}
           {/* Empty State */}
           {claims.length === 0 && !loading && (
             <div className="flex-1 flex items-center justify-center">

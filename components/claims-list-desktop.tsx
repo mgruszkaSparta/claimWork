@@ -40,6 +40,7 @@ import { useToast } from "@/hooks/use-toast"
 import { useAuth } from "@/hooks/use-auth"
 import type { Claim } from "@/types"
 import { dictionaryService } from "@/lib/dictionary-service"
+import { apiService } from "@/lib/api"
 
 
 const typeLabelMap: Record<number, string> = {
@@ -166,7 +167,7 @@ export function ClaimsListDesktop({
         const res = await fetch("/api/leaves")
         const leaves = await res.json()
         const today = new Date()
-        const options = leaves
+        const options: { id: string; name: string }[] = leaves
           .filter(
             (l: any) =>
               l.substituteId === user.id &&
@@ -176,8 +177,39 @@ export function ClaimsListDesktop({
           )
           .map((l: any) => ({
             id: String(l.caseHandlerId),
-            name: l.employeeName,
+            name: `Pokaż szkody ${l.employeeName}`,
           }))
+
+        const myLeaves = leaves.filter(
+          (l: any) =>
+            l.employeeId === user.id &&
+            l.substituteId &&
+            l.status === "APPROVED" &&
+            new Date(l.startDate) <= today &&
+            new Date(l.endDate) >= today,
+        )
+
+        const substituteButtons = await Promise.all(
+          myLeaves.map(async (l: any) => {
+            try {
+              const substitute = await apiService.getUser(l.substituteId)
+              if (substitute.caseHandlerId) {
+                return {
+                  id: String(substitute.caseHandlerId),
+                  name: `Pokaż szkody ${l.substituteName || substitute.userName}`,
+                }
+              }
+            } catch (error) {
+              console.error("Failed to load substitute user", error)
+            }
+            return null
+          }),
+        )
+
+        options.push(
+          ...substituteButtons.filter((o): o is { id: string; name: string } => Boolean(o)),
+        )
+
         const unique = Array.from(
           new Map(options.map((o: any) => [o.id, o])).values(),
         )

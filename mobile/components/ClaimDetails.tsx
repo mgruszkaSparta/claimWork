@@ -9,10 +9,8 @@ import {
   Calendar,
   Car,
   Clock,
-  DollarSign,
   FileText,
   CheckCircle,
-  Handshake,
   Home,
   Mail,
   MapPin,
@@ -21,6 +19,12 @@ import {
   User,
 } from "lucide-react";
 import { Claim } from "./ActiveClaims";
+import {
+  DecisionsSummary,
+  SettlementsSummary,
+  AppealsSummary,
+  NotesSummary,
+} from "./ClaimRelatedSectionsSummary";
 
 interface ClaimDetailsProps {
   onNavigate: (section: string, claim?: Claim) => void;
@@ -132,12 +136,52 @@ export function ClaimDetails({ onNavigate, claim }: ClaimDetailsProps) {
         completed: false
       }
     ],
-    settlement: {
-      number: "UG-2024-001",
-      decision: "Zaakceptowana",
-      date: "2024-09-02",
-      amount: "7,500 PLN"
-    }
+    decisions: [
+      {
+        id: "dec1",
+        decisionDate: "2024-09-02",
+        status: "Zaakceptowana",
+        amount: 7500,
+        currency: "PLN",
+        documents: [
+          {
+            id: "dec-doc1",
+            fileName: "decyzja.pdf",
+            downloadUrl: "/docs/decyzja.pdf",
+          },
+        ],
+      },
+    ],
+    settlements: [
+      {
+        id: "set1",
+        settlementNumber: "UG-2024-001",
+        status: "Zaakceptowana",
+        settlementDate: "2024-09-02",
+        settlementAmount: 7500,
+        currency: "PLN",
+        documents: [],
+      },
+    ],
+    appeals: [
+      {
+        id: "app1",
+        appealNumber: "OD-2024-001",
+        submissionDate: "2024-09-10",
+        status: "W toku",
+        documents: [],
+      },
+    ],
+    notes: [
+      {
+        id: "note1",
+        type: "note",
+        title: "Kontrola dokumentów",
+        description: "Sprawdzić kompletność dokumentów.",
+        user: "Anna Nowak",
+        createdAt: "2024-09-01",
+      },
+    ],
   };
 
   const [documents, setDocuments] = useState(claimData.documents);
@@ -167,17 +211,6 @@ export function ClaimDetails({ onNavigate, claim }: ClaimDetailsProps) {
       case 'oczekuje': return 'bg-[#fef3c7] text-[#d97706] border-[#d97706]/20';
       case 'zakończona': return 'bg-[#d1fae5] text-[#059669] border-[#059669]/20';
       default: return 'bg-[#f1f5f9] text-[#64748b] border-[#e2e8f0]';
-    }
-  };
-
-  const getDecisionColor = (decision: string) => {
-    switch (decision) {
-      case 'Zaakceptowana':
-        return 'bg-[#d1fae5] text-[#059669] border-[#059669]/20';
-      case 'Odrzucona':
-        return 'bg-[#fee2e2] text-[#dc2626] border-[#dc2626]/20';
-      default:
-        return 'bg-[#e1e7ef] text-[#1a3a6c] border-[#1a3a6c]/20';
     }
   };
 
@@ -344,40 +377,10 @@ export function ClaimDetails({ onNavigate, claim }: ClaimDetailsProps) {
           </CardContent>
         </Card>
 
-        {/* Decyzja ugody */}
-        {claimData.settlement && (
-          <Card className="shadow-sm border-[#e2e8f0] bg-white">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-[#1e293b] flex items-center gap-2">
-                <Handshake className="w-5 h-5 text-[#1a3a6c]" />
-                Decyzja ugody
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              <div className="flex items-center gap-2 text-sm text-[#64748b]">
-                <FileText className="w-4 h-4" />
-                <span>Numer ugody:</span>
-                <span className="font-medium text-[#1e293b]">{claimData.settlement.number}</span>
-              </div>
-              <div className="flex items-center gap-2 text-sm text-[#64748b]">
-                <Calendar className="w-4 h-4" />
-                <span>Data decyzji:</span>
-                <span className="font-medium text-[#1e293b]">{claimData.settlement.date}</span>
-              </div>
-              <div className="flex items-center gap-2 text-sm text-[#64748b]">
-                <DollarSign className="w-4 h-4" />
-                <span>Kwota ugody:</span>
-                <span className="font-medium text-[#1e293b]">{claimData.settlement.amount}</span>
-              </div>
-              <div className="flex items-center gap-2 text-sm text-[#64748b]">
-                <span>Status:</span>
-                <Badge className={`${getDecisionColor(claimData.settlement.decision)} font-medium px-2 py-1`}>
-                  {claimData.settlement.decision}
-                </Badge>
-              </div>
-            </CardContent>
-          </Card>
-        )}
+        <DecisionsSummary decisions={claimData.decisions} />
+        <SettlementsSummary settlements={claimData.settlements} />
+        <AppealsSummary appeals={claimData.appeals} />
+        <NotesSummary notes={claimData.notes} />
 
         {/* Dane kontaktowe */}
         <Card className="shadow-sm border-[#e2e8f0] bg-white">

@@ -5,6 +5,7 @@ using AutomotiveClaimsApi.Models;
 using AutomotiveClaimsApi.Models.Dictionary;
 using AutomotiveClaimsApi.DTOs;
 using System;
+using System.Globalization;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -1178,7 +1179,10 @@ namespace AutomotiveClaimsApi.Controllers
 
             if (!string.IsNullOrEmpty(dto.EventTime))
             {
-                entity.EventTime = DateTime.Parse(dto.EventTime);
+                entity.EventTime = DateTime.Parse(
+                    dto.EventTime,
+                    null,
+                    DateTimeStyles.AdjustToUniversal | DateTimeStyles.AssumeUniversal);
             }
 
             entity.EventLocation = dto.EventLocation;

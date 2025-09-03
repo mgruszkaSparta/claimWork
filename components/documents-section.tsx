@@ -1478,14 +1478,18 @@ export const DocumentsSection = React.forwardRef<
   )
   }
 
-  const missingRequiredDocs = React.useMemo(() => {
-    let docs = requiredDocuments.filter((doc) => !doc.uploaded)
-    if (requiredSearchQuery.trim()) {
-      const q = requiredSearchQuery.toLowerCase()
-      docs = docs.filter((doc) => doc.name.toLowerCase().includes(q))
-    }
-    return docs
-  }, [requiredDocuments, requiredSearchQuery])
+  const missingRequiredDocs = React.useMemo(
+    () => requiredDocuments.filter((doc) => !doc.uploaded),
+    [requiredDocuments],
+  )
+
+  const filteredRequiredDocs = React.useMemo(() => {
+    if (!requiredSearchQuery.trim()) return missingRequiredDocs
+    const q = requiredSearchQuery.toLowerCase()
+    return missingRequiredDocs.filter((doc) =>
+      doc.name.toLowerCase().includes(q),
+    )
+  }, [missingRequiredDocs, requiredSearchQuery])
 
   if (loading && documents.length === 0) {
     return (
@@ -1927,42 +1931,46 @@ export const DocumentsSection = React.forwardRef<
               >
                 Dodaj zaznaczone
               </Button>
-              <div className="border rounded-md">
-                {missingRequiredDocs.map((doc, index, arr) => (
-                  <div
-                    key={`required-${doc.id ?? doc.name}`}
-                    className={`flex items-center gap-1.5 p-2 ${index < arr.length - 1 ? "border-b" : ""}`}
-                  >
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="h-7 px-2"
-                      onClick={() => handleAddRequiredCategory(doc.name)}
+              {filteredRequiredDocs.length > 0 ? (
+                <div className="border rounded-md">
+                  {filteredRequiredDocs.map((doc, index, arr) => (
+                    <div
+                      key={`required-${doc.id ?? doc.name}`}
+                      className={`flex items-center gap-1.5 p-2 ${index < arr.length - 1 ? "border-b" : ""}`}
                     >
-                      <Plus className="mr-2 h-4 w-4" />
-                      Dodaj
-                    </Button>
-                    <Checkbox
-                      className="h-4 w-4"
-                      checked={selectedRequiredDocs.includes(doc.name)}
-                      onCheckedChange={(checked) =>
-                        setSelectedRequiredDocs((prev) =>
-                          checked
-                            ? [...prev, doc.name]
-                            : prev.filter((name) => name !== doc.name),
-                        )
-                      }
-                    />
-                    <div className="flex items-center gap-1.5">
-                      <span className="font-medium text-sm text-gray-800">{doc.name}</span>
-                      <div
-                        className="h-1.5 w-1.5 rounded-full bg-red-500 animate-pulse"
-                        title="Brakujący"
-                      ></div>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="h-7 px-2"
+                        onClick={() => handleAddRequiredCategory(doc.name)}
+                      >
+                        <Plus className="mr-2 h-4 w-4" />
+                        Dodaj
+                      </Button>
+                      <Checkbox
+                        className="h-4 w-4"
+                        checked={selectedRequiredDocs.includes(doc.name)}
+                        onCheckedChange={(checked) =>
+                          setSelectedRequiredDocs((prev) =>
+                            checked
+                              ? [...prev, doc.name]
+                              : prev.filter((name) => name !== doc.name),
+                          )
+                        }
+                      />
+                      <div className="flex items-center gap-1.5">
+                        <span className="font-medium text-sm text-gray-800">{doc.name}</span>
+                        <div
+                          className="h-1.5 w-1.5 rounded-full bg-red-500 animate-pulse"
+                          title="Brakujący"
+                        ></div>
+                      </div>
                     </div>
-                  </div>
-                ))}
-              </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-sm text-gray-500">Nie znaleziono wymaganych dokumentów</p>
+              )}
             </CardContent>
           </Card>
         )}

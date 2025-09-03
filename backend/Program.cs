@@ -48,6 +48,7 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
     {
         options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"));
     }
+    options.AddInterceptors(new RReportCommandInterceptor());
 });
 
 // Add Identity

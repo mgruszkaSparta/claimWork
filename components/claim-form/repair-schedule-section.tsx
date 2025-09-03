@@ -155,6 +155,15 @@ export const RepairScheduleSection: React.FC<RepairScheduleSectionProps> = ({ ev
         return
       }
 
+      if (!editingSchedule && schedules.length >= 1) {
+        toast({
+          title: "Limit harmonogramów",
+          description: "Możesz utworzyć tylko jeden harmonogram naprawy",
+          variant: "destructive",
+        })
+        return
+      }
+
       const savedSchedule = editingSchedule
         ? await updateRepairSchedule(editingSchedule.id!, formData)
         : await createRepairSchedule(formData)
@@ -434,21 +443,23 @@ export const RepairScheduleSection: React.FC<RepairScheduleSectionProps> = ({ ev
 
     <div className="space-y-8 animate-fade-in w-full min-h-screen">
       <div className="space-y-2">
-        <h2 className="text-xl font-semibold text-foreground">Harmonogram i naprawy</h2>
+        <h2 className="text-xl font-semibold text-foreground">Harmonogram naprawy</h2>
         <p className="text-sm text-gray-600">
-          Zarządzaj planem napraw pojazdu. Dodaj nowy harmonogram lub edytuj istniejące wpisy.
+          Zarządzaj planem napraw pojazdu. Możesz utworzyć tylko jeden harmonogram dla szkody.
         </p>
       </div>
 
-      <div className="flex justify-end">
-        <Button
-          onClick={() => setShowForm(true)}
-          className="bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg hover:shadow-xl transition-all duration-200 px-6 py-3 rounded-xl font-medium"
-        >
-          <Plus className="h-5 w-5 mr-2" />
-          Nowy harmonogram
-        </Button>
-      </div>
+      {schedules.length === 0 && (
+        <div className="flex justify-end">
+          <Button
+            onClick={() => setShowForm(true)}
+            className="bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg hover:shadow-xl transition-all duration-200 px-6 py-3 rounded-xl font-medium"
+          >
+            <Plus className="h-5 w-5 mr-2" />
+            Nowy harmonogram
+          </Button>
+        </div>
+      )}
 
       <Dialog open={showForm} onOpenChange={(open) => (open ? setShowForm(true) : resetForm())}>
         <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
@@ -766,7 +777,7 @@ export const RepairScheduleSection: React.FC<RepairScheduleSectionProps> = ({ ev
             </CardContent>
           </Card>
         ) : (
-          schedules.map((schedule, index) => {
+          schedules.slice(0, 1).map((schedule, index) => {
             const statusIndicator = getStatusIndicator(schedule)
             return (
               <Card

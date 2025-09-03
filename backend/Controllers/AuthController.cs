@@ -289,7 +289,10 @@ namespace AutomotiveClaimsApi.Controllers
 
         [Authorize]
         [HttpGet("users")]
-        public async Task<ActionResult<IEnumerable<UserListItemDto>>> GetUsers([FromQuery] string? search)
+        public async Task<ActionResult<IEnumerable<UserListItemDto>>> GetUsers(
+            [FromQuery] string? search,
+            [FromQuery] DateTime? registrationFromDate = null,
+            [FromQuery] DateTime? registrationToDate = null)
         {
             var query = _userManager.Users.AsQueryable();
             if (!string.IsNullOrWhiteSpace(search))
@@ -297,6 +300,18 @@ namespace AutomotiveClaimsApi.Controllers
                 query = query.Where(u =>
                     u.UserName!.Contains(search) ||
                     (u.Email != null && u.Email.Contains(search)));
+            }
+
+            if (registrationFromDate.HasValue)
+            {
+                var from = registrationFromDate.Value.Date;
+                query = query.Where(u => u.CreatedAt.Date >= from);
+            }
+
+            if (registrationToDate.HasValue)
+            {
+                var to = registrationToDate.Value.Date;
+                query = query.Where(u => u.CreatedAt.Date <= to);
             }
 
             var users = await query.ToListAsync();

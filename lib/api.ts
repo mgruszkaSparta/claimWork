@@ -1071,6 +1071,8 @@ class ApiService {
       pageSize?: number
       sortBy?: string
       sortOrder?: "asc" | "desc"
+      registrationFromDate?: string
+      registrationToDate?: string
     } = {},
   ): Promise<{ items: UserListItemDto[]; totalCount: number }> {
     const searchParams = new URLSearchParams()

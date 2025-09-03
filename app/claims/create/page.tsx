@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import ClientDropdown from "@/components/client-dropdown";
 import { Button } from "@/components/ui/button";
+import PolicySearch from "@/components/policy-search";
 import type { ClientSelectionEvent } from "@/types/client";
 
 interface ClaimType {
@@ -61,7 +62,9 @@ export default function CreateClaimPage() {
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-gray-50">
-      <form onSubmit={handleSubmit} className="w-full max-w-3xl space-y-6">
+      <div className="w-full max-w-3xl space-y-6">
+      <PolicySearch />
+      <form onSubmit={handleSubmit} className="space-y-6">
         <div className="bg-white rounded-lg shadow-sm border border-neutral-200">
           <div className="p-6 border-b border-neutral-200">
             <h2 className="text-lg text-neutral-900 flex items-center">
@@ -145,6 +148,7 @@ export default function CreateClaimPage() {
           </Button>
         </div>
       </form>
+      </div>
     </div>
   );
 }

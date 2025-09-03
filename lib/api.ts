@@ -323,6 +323,14 @@ export interface UpdateClientDto {
   isActive?: boolean
 }
 
+export interface PolicyDto {
+  id: number
+  policyNumber: string
+  registrationNumber: string
+  clientId?: number
+  clientName?: string
+}
+
 export interface RiskTypeDto {
   id: number
   code: string
@@ -1222,6 +1230,15 @@ class ApiService {
 
   async getEventByClaimNumber(claimNumber: string): Promise<EventDto> {
     return this.request<EventDto>(`/events/by-claim/${claimNumber}`)
+  }
+
+  // Policies API
+  async searchPolicies(params: { policyNumber?: string; registrationNumber?: string }): Promise<PolicyDto[]> {
+    const search = new URLSearchParams()
+    if (params.policyNumber) search.set('policyNumber', params.policyNumber)
+    if (params.registrationNumber) search.set('registrationNumber', params.registrationNumber)
+    const query = search.toString()
+    return this.request<PolicyDto[]>(`/policies${query ? `?${query}` : ''}`)
   }
 
   // Clients API

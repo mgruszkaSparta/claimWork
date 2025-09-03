@@ -48,6 +48,32 @@ export function NotificationsProvider({ children }: { children: ReactNode }) {
     return () => clearInterval(interval);
   }, []);
 
+  useEffect(() => {
+    if (typeof window === 'undefined' || !('serviceWorker' in navigator)) return;
+
+    const handler = (event: MessageEvent) => {
+      const { type, notification } = event.data || {};
+      if (type === 'PUSH_NOTIFICATION' && notification) {
+        const parsed: Notification = {
+          id: notification.id || Date.now().toString(),
+          title: notification.title || '',
+          message: notification.message || '',
+          type: notification.type || 'info',
+          timestamp: new Date(notification.timestamp || Date.now()),
+          read: false,
+          claimId: notification.claimId,
+          actionType: notification.actionType,
+        };
+        setNotifications(prev =>
+          prev.some(n => n.id === parsed.id) ? prev : [parsed, ...prev]
+        );
+      }
+    };
+
+    navigator.serviceWorker.addEventListener('message', handler);
+    return () => navigator.serviceWorker.removeEventListener('message', handler);
+  }, []);
+
   const unreadCount = notifications.filter(n => !n.read).length;
 
   const markAsRead = (notificationId: string) => {

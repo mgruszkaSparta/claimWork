@@ -115,6 +115,44 @@ export function ClaimsListDesktop({
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc")
   const containerRef = useRef<HTMLDivElement | null>(null)
 
+  const hasActiveFilters = useMemo(
+    () =>
+      Boolean(
+        searchInput ||
+        filterStatuses.length ||
+        filterRisks.length ||
+        filterRegistration ||
+        filterHandlerId ||
+        dateFilters.length ||
+        showMyClaims ||
+        selectedSubstituteId,
+      ),
+    [
+      searchInput,
+      filterStatuses,
+      filterRisks,
+      filterRegistration,
+      filterHandlerId,
+      dateFilters,
+      showMyClaims,
+      selectedSubstituteId,
+    ],
+  )
+
+  const clearFilters = () => {
+    setSearchInput("")
+    setSearchTerm("")
+    setFilterStatuses([])
+    setFilterRisks([])
+    setFilterRegistration("")
+    setFilterHandlerId("")
+    setDateFilters([])
+    setShowFilters(false)
+    setShowMyClaims(false)
+    setSelectedSubstituteId("")
+    setPage(1)
+  }
+
   const toggleStatus = (value: string) => {
     setFilterStatuses((prev) =>
       prev.includes(value)
@@ -711,6 +749,16 @@ export function ClaimsListDesktop({
                 {opt.name}
               </Button>
             ))}
+            {hasActiveFilters && (
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={clearFilters}
+                aria-label="Wyczyść filtry"
+              >
+                <X className="h-4 w-4" />
+              </Button>
+            )}
           </div>
         </div>
         {showFilters && (

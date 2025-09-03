@@ -16,7 +16,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Search, Plus, MoreHorizontal, Edit, Trash2, UserCheck, UserX, Ban, ArrowUpDown, Filter } from "lucide-react"
+import { Search, Plus, MoreHorizontal, Edit, Trash2, UserCheck, UserX, Ban, ArrowUpDown, Filter, X } from "lucide-react"
 import { adminService } from "@/lib/services/admin-service"
 import type { User, UserFilters, Role } from "@/lib/types/admin"
 import { UserFormDialog } from "@/components/admin/user-form-dialog"
@@ -139,11 +139,25 @@ export default function UsersPage() {
 
       {/* Filters */}
       <Card>
-        <CardHeader>
+        <CardHeader className="flex items-center justify-between">
           <CardTitle className="flex items-center gap-2">
             <Filter className="h-4 w-4" />
             Filtry i wyszukiwanie
           </CardTitle>
+          {(searchTerm || statusFilter !== "all" || roleFilter !== "all") && (
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => {
+                setSearchTerm("")
+                setStatusFilter("all")
+                setRoleFilter("all")
+              }}
+              aria-label="Wyczyść filtry"
+            >
+              <X className="h-4 w-4" />
+            </Button>
+          )}
         </CardHeader>
         <CardContent>
           <div className="flex flex-col gap-4 md:flex-row md:items-center">

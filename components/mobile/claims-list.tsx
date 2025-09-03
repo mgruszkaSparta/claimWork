@@ -98,6 +98,44 @@ export function ClaimsListMobile({
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc")
   const containerRef = useRef<HTMLDivElement | null>(null)
 
+  const hasActiveFilters = useMemo(
+    () =>
+      Boolean(
+        searchInput ||
+        filterStatus !== "all" ||
+        filterRisk !== "all" ||
+        filterRegistration ||
+        filterHandlerId ||
+        dateFilters.length ||
+        showMyClaims ||
+        selectedSubstituteId,
+      ),
+    [
+      searchInput,
+      filterStatus,
+      filterRisk,
+      filterRegistration,
+      filterHandlerId,
+      dateFilters,
+      showMyClaims,
+      selectedSubstituteId,
+    ],
+  )
+
+  const clearFilters = () => {
+    setSearchInput("")
+    setSearchTerm("")
+    setFilterStatus("all")
+    setFilterRisk("all")
+    setFilterRegistration("")
+    setFilterHandlerId("")
+    setDateFilters([])
+    setShowFilters(false)
+    setShowMyClaims(false)
+    setSelectedSubstituteId("")
+    setPage(1)
+  }
+
   const {
     claims: fetchedClaims,
     loading,
@@ -630,6 +668,16 @@ export function ClaimsListMobile({
                 {opt.name}
               </Button>
             ))}
+            {hasActiveFilters && (
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={clearFilters}
+                aria-label="Wyczyść filtry"
+              >
+                <X className="h-4 w-4" />
+              </Button>
+            )}
           </div>
         </div>
         {showFilters && (

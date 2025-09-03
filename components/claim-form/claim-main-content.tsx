@@ -748,12 +748,7 @@ export const ClaimMainContent = ({
               </div>
             </CardContent>
           </Card>
-        </div>
-      )
 
-    case "naprawa":
-      return (
-        <div className="space-y-4">
           <Card className="overflow-hidden shadow-sm border-gray-200 rounded-xl">
             <FormHeader icon={Wrench} title="Szczegóły naprawy" />
             <CardContent className="p-0 bg-white">
@@ -821,9 +816,9 @@ export const ClaimMainContent = ({
                                 )}
                               </div>
                             </div>
-                            ))}
-                          </div>
-                        )}
+                          ))}
+                        </div>
+                      )}
 
                     </div>
                   )}
@@ -834,7 +829,7 @@ export const ClaimMainContent = ({
         </div>
       )
 
-  case "dane-zdarzenia":
+    case "dane-zdarzenia":
       return (
         <div className="space-y-4">
 
@@ -1685,36 +1680,10 @@ export const ClaimMainContent = ({
       )
 
     case "teczka-szkodowa": {
-
-    switch (claimObjectType) {
-      case "2":
-        return (
-          <PropertyClaimSummary
-            claimFormData={claimFormData}
-            notes={notes}
-            uploadedFiles={uploadedFiles}
-            setUploadedFiles={setUploadedFiles}
-            eventId={eventId}
-            claimStatuses={claimStatuses}
-            riskTypes={riskTypes}
-          />
-        )
-      case "3":
-        return (
-          <TransportClaimSummary
-            claimFormData={claimFormData}
-            notes={notes}
-            uploadedFiles={uploadedFiles}
-            setUploadedFiles={setUploadedFiles}
-            eventId={eventId}
-            claimStatuses={claimStatuses}
-            riskTypes={riskTypes}
-          />
-        )
-      default:
-        return (
-          <div className="space-y-4">
-            <CommunicationClaimSummary
+      switch (claimObjectType) {
+        case "2":
+          return (
+            <PropertyClaimSummary
               claimFormData={claimFormData}
               notes={notes}
               uploadedFiles={uploadedFiles}
@@ -1723,200 +1692,35 @@ export const ClaimMainContent = ({
               claimStatuses={claimStatuses}
               riskTypes={riskTypes}
             />
-            {/* Harmonogram naprawy - expandable section */}
-            <div className="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden">
-                <div className="px-4 py-3 bg-gradient-to-r from-blue-50 to-blue-100 border-b border-gray-200">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-2">
-                      <Calendar className="h-4 w-4 text-blue-600" />
-                      <h3 className="text-sm font-semibold text-gray-900">Harmonogram naprawy</h3>
-                    </div>
-                  </div>
-                </div>
-                <div className="p-4">
-                {eventId ? (
-                  <div className="rounded-lg overflow-hidden">
-                    <RepairScheduleSection eventId={eventId} />
-                  </div>
-                ) : (
-                <div className="space-y-4">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <InfoCard
-                      icon={<Calendar className="h-4 w-4" />}
-                      label="Liczba harmonogramów"
-                      value="2"
-                    />
-                    <InfoCard
-                      icon={<Clock className="h-4 w-4" />}
-                      label="Status ostatniego"
-                      value="W trakcie"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <div className="bg-gray-50 rounded-lg p-3 border border-gray-200">
-                      <div className="flex items-center justify-between mb-2">
-                        <h4 className="font-medium text-gray-900 text-sm">Harmonogram #1</h4>
-                        <span className="px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-xs font-medium">
-                          W trakcie
-                        </span>
-                      </div>
-                      <div className="grid grid-cols-2 gap-4 text-xs text-gray-600">
-                        <div>
-                          <span className="font-medium">Data rozpoczęcia:</span> 15.01.2025
-                        </div>
-                        <div>
-                          <span className="font-medium">Planowane zakończenie:</span> 22.01.2025
-                        </div>
-                        <div>
-                          <span className="font-medium">Warsztat:</span> AutoSerwis Kowalski
-                        </div>
-                        <div>
-                          <span className="font-medium">Koszt:</span> 4,500 PLN
-                        </div>
-                      </div>
-                    </div>
-                    <div className="bg-gray-50 rounded-lg p-3 border border-gray-200">
-                      <div className="flex items-center justify-between mb-2">
-                        <h4 className="font-medium text-gray-900 text-sm">Harmonogram #2</h4>
-                        <span className="px-2 py-1 bg-green-100 text-green-800 rounded-full text-xs font-medium">
-                          Zakończony
-                        </span>
-                      </div>
-                      <div className="grid grid-cols-2 gap-4 text-xs text-gray-600">
-                        <div>
-                          <span className="font-medium">Data rozpoczęcia:</span> 08.01.2025
-                        </div>
-                        <div>
-                          <span className="font-medium">Data zakończenia:</span> 12.01.2025
-                        </div>
-                        <div>
-                          <span className="font-medium">Warsztat:</span> Lakiernia Nowak
-                        </div>
-                        <div>
-                          <span className="font-medium">Koszt:</span> 2,800 PLN
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              )}
-              </div>
+          )
+        case "3":
+          return (
+            <TransportClaimSummary
+              claimFormData={claimFormData}
+              notes={notes}
+              uploadedFiles={uploadedFiles}
+              setUploadedFiles={setUploadedFiles}
+              eventId={eventId}
+              claimStatuses={claimStatuses}
+              riskTypes={riskTypes}
+            />
+          )
+        default:
+          return (
+            <div className="space-y-4">
+              <CommunicationClaimSummary
+                claimFormData={claimFormData}
+                notes={notes}
+                uploadedFiles={uploadedFiles}
+                setUploadedFiles={setUploadedFiles}
+                eventId={eventId}
+                claimStatuses={claimStatuses}
+                riskTypes={riskTypes}
+              />
             </div>
-            {/* Szczegóły naprawy - expandable section */}
-            <div className="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden">
-            <div className="px-4 py-3 bg-gradient-to-r from-blue-50 to-blue-100 border-b border-gray-200">
-              <div className="flex items-center">
-                <div className="flex items-center space-x-2">
-                  <Wrench className="h-4 w-4 text-blue-600" />
-                  <h3 className="text-sm font-semibold text-gray-900">Szczegóły naprawy</h3>
-                </div>
-              </div>
-            </div>
-            <div className="p-4">
-              {eventId ? (
-                <div className="border rounded-lg overflow-hidden">
-                  <RepairDetailsSection
-                    eventId={eventId}
-                    autoShowForm={autoShowRepairForm}
-                    onAutoShowFormHandled={() => setAutoShowRepairForm(false)}
-                  />
-                </div>
-              ) : (
-                <div className="space-y-4">
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <InfoCard
-                      icon={<Wrench className="h-4 w-4" />}
-                      label="Liczba pozycji"
-                      value="5"
-                    />
-                    <InfoCard
-                      icon={<DollarSign className="h-4 w-4" />}
-                      label="Całkowity koszt"
-                      value="7,300 PLN"
-                    />
-                    <InfoCard
-                      icon={<Clock className="h-4 w-4" />}
-                      label="Status"
-                      value="W realizacji"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <div className="bg-gray-50 rounded-lg p-3 border border-gray-200">
-                      <div className="flex items-center justify-between mb-2">
-                        <h4 className="font-medium text-gray-900 text-sm">Naprawa zderzaka przedniego</h4>
-                        <span className="px-2 py-1 bg-yellow-100 text-yellow-800 rounded-full text-xs font-medium">
-                          W trakcie
-                        </span>
-                      </div>
-                      <div className="grid grid-cols-2 gap-4 text-xs text-gray-600">
-                        <div>
-                          <span className="font-medium">Pracownik:</span> Jan Kowalski
-                        </div>
-                        <div>
-                          <span className="font-medium">Oddział:</span> Warszawa Centrum
-                        </div>
-                        <div>
-                          <span className="font-medium">Data rozpoczęcia:</span> 15.01.2025
-                        </div>
-                        <div>
-                          <span className="font-medium">Koszt:</span> 1,200 PLN
-                        </div>
-                      </div>
-                    </div>
-                    <div className="bg-gray-50 rounded-lg p-3 border border-gray-200">
-                      <div className="flex items-center justify-between mb-2">
-                        <h4 className="font-medium text-gray-900 text-sm">Wymiana reflektora</h4>
-                        <span className="px-2 py-1 bg-green-100 text-green-800 rounded-full text-xs font-medium">
-                          Zakończone
-                        </span>
-                      </div>
-                      <div className="grid grid-cols-2 gap-4 text-xs text-gray-600">
-                        <div>
-                          <span className="font-medium">Pracownik:</span> Anna Nowak
-                        </div>
-                        <div>
-                          <span className="font-medium">Oddział:</span> Warszawa Centrum
-                        </div>
-                        <div>
-                          <span className="font-medium">Data zakończenia:</span> 12.01.2025
-                        </div>
-                        <div>
-                          <span className="font-medium">Koszt:</span> 850 PLN
-                        </div>
-                      </div>
-                    </div>
-                    <div className="bg-gray-50 rounded-lg p-3 border border-gray-200">
-                      <div className="flex items-center justify-between mb-2">
-                        <h4 className="font-medium text-gray-900 text-sm">Lakierowanie maski</h4>
-                        <span className="px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-xs font-medium">
-                          Zaplanowane
-                        </span>
-                      </div>
-                      <div className="grid grid-cols-2 gap-4 text-xs text-gray-600">
-                        <div>
-                          <span className="font-medium">Pracownik:</span> Piotr Wiśniewski
-                        </div>
-                        <div>
-                          <span className="font-medium">Oddział:</span> Warszawa Południe
-                        </div>
-                        <div>
-                          <span className="font-medium">Planowany start:</span> 20.01.2025
-                        </div>
-                        <div>
-                          <span className="font-medium">Koszt:</span> 2,100 PLN
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
-          </div>
-      )
-        }
+          )
+      }
     }
-
 
     default:
       return (

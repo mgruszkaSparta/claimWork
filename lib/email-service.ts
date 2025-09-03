@@ -159,7 +159,7 @@ class EmailService {
       case EmailFolder.Important:
         return emails.filter((e) => e.isImportant)
       case EmailFolder.Unassigned:
-        return emails.filter((e) => !e.claimIds || e.claimIds.length === 0)
+        return emails.filter((e) => !e.eventId)
       default:
         return emails
     }
@@ -175,7 +175,7 @@ class EmailService {
 
   async getUnassignedEmails(): Promise<EmailDto[]> {
     const emails = await this.getAllEmails()
-    return emails.filter((e) => !e.claimIds || e.claimIds.length === 0)
+    return emails.filter((e) => !e.eventId)
   }
 
   async getEmailsByClaimId(claimId: string): Promise<EmailDto[]> {

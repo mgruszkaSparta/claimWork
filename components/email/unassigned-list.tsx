@@ -37,7 +37,7 @@ export function UnassignedEmailList() {
     try {
       const success = await emailService.assignEmailToClaim(
         assigningEmail.id,
-        selectedClaim,
+        [selectedClaim],
       )
       if (success) {
         setEmails((prev) => prev.filter((e) => e.id !== assigningEmail.id))

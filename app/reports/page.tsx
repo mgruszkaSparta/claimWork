@@ -18,6 +18,7 @@ import {
 import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { saveAs } from "file-saver";
 
 export default function ReportsPage() {
@@ -81,83 +82,98 @@ export default function ReportsPage() {
       </div>
       {entity && (
         <div className="space-y-4">
-          <div className="space-y-2">
-            <p className="font-medium">Pola</p>
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
-              {entityFields.map((f) => (
-                <label key={f} className="flex items-center space-x-2">
-                  <Checkbox
-                    checked={fields.includes(f)}
-                    onCheckedChange={() => toggleField(f)}
-                  />
-                  <span>{f}</span>
-                </label>
-              ))}
-            </div>
-          </div>
+          <Card>
+            <CardHeader>
+              <CardTitle>Pola</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+                {entityFields.map((f) => (
+                  <label key={f} className="flex items-center space-x-2">
+                    <Checkbox
+                      checked={fields.includes(f)}
+                      onCheckedChange={() => toggleField(f)}
+                    />
+                    <span>{f}</span>
+                  </label>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
 
-          <div className="space-y-2">
-            <p className="font-medium">Filtry</p>
-            <div className="flex space-x-2">
-              <Select value={filterField} onValueChange={setFilterField}>
-                <SelectTrigger className="w-48">
-                  <SelectValue placeholder="Pole" />
-                </SelectTrigger>
-                <SelectContent>
-                  {entityFields.map((f) => (
-                    <SelectItem key={f} value={f}>
-                      {f}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              {filterField && (
-                <Select
-                  onValueChange={(value) => {
-                    setFilters((prev) => ({ ...prev, [filterField]: value }));
-                    setFilterField("");
-                    setFilterOptions([]);
-                  }}
-                >
+          <Card>
+            <CardHeader>
+              <CardTitle>Filtry</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-2">
+              <div className="flex space-x-2">
+                <Select value={filterField} onValueChange={setFilterField}>
                   <SelectTrigger className="w-48">
-                    <SelectValue placeholder="Wartość" />
+                    <SelectValue placeholder="Pole" />
                   </SelectTrigger>
                   <SelectContent>
-                    {filterOptions.map((v) => (
-                      <SelectItem key={v} value={v}>
-                        {v}
+                    {entityFields.map((f) => (
+                      <SelectItem key={f} value={f}>
+                        {f}
                       </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
-              )}
-            </div>
-            {Object.keys(filters).length > 0 && (
-              <div className="flex flex-wrap gap-2">
-                {Object.entries(filters).map(([key, value]) => (
-                  <span
-                    key={key}
-                    className="px-2 py-1 bg-secondary rounded text-sm"
+                {filterField && (
+                  <Select
+                    onValueChange={(value) => {
+                      setFilters((prev) => ({ ...prev, [filterField]: value }));
+                      setFilterField("");
+                      setFilterOptions([]);
+                    }}
                   >
-                    {key}: {value}
-                  </span>
-                ))}
+                    <SelectTrigger className="w-48">
+                      <SelectValue placeholder="Wartość" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {filterOptions.map((v) => (
+                        <SelectItem key={v} value={v}>
+                          {v}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                )}
               </div>
-            )}
-          </div>
+              {Object.keys(filters).length > 0 && (
+                <div className="flex flex-wrap gap-2">
+                  {Object.entries(filters).map(([key, value]) => (
+                    <span
+                      key={key}
+                      className="px-2 py-1 bg-secondary rounded text-sm"
+                    >
+                      {key}: {value}
+                    </span>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
 
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <Input
-              type="date"
-              value={fromDate}
-              onChange={(e) => setFromDate(e.target.value)}
-            />
-            <Input
-              type="date"
-              value={toDate}
-              onChange={(e) => setToDate(e.target.value)}
-            />
-          </div>
+          <Card>
+            <CardHeader>
+              <CardTitle>Zakres dat</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <Input
+                  type="date"
+                  value={fromDate}
+                  onChange={(e) => setFromDate(e.target.value)}
+                />
+                <Input
+                  type="date"
+                  value={toDate}
+                  onChange={(e) => setToDate(e.target.value)}
+                />
+              </div>
+            </CardContent>
+          </Card>
         </div>
       )}
       <Button onClick={handleExport} disabled={!entity || fields.length === 0}>

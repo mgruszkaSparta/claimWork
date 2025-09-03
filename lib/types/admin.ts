@@ -40,6 +40,8 @@ export interface UserFilters {
   roleId?: string;
   sortBy?: 'name' | 'email' | 'createdAt' | 'lastLogin';
   sortOrder?: 'asc' | 'desc';
+  registrationFromDate?: string;
+  registrationToDate?: string;
 }
 
 export interface RoleFilters {

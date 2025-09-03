@@ -55,6 +55,8 @@ export const adminService = {
                 ? "lastLogin"
                 : undefined,
       sortOrder: filters.sortOrder,
+      registrationFromDate: filters.registrationFromDate,
+      registrationToDate: filters.registrationToDate,
     });
 
     return items.map(mapUserDto);

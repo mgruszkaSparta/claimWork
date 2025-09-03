@@ -25,6 +25,8 @@ export default function UsersPage() {
   const [searchTerm, setSearchTerm] = useState("")
   const [statusFilter, setStatusFilter] = useState<string>("all")
   const [roleFilter, setRoleFilter] = useState<string>("all")
+  const [registrationFrom, setRegistrationFrom] = useState("")
+  const [registrationTo, setRegistrationTo] = useState("")
   const [sortBy, setSortBy] = useState<UserFilters["sortBy"]>("name")
   const [sortOrder, setSortOrder] = useState<UserFilters["sortOrder"]>("asc")
   const [userDialogOpen, setUserDialogOpen] = useState(false)
@@ -45,9 +47,19 @@ export default function UsersPage() {
     if (searchTerm) baseFilters.search = searchTerm
     if (statusFilter !== "all") baseFilters.status = statusFilter as User["status"]
     if (roleFilter !== "all") baseFilters.roleId = roleFilter
+    if (registrationFrom) baseFilters.registrationFromDate = registrationFrom
+    if (registrationTo) baseFilters.registrationToDate = registrationTo
 
     return baseFilters
-  }, [searchTerm, statusFilter, roleFilter, sortBy, sortOrder])
+  }, [
+    searchTerm,
+    statusFilter,
+    roleFilter,
+    sortBy,
+    sortOrder,
+    registrationFrom,
+    registrationTo,
+  ])
 
   useEffect(() => {
     adminService.getUsers(filters).then(setUsers)
@@ -144,7 +156,11 @@ export default function UsersPage() {
             <Filter className="h-4 w-4" />
             Filtry i wyszukiwanie
           </CardTitle>
-          {(searchTerm || statusFilter !== "all" || roleFilter !== "all") && (
+          {(searchTerm ||
+            statusFilter !== "all" ||
+            roleFilter !== "all" ||
+            registrationFrom ||
+            registrationTo) && (
             <Button
               variant="ghost"
               size="icon"
@@ -152,6 +168,8 @@ export default function UsersPage() {
                 setSearchTerm("")
                 setStatusFilter("all")
                 setRoleFilter("all")
+                setRegistrationFrom("")
+                setRegistrationTo("")
               }}
               aria-label="Wyczyść filtry"
             >
@@ -196,6 +214,20 @@ export default function UsersPage() {
                 ))}
               </SelectContent>
             </Select>
+            <Input
+              type="date"
+              value={registrationFrom}
+              onChange={(e) => setRegistrationFrom(e.target.value)}
+              className="w-full md:w-[180px]"
+              placeholder="Data od"
+            />
+            <Input
+              type="date"
+              value={registrationTo}
+              onChange={(e) => setRegistrationTo(e.target.value)}
+              className="w-full md:w-[180px]"
+              placeholder="Data do"
+            />
           </div>
         </CardContent>
       </Card>

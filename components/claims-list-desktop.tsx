@@ -178,12 +178,16 @@ export function ClaimsListDesktop({
     const loadRiskTypes = async () => {
       try {
         const responses = await Promise.all(
-          [1, 2, 3].map((type) =>
-            dictionaryService.getRiskTypes(String(type)),
-          ),
+          [1, 2, 3].map(async (type) => {
+            const data = await dictionaryService.getRiskTypes(String(type))
+            return (data.items ?? []).map((item) => ({
+              ...item,
+              claimObjectTypeId: type,
+            }))
+          }),
         )
 
-        const allItems = responses.flatMap((data) => data.items ?? [])
+        const allItems = responses.flat()
 
         setRiskTypes(
           allItems as {

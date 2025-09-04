@@ -25,7 +25,12 @@ import {
   Flag,
   MoreVertical,
 } from "lucide-react"
-import { EmailFolder, type Email, type EmailCompose, type EmailAttachment } from "@/types/email"
+import {
+  EmailFolder,
+  type Email,
+  type EmailCompose,
+  type EmailAttachment,
+} from "@/types/email"
 import type { UploadedFile, RequiredDocument } from "@/types"
 
 interface EmailSectionProps {
@@ -47,6 +52,8 @@ export const EmailSection = ({
 }: EmailSectionProps) => {
   const { toast } = useToast()
   const [emails, setEmails] = useState<Email[]>([])
+  const [folderCounts, setFolderCounts] = useState<Record<string, number>>({})
+  const [unreadCounts, setUnreadCounts] = useState<Record<string, number>>({})
   const mapEmailDto = (dto: EmailDto): Email => ({
     id: dto.id,
     from: dto.from,
@@ -58,7 +65,14 @@ export const EmailSection = ({
     isRead: dto.read ?? false,
     isStarred: false,
     isImportant: dto.isImportant ?? false,
-    folder: dto.direction === "Outbound" ? "sent" : "inbox",
+    folder:
+      dto.status === "Draft"
+        ? "drafts"
+        : !dto.eventId
+          ? "unassigned"
+          : dto.direction === "Outbound"
+            ? "sent"
+            : "inbox",
     status: dto.status,
     date: dto.receivedDate || new Date().toISOString(),
     attachments:
@@ -85,7 +99,19 @@ export const EmailSection = ({
       } else {
         data = await emailService.getEmailsByFolder(folderEnum)
       }
-      setEmails(data.map(mapEmailDto))
+      let mapped = data.map(mapEmailDto)
+      if (folderEnum === EmailFolder.Starred) {
+        mapped = mapped.filter((e) => e.isStarred)
+      }
+      setEmails(mapped)
+      setFolderCounts((prev) => ({
+        ...prev,
+        [folderEnum]: mapped.length,
+      }))
+      setUnreadCounts((prev) => ({
+        ...prev,
+        [folderEnum]: mapped.filter((e) => !e.isRead).length,
+      }))
     } catch (error) {
       console.error("Error fetching emails:", error)
       toast({ title: "Błąd", description: "Nie udało się pobrać e-maili", variant: "destructive" })
@@ -128,6 +154,53 @@ export const EmailSection = ({
     return "other"
   }
 
+  const fetchCounts = async () => {
+    try {
+      const folders: EmailFolder[] = [
+        EmailFolder.Inbox,
+        EmailFolder.Sent,
+        EmailFolder.Drafts,
+        EmailFolder.Starred,
+        EmailFolder.Unassigned,
+      ]
+      const results = await Promise.all(
+        folders.map(async (f) => {
+          let data: EmailDto[]
+          if (f === EmailFolder.Unassigned) {
+            data = await emailService.getUnassignedEmails()
+          } else if (claimId) {
+            data = await emailService.getEmailsByEventId(claimId, f)
+          } else {
+            data = await emailService.getEmailsByFolder(f)
+          }
+          let mapped = data.map(mapEmailDto)
+          if (f === EmailFolder.Starred) {
+            mapped = mapped.filter((e) => e.isStarred)
+          }
+          return { folder: f, emails: mapped }
+        }),
+      )
+      const counts: Record<string, number> = {}
+      const unread: Record<string, number> = {}
+      results.forEach(({ folder, emails }) => {
+        counts[folder] = emails.length
+        unread[folder] = emails.filter((e) => !e.isRead).length
+        if (folder === activeTab) {
+          setEmails(emails)
+        }
+      })
+      setFolderCounts(counts)
+      setUnreadCounts(unread)
+    } catch (error) {
+      console.error("Error fetching counts:", error)
+    }
+  }
+
+  useEffect(() => {
+    fetchCounts()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [claimId])
+
   const filteredEmails =
     activeTab === "starred" ? emails.filter((email) => email.isStarred) : emails
 
@@ -166,6 +239,10 @@ export const EmailSection = ({
       await emailService.markAsRead(email.id)
     }
     setEmails((prev) => prev.map((e) => (e.id === email.id ? { ...e, isRead: true } : e)))
+    setUnreadCounts((prev) => ({
+      ...prev,
+      [activeTab]: Math.max((prev[activeTab] || 0) - 1, 0),
+    }))
     setSelectedEmail({ ...email, isRead: true })
     setCurrentView("view")
   }
@@ -181,6 +258,7 @@ export const EmailSection = ({
     setEmails((prev) =>
       prev.map((email) => (email.id === emailId ? { ...email, isStarred: !email.isStarred } : email)),
     )
+    await fetchCounts()
   }
 
   const handleAssignEmail = async (emailId: string) => {
@@ -190,6 +268,7 @@ export const EmailSection = ({
       if (success) {
         setEmails((prev) => prev.filter((e) => e.id !== emailId))
         toast({ title: "E-mail przypisany", description: "E-mail został przypisany do szkody" })
+        await fetchCounts()
       } else {
         toast({ title: "Błąd", description: "Nie udało się przypisać e-maila", variant: "destructive" })
       }
@@ -271,6 +350,7 @@ export const EmailSection = ({
     if (success) {
       toast({ title: "E-mail wysłany", description: "Wiadomość została wysłana pomyślnie" })
       await loadEmails(activeTab)
+      await fetchCounts()
       setCurrentView("list")
       setComposeData({})
     } else {
@@ -295,6 +375,7 @@ export const EmailSection = ({
     if (success) {
       toast({ title: "Szkic zapisany", description: "Wiadomość została zapisana w szkicach" })
       await loadEmails(activeTab)
+      await fetchCounts()
       setCurrentView("list")
       setComposeData({})
     } else {
@@ -311,8 +392,6 @@ export const EmailSection = ({
     setCurrentView("list")
     setComposeData({})
   }
-
-  const unreadCount = filteredEmails.filter((email) => !email.isRead).length
 
   if (currentView === "compose") {
     return (
@@ -343,6 +422,7 @@ export const EmailSection = ({
           if (success) {
             toast({ title: "E-mail zarchiwizowany" })
             await loadEmails()
+            await fetchCounts()
           } else {
             toast({ title: "Błąd", description: "Nie udało się zarchiwizować", variant: "destructive" })
           }
@@ -352,6 +432,7 @@ export const EmailSection = ({
           if (success) {
             toast({ title: "E-mail usunięty" })
             await loadEmails()
+            await fetchCounts()
           } else {
             toast({ title: "Błąd", description: "Nie udało się usunąć", variant: "destructive" })
           }
@@ -379,27 +460,53 @@ export const EmailSection = ({
               <TabsTrigger value="inbox" className="flex items-center space-x-2">
                 <Inbox className="h-4 w-4" />
                 <span>Odebrane</span>
-                {unreadCount > 0 && (
+                {unreadCounts.inbox > 0 ? (
                   <Badge variant="secondary" className="ml-1 bg-blue-100 text-blue-800">
-                    {unreadCount}
+                    {unreadCounts.inbox}
                   </Badge>
+                ) : (
+                  folderCounts.inbox > 0 && (
+                    <span className="ml-1 text-xs text-gray-500">
+                      {folderCounts.inbox}
+                    </span>
+                  )
                 )}
               </TabsTrigger>
               <TabsTrigger value="sent" className="flex items-center space-x-2">
                 <Send className="h-4 w-4" />
                 <span>Wysłane</span>
+                {folderCounts.sent > 0 && (
+                  <span className="ml-1 text-xs text-gray-500">
+                    {folderCounts.sent}
+                  </span>
+                )}
               </TabsTrigger>
               <TabsTrigger value="drafts" className="flex items-center space-x-2">
                 <Mail className="h-4 w-4" />
                 <span>Szkice</span>
+                {folderCounts.drafts > 0 && (
+                  <span className="ml-1 text-xs text-gray-500">
+                    {folderCounts.drafts}
+                  </span>
+                )}
               </TabsTrigger>
               <TabsTrigger value="starred" className="flex items-center space-x-2">
                 <Star className="h-4 w-4" />
                 <span>Oznaczone</span>
+                {folderCounts.starred > 0 && (
+                  <span className="ml-1 text-xs text-gray-500">
+                    {folderCounts.starred}
+                  </span>
+                )}
               </TabsTrigger>
               <TabsTrigger value="unassigned" className="flex items-center space-x-2">
                 <MailOpen className="h-4 w-4" />
                 <span>Nieprzypisane</span>
+                {folderCounts.unassigned > 0 && (
+                  <span className="ml-1 text-xs text-gray-500">
+                    {folderCounts.unassigned}
+                  </span>
+                )}
               </TabsTrigger>
             </TabsList>
 

@@ -2149,11 +2149,24 @@ export const DocumentsSection = React.forwardRef<
                   </div>
                 )}
               </div>
-              {previewDocument.description && (
-                <div className="p-4">
-                  <p className="text-sm text-gray-600">{previewDocument.description}</p>
+              <div className="p-4">
+                <div className="flex items-center gap-1">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-7 w-7"
+                    onClick={() => handleGenerateAIDescription(previewDocument.id)}
+                  >
+                    <Wand className="h-4 w-4 text-purple-500" />
+                  </Button>
+                  <Input
+                    value={previewDocument.description || ""}
+                    onChange={(e) => handleDescriptionChange(previewDocument.id, e.target.value)}
+                    className="text-sm h-8"
+                    placeholder="Wprowadź opis pliku..."
+                  />
                 </div>
-              )}
+              </div>
             </div>
           </div>
         )}

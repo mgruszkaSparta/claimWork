@@ -21,7 +21,9 @@ export function KmzPreview({ url }: KmzPreviewProps) {
         const response = await fetch(url)
         const arrayBuffer = await response.arrayBuffer()
         const zip = await JSZip.loadAsync(arrayBuffer)
-        const kmlFileName = Object.keys(zip.files).find((n) => n.endsWith(".kml"))
+        const kmlFileName = Object.keys(zip.files).find((n) =>
+          n.toLowerCase().endsWith(".kml")
+        )
         if (!kmlFileName) return
         const kmlText = await zip.files[kmlFileName].async("text")
         const dom = new DOMParser().parseFromString(kmlText, "application/xml")

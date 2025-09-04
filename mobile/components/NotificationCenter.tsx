@@ -45,9 +45,9 @@ export function NotificationCenter({ onNavigate }: NotificationCenterProps) {
     }
   };
 
-  const handleNotificationClick = (notification: Notification) => {
+  const handleNotificationClick = async (notification: Notification) => {
     if (!notification.read) {
-      markAsRead(notification.id);
+      await markAsRead(notification.id);
     }
     
     if (notification.claimId) {

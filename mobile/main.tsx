@@ -15,6 +15,13 @@ function urlBase64ToUint8Array(base64String: string) {
   return outputArray;
 }
 
+function getApiBaseUrl() {
+  if (typeof window === "undefined") return "/api";
+  return window.location.origin.includes("localhost")
+    ? "http://localhost:5200/api"
+    : "/api";
+}
+
 // Request notification permission and register service worker
 if (typeof window !== "undefined") {
   window.addEventListener("load", async () => {
@@ -41,7 +48,8 @@ if (typeof window !== "undefined") {
 
           if ("PushManager" in window && Notification.permission === "granted") {
             try {
-              const res = await fetch("/api/push/public-key");
+              const baseUrl = getApiBaseUrl();
+              const res = await fetch(`${baseUrl}/push/public-key`);
               const data = await res.json();
               let sub = await reg.pushManager.getSubscription();
               if (!sub) {
@@ -50,7 +58,7 @@ if (typeof window !== "undefined") {
                   applicationServerKey: urlBase64ToUint8Array(data.key),
                 });
               }
-              await fetch("/api/push/subscribe", {
+              await fetch(`${baseUrl}/push/subscribe`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(sub),

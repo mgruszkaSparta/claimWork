@@ -8,6 +8,16 @@ const API_BASE_URL = self.location.origin.includes("localhost")
   ? "http://localhost:5200/api"
   : "/api";
 
+async function broadcast(notification) {
+  const clients = await self.clients.matchAll({
+    type: "window",
+    includeUncontrolled: true,
+  });
+  for (const client of clients) {
+    client.postMessage({ type: "PUSH_NOTIFICATION", notification });
+  }
+}
+
 async function fetchNotifications() {
   try {
     const res = await fetch(`${API_BASE_URL}/mobile/notifications`);
@@ -19,6 +29,7 @@ async function fetchNotifications() {
           body: n.message || "",
         });
         seenIds.add(n.id);
+        broadcast(n);
       }
     }
   } catch (err) {
@@ -48,7 +59,10 @@ self.addEventListener('push', event => {
   }
   const title = data.title || 'Notification';
   const options = { body: data.message || '' };
-  event.waitUntil(self.registration.showNotification(title, options));
+  event.waitUntil((async () => {
+    await self.registration.showNotification(title, options);
+    broadcast(data);
+  })());
 });
 
 self.addEventListener('notificationclick', event => {

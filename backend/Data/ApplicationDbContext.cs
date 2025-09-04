@@ -66,9 +66,13 @@ namespace AutomotiveClaimsApi.Data
 
         private void AddRReports()
         {
+            // Materialize the tracked entries before adding new entities to avoid
+            // modifying the collection while it's being iterated, which causes a
+            // "Collection was modified" exception.
             var entries = ChangeTracker.Entries()
                 .Where(e => e.Entity is not RReport &&
-                            (e.State == EntityState.Added || e.State == EntityState.Modified));
+                            (e.State == EntityState.Added || e.State == EntityState.Modified))
+                .ToList();
 
             foreach (var entry in entries)
             {

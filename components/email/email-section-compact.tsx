@@ -78,7 +78,9 @@ export const EmailSection = ({
     try {
       let data: EmailDto[]
       const folderEnum = (folder ?? activeTab) as EmailFolder
-      if (claimId) {
+      if (folderEnum === EmailFolder.Unassigned) {
+        data = await emailService.getUnassignedEmails()
+      } else if (claimId) {
         data = await emailService.getEmailsByEventId(claimId, folderEnum)
       } else {
         data = await emailService.getEmailsByFolder(folderEnum)
@@ -179,6 +181,22 @@ export const EmailSection = ({
     setEmails((prev) =>
       prev.map((email) => (email.id === emailId ? { ...email, isStarred: !email.isStarred } : email)),
     )
+  }
+
+  const handleAssignEmail = async (emailId: string) => {
+    if (!claimId) return
+    try {
+      const success = await emailService.assignEmailToClaim(emailId, [claimId])
+      if (success) {
+        setEmails((prev) => prev.filter((e) => e.id !== emailId))
+        toast({ title: "E-mail przypisany", description: "E-mail został przypisany do szkody" })
+      } else {
+        toast({ title: "Błąd", description: "Nie udało się przypisać e-maila", variant: "destructive" })
+      }
+    } catch (error) {
+      console.error("Error assigning email:", error)
+      toast({ title: "Błąd", description: "Nie udało się przypisać e-maila", variant: "destructive" })
+    }
   }
 
   const handleCompose = () => {
@@ -357,7 +375,7 @@ export const EmailSection = ({
 
         <CardContent>
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-            <TabsList className="grid w-full grid-cols-4">
+            <TabsList className="grid w-full grid-cols-5">
               <TabsTrigger value="inbox" className="flex items-center space-x-2">
                 <Inbox className="h-4 w-4" />
                 <span>Odebrane</span>
@@ -378,6 +396,10 @@ export const EmailSection = ({
               <TabsTrigger value="starred" className="flex items-center space-x-2">
                 <Star className="h-4 w-4" />
                 <span>Oznaczone</span>
+              </TabsTrigger>
+              <TabsTrigger value="unassigned" className="flex items-center space-x-2">
+                <MailOpen className="h-4 w-4" />
+                <span>Nieprzypisane</span>
               </TabsTrigger>
             </TabsList>
 
@@ -479,14 +501,28 @@ export const EmailSection = ({
                           </span>
                         </div>
 
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="ml-2 opacity-0 group-hover:opacity-100"
-                          onClick={(e) => e.stopPropagation()}
-                        >
-                          <MoreVertical className="h-4 w-4" />
-                        </Button>
+                        {activeTab === "unassigned" ? (
+                          <Button
+                            variant="secondary"
+                            size="sm"
+                            className="ml-2"
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              handleAssignEmail(email.id)
+                            }}
+                          >
+                            Przypisz
+                          </Button>
+                        ) : (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="ml-2 opacity-0 group-hover:opacity-100"
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            <MoreVertical className="h-4 w-4" />
+                          </Button>
+                        )}
                       </div>
                     ))}
                   </div>

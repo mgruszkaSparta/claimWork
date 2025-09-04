@@ -1659,13 +1659,6 @@ export const DocumentsSection = React.forwardRef<
               {isCategoryOpen && (
                 <CardContent className="p-3 space-y-2">
                   <div className="flex items-center justify-between">
-                    <div className="relative w-full max-w-sm">
-                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-                      <Input
-                        placeholder="Wyszukaj w plikach (nazwa, opis, typ, rozmiar, id)..."
-                        className="pl-10"
-                      />
-                    </div>
                     <div className="flex items-center gap-1.5">
                       <span className="text-sm font-medium text-gray-600">Szybkie filtry:</span>
                       <Badge variant="secondary" className="cursor-pointer px-2">

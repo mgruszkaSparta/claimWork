@@ -557,7 +557,7 @@ export const RepairDetailsSection: React.FC<RepairDetailsSectionProps> = ({
                   <FileText className="h-16 w-16 text-primary" />
                 </div>
               <p className="text-xl font-semibold text-foreground">Brak opisów naprawy</p>
-              <p className="text-muted-foreground">Dodaj pierwszy opis, aby rozpocząć</p>
+              <p className="text-muted-foreground">Dodaj pierwszy opis, aby rozpocząć. Utwórz formularz.</p>
             </div>
           </CardContent>
         </Card>

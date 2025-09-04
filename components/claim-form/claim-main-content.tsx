@@ -36,11 +36,9 @@ import { useToast } from "@/hooks/use-toast"
 import { useDamages, createDamageDraft } from "@/hooks/use-damages"
 import VehicleTypeDropdown from "@/components/vehicle-type-dropdown"
 import type { VehicleTypeSelectionEvent } from "@/types/vehicle-type"
-import { RepairScheduleSection } from "./repair-schedule-section"
-import { RepairDetailsSection } from "./repair-details-section"
+import RepairPlanSection from "./repair-plan-section"
 import { dictionaryService } from "@/lib/dictionary-service"
 import { DamageDataSection } from "./damage-data-section"
-import type { RepairDetail } from "@/lib/repair-details-store"
 import { PropertyDamageSection } from "./property-damage-section"
 import { PropertyParticipantsSection } from "./property-participants-section"
 import InjuredPartySection from "./injured-party-section"
@@ -208,41 +206,6 @@ export const ClaimMainContent = ({
   const eventId = claimFormData.id && isGuid(claimFormData.id) ? claimFormData.id : undefined
 
   const documentsSectionRef = useRef<DocumentsSectionRef>(null)
-
-
-  const [repairDetails, setRepairDetails] = useState<RepairDetail[]>([])
-
-  useEffect(() => {
-    const loadRepairDetails = async () => {
-      if (!eventId) return
-      try {
-        const response = await authFetch(
-          `${process.env.NEXT_PUBLIC_API_URL}/repair-details?eventId=${eventId}`,
-
-          { method: "GET" },
-
-        )
-        if (response.ok) {
-          const data = await response.json()
-          setRepairDetails(data)
-        }
-      } catch (error) {
-        console.error("Error loading repair details:", error)
-      }
-    }
-
-    loadRepairDetails()
-  }, [eventId])
-
-  const summaryStatus =
-    repairDetails.length === 0
-      ? ""
-      : repairDetails.some((d) => d.status === "in-progress")
-      ? "W trakcie"
-      : repairDetails.every((d) => d.status === "completed")
-      ? "Zakończone"
-      : "Szkic"
-
 
 
   // State for dropdown data
@@ -682,16 +645,17 @@ export const ClaimMainContent = ({
       return (
         <div className="space-y-4">
           <Card className="overflow-hidden shadow-sm border-gray-200 rounded-xl">
-            <FormHeader icon={Calendar} title="Harmonogram naprawy" />
+            <FormHeader icon={Calendar} title="Harmonogram i naprawy" />
             <CardContent className="p-0 bg-white">
-              {/* Harmonogram naprawy - expandable section with data preview */}
               <div className="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden">
                 <div className="p-4">
-                {eventId ? (
-                  <div className="rounded-lg overflow-hidden">
-                    <RepairScheduleSection eventId={eventId} />
-                  </div>
-                ) : (
+                  {eventId ? (
+                    <RepairPlanSection
+                      eventId={eventId}
+                      autoShowRepairForm={autoShowRepairForm}
+                      onAutoShowRepairFormHandled={() => setAutoShowRepairForm(false)}
+                    />
+                  ) : (
                     <div className="space-y-4">
                       {/* Sample repair schedule items */}
                       <div className="space-y-2">
@@ -741,85 +705,6 @@ export const ClaimMainContent = ({
                           </div>
                         </div>
                       </div>
-
-                    </div>
-                  )}
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="overflow-hidden shadow-sm border-gray-200 rounded-xl">
-            <FormHeader icon={Wrench} title="Szczegóły naprawy" />
-            <CardContent className="p-0 bg-white">
-              {/* Szczegóły naprawy - expandable section with data preview */}
-              <div className="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden">
-                <div className="px-4 py-3 bg-gradient-to-r from-blue-50 to-blue-100 border-b border-gray-200">
-                  <div className="flex items-center">
-                    <div className="flex items-center space-x-2">
-                      <Wrench className="h-4 w-4 text-blue-600" />
-                      <h3 className="text-sm font-semibold text-gray-900">Szczegóły naprawy</h3>
-                    </div>
-                  </div>
-                </div>
-                <div className="p-4">
-                  {eventId ? (
-                    <div className="border rounded-lg overflow-hidden">
-                      <RepairDetailsSection
-                        eventId={eventId}
-                        autoShowForm={autoShowRepairForm}
-                        onAutoShowFormHandled={() => setAutoShowRepairForm(false)}
-                      />
-                    </div>
-                  ) : (
-                    <div className="space-y-4">
-                      {/* Preview of repair details */}
-                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        <InfoCard
-                          icon={<Wrench className="h-4 w-4" />}
-                          label="Liczba pozycji"
-                          value={repairDetails.length.toString()}
-                        />
-                        <InfoCard
-                          icon={<DollarSign className="h-4 w-4" />}
-                          label="Całkowity koszt"
-                          value=""
-                        />
-                        <InfoCard
-                          icon={<Clock className="h-4 w-4" />}
-                          label="Status"
-                          value={summaryStatus}
-                        />
-                      </div>
-
-                      {repairDetails.length > 0 && (
-                        <div className="space-y-2">
-                          {repairDetails.slice(0, 2).map((detail, index) => (
-                            <div key={detail.id || index} className="bg-gray-50 rounded-lg p-3 border border-gray-200">
-                              <div className="flex items-center justify-between mb-2">
-                                <h4 className="font-medium text-gray-900 text-sm">
-                                  {detail.vehicleTabNumber} ({detail.vehicleRegistration})
-                                </h4>
-                                <span className="px-2 py-1 bg-gray-100 text-gray-800 rounded-full text-xs font-medium">
-                                  {detail.status}
-                                </span>
-                              </div>
-                              <div className="grid grid-cols-2 gap-4 text-xs text-gray-600">
-                                <div>
-                                  <span className="font-medium">Łączne godziny:</span>{" "}
-                                  {(detail.bodyworkHours + detail.paintingHours + detail.assemblyHours + detail.otherWorkHours).toFixed(1)}
-                                </div>
-                                {detail.repairStartDate && (
-                                  <div>
-                                    <span className="font-medium">Rozpoczęcie:</span> {detail.repairStartDate}
-                                  </div>
-                                )}
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      )}
-
                     </div>
                   )}
                 </div>

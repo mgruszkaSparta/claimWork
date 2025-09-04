@@ -9,8 +9,18 @@ using Microsoft.Extensions.Logging;
 
 var builder = Host.CreateApplicationBuilder(args);
 
+var dbProvider = builder.Configuration.GetValue<string>("DatabaseProvider")?.ToLowerInvariant();
 builder.Services.AddDbContext<EmailDbContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+{
+    if (dbProvider == "postgres" || dbProvider == "postgresql")
+    {
+        options.UseNpgsql(builder.Configuration.GetConnectionString("PostgresConnection"));
+    }
+    else
+    {
+        options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"));
+    }
+});
 
 builder.Services.AddSingleton<IAttachmentStorage>(_ =>
     builder.Configuration["Storage:Bucket"] is { Length: > 0 } bucket

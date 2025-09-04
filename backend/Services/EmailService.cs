@@ -522,10 +522,22 @@ namespace AutomotiveClaimsApi.Services
                     });
                 }
 
-                if (email.EventId == null)
-                {
-                    email.EventId = claim.EventId;
-                }
+                // Always associate the email with the event of the claim
+                // so it moves out of the unassigned folder and into "Odebrane".
+                // This also ensures that subsequent reassignments update the
+                // event reference.
+                email.EventId = claim.EventId;
+            }
+
+            // Mark the email as received once it's linked to a claim
+            if (email.Status != "Received")
+            {
+                email.Status = "Received";
+            }
+
+            if (!email.ReceivedAt.HasValue)
+            {
+                email.ReceivedAt = DateTime.UtcNow;
             }
 
             await _context.SaveChangesAsync();

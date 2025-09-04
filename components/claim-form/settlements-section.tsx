@@ -326,6 +326,7 @@ export const SettlementsSection: React.FC<SettlementsSectionProps> = ({ eventId 
       "docx",
       "xls",
       "xlsx",
+      "kmz",
     ].includes(ext || "")
   }, [])
 
@@ -356,6 +357,9 @@ export const SettlementsSection: React.FC<SettlementsSectionProps> = ({ eventId 
       setPreviewFileType("excel")
       setPreviewUrl(url)
       window.URL.revokeObjectURL(objectUrl)
+    } else if (ext === "kmz") {
+      setPreviewFileType("kmz")
+      setPreviewUrl(objectUrl)
     } else {
       setPreviewFileType("other")
       setPreviewUrl(objectUrl)
@@ -390,6 +394,9 @@ export const SettlementsSection: React.FC<SettlementsSectionProps> = ({ eventId 
             setPreviewFileType("excel")
             setPreviewUrl(url)
             window.URL.revokeObjectURL(objectUrl)
+          } else if (ext === "kmz") {
+            setPreviewFileType("kmz")
+            setPreviewUrl(objectUrl)
           } else {
             setPreviewFileType("other")
             setPreviewUrl(objectUrl)

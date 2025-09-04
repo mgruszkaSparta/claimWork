@@ -356,6 +356,7 @@ export const AppealsSection = ({ claimId }: AppealsSectionProps) => {
     if (["jpg", "jpeg", "png", "gif", "bmp"].includes(ext || "")) return "image"
     if (ext === "xls" || ext === "xlsx") return "excel"
     if (ext === "doc" || ext === "docx") return "docx"
+    if (ext === "kmz") return "kmz"
     return "other"
   }
 
@@ -500,7 +501,7 @@ export const AppealsSection = ({ claimId }: AppealsSectionProps) => {
   const isPreviewable = (fileName?: string) => {
     if (!fileName) return false
     const fileType = getFileType(fileName)
-    return ["pdf", "image", "excel", "docx"].includes(fileType)
+    return ["pdf", "image", "excel", "docx", "kmz"].includes(fileType)
   }
 
   const getStatusBadge = (status: Appeal["status"]) => {

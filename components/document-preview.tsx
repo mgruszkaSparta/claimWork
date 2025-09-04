@@ -5,8 +5,9 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Button } from "@/components/ui/button"
 import { ChevronLeft, ChevronRight, Download, FileText } from "lucide-react"
 import { renderAsync } from "docx-preview"
+import { KmzPreview } from "@/components/kmz-preview"
 
-export type FileType = "pdf" | "image" | "excel" | "docx" | "other"
+export type FileType = "pdf" | "image" | "excel" | "docx" | "kmz" | "other"
 
 interface DocumentPreviewProps {
   isOpen: boolean
@@ -68,6 +69,8 @@ export function DocumentPreview({
             />
           ) : fileType === "docx" ? (
             <div ref={docxRef} className="w-full h-[70vh] overflow-auto bg-white" />
+          ) : fileType === "kmz" ? (
+            <KmzPreview url={url} />
           ) : (
             <div className="text-center p-8">
               <FileText className="h-12 w-12 text-gray-400 mx-auto mb-4" />

@@ -501,6 +501,7 @@ export function RecourseSection({ eventId }: RecourseSectionProps) {
       "docx",
       "xls",
       "xlsx",
+      "kmz",
     ].includes(ext || "")
   }
 
@@ -514,6 +515,7 @@ export function RecourseSection({ eventId }: RecourseSectionProps) {
     if (ext === "pdf") return "pdf"
     if (["jpg", "jpeg", "png", "gif", "bmp"].includes(ext || "")) return "image"
     if (ext === "xls" || ext === "xlsx") return "excel"
+    if (ext === "kmz") return "kmz"
     return "other"
   }
 

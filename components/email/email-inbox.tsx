@@ -1043,6 +1043,8 @@ export default function EmailInbox({ claimId, claimNumber, claimInsuranceNumber 
             ? ("image" as FileType)
             : previewedAttachment?.contentType === "application/pdf"
             ? ("pdf" as FileType)
+            : previewedAttachment?.contentType === "application/vnd.google-earth.kmz"
+            ? ("kmz" as FileType)
             : ("other" as FileType)
         }
         onDownload={() => previewedAttachment && downloadAttachment(previewedAttachment)}

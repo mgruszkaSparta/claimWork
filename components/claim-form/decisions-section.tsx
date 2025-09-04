@@ -527,12 +527,13 @@ export function DecisionsSection({ claimId, onChange }: DecisionsSectionProps) {
     const extension = fileName.split("?")[0].split(".").pop()?.toLowerCase()
     if (["pdf"].includes(extension || "")) return "pdf"
     if (["jpg", "jpeg", "png", "gif", "bmp"].includes(extension || "")) return "image"
+    if (extension === "kmz") return "kmz"
     return "other"
   }
 
   const isPreviewable = (fileName: string): boolean => {
     const fileType = getFileType(fileName)
-    return ["pdf", "image"].includes(fileType)
+    return ["pdf", "image", "kmz"].includes(fileType)
   }
 
   const getStatusBadgeVariant = (status: string) => {

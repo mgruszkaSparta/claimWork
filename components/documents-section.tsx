@@ -20,6 +20,7 @@ import { File, Search, Eye, Download, Upload, X, Trash2, Grid, List, Wand, Plus,
 import type { DocumentsSectionProps, UploadedFile, DocumentsSectionRef } from "@/types"
 import JSZip from "jszip"
 import { saveAs } from "file-saver"
+import { KmzPreview } from "@/components/kmz-preview"
 
 // Categories that have dedicated sections elsewhere and therefore should
 // not appear in the generic documents section for a claim folder.
@@ -233,7 +234,8 @@ export const DocumentsSection = React.forwardRef<
         file.type === "image" ||
         file.type === "pdf" ||
         file.type === "video" ||
-        file.type === "doc",
+        file.type === "doc" ||
+        file.type === "kmz",
       previewUrl,
       downloadUrl,
       documentType: file.category || "Inne dokumenty",
@@ -247,6 +249,7 @@ export const DocumentsSection = React.forwardRef<
   ): UploadedFile["type"] => {
     if (contentType.includes("pdf")) return "pdf"
     if (contentType.includes("image")) return "image"
+    if (contentType.includes("vnd.google-earth.kmz")) return "kmz"
     if (
       contentType.includes("msword") ||
       contentType.includes("wordprocessingml") ||
@@ -445,6 +448,8 @@ export const DocumentsSection = React.forwardRef<
             ? "image"
             : file.type.includes("pdf")
             ? "pdf"
+            : file.type.includes("vnd.google-earth.kmz")
+            ? "kmz"
             : file.type.includes("msword") ||
               file.type.includes("wordprocessingml") ||
               file.type.includes("ms-excel") ||
@@ -2090,6 +2095,8 @@ export const DocumentsSection = React.forwardRef<
                       Twoja przeglądarka nie obsługuje odtwarzania wideo.
                     </video>
                   </div>
+                ) : previewDocument.contentType?.includes("vnd.google-earth.kmz") ? (
+                  <KmzPreview url={previewDocument.previewUrl || previewDocument.downloadUrl} />
                 ) : previewDocument.contentType?.startsWith("application/pdf") ? (
                   <object
                     data={previewDocument.previewUrl || previewDocument.downloadUrl}

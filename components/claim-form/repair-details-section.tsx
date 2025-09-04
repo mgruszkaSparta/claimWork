@@ -57,6 +57,7 @@ const initialFormData: Omit<RepairDetail, "id" | "eventId" | "createdAt" | "upda
   repairEndDate: "",
   otherVehiclesAvailable: false,
   otherVehiclesInfo: "",
+  repairType: "mechanical",
   bodyworkHours: 0,
   paintingHours: 0,
   assemblyHours: 0,
@@ -160,6 +161,7 @@ export const RepairDetailsSection: React.FC<RepairDetailsSectionProps> = ({
       repairEndDate: detail.repairEndDate ? detail.repairEndDate.slice(0, 10) : "",
       otherVehiclesAvailable: detail.otherVehiclesAvailable,
       otherVehiclesInfo: detail.otherVehiclesInfo || "",
+      repairType: detail.repairType || "mechanical",
       bodyworkHours: detail.bodyworkHours,
       paintingHours: detail.paintingHours,
       assemblyHours: detail.assemblyHours,
@@ -183,6 +185,15 @@ export const RepairDetailsSection: React.FC<RepairDetailsSectionProps> = ({
       console.error("Error deleting repair detail:", error)
       toast({ title: "Błąd", description: "Nie udało się usunąć opisu", variant: "destructive" })
     }
+  }
+
+  const repairTypeLabels: Record<NonNullable<RepairDetail["repairType"]>, string> = {
+    mechanical: "Mechaniczna",
+    bodywork: "Blacharska",
+    painting: "Lakiernicza",
+    electrical: "Elektryczna",
+    assembly: "Montażowa",
+    other: "Inna",
   }
 
   const getStatusBadge = (status: RepairDetail["status"]) => {
@@ -421,6 +432,29 @@ export const RepairDetailsSection: React.FC<RepairDetailsSectionProps> = ({
                 </div>
               </div>
 
+              {/* Repair type */}
+              <div className="space-y-4">
+                <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
+                  <Wrench className="h-5 w-5 text-primary" /> Rodzaj naprawy
+                </h3>
+                <Select
+                  value={formData.repairType}
+                  onValueChange={(value) => setFormData((p) => ({ ...p, repairType: value as any }))}
+                >
+                  <SelectTrigger id="repairType" className="rounded-xl border-border">
+                    <SelectValue placeholder="Wybierz rodzaj naprawy" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="mechanical">Mechaniczna</SelectItem>
+                    <SelectItem value="bodywork">Blacharska</SelectItem>
+                    <SelectItem value="painting">Lakiernicza</SelectItem>
+                    <SelectItem value="electrical">Elektryczna</SelectItem>
+                    <SelectItem value="assembly">Montażowa</SelectItem>
+                    <SelectItem value="other">Inna</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
               {/* Work hours */}
               <div className="space-y-4">
                 <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
@@ -624,6 +658,10 @@ export const RepairDetailsSection: React.FC<RepairDetailsSectionProps> = ({
                     <p className="text-xs text-muted-foreground">Zakończenie naprawy</p>
                     <p className="font-medium">{formatDate(detail.repairEndDate)}</p>
                   </div>
+                </div>
+                <div className="space-y-2">
+                  <p className="text-xs text-muted-foreground">Rodzaj naprawy</p>
+                  <p className="font-medium">{repairTypeLabels[detail.repairType ?? "mechanical"]}</p>
                 </div>
                 {detail.damageDescription && (
                   <div className="p-5 bg-muted/50 rounded-2xl">

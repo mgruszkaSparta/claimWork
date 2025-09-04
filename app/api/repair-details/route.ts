@@ -48,6 +48,7 @@ export async function POST(request: NextRequest) {
       repairEndDate: body.repairEndDate || "",
       otherVehiclesAvailable: body.otherVehiclesAvailable || false,
       otherVehiclesInfo: body.otherVehiclesInfo || "",
+      repairType: body.repairType || "mechanical",
       bodyworkHours: body.bodyworkHours || 0,
       paintingHours: body.paintingHours || 0,
       assemblyHours: body.assemblyHours || 0,

@@ -17,6 +17,17 @@ const repairDetailSchema = z.object({
   repairEndDate: z.string().min(1, "Data zakończenia naprawy jest wymagana"),
   otherVehiclesAvailable: z.boolean(),
   otherVehiclesInfo: z.string().optional().default(""),
+  repairType: z
+    .enum([
+      "mechanical",
+      "bodywork",
+      "painting",
+      "electrical",
+      "assembly",
+      "other",
+    ])
+    .optional()
+    .default("mechanical"),
   bodyworkHours: z.number(),
   paintingHours: z.number(),
   assemblyHours: z.number(),

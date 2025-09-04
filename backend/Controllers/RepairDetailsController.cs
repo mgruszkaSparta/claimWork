@@ -53,6 +53,7 @@ namespace AutomotiveClaimsApi.Controllers
                 RepairEndDate = createDto.RepairEndDate,
                 OtherVehiclesAvailable = createDto.OtherVehiclesAvailable,
                 OtherVehiclesInfo = createDto.OtherVehiclesInfo,
+                RepairType = createDto.RepairType,
                 BodyworkHours = createDto.BodyworkHours,
                 PaintingHours = createDto.PaintingHours,
                 AssemblyHours = createDto.AssemblyHours,
@@ -89,6 +90,7 @@ namespace AutomotiveClaimsApi.Controllers
             if (updateDto.RepairEndDate != null) detail.RepairEndDate = updateDto.RepairEndDate;
             if (updateDto.OtherVehiclesAvailable.HasValue) detail.OtherVehiclesAvailable = updateDto.OtherVehiclesAvailable.Value;
             if (updateDto.OtherVehiclesInfo != null) detail.OtherVehiclesInfo = updateDto.OtherVehiclesInfo;
+            if (updateDto.RepairType != null) detail.RepairType = updateDto.RepairType;
             if (updateDto.BodyworkHours.HasValue) detail.BodyworkHours = updateDto.BodyworkHours.Value;
             if (updateDto.PaintingHours.HasValue) detail.PaintingHours = updateDto.PaintingHours.Value;
             if (updateDto.AssemblyHours.HasValue) detail.AssemblyHours = updateDto.AssemblyHours.Value;

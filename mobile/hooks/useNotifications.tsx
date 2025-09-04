@@ -15,9 +15,9 @@ export interface Notification {
 interface NotificationsContextValue {
   notifications: Notification[];
   unreadCount: number;
-  markAsRead: (id: string) => void;
-  markAllAsRead: () => void;
-  addNotification: (notification: Omit<Notification, 'id' | 'timestamp' | 'read'>) => void;
+  markAsRead: (id: string) => Promise<void>;
+  markAllAsRead: () => Promise<void>;
+  addNotification: (notification: Omit<Notification, 'id' | 'timestamp' | 'read'>) => Promise<void>;
   removeNotification: (id: string) => void;
   getFormattedTime: (timestamp: Date) => string;
 }
@@ -76,31 +76,51 @@ export function NotificationsProvider({ children }: { children: ReactNode }) {
 
   const unreadCount = notifications.filter(n => !n.read).length;
 
-  const markAsRead = (notificationId: string) => {
-    setNotifications(prev => 
-      prev.map(notification => 
-        notification.id === notificationId 
+  const markAsRead = async (notificationId: string) => {
+    setNotifications(prev =>
+      prev.map(notification =>
+        notification.id === notificationId
           ? { ...notification, read: true }
           : notification
       )
     );
+    try {
+      await authFetch(`/mobile/notifications/${notificationId}/read`, { method: 'POST' });
+    } catch (err) {
+      console.error('Failed to mark notification as read', err);
+    }
   };
 
-  const markAllAsRead = () => {
-    setNotifications(prev => 
+  const markAllAsRead = async () => {
+    setNotifications(prev =>
       prev.map(notification => ({ ...notification, read: true }))
     );
+    try {
+      await authFetch('/mobile/notifications/read-all', { method: 'POST' });
+    } catch (err) {
+      console.error('Failed to mark all notifications as read', err);
+    }
   };
 
-  const addNotification = (notification: Omit<Notification, 'id' | 'timestamp' | 'read'>) => {
-    const newNotification: Notification = {
-      ...notification,
-      id: Date.now().toString(),
-      timestamp: new Date(),
-      read: false
-    };
-    
-    setNotifications(prev => [newNotification, ...prev]);
+  const addNotification = async (
+    notification: Omit<Notification, 'id' | 'timestamp' | 'read'>
+  ) => {
+    try {
+      const res = await authFetch('/mobile/notifications', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(notification)
+      });
+      if (!res.ok) return;
+      const saved = await res.json();
+      const parsed: Notification = {
+        ...saved,
+        timestamp: new Date(saved.timestamp)
+      };
+      setNotifications(prev => [parsed, ...prev]);
+    } catch (err) {
+      console.error('Failed to add notification', err);
+    }
   };
 
   const removeNotification = (notificationId: string) => {

@@ -80,7 +80,7 @@ export function ReportClaim({ onNavigate }: ReportClaimProps) {
 
       const { id: claimId } = await response.json();
 
-      addNotification({
+      await addNotification({
         title: 'Szkoda zgłoszona',
         message: `Pomyślnie utworzono zgłoszenie ${claimId}`,
         type: 'success',

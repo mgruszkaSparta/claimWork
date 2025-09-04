@@ -120,7 +120,7 @@ const InfoCard = ({
       {icon && <div className="text-gray-400">{icon}</div>}
       <span className="text-xs font-medium text-gray-500 uppercase tracking-wide">{label}</span>
     </div>
-    <p className="text-sm font-medium text-gray-900 truncate">{value || "Nie określono"}</p>
+    <p className="text-sm font-medium text-gray-900 break-words">{value || "Nie określono"}</p>
   </div>
 )
 

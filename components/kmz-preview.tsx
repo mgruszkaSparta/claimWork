@@ -3,7 +3,7 @@
 import { useEffect, useRef } from "react"
 import JSZip from "jszip"
 import * as toGeoJSON from "@mapbox/togeojson"
-import L from "leaflet"
+import type { Map as LeafletMap } from "leaflet"
 import "leaflet/dist/leaflet.css"
 
 interface KmzPreviewProps {
@@ -14,10 +14,11 @@ export function KmzPreview({ url }: KmzPreviewProps) {
   const mapRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
-    let map: L.Map | null = null
+    let map: LeafletMap | null = null
     async function load() {
       if (!mapRef.current) return
       try {
+        const { default: L } = await import("leaflet")
         const response = await fetch(url)
         const arrayBuffer = await response.arrayBuffer()
         const zip = await JSZip.loadAsync(arrayBuffer)
@@ -26,7 +27,10 @@ export function KmzPreview({ url }: KmzPreviewProps) {
         )
         if (!kmlFileName) return
         const kmlText = await zip.files[kmlFileName].async("text")
-        const dom = new DOMParser().parseFromString(kmlText, "application/xml")
+        const dom = new DOMParser().parseFromString(
+          kmlText,
+          "application/xml"
+        )
         const geojson = toGeoJSON.kml(dom)
         map = L.map(mapRef.current)
         const layer = L.geoJSON(geojson)

@@ -3,6 +3,8 @@ using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using AutomotiveClaimsApi.Models;
 using AutomotiveClaimsApi.Models.Dictionary;
 using AutomotiveClaimsApi.Common;
+using System.Linq;
+using System.Text.Json;
 
 namespace AutomotiveClaimsApi.Data
 {
@@ -34,6 +36,7 @@ namespace AutomotiveClaimsApi.Data
         public DbSet<Department> Departments { get; set; }
         public DbSet<EmployeeRole> EmployeeRoles { get; set; }
         public DbSet<Employee> Employees { get; set; }
+        public DbSet<RReport> RReports { get; set; }
 
         // Dictionary entities
         public DbSet<CaseHandler> CaseHandlers { get; set; }
@@ -48,6 +51,44 @@ namespace AutomotiveClaimsApi.Data
         public DbSet<PaymentMethod> PaymentMethods { get; set; }
         public DbSet<ContractType> ContractTypes { get; set; }
         public DbSet<DocumentStatus> DocumentStatuses { get; set; }
+
+        public override int SaveChanges()
+        {
+            AddRReports();
+            return base.SaveChanges();
+        }
+
+        public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
+        {
+            AddRReports();
+            return await base.SaveChangesAsync(cancellationToken);
+        }
+
+        private void AddRReports()
+        {
+            var entries = ChangeTracker.Entries()
+                .Where(e => e.Entity is not RReport &&
+                            (e.State == EntityState.Added || e.State == EntityState.Modified));
+
+            foreach (var entry in entries)
+            {
+                var tableName = entry.Metadata.GetTableName() ?? entry.Entity.GetType().Name;
+                var pk = entry.Properties.FirstOrDefault(p => p.Metadata.IsPrimaryKey());
+                var recordId = pk?.CurrentValue?.ToString() ?? string.Empty;
+
+                var data = entry.Properties
+                    .ToDictionary(p => p.Metadata.Name, p => p.CurrentValue);
+
+                RReports.Add(new RReport
+                {
+                    TableName = tableName,
+                    RecordId = recordId,
+                    Operation = entry.State == EntityState.Added ? "Insert" : "Update",
+                    Data = JsonSerializer.Serialize(data),
+                    Timestamp = DateTime.UtcNow
+                });
+            }
+        }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

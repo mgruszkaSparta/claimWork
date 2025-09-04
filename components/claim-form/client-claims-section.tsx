@@ -408,6 +408,7 @@ export function ClientClaimsSection({ clientClaims, onClientClaimsChange, claimI
       "docx",
       "xls",
       "xlsx",
+      "kmz",
     ].includes(extension || "")
   }
 
@@ -425,6 +426,8 @@ export function ClientClaimsSection({ clientClaims, onClientClaimsChange, claimI
       fileType = "pdf"
     } else if (["jpg", "jpeg", "png", "gif"].includes(extension || "")) {
       fileType = "image"
+    } else if (extension === "kmz") {
+      fileType = "kmz"
     } else if (extension === "xls" || extension === "xlsx") {
       fileType = "excel"
       url = urlPath
@@ -459,6 +462,8 @@ export function ClientClaimsSection({ clientClaims, onClientClaimsChange, claimI
           fileType = "pdf"
         } else if (["jpg", "jpeg", "png", "gif"].includes(extension || "")) {
           fileType = "image"
+        } else if (extension === "kmz") {
+          fileType = "kmz"
         } else if (extension === "xls" || extension === "xlsx") {
           fileType = "excel"
           url = urlPath

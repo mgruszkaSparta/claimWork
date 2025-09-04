@@ -291,7 +291,7 @@ export interface UploadedFile {
   id: string
   name: string
   size: number
-  type: "image" | "pdf" | "doc" | "video" | "other"
+  type: "image" | "pdf" | "doc" | "video" | "kmz" | "other"
   uploadedAt: string // ISO timestamp when the file was uploaded
   url: string
   cloudUrl?: string

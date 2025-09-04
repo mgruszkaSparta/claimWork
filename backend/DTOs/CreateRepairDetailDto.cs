@@ -17,6 +17,7 @@ namespace AutomotiveClaimsApi.DTOs
         public string? RepairEndDate { get; set; }
         public bool OtherVehiclesAvailable { get; set; }
         public string? OtherVehiclesInfo { get; set; }
+        public string? RepairType { get; set; }
         public double BodyworkHours { get; set; }
         public double PaintingHours { get; set; }
         public double AssemblyHours { get; set; }

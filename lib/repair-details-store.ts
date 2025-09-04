@@ -13,6 +13,7 @@ export interface RepairDetail {
   repairEndDate: string
   otherVehiclesAvailable: boolean
   otherVehiclesInfo: string
+  repairType?: "mechanical" | "bodywork" | "painting" | "electrical" | "assembly" | "other"
   bodyworkHours: number
   paintingHours: number
   assemblyHours: number

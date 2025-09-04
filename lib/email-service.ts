@@ -249,7 +249,9 @@ class EmailService {
       formData.append("isHtml", "false")
       if (sendRequest.claimId) formData.append("claimId", sendRequest.claimId)
       if (sendRequest.eventId) formData.append("eventId", sendRequest.eventId)
-      sendRequest.attachments?.forEach((file) => formData.append("attachments", file))
+      sendRequest.attachments?.forEach((file) =>
+        formData.append("Attachments", file, file.name)
+      )
 
       const response = await authFetch(this.apiUrl, {
         method: "POST",
@@ -272,9 +274,11 @@ class EmailService {
       formData.append("body", sendRequest.body)
       formData.append("isHtml", "false")
       formData.append("direction", "Outbound")
-      if (sendRequest.claimId) formData.append("claimIds", sendRequest.claimId)
+      if (sendRequest.claimId) formData.append("claimId", sendRequest.claimId)
       if (sendRequest.eventId) formData.append("eventId", sendRequest.eventId)
-      sendRequest.attachments?.forEach((file) => formData.append("attachments", file))
+      sendRequest.attachments?.forEach((file) =>
+        formData.append("Attachments", file, file.name)
+      )
 
       const response = await authFetch(`${this.apiUrl}/draft`, {
         method: "POST",
@@ -308,7 +312,7 @@ class EmailService {
     if (!this.isValidGuid(emailId)) return undefined
     try {
       const formData = new FormData()
-      formData.append("file", file)
+      formData.append("file", file, file.name)
       const response = await authFetch(`${this.apiUrl}/${emailId}/attachments`, {
         method: "POST",
         body: formData,

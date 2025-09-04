@@ -29,13 +29,17 @@ namespace AutomotiveClaimsApi.Services
         private readonly ILogger<EmailService> _logger;
         private readonly string _attachmentsPath;
         private readonly IConfiguration _config;
+        private readonly IGoogleCloudStorageService? _cloudStorage;
+        private readonly bool _cloudEnabled;
 
         public EmailService(
             ApplicationDbContext context,
             IOptions<SmtpSettings> smtpSettings,
             ILogger<EmailService> logger,
             IWebHostEnvironment environment,
-            IConfiguration config)
+            IConfiguration config,
+            IGoogleCloudStorageService? cloudStorage = null,
+            IOptions<GoogleCloudStorageSettings>? cloudSettings = null)
         {
             _context = context;
             _smtpSettings = smtpSettings.Value;
@@ -46,6 +50,8 @@ namespace AutomotiveClaimsApi.Services
                 Directory.CreateDirectory(_attachmentsPath);
             }
             _config = config;
+            _cloudStorage = cloudStorage;
+            _cloudEnabled = cloudSettings?.Value.Enabled ?? false;
         }
 
         public async Task<EmailDto> CreateEmailAsync(CreateEmailDto createEmailDto)
@@ -250,6 +256,13 @@ namespace AutomotiveClaimsApi.Services
                 await file.CopyToAsync(stream);
             }
 
+            string? cloudUrl = null;
+            if (_cloudEnabled && _cloudStorage != null)
+            {
+                await using var uploadStream = new FileStream(fullPath, FileMode.Open, FileAccess.Read);
+                cloudUrl = await _cloudStorage.UploadFileAsync(uploadStream, uniqueFileName, file.ContentType);
+            }
+
             var relativePath = Path.Combine("uploads", "email", uniqueFileName).Replace("\\", "/");
 
             return new EmailAttachment
@@ -260,6 +273,7 @@ namespace AutomotiveClaimsApi.Services
                 ContentType = file.ContentType,
                 FileSize = file.Length,
                 FilePath = relativePath,
+                CloudUrl = cloudUrl,
                 CreatedAt = DateTime.UtcNow,
                 UpdatedAt = DateTime.UtcNow
             };
@@ -328,6 +342,16 @@ namespace AutomotiveClaimsApi.Services
                 _context.Emails.Add(email);
                 await _context.SaveChangesAsync();
 
+                if (sendEmailDto.Attachments != null)
+                {
+                    foreach (var file in sendEmailDto.Attachments)
+                    {
+                        var attachment = await SaveAttachmentAsync(file, email.Id);
+                        email.Attachments.Add(attachment);
+                    }
+                    await _context.SaveChangesAsync();
+                }
+
                 return MapEmailToDto(email);
             }
             catch (Exception ex)
@@ -349,7 +373,7 @@ namespace AutomotiveClaimsApi.Services
             {
                 try
                 {
-                    var message = BuildMimeMessage(email);
+                    var message = await BuildMimeMessageAsync(email);
 
                     using var client = new SmtpClient();
                     await client.ConnectAsync(_smtpSettings.Host, _smtpSettings.Port, SecureSocketOptions.StartTls);
@@ -377,7 +401,7 @@ namespace AutomotiveClaimsApi.Services
             return processed;
         }
 
-        private MimeMessage BuildMimeMessage(Email email)
+        private async Task<MimeMessage> BuildMimeMessageAsync(Email email)
         {
             var message = new MimeMessage();
             message.From.Add(new MailboxAddress(_smtpSettings.FromName, _smtpSettings.FromEmail));
@@ -403,6 +427,22 @@ namespace AutomotiveClaimsApi.Services
                     if (File.Exists(fullPath))
                     {
                         bodyBuilder.Attachments.Add(fullPath);
+                        continue;
+                    }
+                }
+
+                if (_cloudEnabled && _cloudStorage != null && !string.IsNullOrEmpty(attachment.CloudUrl))
+                {
+                    try
+                    {
+                        var stream = await _cloudStorage.GetFileStreamAsync(attachment.CloudUrl);
+                        var fileName = attachment.FileName ?? Path.GetFileName(attachment.CloudUrl);
+                        var contentType = attachment.ContentType ?? "application/octet-stream";
+                        bodyBuilder.Attachments.Add(fileName, stream, ContentType.Parse(contentType));
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError(ex, "Failed to load attachment from cloud storage {Url}", attachment.CloudUrl);
                     }
                 }
             }
@@ -513,10 +553,23 @@ namespace AutomotiveClaimsApi.Services
         public async Task<Stream?> DownloadAttachmentAsync(Guid id)
         {
             var attachment = await _context.EmailAttachments.FindAsync(id);
-            if (attachment == null || string.IsNullOrEmpty(attachment.FilePath)) return null;
-            var fullPath = Path.Combine(_attachmentsPath, Path.GetFileName(attachment.FilePath));
-            if (!File.Exists(fullPath)) return null;
-            return new FileStream(fullPath, FileMode.Open, FileAccess.Read);
+            if (attachment == null) return null;
+
+            if (!string.IsNullOrEmpty(attachment.FilePath))
+            {
+                var fullPath = Path.Combine(_attachmentsPath, Path.GetFileName(attachment.FilePath));
+                if (File.Exists(fullPath))
+                {
+                    return new FileStream(fullPath, FileMode.Open, FileAccess.Read);
+                }
+            }
+
+            if (_cloudEnabled && _cloudStorage != null && !string.IsNullOrEmpty(attachment.CloudUrl))
+            {
+                return await _cloudStorage.GetFileStreamAsync(attachment.CloudUrl);
+            }
+
+            return null;
         }
 
         public async Task<bool> DeleteAttachmentAsync(Guid id)
@@ -531,6 +584,11 @@ namespace AutomotiveClaimsApi.Services
                 {
                     File.Delete(fullPath);
                 }
+            }
+
+            if (_cloudEnabled && _cloudStorage != null && !string.IsNullOrEmpty(attachment.CloudUrl))
+            {
+                await _cloudStorage.DeleteFileAsync(attachment.CloudUrl);
             }
 
             _context.EmailAttachments.Remove(attachment);
@@ -592,13 +650,22 @@ namespace AutomotiveClaimsApi.Services
             {
                 if (attachment is MimePart part)
                 {
+                    var fileName = part.FileName ?? Guid.NewGuid().ToString();
+                    var uniqueFileName = $"{Guid.NewGuid()}{Path.GetExtension(fileName)}";
+                    var fullPath = Path.Combine(_attachmentsPath, uniqueFileName);
+                    await using (var fs = new FileStream(fullPath, FileMode.Create))
+                    {
+                        await part.Content.DecodeToAsync(fs);
+                    }
+
                     var attachmentEntity = new EmailAttachment
                     {
                         Id = Guid.NewGuid(),
                         EmailId = email.Id,
-                        FileName = part.FileName,
+                        FileName = fileName,
                         ContentType = part.ContentType.MimeType,
-                        FileSize = part.ContentDisposition?.Size ?? 0,
+                        FileSize = new FileInfo(fullPath).Length,
+                        FilePath = Path.Combine("uploads", "email", uniqueFileName).Replace("\\", "/"),
                         CreatedAt = DateTime.UtcNow,
                         UpdatedAt = DateTime.UtcNow
                     };

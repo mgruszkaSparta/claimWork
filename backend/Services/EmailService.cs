@@ -499,14 +499,32 @@ namespace AutomotiveClaimsApi.Services
 
         public async Task<bool> AssignEmailToClaimAsync(Guid emailId, IEnumerable<Guid> claimIds)
         {
-            var email = await _context.Emails.Include(e => e.EmailClaims).FirstOrDefaultAsync(e => e.Id == emailId);
+            var email = await _context.Emails
+                .Include(e => e.EmailClaims)
+                .FirstOrDefaultAsync(e => e.Id == emailId);
             if (email == null) return false;
 
             foreach (var claimId in claimIds)
             {
+                var claim = await _context.ClientClaims
+                    .FirstOrDefaultAsync(c => c.Id == claimId);
+                if (claim == null)
+                {
+                    continue;
+                }
+
                 if (!email.EmailClaims.Any(ec => ec.ClaimId == claimId))
                 {
-                    email.EmailClaims.Add(new EmailClaim { EmailId = emailId, ClaimId = claimId });
+                    email.EmailClaims.Add(new EmailClaim
+                    {
+                        EmailId = emailId,
+                        ClaimId = claimId
+                    });
+                }
+
+                if (email.EventId == null)
+                {
+                    email.EventId = claim.EventId;
                 }
             }
 

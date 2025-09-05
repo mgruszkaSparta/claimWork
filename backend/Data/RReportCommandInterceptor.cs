@@ -42,9 +42,7 @@ namespace AutomotiveClaimsApi.Data
 
         private static string ExtractTableName(string sql)
         {
-
-            var match = Regex.Match(sql, "from\\s+([\\w\\[\\].`\"-]+)", RegexOptions.IgnoreCase);
-
+            var match = Regex.Match(sql, @"from\s+([\w\[\]\.\`\"\-]+)", RegexOptions.IgnoreCase);
             return match.Success ? match.Groups[1].Value : string.Empty;
         }
     }

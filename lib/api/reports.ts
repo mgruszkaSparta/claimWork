@@ -16,7 +16,7 @@ export interface ReportRequest {
 export async function getReportMetadata(): Promise<ReportMetadata> {
   const res = await authFetch(`${API_BASE_URL}/report/metadata`);
   if (!res.ok) {
-    throw new Error("Failed to fetch report metadata");
+    throw new Error("Nie udało się pobrać metadanych raportu");
   }
   return res.json();
 }
@@ -28,7 +28,7 @@ export async function exportReport(request: ReportRequest): Promise<Blob> {
     body: JSON.stringify(request),
   });
   if (!res.ok) {
-    throw new Error("Failed to export report");
+    throw new Error("Nie udało się wyeksportować raportu");
   }
   return res.blob();
 }
@@ -43,7 +43,21 @@ export async function getFilterValues(
     )}&field=${encodeURIComponent(field)}`,
   );
   if (!res.ok) {
-    throw new Error("Failed to fetch filter values");
+    throw new Error("Nie udało się pobrać wartości filtra");
+  }
+  return res.json();
+}
+
+export async function getReportPreview(
+  request: ReportRequest,
+): Promise<Record<string, string>[]> {
+  const res = await authFetch(`${API_BASE_URL}/report/preview`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(request),
+  });
+  if (!res.ok) {
+    throw new Error("Nie udało się pobrać podglądu raportu");
   }
   return res.json();
 }

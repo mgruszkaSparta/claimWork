@@ -146,6 +146,76 @@ namespace AutomotiveClaimsApi.Controllers
             stream.Position = 0;
             return File(stream.ToArray(), "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "report.xlsx");
         }
+
+        [HttpPost("preview")]
+        public IActionResult Preview([FromBody] ReportRequest request)
+        {
+            if (string.IsNullOrEmpty(request.Entity))
+                return BadRequest("Entity is required");
+
+            var dbSetProperty = typeof(ApplicationDbContext).GetProperties()
+                .FirstOrDefault(p => p.PropertyType.IsGenericType && p.PropertyType.GetGenericArguments()[0].Name == request.Entity);
+            if (dbSetProperty == null)
+                return NotFound();
+
+            var entityType = dbSetProperty.PropertyType.GetGenericArguments()[0];
+            var setMethod = typeof(ApplicationDbContext).GetMethods()
+                .First(m => m.Name == "Set" && m.IsGenericMethod && m.GetParameters().Length == 0);
+            var queryable = (IQueryable)setMethod.MakeGenericMethod(entityType).Invoke(_context, null)!;
+            var data = queryable.Cast<object>().ToList();
+
+            if (request.Filters != null)
+            {
+                foreach (var filter in request.Filters)
+                {
+                    var prop = entityType.GetProperty(filter.Key);
+                    if (prop != null)
+                    {
+                        data = data.Where(d => (prop.GetValue(d)?.ToString() ?? "") == filter.Value).ToList();
+                    }
+                }
+            }
+            if (request.FromDate != null)
+            {
+                var dateProp = entityType.GetProperty("DamageDate") ?? entityType.GetProperty("CreatedAt");
+                if (dateProp != null)
+                {
+                    data = data.Where(d =>
+                    {
+                        var val = dateProp.GetValue(d) as DateTime?;
+                        return val != null && val >= request.FromDate;
+                    }).ToList();
+                }
+            }
+            if (request.ToDate != null)
+            {
+                var dateProp = entityType.GetProperty("DamageDate") ?? entityType.GetProperty("CreatedAt");
+                if (dateProp != null)
+                {
+                    data = data.Where(d =>
+                    {
+                        var val = dateProp.GetValue(d) as DateTime?;
+                        return val != null && val <= request.ToDate;
+                    }).ToList();
+                }
+            }
+
+            var preview = data.Take(10).Select(item =>
+            {
+                var dict = new Dictionary<string, string?>();
+                foreach (var field in request.Fields)
+                {
+                    var prop = entityType.GetProperty(field);
+                    if (prop != null)
+                    {
+                        dict[field] = prop.GetValue(item)?.ToString();
+                    }
+                }
+                return dict;
+            }).ToList();
+
+            return Ok(preview);
+        }
     }
 
     public class ReportRequest

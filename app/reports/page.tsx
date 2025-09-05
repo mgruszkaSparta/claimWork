@@ -5,6 +5,7 @@ import {
   getReportMetadata,
   exportReport,
   getFilterValues,
+  getReportPreview,
   ReportRequest,
   ReportMetadata,
 } from "@/lib/api/reports";
@@ -30,6 +31,7 @@ export default function ReportsPage() {
   const [filterOptions, setFilterOptions] = useState<string[]>([]);
   const [fromDate, setFromDate] = useState("");
   const [toDate, setToDate] = useState("");
+  const [previewData, setPreviewData] = useState<Record<string, string>[]>([]);
 
   useEffect(() => {
     getReportMetadata().then(setMetadata).catch(console.error);
@@ -58,10 +60,29 @@ export default function ReportsPage() {
       toDate: toDate || undefined,
     };
     const blob = await exportReport(request);
-    saveAs(blob, "report.xlsx");
+    saveAs(blob, "raport.xlsx");
   };
 
-  const entityFields = metadata[entity] || [];
+  const entityFields = (metadata[entity] || []).filter(
+    (f) => !f.toLowerCase().includes("id"),
+  );
+
+  useEffect(() => {
+    if (!entity || fields.length === 0) {
+      setPreviewData([]);
+      return;
+    }
+    const request: ReportRequest = {
+      entity,
+      fields,
+      filters: Object.keys(filters).length ? filters : undefined,
+      fromDate: fromDate || undefined,
+      toDate: toDate || undefined,
+    };
+    getReportPreview(request)
+      .then(setPreviewData)
+      .catch(() => setPreviewData([]));
+  }, [entity, fields, filters, fromDate, toDate]);
 
   return (
     <div className="p-4 space-y-4">
@@ -174,10 +195,48 @@ export default function ReportsPage() {
               </div>
             </CardContent>
           </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Podgląd danych</CardTitle>
+            </CardHeader>
+            <CardContent>
+              {previewData.length > 0 ? (
+                <div className="overflow-auto">
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr>
+                        {fields.map((f) => (
+                          <th key={f} className="text-left p-2">
+                            {f}
+                          </th>
+                        ))}
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {previewData.map((row, i) => (
+                        <tr key={i} className="border-t">
+                          {fields.map((f) => (
+                            <td key={f} className="p-2">
+                              {row[f]}
+                            </td>
+                          ))}
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              ) : (
+                <p className="text-sm text-muted-foreground">
+                  Brak danych do podglądu
+                </p>
+              )}
+            </CardContent>
+          </Card>
         </div>
       )}
       <Button onClick={handleExport} disabled={!entity || fields.length === 0}>
-        Eksport do Excel
+        Eksportuj do Excela
       </Button>
     </div>
   );

@@ -119,6 +119,7 @@ public class EmailClient
                 {
                     emailEntity.EventId = evt.Id;
                     emailEntity.Event = evt;
+                    evt.UpdatedAt = DateTime.UtcNow;
                 }
             }
 
@@ -136,6 +137,7 @@ public class EmailClient
                     {
                         emailEntity.EventId = evt.Id;
                         emailEntity.Event = evt;
+                        evt.UpdatedAt = DateTime.UtcNow;
                     }
                 }
             }
@@ -177,6 +179,7 @@ public class EmailClient
         var pending = await _db.Emails
             .Where(e => e.NeedsSending)
             .Include(e => e.Attachments)
+            .Include(e => e.Event)
             .ToListAsync();
 
         int processed = 0;
@@ -235,6 +238,11 @@ public class EmailClient
                 email.Status = "Sent";
                 email.SentAt = DateTime.UtcNow;
                 email.UpdatedAt = DateTime.UtcNow;
+
+                if (email.Event != null)
+                {
+                    email.Event.UpdatedAt = DateTime.UtcNow;
+                }
             }
             catch (Exception ex)
             {

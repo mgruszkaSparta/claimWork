@@ -12,7 +12,6 @@ import { EmailView } from "./email-view"
 import { cn } from "@/lib/utils"
 import { emailService, type EmailDto } from "@/lib/email-service"
 import { API_BASE_URL } from "@/lib/api"
-import { authFetch } from "@/lib/auth-fetch"
 import {
   Mail,
   MailOpen,
@@ -63,7 +62,7 @@ export const EmailSection = ({
     body: dto.body,
     htmlBody: dto.body,
     isRead: dto.read ?? false,
-    isStarred: false,
+    isStarred: dto.isStarred ?? false,
     isImportant: dto.isImportant ?? false,
     folder:
       dto.status === "Draft"
@@ -248,17 +247,23 @@ export const EmailSection = ({
   }
 
   const handleStarEmail = async (emailId: string) => {
-    try {
-      await authFetch(`${API_BASE_URL}/emails/${emailId}/starred`, {
-        method: "PUT",
-      })
-    } catch (error) {
-      console.error("Error toggling star:", error)
+    const success = await emailService.toggleStarred(emailId)
+    if (success) {
+      setEmails((prev) =>
+        prev.map((email) => (email.id === emailId ? { ...email, isStarred: !email.isStarred } : email)),
+      )
+      await fetchCounts()
     }
-    setEmails((prev) =>
-      prev.map((email) => (email.id === emailId ? { ...email, isStarred: !email.isStarred } : email)),
-    )
-    await fetchCounts()
+  }
+
+  const handleImportantEmail = async (emailId: string) => {
+    const success = await emailService.toggleImportant(emailId)
+    if (success) {
+      setEmails((prev) =>
+        prev.map((email) => (email.id === emailId ? { ...email, isImportant: !email.isImportant } : email)),
+      )
+      await fetchCounts()
+    }
   }
 
   const handleAssignEmail = async (emailId: string) => {
@@ -417,6 +422,7 @@ export const EmailSection = ({
         onForward={handleForward}
         onBack={handleBack}
         onStar={handleStarEmail}
+        onImportant={handleImportantEmail}
         onArchive={async (id) => {
           const success = await emailService.deleteEmail(id)
           if (success) {
@@ -556,7 +562,22 @@ export const EmailSection = ({
                               )}
                             />
                           </Button>
-                          {email.isImportant && <Flag className="h-4 w-4 text-red-500" />}
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="p-0 h-auto"
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              handleImportantEmail(email.id)
+                            }}
+                          >
+                            <Flag
+                              className={cn(
+                                "h-4 w-4",
+                                email.isImportant ? "text-red-500" : "text-gray-400",
+                              )}
+                            />
+                          </Button>
                           {!email.isRead ? (
                             <Mail className="h-4 w-4 text-blue-600" />
                           ) : (

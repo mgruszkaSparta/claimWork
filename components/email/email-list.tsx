@@ -29,6 +29,7 @@ interface EmailListProps {
   onEmailClick: (email: Email) => void
   onSelectAll: (checked: boolean) => void
   onStarEmail: (emailId: string) => void
+  onImportantEmail: (emailId: string) => void
   onArchiveEmails: (emailIds: string[]) => void
   onDeleteEmails: (emailIds: string[]) => void
   onMarkAsRead: (emailIds: string[], isRead: boolean) => void
@@ -41,6 +42,7 @@ export const EmailList = ({
   onEmailClick,
   onSelectAll,
   onStarEmail,
+  onImportantEmail,
   onArchiveEmails,
   onDeleteEmails,
   onMarkAsRead,
@@ -183,7 +185,22 @@ export const EmailList = ({
                       className={cn("h-4 w-4", email.isStarred ? "fill-yellow-400 text-yellow-400" : "text-gray-400")}
                     />
                   </Button>
-                  {email.isImportant && <Flag className="h-4 w-4 text-red-500" />}
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="p-0 h-auto"
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      onImportantEmail(email.id)
+                    }}
+                  >
+                    <Flag
+                      className={cn(
+                        "h-4 w-4",
+                        email.isImportant ? "text-red-500" : "text-gray-400",
+                      )}
+                    />
+                  </Button>
                 </div>
 
                 <div className="flex-1 min-w-0 ml-4">

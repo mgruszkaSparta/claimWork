@@ -125,6 +125,12 @@ export const EmailSection = ({
     setEmails((prev) => prev.map((email) => (email.id === emailId ? { ...email, isStarred: !email.isStarred } : email)))
   }
 
+  const handleImportantEmail = (emailId: string) => {
+    setEmails((prev) =>
+      prev.map((email) => (email.id === emailId ? { ...email, isImportant: !email.isImportant } : email)),
+    )
+  }
+
   const handleArchiveEmails = (emailIds: string[]) => {
     setEmails((prev) => prev.map((email) => (emailIds.includes(email.id) ? { ...email, folder: "trash" } : email)))
     setSelectedEmails([])
@@ -299,6 +305,7 @@ export const EmailSection = ({
           onEmailClick={handleEmailClick}
           onSelectAll={handleSelectAll}
           onStarEmail={handleStarEmail}
+          onImportantEmail={handleImportantEmail}
           onArchiveEmails={handleArchiveEmails}
           onDeleteEmails={handleDeleteEmails}
           onMarkAsRead={handleMarkAsRead}
@@ -313,6 +320,7 @@ export const EmailSection = ({
           onForward={handleForward}
           onBack={handleBack}
           onStar={handleStarEmail}
+          onImportant={handleImportantEmail}
           onArchive={(id) => handleArchiveEmails([id])}
           onDelete={(id) => handleDeleteEmails([id])}
           requiredDocuments={reqDocuments}

@@ -1834,6 +1834,7 @@ namespace AutomotiveClaimsApi.Controllers
                 ReadAt = dto.ReadAt,
                 IsRead = dto.IsRead,
                 IsImportant = dto.IsImportant,
+                IsStarred = dto.IsStarred,
                 IsArchived = dto.IsArchived,
                 Tags = dto.Tags,
                 Category = dto.Category,

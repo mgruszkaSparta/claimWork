@@ -69,6 +69,8 @@ namespace AutomotiveClaimsApi.Services
                     Bcc = createEmailDto.Bcc,
                     Priority = createEmailDto.Priority,
                     IsHtml = createEmailDto.IsHtml,
+                    IsImportant = createEmailDto.IsImportant,
+                    IsStarred = createEmailDto.IsStarred,
                     Status = "Draft",
                     NeedsSending = false,
                     CreatedAt = DateTime.UtcNow,
@@ -154,9 +156,7 @@ namespace AutomotiveClaimsApi.Services
             // the variable typed as `IQueryable<Email>` we can safely add
             // filters conditionally without triggering these casts.
             IQueryable<Email> query = _context.Emails
-                .Where(e => e.EventId == eventId);
-
-            query = query
+                .Where(e => e.EventId == eventId)
                 .Include(e => e.EmailClaims)
                 .Include(e => e.Attachments);
 
@@ -172,6 +172,9 @@ namespace AutomotiveClaimsApi.Services
                         break;
                     case "drafts":
                         query = query.Where(e => e.Status == "Draft");
+                        break;
+                    case "starred":
+                        query = query.Where(e => e.IsStarred);
                         break;
                     case "important":
                         query = query.Where(e => e.IsImportant);
@@ -223,6 +226,7 @@ namespace AutomotiveClaimsApi.Services
                 ReadAt = email.ReadAt,
                 IsRead = email.IsRead,
                 IsImportant = email.IsImportant,
+                IsStarred = email.IsStarred,
                 IsArchived = email.IsArchived,
                 Tags = email.Tags,
                 Category = email.Category,
@@ -281,12 +285,21 @@ namespace AutomotiveClaimsApi.Services
 
         public async Task<IEnumerable<EmailDto>> GetEmailsAsync()
         {
-            return await _context.Emails.Include(e => e.EmailClaims).Select(e => MapEmailToDto(e)).ToListAsync();
+            return await _context.Emails
+                .Include(e => e.EmailClaims)
+                .Include(e => e.Attachments)
+                .Select(e => MapEmailToDto(e))
+                .ToListAsync();
         }
 
         public async Task<IEnumerable<EmailDto>> GetEmailsByClaimNumberAsync(string claimNumber)
         {
-            return await _context.Emails.Where(e => e.ClaimNumber == claimNumber).Include(e => e.EmailClaims).Select(e => MapEmailToDto(e)).ToListAsync();
+            return await _context.Emails
+                .Where(e => e.ClaimNumber == claimNumber)
+                .Include(e => e.EmailClaims)
+                .Include(e => e.Attachments)
+                .Select(e => MapEmailToDto(e))
+                .ToListAsync();
         }
 
         public async Task<EmailDto> SendEmailAsync(SendEmailDto sendEmailDto)
@@ -480,9 +493,7 @@ namespace AutomotiveClaimsApi.Services
         {
             var email = await _context.Emails.FindAsync(id);
             if (email == null) return false;
-
-            // Assuming IsStarred exists in Email model
-            // email.IsStarred = !email.IsStarred; 
+            email.IsStarred = !email.IsStarred;
             await _context.SaveChangesAsync();
             return true;
         }

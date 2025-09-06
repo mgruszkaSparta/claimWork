@@ -34,6 +34,7 @@ interface EmailViewProps {
   onForward: (email: Email) => void
   onBack: () => void
   onStar: (emailId: string) => void
+  onImportant: (emailId: string) => void
   onArchive: (emailId: string) => void
   onDelete: (emailId: string) => void
   requiredDocuments?: RequiredDocument[]
@@ -47,6 +48,7 @@ export const EmailView = ({
   onForward,
   onBack,
   onStar,
+  onImportant,
   onArchive,
   onDelete,
   requiredDocuments = [],
@@ -117,8 +119,8 @@ export const EmailView = ({
             <Button variant="ghost" size="sm" onClick={() => onDelete(email.id)}>
               <Trash2 className="h-4 w-4" />
             </Button>
-            <Button variant="ghost" size="sm">
-              <Flag className="h-4 w-4" />
+            <Button variant="ghost" size="sm" onClick={() => onImportant(email.id)}>
+              <Flag className={email.isImportant ? "h-4 w-4 text-red-500" : "h-4 w-4"} />
             </Button>
             <Button variant="ghost" size="sm">
               <Print className="h-4 w-4" />

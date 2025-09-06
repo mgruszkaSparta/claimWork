@@ -31,6 +31,7 @@ export interface EmailDto {
   direction?: string
   status?: string
   isImportant?: boolean
+  isStarred?: boolean
 }
 
 export interface SendEmailRequestDto {
@@ -79,6 +80,7 @@ class EmailService {
         direction: e.direction,
         status: e.status,
         isImportant: e.isImportant,
+        isStarred: e.isStarred,
         attachments:
           e.attachments?.map((a: any) => ({
             id: a.id,
@@ -115,6 +117,7 @@ class EmailService {
         direction: e.direction,
         status: e.status,
         isImportant: e.isImportant,
+        isStarred: e.isStarred,
         attachments:
           e.attachments?.map((a: any) => ({
             id: a.id,
@@ -210,6 +213,7 @@ class EmailService {
         direction: e.direction,
         status: e.status,
         isImportant: e.isImportant,
+        isStarred: e.isStarred,
         attachments:
           e.attachments?.map((a: any) => ({
             id: a.id,
@@ -234,6 +238,32 @@ class EmailService {
       return response.ok
     } catch (error) {
       console.error("markAsRead failed:", error)
+      return false
+    }
+  }
+
+  async toggleImportant(emailId: string): Promise<boolean> {
+    if (!this.isValidGuid(emailId)) return false
+    try {
+      const response = await authFetch(`${this.apiUrl}/${emailId}/important`, {
+        method: "PUT",
+      })
+      return response.ok
+    } catch (error) {
+      console.error("toggleImportant failed:", error)
+      return false
+    }
+  }
+
+  async toggleStarred(emailId: string): Promise<boolean> {
+    if (!this.isValidGuid(emailId)) return false
+    try {
+      const response = await authFetch(`${this.apiUrl}/${emailId}/starred`, {
+        method: "PUT",
+      })
+      return response.ok
+    } catch (error) {
+      console.error("toggleStarred failed:", error)
       return false
     }
   }

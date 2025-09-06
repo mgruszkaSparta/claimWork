@@ -499,6 +499,7 @@ export interface EmailUpsertDto {
   readAt?: string
   isRead?: boolean
   isImportant?: boolean
+  isStarred?: boolean
   isArchived?: boolean
   tags?: string
   category?: string

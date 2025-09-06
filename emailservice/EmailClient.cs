@@ -93,7 +93,7 @@ public class EmailClient
         foreach (var uid in uids)
         {
             var message = await client.Inbox.GetMessageAsync(uid);
-            var emailEntity = new Email
+            var baseEmail = new Email
             {
                 Subject = message.Subject ?? string.Empty,
                 Body = message.TextBody ?? string.Empty,
@@ -111,55 +111,85 @@ public class EmailClient
                 UpdatedAt = DateTime.UtcNow
             };
 
-            var eventId = ExtractEventId((message.Subject ?? string.Empty) + " " + (message.TextBody ?? string.Empty));
-            if (eventId.HasValue)
-            {
-                var evt = await _db.Events.FindAsync(eventId.Value);
-                if (evt != null)
-                {
-                    emailEntity.EventId = evt.Id;
-                    emailEntity.Event = evt;
-                }
-            }
-
-            if (emailEntity.EventId == null)
-            {
-                var combined = (message.Subject ?? string.Empty) + " " + (message.TextBody ?? string.Empty);
-                var spartaNumber = ExtractSpartaNumber(combined);
-                var insuranceNumber = ExtractInsuranceNumber(combined);
-
-                if (!string.IsNullOrEmpty(spartaNumber) && !string.IsNullOrEmpty(insuranceNumber))
-                {
-                    var evt = await _db.Events.FirstOrDefaultAsync(e =>
-                        e.SpartaNumber == spartaNumber && e.InsuranceNumber == insuranceNumber);
-                    if (evt != null)
-                    {
-                        emailEntity.EventId = evt.Id;
-                        emailEntity.Event = evt;
-                    }
-                }
-            }
-
+            var attachmentData = new List<(string? FileName, string ContentType, long FileSize, string FilePath, string? CloudUrl)>();
             foreach (var attachment in message.Attachments.OfType<MimePart>())
             {
                 using var stream = new MemoryStream();
                 await attachment.Content.DecodeToAsync(stream);
                 var result = await _storage.SaveAsync(attachment.FileName ?? Guid.NewGuid().ToString(), attachment.ContentType.MimeType, stream);
-                emailEntity.Attachments.Add(new EmailAttachment
-                {
-                    FileName = attachment.FileName,
-                    ContentType = attachment.ContentType.MimeType,
-                    FileSize = stream.Length,
-                    FilePath = result.FilePath,
-                    CloudUrl = result.CloudUrl,
-                    CreatedAt = DateTime.UtcNow,
-                    UpdatedAt = DateTime.UtcNow
-                });
+                attachmentData.Add((attachment.FileName, attachment.ContentType.MimeType, stream.Length, result.FilePath, result.CloudUrl));
             }
 
-            _db.Emails.Add(emailEntity);
+            var combined = (message.Subject ?? string.Empty) + " " + (message.TextBody ?? string.Empty);
+            var targets = new List<Event?>();
+
+            var eventId = ExtractEventId(combined);
+            if (eventId.HasValue)
+            {
+                var evt = await _db.Events.FindAsync(eventId.Value);
+                if (evt != null)
+                    targets.Add(evt);
+            }
+
+            if (!targets.Any())
+            {
+                var spartaNumbers = ExtractSpartaNumbers(combined).Take(2);
+                foreach (var sparta in spartaNumbers)
+                {
+                    var evt = await _db.Events.FirstOrDefaultAsync(e => e.SpartaNumber == sparta);
+                    if (evt != null)
+                        targets.Add(evt);
+                }
+            }
+
+            if (!targets.Any())
+                targets.Add(null);
+
+            foreach (var evt in targets)
+            {
+                var emailEntity = new Email
+                {
+                    Subject = baseEmail.Subject,
+                    Body = baseEmail.Body,
+                    BodyHtml = baseEmail.BodyHtml,
+                    From = baseEmail.From,
+                    To = baseEmail.To,
+                    Cc = baseEmail.Cc,
+                    Bcc = baseEmail.Bcc,
+                    IsHtml = baseEmail.IsHtml,
+                    ReceivedAt = baseEmail.ReceivedAt,
+                    Direction = baseEmail.Direction,
+                    Status = baseEmail.Status,
+                    MessageId = baseEmail.MessageId,
+                    CreatedAt = DateTime.UtcNow,
+                    UpdatedAt = DateTime.UtcNow
+                };
+
+                if (evt != null)
+                {
+                    emailEntity.EventId = evt.Id;
+                    emailEntity.Event = evt;
+                }
+
+                foreach (var data in attachmentData)
+                {
+                    emailEntity.Attachments.Add(new EmailAttachment
+                    {
+                        FileName = data.FileName,
+                        ContentType = data.ContentType,
+                        FileSize = data.FileSize,
+                        FilePath = data.FilePath,
+                        CloudUrl = data.CloudUrl,
+                        CreatedAt = DateTime.UtcNow,
+                        UpdatedAt = DateTime.UtcNow
+                    });
+                }
+
+                _db.Emails.Add(emailEntity);
+                emails.Add(emailEntity);
+            }
+
             await _db.SaveChangesAsync();
-            emails.Add(emailEntity);
 
             await client.Inbox.AddFlagsAsync(uid, MessageFlags.Seen, true);
         }
@@ -259,13 +289,14 @@ public class EmailClient
         return match.Success && Guid.TryParse(match.Value, out var guid) ? guid : (Guid?)null;
     }
 
-    private static string? ExtractSpartaNumber(string message)
+    private static IEnumerable<string> ExtractSpartaNumbers(string message)
     {
         if (string.IsNullOrWhiteSpace(message))
-            return null;
+            return Enumerable.Empty<string>();
 
-        var match = Regex.Match(message, @"SPARTA/\d{4}/\d+");
-        return match.Success ? match.Value : null;
+        return Regex.Matches(message, @"SPARTA/\d{4}/\d+")
+            .Select(m => m.Value)
+            .Distinct();
     }
 
     private static string? ExtractInsuranceNumber(string message)

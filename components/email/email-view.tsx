@@ -219,6 +219,13 @@ export const EmailView = ({
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
                   {email.attachments.map((attachment) => (
                     <Card key={attachment.id} className="p-3">
+                      {attachment.type?.startsWith("image/") && (
+                        <img
+                          src={attachment.url || `${API_BASE_URL}/emails/attachment/${attachment.id}`}
+                          alt={attachment.name}
+                          className="mb-2 max-h-48 w-full object-contain rounded"
+                        />
+                      )}
                       <div className="flex items-center justify-between">
                         <div className="flex items-center space-x-2 min-w-0">
                           <Paperclip className="h-4 w-4 text-gray-400 flex-shrink-0" />

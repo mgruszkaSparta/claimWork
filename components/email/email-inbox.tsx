@@ -857,6 +857,13 @@ export default function EmailInbox({ claimId, claimNumber, claimInsuranceNumber 
                               key={attachment.id}
                               className="email-attachment-item bg-white border border-gray-200 rounded-md p-3 hover:shadow-md transition-shadow"
                             >
+                              {attachment.contentType?.startsWith("image/") && (
+                                <img
+                                  src={attachment.url}
+                                  alt={attachment.fileName}
+                                  className="mb-2 max-h-48 w-full object-contain rounded"
+                                />
+                              )}
                               <div className="flex items-center gap-3">
                                 <div className="email-attachment-info flex-1 min-w-0">
                                   <div
@@ -893,12 +900,14 @@ export default function EmailInbox({ claimId, claimNumber, claimInsuranceNumber 
                     </div>
                   )}
                 </div>
-
                 <div className="flex-1 overflow-y-auto mt-6">
-                  <article
-                    className="text-[#334155] prose max-w-none"
-                    dangerouslySetInnerHTML={{ __html: selectedEmail.body }}
-                  />
+                  <div className="text-[#334155] prose max-w-none">
+                    {selectedEmail.htmlBody ? (
+                      <div dangerouslySetInnerHTML={{ __html: selectedEmail.htmlBody }} />
+                    ) : (
+                      <div className="whitespace-pre-wrap">{selectedEmail.body}</div>
+                    )}
+                  </div>
                 </div>
               </div>
             </div>

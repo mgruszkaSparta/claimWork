@@ -1,6 +1,7 @@
 using EmailService;
 using EmailService.Data;
 using EmailService.Storage;
+using Google.Apis.Auth.OAuth2;
 using Google.Cloud.Storage.V1;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
@@ -23,9 +24,28 @@ builder.Services.AddDbContext<EmailDbContext>(options =>
 });
 
 builder.Services.AddSingleton<IAttachmentStorage>(_ =>
-    builder.Configuration["Storage:Bucket"] is { Length: > 0 } bucket
-        ? new GoogleCloudAttachmentStorage(StorageClient.Create(), bucket)
-        : new LocalAttachmentStorage("attachments"));
+{
+    var storageCfg = builder.Configuration.GetSection("Storage");
+    var bucket = storageCfg["Bucket"];
+    if (!string.IsNullOrEmpty(bucket))
+    {
+        var credentialsPath = storageCfg["CredentialsPath"];
+        StorageClient client;
+        if (!string.IsNullOrEmpty(credentialsPath))
+        {
+            var credential = GoogleCredential.FromFile(credentialsPath);
+            client = StorageClient.Create(credential);
+        }
+        else
+        {
+            client = StorageClient.Create();
+        }
+
+        return new GoogleCloudAttachmentStorage(client, bucket);
+    }
+
+    return new LocalAttachmentStorage("attachments");
+});
 
 builder.Services.AddTransient<EmailClient>(sp =>
 {

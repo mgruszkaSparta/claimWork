@@ -23,6 +23,7 @@ interface PageProps {
 }
 
 interface Task {
+  id: string
   title: string
   due: string
 }
@@ -49,6 +50,7 @@ function HomePage({ user, onLogout }: PageProps) {
       try {
         const data = await apiService.getNotes({ category: "task" })
         const mapped = data.map((note) => ({
+          id: note.id,
           title: note.title || note.content,
           due: note.createdAt
             ? new Date(note.createdAt).toISOString().split("T")[0]
@@ -312,9 +314,9 @@ function HomePage({ user, onLogout }: PageProps) {
                   </CardHeader>
                   <CardContent>
                     <ul className="space-y-2">
-                      {tasks.map((task, index) => (
+                      {tasks.map((task) => (
                         <li
-                          key={`task-${task.title}`}
+                          key={`task-${task.id}`}
                           className="flex items-center justify-between"
                         >
                           <span className="text-sm text-gray-700">{task.title}</span>

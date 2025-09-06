@@ -353,7 +353,6 @@ namespace AutomotiveClaimsApi.Services
                 }
 
                 _context.Emails.Add(email);
-                await _context.SaveChangesAsync();
 
                 if (sendEmailDto.Attachments != null)
                 {
@@ -362,8 +361,9 @@ namespace AutomotiveClaimsApi.Services
                         var attachment = await SaveAttachmentAsync(file, email.Id);
                         email.Attachments.Add(attachment);
                     }
-                    await _context.SaveChangesAsync();
                 }
+
+                await _context.SaveChangesAsync();
 
                 return MapEmailToDto(email);
             }

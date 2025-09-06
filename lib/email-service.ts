@@ -17,6 +17,8 @@ export interface EmailDto {
   to: string
   subject: string
   body: string
+  htmlBody?: string
+  isHtml?: boolean
   /**
    * Date string representing when the email was received or sent.
    * The backend returns "receivedAt" for inbound messages and
@@ -73,6 +75,8 @@ class EmailService {
         to: e.to,
         subject: e.subject,
         body: e.body,
+        htmlBody: e.bodyHtml,
+        isHtml: e.isHtml,
         receivedDate: e.receivedAt || e.sentAt || e.createdAt,
         read: e.isRead,
         claimIds: e.claimIds,
@@ -110,6 +114,8 @@ class EmailService {
         to: e.to,
         subject: e.subject,
         body: e.body,
+        htmlBody: e.bodyHtml,
+        isHtml: e.isHtml,
         receivedDate: e.receivedAt || e.sentAt || e.createdAt,
         read: e.isRead,
         claimIds: e.claimIds,
@@ -206,6 +212,8 @@ class EmailService {
         to: e.to,
         subject: e.subject,
         body: e.body,
+        htmlBody: e.bodyHtml,
+        isHtml: e.isHtml,
         receivedDate: e.receivedAt || e.sentAt || e.createdAt,
         read: e.isRead,
         claimIds: e.claimIds,

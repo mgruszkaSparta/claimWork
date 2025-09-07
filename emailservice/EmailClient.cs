@@ -149,6 +149,8 @@ public class EmailClient
             {
                 var emailEntity = new Email
                 {
+                    // Ensure the email has an ID so related documents can reference it
+                    Id = Guid.NewGuid(),
                     Subject = baseEmail.Subject,
                     Body = baseEmail.Body,
                     BodyHtml = baseEmail.BodyHtml,

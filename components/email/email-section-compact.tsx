@@ -320,13 +320,15 @@ export const EmailSection = ({
 
   const handleAssignAttachment = (attachment: EmailAttachment, documentId: string) => {
     const doc = docs.find((d) => d.id === documentId)
+    const url = attachment.url
     const newFile: UploadedFile = {
       id: attachment.id,
       name: attachment.name,
       size: attachment.size,
       type: mapAttachmentType(attachment.type),
       uploadedAt: new Date().toISOString(),
-      url: attachment.url,
+      url,
+      cloudUrl: url,
       category: doc?.name,
       categoryCode: doc?.category,
     }

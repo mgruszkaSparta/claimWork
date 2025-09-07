@@ -19,6 +19,8 @@ interface EmailSectionProps {
   setUploadedFiles?: Dispatch<SetStateAction<UploadedFile[]>>
   requiredDocuments?: RequiredDocument[]
   setRequiredDocuments?: Dispatch<SetStateAction<RequiredDocument[]>>
+  pendingFiles?: UploadedFile[]
+  setPendingFiles?: Dispatch<SetStateAction<UploadedFile[]>>
 }
 
 export const EmailSection = ({
@@ -28,6 +30,8 @@ export const EmailSection = ({
   setUploadedFiles,
   requiredDocuments,
   setRequiredDocuments,
+  pendingFiles,
+  setPendingFiles,
 }: EmailSectionProps) => {
   const { toast } = useToast()
   const [emails, setEmails] = useState<Email[]>(sampleEmails)
@@ -83,6 +87,9 @@ export const EmailSection = ({
   ])
   const reqDocuments = requiredDocuments ?? internalRequiredDocs
   const updateRequiredDocs = setRequiredDocuments ?? setInternalRequiredDocs
+
+  const [internalPendingFiles, setInternalPendingFiles] = useState<UploadedFile[]>([])
+  const updatePendingFiles = setPendingFiles ?? setInternalPendingFiles
 
   const mapAttachmentType = (type: string): UploadedFile["type"] => {
     if (type.includes("pdf")) return "pdf"
@@ -176,6 +183,7 @@ export const EmailSection = ({
       categoryCode: doc?.category,
     }
     updateDocuments((prev) => [...prev, newFile])
+    updatePendingFiles((prev) => [...prev, newFile])
     updateRequiredDocs((prev) => prev.map((d) => (d.id === documentId ? { ...d, uploaded: true } : d)))
     toast({
       title: "Załącznik przypisany",

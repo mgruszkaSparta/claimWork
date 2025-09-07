@@ -9,6 +9,8 @@ import { Checkbox } from "@/components/ui/checkbox"
 import { renameDocument, notifyClient } from "@/lib/api/documents"
 import { authFetch } from "@/lib/auth-fetch"
 import { generateId } from "@/lib/constants"
+import { emailService } from "@/lib/email-service"
+import { EmailFolder } from "@/types/email"
 import {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -60,6 +62,8 @@ interface Document {
   documentType: string
   /** Machine readable category code */
   categoryCode?: string
+  /** Indicates the document comes from an email attachment */
+  isEmailAttachment?: boolean
 }
 export const DocumentsSection = React.forwardRef<
   DocumentsSectionRef,
@@ -352,19 +356,51 @@ export const DocumentsSection = React.forwardRef<
         const data: Document[] = await response.json()
         const token =
           typeof window !== "undefined" ? localStorage.getItem("token") : null
-        const mappedDocs: Document[] = data.map((d: any) => ({
+        let mappedDocs: Document[] = data.map((d: any) => ({
           ...d,
           documentType: mapCategoryCodeToName(d.documentType || d.category),
           categoryCode: d.documentType || d.category,
-
           previewUrl: `${process.env.NEXT_PUBLIC_API_URL}/documents/${d.id}/preview${
             token ? `?token=${token}` : ""
           }`,
           downloadUrl: `${process.env.NEXT_PUBLIC_API_URL}/documents/${d.id}/download${
             token ? `?token=${token}` : ""
           }`,
-
+          isEmailAttachment: false,
         }))
+
+        // Load received email attachments assigned to this claim/event
+        try {
+          const emails = await emailService.getEmailsByEventId(
+            eventId,
+            EmailFolder.Inbox,
+          )
+          const emailDocs: Document[] = emails.flatMap((email) =>
+            email.attachments.map((a) => ({
+              id: a.id,
+              eventId,
+              fileName: a.fileName,
+              originalFileName: a.fileName,
+              contentType: a.contentType,
+              fileSize: a.size,
+              filePath: a.url,
+              uploadedBy: email.from,
+              createdAt: email.receivedDate || new Date().toISOString(),
+              updatedAt: email.receivedDate || new Date().toISOString(),
+              status: "",
+              canPreview: true,
+              previewUrl: `${a.url}${token ? `?token=${token}` : ""}`,
+              downloadUrl: `${a.url}${token ? `?token=${token}` : ""}`,
+              documentType: "E-mail",
+              categoryCode: "email",
+              isEmailAttachment: true,
+            }))
+          )
+          mappedDocs = mappedDocs.concat(emailDocs)
+        } catch (err) {
+          console.error("Failed to load email attachments", err)
+        }
+
         setDocuments(mappedDocs)
         setUploadedFiles(
           mappedDocs.map(documentToUploadedFile).concat(pendingFiles),
@@ -1721,6 +1757,7 @@ export const DocumentsSection = React.forwardRef<
                                 <td className="p-3">
                                   <Checkbox
                                     checked={isSelected}
+                                    disabled={doc.isEmailAttachment}
                                     onCheckedChange={(checked) => {
                                       const value = checked === true
                                       setSelectedDocumentIds((prev) =>
@@ -1733,7 +1770,9 @@ export const DocumentsSection = React.forwardRef<
                                 </td>
                                 <td className="p-3 font-medium flex items-center gap-2">
                                   {getFileIcon(doc.contentType)}
-                                  {editingDocId === doc.id ? (
+                                  {doc.isEmailAttachment ? (
+                                    <span className="truncate">{doc.originalFileName}</span>
+                                  ) : editingDocId === doc.id ? (
                                     <Input
                                       value={doc.originalFileName}
                                       onChange={(e) => updateFileName(doc.id, e.target.value)}
@@ -1767,80 +1806,105 @@ export const DocumentsSection = React.forwardRef<
                                   )}
                                 </td>
                                 <td className="p-3">
-                                  <div className="flex items-center gap-1">
-                                    <Button
-                                      variant="ghost"
-                                      size="icon"
-                                      className="h-7 w-7"
-                                      onClick={() => handleGenerateAIDescription(doc.id)}
-                                    >
-                                      <Wand className="h-4 w-4 text-purple-500" />
-                                    </Button>
-                                    <Input
-                                      value={doc.description || ""}
-                                      onChange={(e) => handleDescriptionChange(doc.id, e.target.value)}
-                                      className="text-sm h-8"
-                                      placeholder="Wprowadź opis pliku..."
-                                    />
-                                  </div>
+                                  {doc.isEmailAttachment ? (
+                                    <span>{doc.description || ""}</span>
+                                  ) : (
+                                    <div className="flex items-center gap-1">
+                                      <Button
+                                        variant="ghost"
+                                        size="icon"
+                                        className="h-7 w-7"
+                                        onClick={() => handleGenerateAIDescription(doc.id)}
+                                      >
+                                        <Wand className="h-4 w-4 text-purple-500" />
+                                      </Button>
+                                      <Input
+                                        value={doc.description || ""}
+                                        onChange={(e) => handleDescriptionChange(doc.id, e.target.value)}
+                                        className="text-sm h-8"
+                                        placeholder="Wprowadź opis pliku..."
+                                      />
+                                    </div>
+                                  )}
                                 </td>
                                 <td className="p-3 text-gray-600">{formatBytes(doc.fileSize)}</td>
                                 <td className="p-3 text-gray-600">{new Date(doc.createdAt).toLocaleDateString()}</td>
                                 <td className="p-3 text-gray-600 capitalize">{doc.status}</td>
                                 <td className="p-3">
-                                  <div className="flex items-center gap-1">
-                                    <DropdownMenu>
-                                      <DropdownMenuTrigger asChild>
-                                        <Button variant="ghost" size="sm" className="h-7">
-                                          Przenieś
-                                        </Button>
-                                      </DropdownMenuTrigger>
-                                      <DropdownMenuContent align="end">
-                                        {documentCategories
-                                          .filter((c) => c !== doc.documentType)
-                                          .map((c) => (
-                                            <DropdownMenuItem
-                                              key={c}
-                                              onClick={() => moveDocument(doc.id, c)}
-                                            >
-                                              {c}
-                                            </DropdownMenuItem>
-                                          ))}
-                                      </DropdownMenuContent>
-                                    </DropdownMenu>
-                                    <Button
-                                      variant="ghost"
-                                      size="sm"
-                                      className="h-7"
-                                      onClick={() => handleNotifyClient(doc.id)}
-                                    >
-                                      <Bell className="h-4 w-4 mr-1" /> Powiadom
-                                    </Button>
-                                    <Button
-                                      variant="ghost"
-                                      size="icon"
-                                      className="h-7 w-7"
-                                      onClick={() => handleDownload(doc)}
-                                    >
-                                      <Download className="h-4 w-4" />
-                                    </Button>
-                                    <Button
-                                      variant="ghost"
-                                      size="icon"
-                                      className="h-7 w-7"
-                                      onClick={() => void handlePreview(doc, documentsForCategory)}
-                                    >
-                                      <Eye className="h-4 w-4" />
-                                    </Button>
-                                    <Button
-                                      variant="ghost"
-                                      size="icon"
-                                      className="h-7 w-7 text-red-500 hover:text-red-600"
-                                      onClick={() => handleFileDelete(doc.id)}
-                                    >
-                                      <Trash2 className="h-4 w-4" />
-                                    </Button>
-                                  </div>
+                                  {doc.isEmailAttachment ? (
+                                    <div className="flex items-center gap-1">
+                                      <Button
+                                        variant="ghost"
+                                        size="icon"
+                                        className="h-7 w-7"
+                                        onClick={() => handleDownload(doc)}
+                                      >
+                                        <Download className="h-4 w-4" />
+                                      </Button>
+                                      <Button
+                                        variant="ghost"
+                                        size="icon"
+                                        className="h-7 w-7"
+                                        onClick={() => void handlePreview(doc, documentsForCategory)}
+                                      >
+                                        <Eye className="h-4 w-4" />
+                                      </Button>
+                                    </div>
+                                  ) : (
+                                    <div className="flex items-center gap-1">
+                                      <DropdownMenu>
+                                        <DropdownMenuTrigger asChild>
+                                          <Button variant="ghost" size="sm" className="h-7">
+                                            Przenieś
+                                          </Button>
+                                        </DropdownMenuTrigger>
+                                        <DropdownMenuContent align="end">
+                                          {documentCategories
+                                            .filter((c) => c !== doc.documentType)
+                                            .map((c) => (
+                                              <DropdownMenuItem
+                                                key={c}
+                                                onClick={() => moveDocument(doc.id, c)}
+                                              >
+                                                {c}
+                                              </DropdownMenuItem>
+                                            ))}
+                                        </DropdownMenuContent>
+                                      </DropdownMenu>
+                                      <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        className="h-7"
+                                        onClick={() => handleNotifyClient(doc.id)}
+                                      >
+                                        <Bell className="h-4 w-4 mr-1" /> Powiadom
+                                      </Button>
+                                      <Button
+                                        variant="ghost"
+                                        size="icon"
+                                        className="h-7 w-7"
+                                        onClick={() => handleDownload(doc)}
+                                      >
+                                        <Download className="h-4 w-4" />
+                                      </Button>
+                                      <Button
+                                        variant="ghost"
+                                        size="icon"
+                                        className="h-7 w-7"
+                                        onClick={() => void handlePreview(doc, documentsForCategory)}
+                                      >
+                                        <Eye className="h-4 w-4" />
+                                      </Button>
+                                      <Button
+                                        variant="ghost"
+                                        size="icon"
+                                        className="h-7 w-7 text-red-500 hover:text-red-600"
+                                        onClick={() => handleFileDelete(doc.id)}
+                                      >
+                                        <Trash2 className="h-4 w-4" />
+                                      </Button>
+                                    </div>
+                                  )}
                                 </td>
                               </tr>
                             )

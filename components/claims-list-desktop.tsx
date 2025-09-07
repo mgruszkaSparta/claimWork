@@ -58,6 +58,12 @@ import type { Claim } from "@/types"
 import { dictionaryService } from "@/lib/dictionary-service"
 
 import HandlerDropdown from "@/components/handler-dropdown"
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip"
 
 
 
@@ -916,7 +922,13 @@ export function ClaimsListDesktop({
                 {claims.map((claim) => (
                   <tr
                     key={claim.id}
-                    className="odd:bg-white even:bg-gray-50 hover:bg-gray-100 transition-colors"
+                    className="odd:bg-white even:bg-gray-50 hover:bg-gray-100 transition-colors cursor-pointer"
+                    onClick={() =>
+                      claim.id &&
+                      (onEditClaim
+                        ? onEditClaim(claim.id)
+                        : handleEditClaimDirect(claim.id))
+                    }
                   >
 
 
@@ -928,12 +940,13 @@ export function ClaimsListDesktop({
                             return Icon ? (
                               <Icon
                                 className="h-4 w-4 cursor-pointer"
-                                onClick={() =>
+                                onClick={(e) => {
+                                  e.stopPropagation()
                                   claim.id &&
-                                  (onEditClaim
-                                    ? onEditClaim(claim.id)
-                                    : handleEditClaimDirect(claim.id))
-                                }
+                                    (onEditClaim
+                                      ? onEditClaim(claim.id)
+                                      : handleEditClaimDirect(claim.id))
+                                }}
                                 title="Edytuj"
                               />
                             ) : null
@@ -949,8 +962,34 @@ export function ClaimsListDesktop({
                     <td className="px-6 py-4 whitespace-nowrap">{claim.spartaNumber || "-"}</td>
                     <td className="px-6 py-4 whitespace-nowrap">{claim.victimRegistrationNumber || "-"}</td>
 
-                    <td className="px-6 py-4 whitespace-nowrap">{claim.handler || "-"}</td>
-                    <td className="px-6 py-4 whitespace-nowrap">{claim.client || "-"}</td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      {claim.handler ? (
+                        <TooltipProvider>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <span className="block max-w-[200px] truncate">{claim.handler}</span>
+                            </TooltipTrigger>
+                            <TooltipContent>{claim.handler}</TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
+                      ) : (
+                        "-"
+                      )}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      {claim.client ? (
+                        <TooltipProvider>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <span className="block max-w-[200px] truncate">{claim.client}</span>
+                            </TooltipTrigger>
+                            <TooltipContent>{claim.client}</TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
+                      ) : (
+                        "-"
+                      )}
+                    </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                       {claim.reportDate ? new Date(claim.reportDate).toLocaleDateString("pl-PL") : "-"}
 
@@ -982,7 +1021,10 @@ export function ClaimsListDesktop({
                           variant="ghost"
                           size="sm"
                           className="h-8 w-8 p-0 hover:bg-blue-50"
-                          onClick={() => claim.id && handleViewClaim(claim.id)}
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            claim.id && handleViewClaim(claim.id)
+                          }}
                           title="Podgląd"
                         >
                           <Eye className="h-4 w-4 text-blue-600" />
@@ -991,9 +1033,13 @@ export function ClaimsListDesktop({
                           variant="ghost"
                           size="sm"
                           className="h-8 w-8 p-0 hover:bg-green-50"
-                          onClick={() =>
-                            claim.id && (onEditClaim ? onEditClaim(claim.id) : handleEditClaimDirect(claim.id))
-                          }
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            claim.id &&
+                              (onEditClaim
+                                ? onEditClaim(claim.id)
+                                : handleEditClaimDirect(claim.id))
+                          }}
                           title="Edytuj"
                         >
                           <Edit className="h-4 w-4 text-green-600" />
@@ -1003,7 +1049,10 @@ export function ClaimsListDesktop({
                             variant="ghost"
                             size="sm"
                             className="h-8 w-8 p-0 hover:bg-red-50"
-                            onClick={() => handleDeleteClaim(claim.id, claim.claimNumber)}
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              handleDeleteClaim(claim.id, claim.claimNumber)
+                            }}
                             title="Usuń"
                           >
                             <Trash2 className="h-4 w-4 text-red-600" />

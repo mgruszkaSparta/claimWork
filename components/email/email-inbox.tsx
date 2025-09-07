@@ -19,6 +19,7 @@ import {
   Trash2,
   X,
   ArrowLeft,
+  Move,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -28,6 +29,12 @@ import { emailService, type EmailDto, type AttachmentDto, type SendEmailRequestD
 import { EmailFolder } from "@/types/email"
 import { useDebounce } from "@/hooks/use-debounce"
 import { DocumentPreview, type FileType } from "@/components/document-preview"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
 
 interface EmailInboxProps {
   claimId?: string
@@ -465,6 +472,36 @@ export default function EmailInbox({ claimId, claimNumber, claimInsuranceNumber 
     }
   }, [])
 
+  const transferAttachmentToDocument = useCallback(
+    async (attachment: AttachmentDto, move: boolean) => {
+      if (!selectedEmail?.eventId) {
+        setErrorMessage("Email nie jest przypisany do szkody.")
+        return
+      }
+
+      try {
+        const doc = await emailService.attachmentToDocument(
+          attachment.id,
+          selectedEmail.eventId,
+          move,
+        )
+        if (doc) {
+          setSuccessMessage(
+            move
+              ? "Załącznik przeniesiony do dokumentów."
+              : "Załącznik skopiowany do dokumentów.",
+          )
+        } else {
+          setErrorMessage("Nie udało się dodać załącznika do dokumentów.")
+        }
+      } catch (error) {
+        console.error("transferAttachmentToDocument failed:", error)
+        setErrorMessage("Błąd przenoszenia załącznika do dokumentów.")
+      }
+    },
+    [selectedEmail],
+  )
+
   // Preview attachment
   const previewAttachment = useCallback(async (attachment: AttachmentDto) => {
     try {
@@ -892,6 +929,29 @@ export default function EmailInbox({ claimId, claimNumber, claimInsuranceNumber 
                                 >
                                   <Download className="w-4 h-4" />
                                 </Button>
+                                <DropdownMenu>
+                                  <DropdownMenuTrigger asChild>
+                                    <Button
+                                      variant="ghost"
+                                      size="sm"
+                                      title="Dokumenty"
+                                    >
+                                      <Move className="w-4 h-4" />
+                                    </Button>
+                                  </DropdownMenuTrigger>
+                                  <DropdownMenuContent>
+                                    <DropdownMenuItem
+                                      onClick={() => transferAttachmentToDocument(attachment, false)}
+                                    >
+                                      Kopiuj do dokumentów
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem
+                                      onClick={() => transferAttachmentToDocument(attachment, true)}
+                                    >
+                                      Przenieś do dokumentów
+                                    </DropdownMenuItem>
+                                  </DropdownMenuContent>
+                                </DropdownMenu>
                               </div>
                             </div>
                           ))}

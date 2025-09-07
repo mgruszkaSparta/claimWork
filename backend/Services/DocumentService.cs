@@ -88,6 +88,49 @@ namespace AutomotiveClaimsApi.Services
             return await UploadAndCreateDocumentAsync(file, createDto);
         }
 
+        public async Task<DocumentDto> CreateDocumentFromEmailAttachmentAsync(Guid attachmentId, CreateDocumentFromAttachmentDto createDto)
+        {
+            var attachment = await _emailService.GetAttachmentByIdAsync(attachmentId);
+            if (attachment == null)
+            {
+                throw new KeyNotFoundException($"Attachment with ID {attachmentId} not found.");
+            }
+
+            var stream = await _emailService.DownloadAttachmentAsync(attachmentId);
+            if (stream == null)
+            {
+                throw new FileNotFoundException("Attachment content not found", attachment.FilePath);
+            }
+
+            await using var ms = new MemoryStream();
+            await stream.CopyToAsync(ms);
+            ms.Position = 0;
+
+            var formFile = new FormFile(ms, 0, ms.Length, "file", attachment.FileName ?? "attachment")
+            {
+                Headers = new HeaderDictionary(),
+                ContentType = attachment.ContentType ?? "application/octet-stream"
+            };
+
+            var docDto = await UploadAndCreateDocumentAsync(formFile, new CreateDocumentDto
+            {
+                EventId = createDto.EventId,
+                DamageId = createDto.DamageId,
+                RelatedEntityId = createDto.RelatedEntityId,
+                RelatedEntityType = createDto.RelatedEntityType,
+                Category = createDto.Category,
+                Description = createDto.Description,
+                UploadedBy = createDto.UploadedBy
+            });
+
+            if (createDto.Move)
+            {
+                await _emailService.DeleteAttachmentAsync(attachmentId);
+            }
+
+            return docDto;
+        }
+
         public async Task<DocumentDto> UploadAndCreateDocumentAsync(IFormFile file, CreateDocumentDto createDto)
         {
             if (file == null || file.Length == 0)

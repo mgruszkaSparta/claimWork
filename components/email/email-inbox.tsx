@@ -26,6 +26,7 @@ import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Badge } from "@/components/ui/badge"
 import { emailService, type EmailDto, type AttachmentDto, type SendEmailRequestDto } from "@/lib/email-service"
+import { apiService } from "@/lib/api"
 import { EmailFolder } from "@/types/email"
 import { useDebounce } from "@/hooks/use-debounce"
 import { DocumentPreview, type FileType } from "@/components/document-preview"
@@ -34,6 +35,11 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
+
+  DropdownMenuSub,
+  DropdownMenuSubContent,
+  DropdownMenuSubTrigger,
+
 } from "@/components/ui/dropdown-menu"
 
 interface EmailInboxProps {
@@ -57,6 +63,7 @@ export default function EmailInbox({ claimId, claimNumber, claimInsuranceNumber 
   const [isDeleting, setIsDeleting] = useState(false)
   const [successMessage, setSuccessMessage] = useState("")
   const [errorMessage, setErrorMessage] = useState("")
+  const [documentCategories, setDocumentCategories] = useState<string[]>([])
 
   // Compose form state
   const [composeTo, setComposeTo] = useState("")
@@ -82,6 +89,19 @@ export default function EmailInbox({ claimId, claimNumber, claimInsuranceNumber 
 
   const [allEmailsForCurrentFolder, setAllEmailsForCurrentFolder] = useState<EmailDto[]>([])
   const debouncedFilterText = useDebounce(filterText, 300)
+
+  useEffect(() => {
+    const loadCategories = async () => {
+      if (!claimId) return
+      try {
+        const claim = await apiService.getClaim(claimId)
+        setDocumentCategories(claim.documentCategories ?? [])
+      } catch (error) {
+        console.error("Error loading claim document categories:", error)
+      }
+    }
+    loadCategories()
+  }, [claimId])
 
   // Normalize text for search (remove Polish characters, convert to lowercase)
   const normalizeForSearch = useCallback((text: string): string => {
@@ -473,7 +493,9 @@ export default function EmailInbox({ claimId, claimNumber, claimInsuranceNumber 
   }, [])
 
   const transferAttachmentToDocument = useCallback(
-    async (attachment: AttachmentDto, move: boolean) => {
+
+    async (attachment: AttachmentDto, move: boolean, category: string) => {
+
       if (!selectedEmail?.eventId) {
         setErrorMessage("Email nie jest przypisany do szkody.")
         return
@@ -483,6 +505,9 @@ export default function EmailInbox({ claimId, claimNumber, claimInsuranceNumber 
         const doc = await emailService.attachmentToDocument(
           attachment.id,
           selectedEmail.eventId,
+
+          category,
+
           move,
         )
         if (doc) {
@@ -940,16 +965,58 @@ export default function EmailInbox({ claimId, claimNumber, claimInsuranceNumber 
                                     </Button>
                                   </DropdownMenuTrigger>
                                   <DropdownMenuContent>
-                                    <DropdownMenuItem
-                                      onClick={() => transferAttachmentToDocument(attachment, false)}
-                                    >
-                                      Kopiuj do dokumentów
-                                    </DropdownMenuItem>
-                                    <DropdownMenuItem
-                                      onClick={() => transferAttachmentToDocument(attachment, true)}
-                                    >
-                                      Przenieś do dokumentów
-                                    </DropdownMenuItem>
+
+                                    <DropdownMenuSub>
+                                      <DropdownMenuSubTrigger>Kopiuj do dokumentów</DropdownMenuSubTrigger>
+                                      <DropdownMenuSubContent>
+                                        {documentCategories.length > 0 ? (
+                                          documentCategories.map((cat) => (
+                                            <DropdownMenuItem
+                                              key={`copy-${cat}`}
+                                              onClick={() =>
+                                                transferAttachmentToDocument(
+                                                  attachment,
+                                                  false,
+                                                  cat,
+                                                )
+                                              }
+                                            >
+                                              {cat}
+                                            </DropdownMenuItem>
+                                          ))
+                                        ) : (
+                                          <DropdownMenuItem disabled>
+                                            Brak kategorii
+                                          </DropdownMenuItem>
+                                        )}
+                                      </DropdownMenuSubContent>
+                                    </DropdownMenuSub>
+                                    <DropdownMenuSub>
+                                      <DropdownMenuSubTrigger>Przenieś do dokumentów</DropdownMenuSubTrigger>
+                                      <DropdownMenuSubContent>
+                                        {documentCategories.length > 0 ? (
+                                          documentCategories.map((cat) => (
+                                            <DropdownMenuItem
+                                              key={`move-${cat}`}
+                                              onClick={() =>
+                                                transferAttachmentToDocument(
+                                                  attachment,
+                                                  true,
+                                                  cat,
+                                                )
+                                              }
+                                            >
+                                              {cat}
+                                            </DropdownMenuItem>
+                                          ))
+                                        ) : (
+                                          <DropdownMenuItem disabled>
+                                            Brak kategorii
+                                          </DropdownMenuItem>
+                                        )}
+                                      </DropdownMenuSubContent>
+                                    </DropdownMenuSub>
+
                                   </DropdownMenuContent>
                                 </DropdownMenu>
                               </div>

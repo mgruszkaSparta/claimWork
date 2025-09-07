@@ -67,6 +67,9 @@ class EmailService {
   async attachmentToDocument(
     attachmentId: string,
     eventId: string,
+
+    category: string,
+
     move = false,
   ): Promise<DocumentDto | null> {
     try {
@@ -75,7 +78,9 @@ class EmailService {
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ eventId, move }),
+
+          body: JSON.stringify({ eventId, category, move }),
+
         },
       )
       if (!res.ok) throw new Error("Failed to transfer attachment")

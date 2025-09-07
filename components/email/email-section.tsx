@@ -171,6 +171,7 @@ export const EmailSection = ({
       type: mapAttachmentType(type),
       uploadedAt: new Date().toISOString(),
       url,
+      cloudUrl: url,
       category: doc?.name,
       categoryCode: doc?.category,
     }

@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect, useCallback } from "react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardHeader } from "@/components/ui/card"
@@ -26,6 +26,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import type { Email } from "@/types/email"
 import type { RequiredDocument } from "@/types"
 import { API_BASE_URL } from "@/lib/api"
+import { emailService } from "@/lib/email-service"
+import type { EmailAttachment } from "@/types/email"
 
 interface EmailViewProps {
   email: Email
@@ -56,6 +58,61 @@ export const EmailView = ({
 }: EmailViewProps) => {
   const [showFullHeaders, setShowFullHeaders] = useState(false)
   const availableDocs = requiredDocuments.filter((d) => d.required && !d.uploaded)
+  const [imageUrls, setImageUrls] = useState<Record<string, string>>({})
+
+  useEffect(() => {
+    const urls: Record<string, string> = {}
+    const loadImages = async () => {
+      for (const att of email.attachments) {
+        if (att.type?.startsWith("image/")) {
+          try {
+            const blob = await emailService.downloadAttachment(att.id)
+            if (blob) {
+              urls[att.id] = URL.createObjectURL(blob)
+            }
+          } catch (err) {
+            console.error("Failed to load image attachment", err)
+          }
+        }
+      }
+      setImageUrls(urls)
+    }
+    loadImages()
+    return () => {
+      Object.values(urls).forEach((u) => URL.revokeObjectURL(u))
+    }
+  }, [email])
+
+  const downloadAttachment = useCallback(async (attachment: EmailAttachment) => {
+    try {
+      const blob = await emailService.downloadAttachment(attachment.id)
+      if (blob) {
+        const url = window.URL.createObjectURL(blob)
+        const link = document.createElement("a")
+        link.href = url
+        link.download = attachment.name || "attachment"
+        document.body.appendChild(link)
+        link.click()
+        document.body.removeChild(link)
+        window.URL.revokeObjectURL(url)
+      }
+    } catch (err) {
+      console.error("Error downloading attachment", err)
+    }
+  }, [])
+
+  const previewAttachment = useCallback(async (attachment: EmailAttachment) => {
+    try {
+      const blob = await emailService.downloadAttachment(attachment.id)
+      if (blob) {
+        const url = window.URL.createObjectURL(blob)
+        window.open(url)
+        setTimeout(() => URL.revokeObjectURL(url), 1000)
+      }
+    } catch (err) {
+      console.error("Error previewing attachment", err)
+    }
+  }, [])
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString)
@@ -221,9 +278,9 @@ export const EmailView = ({
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
                   {email.attachments.map((attachment) => (
                     <Card key={attachment.id} className="p-3">
-                      {attachment.type?.startsWith("image/") && (
+                      {attachment.type?.startsWith("image/") && imageUrls[attachment.id] && (
                         <img
-                          src={attachment.url || `${API_BASE_URL}/emails/attachment/${attachment.id}`}
+                          src={imageUrls[attachment.id]}
                           alt={attachment.name}
                           className="mb-2 max-h-48 w-full object-contain rounded"
                         />
@@ -238,31 +295,20 @@ export const EmailView = ({
                         </div>
                         <div className="flex items-center space-x-1 flex-shrink-0">
                           <Button
-                            asChild
                             variant="ghost"
                             size="sm"
                             className="h-8 w-8 p-0"
+                            onClick={() => previewAttachment(attachment)}
                           >
-                            <a
-                              href={attachment.url || `${API_BASE_URL}/emails/attachment/${attachment.id}`}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                            >
-                              <Eye className="h-4 w-4" />
-                            </a>
+                            <Eye className="h-4 w-4" />
                           </Button>
                           <Button
-                            asChild
                             variant="ghost"
                             size="sm"
                             className="h-8 w-8 p-0"
+                            onClick={() => downloadAttachment(attachment)}
                           >
-                            <a
-                              href={attachment.url || `${API_BASE_URL}/emails/attachment/${attachment.id}`}
-                              download
-                            >
-                              <Download className="h-4 w-4" />
-                            </a>
+                            <Download className="h-4 w-4" />
                           </Button>
                           <Dialog>
                             <DialogTrigger asChild>

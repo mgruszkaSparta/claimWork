@@ -183,6 +183,25 @@ public class EmailClient
                         CreatedAt = DateTime.UtcNow,
                         UpdatedAt = DateTime.UtcNow
                     });
+
+                    _db.Documents.Add(new Document
+                    {
+                        Id = Guid.NewGuid(),
+                        EventId = evt?.Id,
+                        RelatedEntityId = emailEntity.Id,
+                        RelatedEntityType = "Email",
+                        FileName = Path.GetFileName(data.FilePath),
+                        OriginalFileName = data.FileName,
+                        FilePath = data.FilePath,
+                        CloudUrl = data.CloudUrl,
+                        FileSize = data.FileSize,
+                        ContentType = data.ContentType,
+                        DocumentType = "email",
+                        UploadedBy = emailEntity.From,
+                        Status = "ACTIVE",
+                        CreatedAt = DateTime.UtcNow,
+                        UpdatedAt = DateTime.UtcNow
+                    });
                 }
 
                 _db.Emails.Add(emailEntity);

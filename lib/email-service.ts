@@ -9,6 +9,7 @@ export interface AttachmentDto {
   size: number
   /** Fully qualified URL to download the attachment */
   url: string
+  cloudUrl?: string
 }
 
 export interface EmailDto {
@@ -86,13 +87,17 @@ class EmailService {
         isImportant: e.isImportant,
         isStarred: e.isStarred,
         attachments:
-          e.attachments?.map((a: any) => ({
-            id: a.id,
-            fileName: a.fileName,
-            contentType: a.contentType,
-            size: a.fileSize,
-            url: `${API_BASE_URL}/emails/attachment/${a.id}`,
-          })) || [],
+          e.attachments?.map((a: any) => {
+            const url = a.cloudUrl || `${API_BASE_URL}/emails/attachment/${a.id}`
+            return {
+              id: a.id,
+              fileName: a.fileName,
+              contentType: a.contentType,
+              size: a.fileSize,
+              url,
+              cloudUrl: a.cloudUrl || undefined,
+            }
+          }) || [],
       }))
     } catch (error) {
       console.error("getAllEmails failed:", error)
@@ -125,13 +130,17 @@ class EmailService {
         isImportant: e.isImportant,
         isStarred: e.isStarred,
         attachments:
-          e.attachments?.map((a: any) => ({
-            id: a.id,
-            fileName: a.fileName,
-            contentType: a.contentType,
-            size: a.fileSize,
-            url: `${API_BASE_URL}/emails/attachment/${a.id}`,
-          })) || [],
+          e.attachments?.map((a: any) => {
+            const url = a.cloudUrl || `${API_BASE_URL}/emails/attachment/${a.id}`
+            return {
+              id: a.id,
+              fileName: a.fileName,
+              contentType: a.contentType,
+              size: a.fileSize,
+              url,
+              cloudUrl: a.cloudUrl || undefined,
+            }
+          }) || [],
       }
     } catch (error) {
       console.error(`getEmailById id=${id} failed:`, error)
@@ -223,13 +232,17 @@ class EmailService {
         isImportant: e.isImportant,
         isStarred: e.isStarred,
         attachments:
-          e.attachments?.map((a: any) => ({
-            id: a.id,
-            fileName: a.fileName,
-            contentType: a.contentType,
-            size: a.fileSize,
-            url: `${API_BASE_URL}/emails/attachment/${a.id}`,
-          })) || [],
+          e.attachments?.map((a: any) => {
+            const url = a.cloudUrl || `${API_BASE_URL}/emails/attachment/${a.id}`
+            return {
+              id: a.id,
+              fileName: a.fileName,
+              contentType: a.contentType,
+              size: a.fileSize,
+              url,
+              cloudUrl: a.cloudUrl || undefined,
+            }
+          }) || [],
       }))
     } catch (error) {
       console.error(`getEmailsByEventId eventId=${eventId} failed:`, error)

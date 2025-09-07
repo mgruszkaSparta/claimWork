@@ -4,18 +4,22 @@ const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5200/a
 
 export async function POST(request: NextRequest) {
   try {
-    const { emailId, claimId } = await request.json()
+    const { emailId, claimIds } = await request.json()
     const auth = request.headers.get("authorization") ?? ""
 
     const response = await fetch(`${API_BASE_URL}/emails/assign-to-claim`, {
       method: "POST",
       headers: { "Content-Type": "application/json", Authorization: auth },
-      body: JSON.stringify({ emailId, claimId }),
+      body: JSON.stringify({ emailId, claimIds }),
     })
 
     if (!response.ok) {
       const errorText = await response.text()
       return NextResponse.json({ error: errorText }, { status: response.status })
+    }
+
+    if (response.status === 204) {
+      return new NextResponse(null, { status: 204 })
     }
 
     const data = await response.json()

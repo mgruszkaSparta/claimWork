@@ -1757,7 +1757,6 @@ export const DocumentsSection = React.forwardRef<
                                 <td className="p-3">
                                   <Checkbox
                                     checked={isSelected}
-                                    disabled={doc.isEmailAttachment}
                                     onCheckedChange={(checked) => {
                                       const value = checked === true
                                       setSelectedDocumentIds((prev) =>
@@ -1831,46 +1830,27 @@ export const DocumentsSection = React.forwardRef<
                                 <td className="p-3 text-gray-600">{new Date(doc.createdAt).toLocaleDateString()}</td>
                                 <td className="p-3 text-gray-600 capitalize">{doc.status}</td>
                                 <td className="p-3">
-                                  {doc.isEmailAttachment ? (
-                                    <div className="flex items-center gap-1">
-                                      <Button
-                                        variant="ghost"
-                                        size="icon"
-                                        className="h-7 w-7"
-                                        onClick={() => handleDownload(doc)}
-                                      >
-                                        <Download className="h-4 w-4" />
-                                      </Button>
-                                      <Button
-                                        variant="ghost"
-                                        size="icon"
-                                        className="h-7 w-7"
-                                        onClick={() => void handlePreview(doc, documentsForCategory)}
-                                      >
-                                        <Eye className="h-4 w-4" />
-                                      </Button>
-                                    </div>
-                                  ) : (
-                                    <div className="flex items-center gap-1">
-                                      <DropdownMenu>
-                                        <DropdownMenuTrigger asChild>
-                                          <Button variant="ghost" size="sm" className="h-7">
-                                            Przenieś
-                                          </Button>
-                                        </DropdownMenuTrigger>
-                                        <DropdownMenuContent align="end">
-                                          {documentCategories
-                                            .filter((c) => c !== doc.documentType)
-                                            .map((c) => (
-                                              <DropdownMenuItem
-                                                key={c}
-                                                onClick={() => moveDocument(doc.id, c)}
-                                              >
-                                                {c}
-                                              </DropdownMenuItem>
-                                            ))}
-                                        </DropdownMenuContent>
-                                      </DropdownMenu>
+                                  <div className="flex items-center gap-1">
+                                    <DropdownMenu>
+                                      <DropdownMenuTrigger asChild>
+                                        <Button variant="ghost" size="sm" className="h-7">
+                                          Przenieś
+                                        </Button>
+                                      </DropdownMenuTrigger>
+                                      <DropdownMenuContent align="end">
+                                        {documentCategories
+                                          .filter((c) => c !== doc.documentType)
+                                          .map((c) => (
+                                            <DropdownMenuItem
+                                              key={c}
+                                              onClick={() => moveDocument(doc.id, c)}
+                                            >
+                                              {c}
+                                            </DropdownMenuItem>
+                                          ))}
+                                      </DropdownMenuContent>
+                                    </DropdownMenu>
+                                    {!doc.isEmailAttachment && (
                                       <Button
                                         variant="ghost"
                                         size="sm"
@@ -1879,22 +1859,24 @@ export const DocumentsSection = React.forwardRef<
                                       >
                                         <Bell className="h-4 w-4 mr-1" /> Powiadom
                                       </Button>
-                                      <Button
-                                        variant="ghost"
-                                        size="icon"
-                                        className="h-7 w-7"
-                                        onClick={() => handleDownload(doc)}
-                                      >
-                                        <Download className="h-4 w-4" />
-                                      </Button>
-                                      <Button
-                                        variant="ghost"
-                                        size="icon"
-                                        className="h-7 w-7"
-                                        onClick={() => void handlePreview(doc, documentsForCategory)}
-                                      >
-                                        <Eye className="h-4 w-4" />
-                                      </Button>
+                                    )}
+                                    <Button
+                                      variant="ghost"
+                                      size="icon"
+                                      className="h-7 w-7"
+                                      onClick={() => handleDownload(doc)}
+                                    >
+                                      <Download className="h-4 w-4" />
+                                    </Button>
+                                    <Button
+                                      variant="ghost"
+                                      size="icon"
+                                      className="h-7 w-7"
+                                      onClick={() => void handlePreview(doc, documentsForCategory)}
+                                    >
+                                      <Eye className="h-4 w-4" />
+                                    </Button>
+                                    {!doc.isEmailAttachment && (
                                       <Button
                                         variant="ghost"
                                         size="icon"
@@ -1903,8 +1885,8 @@ export const DocumentsSection = React.forwardRef<
                                       >
                                         <Trash2 className="h-4 w-4" />
                                       </Button>
-                                    </div>
-                                  )}
+                                    )}
+                                  </div>
                                 </td>
                               </tr>
                             )

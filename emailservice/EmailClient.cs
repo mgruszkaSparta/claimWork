@@ -14,6 +14,7 @@ using MimeKit;
 using EmailService.Data;
 using EmailService.Models;
 using EmailService.Storage;
+using MailKit;
 
 
 namespace EmailService;
@@ -116,7 +117,7 @@ public class EmailClient
             {
                 using var stream = new MemoryStream();
                 await attachment.Content.DecodeToAsync(stream);
-                var result = await _storage.SaveAsync(attachment.FileName ?? Guid.NewGuid().ToString(), attachment.ContentType.MimeType, stream);
+                var result = await _storage.SaveAsync( Guid.NewGuid().ToString(), attachment.ContentType.MimeType, stream);
                 attachmentData.Add((attachment.FileName, attachment.ContentType.MimeType, stream.Length, result.FilePath, result.CloudUrl));
             }
 

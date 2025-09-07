@@ -164,6 +164,26 @@ namespace AutomotiveClaimsApi.Controllers
             }
         }
 
+        [HttpPost("email-attachment/{attachmentId}")]
+        public async Task<ActionResult<DocumentDto>> CreateFromEmailAttachment(Guid attachmentId, [FromBody] CreateDocumentFromAttachmentDto dto)
+        {
+            try
+            {
+                var documentDto = await _documentService.CreateDocumentFromEmailAttachmentAsync(attachmentId, dto);
+                return CreatedAtAction(nameof(GetDocument), new { id = documentDto.Id }, documentDto);
+            }
+            catch (KeyNotFoundException ex)
+            {
+                _logger.LogWarning(ex, "Attachment not found: {Message}", ex.Message);
+                return NotFound(new { message = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error creating document from attachment");
+                return StatusCode(500, new { message = "Internal server error", error = ex.Message });
+            }
+        }
+
         [HttpGet("event/{eventId}")]
         public async Task<IActionResult> GetDocumentsForEvent(Guid eventId)
         {

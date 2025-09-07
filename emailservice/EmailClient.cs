@@ -253,16 +253,12 @@ public class EmailClient
 
                 foreach (var attachment in email.Attachments)
                 {
-                    if (!string.IsNullOrEmpty(attachment.FilePath) && File.Exists(attachment.FilePath))
-                    {
-                        bodyBuilder.Attachments.Add(attachment.FilePath);
-                    }
-                    else if (!string.IsNullOrEmpty(attachment.CloudUrl))
+                  if (!string.IsNullOrEmpty(attachment.CloudUrl))
                     {
                         try
                         {
                             using var http = new HttpClient();
-                            var stream = await http.GetStreamAsync(attachment.CloudUrl);
+                            var stream = await _storage.GetFileStreamAsync(attachment.CloudUrl);
                             var fileName = attachment.FileName ?? Path.GetFileName(attachment.CloudUrl);
                             var contentType = attachment.ContentType ?? "application/octet-stream";
                             bodyBuilder.Attachments.Add(fileName, stream, ContentType.Parse(contentType));
@@ -301,6 +297,8 @@ public class EmailClient
         await _db.SaveChangesAsync();
         return processed;
     }
+    
+    
 
     private static Guid? ExtractEventId(string message)
     {

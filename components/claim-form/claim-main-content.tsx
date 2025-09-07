@@ -1558,6 +1558,8 @@ export const ClaimMainContent = ({
                 setUploadedFiles={setUploadedFiles}
                 requiredDocuments={requiredDocuments}
                 setRequiredDocuments={setRequiredDocuments}
+                pendingFiles={pendingFiles}
+                setPendingFiles={setPendingFiles}
               />
             </CardContent>
           </Card>

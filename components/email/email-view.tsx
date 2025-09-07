@@ -57,7 +57,7 @@ export const EmailView = ({
   onAssignAttachment,
 }: EmailViewProps) => {
   const [showFullHeaders, setShowFullHeaders] = useState(false)
-  const availableDocs = requiredDocuments.filter((d) => d.required && !d.uploaded)
+  const availableDocs = requiredDocuments
   const [imageUrls, setImageUrls] = useState<Record<string, string>>({})
 
   useEffect(() => {

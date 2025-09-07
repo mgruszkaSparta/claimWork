@@ -9,8 +9,6 @@ import { Checkbox } from "@/components/ui/checkbox"
 import { renameDocument, notifyClient } from "@/lib/api/documents"
 import { authFetch } from "@/lib/auth-fetch"
 import { generateId } from "@/lib/constants"
-import { emailService } from "@/lib/email-service"
-import { EmailFolder } from "@/types/email"
 import {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -368,38 +366,6 @@ export const DocumentsSection = React.forwardRef<
           }`,
           isEmailAttachment: false,
         }))
-
-        // Load received email attachments assigned to this claim/event
-        try {
-          const emails = await emailService.getEmailsByEventId(
-            eventId,
-            EmailFolder.Inbox,
-          )
-          const emailDocs: Document[] = emails.flatMap((email) =>
-            email.attachments.map((a) => ({
-              id: a.id,
-              eventId,
-              fileName: a.fileName,
-              originalFileName: a.fileName,
-              contentType: a.contentType,
-              fileSize: a.size,
-              filePath: a.url,
-              uploadedBy: email.from,
-              createdAt: email.receivedDate || new Date().toISOString(),
-              updatedAt: email.receivedDate || new Date().toISOString(),
-              status: "",
-              canPreview: true,
-              previewUrl: `${a.url}${token ? `?token=${token}` : ""}`,
-              downloadUrl: `${a.url}${token ? `?token=${token}` : ""}`,
-              documentType: "E-mail",
-              categoryCode: "email",
-              isEmailAttachment: true,
-            }))
-          )
-          mappedDocs = mappedDocs.concat(emailDocs)
-        } catch (err) {
-          console.error("Failed to load email attachments", err)
-        }
 
         setDocuments(mappedDocs)
         setUploadedFiles(

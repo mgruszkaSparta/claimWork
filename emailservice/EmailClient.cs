@@ -149,6 +149,8 @@ public class EmailClient
             {
                 var emailEntity = new Email
                 {
+                    // Ensure the email has an ID so related documents can reference it
+                    Id = Guid.NewGuid(),
                     Subject = baseEmail.Subject,
                     Body = baseEmail.Body,
                     BodyHtml = baseEmail.BodyHtml,
@@ -180,6 +182,25 @@ public class EmailClient
                         FileSize = data.FileSize,
                         FilePath = data.FilePath,
                         CloudUrl = data.CloudUrl,
+                        CreatedAt = DateTime.UtcNow,
+                        UpdatedAt = DateTime.UtcNow
+                    });
+
+                    _db.Documents.Add(new Document
+                    {
+                        Id = Guid.NewGuid(),
+                        EventId = evt?.Id,
+                        RelatedEntityId = emailEntity.Id,
+                        RelatedEntityType = "Email",
+                        FileName = Path.GetFileName(data.FilePath),
+                        OriginalFileName = data.FileName,
+                        FilePath = data.FilePath,
+                        CloudUrl = data.CloudUrl,
+                        FileSize = data.FileSize,
+                        ContentType = data.ContentType,
+                        DocumentType = "email",
+                        UploadedBy = emailEntity.From,
+                        Status = "ACTIVE",
                         CreatedAt = DateTime.UtcNow,
                         UpdatedAt = DateTime.UtcNow
                     });

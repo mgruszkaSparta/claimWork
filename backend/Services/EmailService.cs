@@ -247,6 +247,7 @@ namespace AutomotiveClaimsApi.Services
                     ContentType = a.ContentType ?? string.Empty,
                     FileSize = a.FileSize,
                     FilePath = a.FilePath ?? string.Empty,
+                    CloudUrl = a.CloudUrl,
                     CreatedAt = a.CreatedAt,
                 }).ToList()
             };
@@ -268,6 +269,26 @@ namespace AutomotiveClaimsApi.Services
             }
 
             var relativePath = Path.Combine("uploads", "email", uniqueFileName).Replace("\\", "/");
+
+            var email = _context.Emails.Local.FirstOrDefault(e => e.Id == emailId);
+            _context.Documents.Add(new Document
+            {
+                Id = Guid.NewGuid(),
+                EventId = email?.EventId,
+                RelatedEntityId = emailId,
+                RelatedEntityType = "Email",
+                FileName = uniqueFileName,
+                OriginalFileName = file.FileName,
+                FilePath = relativePath,
+                CloudUrl = cloudUrl,
+                FileSize = file.Length,
+                ContentType = file.ContentType,
+                DocumentType = "email",
+                UploadedBy = email?.From ?? "System",
+                Status = "ACTIVE",
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow
+            });
 
             return new EmailAttachment
             {
@@ -571,6 +592,7 @@ namespace AutomotiveClaimsApi.Services
                 ContentType = attachment.ContentType ?? string.Empty,
                 FileSize = attachment.FileSize,
                 FilePath = attachment.FilePath ?? string.Empty,
+                CloudUrl = attachment.CloudUrl,
                 CreatedAt = attachment.CreatedAt,
             };
         }
@@ -587,6 +609,7 @@ namespace AutomotiveClaimsApi.Services
                 ContentType = attachment.ContentType ?? string.Empty,
                 FileSize = attachment.FileSize,
                 FilePath = attachment.FilePath ?? string.Empty,
+                CloudUrl = attachment.CloudUrl,
                 CreatedAt = attachment.CreatedAt,
             };
         }

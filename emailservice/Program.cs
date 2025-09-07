@@ -25,11 +25,12 @@ builder.Services.AddDbContext<EmailDbContext>(options =>
 
 builder.Services.AddSingleton<IAttachmentStorage>(_ =>
 {
-    var storageCfg = builder.Configuration.GetSection("Storage");
-    var bucket = storageCfg["Bucket"];
-    if (!string.IsNullOrEmpty(bucket))
+    var gcsCfg = builder.Configuration.GetSection("GoogleCloudStorage");
+    var enabled = gcsCfg.GetValue<bool>("Enabled");
+    var bucket = gcsCfg["BucketName"];
+    if (enabled && !string.IsNullOrEmpty(bucket))
     {
-        var credentialsPath = storageCfg["CredentialsPath"];
+        var credentialsPath = gcsCfg["CredentialsPath"];
         StorageClient client;
         if (!string.IsNullOrEmpty(credentialsPath))
         {

@@ -1,3 +1,4 @@
+using System;
 using System.IO;
 using System.Threading.Tasks;
 using Google.Cloud.Storage.V1;
@@ -18,8 +19,9 @@ public class GoogleCloudAttachmentStorage : IAttachmentStorage
     public async Task<AttachmentStorageResult> SaveAsync(string fileName, string contentType, Stream content)
     {
         content.Position = 0;
-        await _client.UploadObjectAsync(_bucketName, fileName, contentType, content);
-        var url = $"https://storage.googleapis.com/{_bucketName}/{fileName}";
+        var objectName = $"{Guid.NewGuid()}_{fileName}";
+        await _client.UploadObjectAsync(_bucketName, objectName, contentType, content);
+        var url = $"https://storage.googleapis.com/{_bucketName}/{objectName}";
         return new AttachmentStorageResult { CloudUrl = url };
     }
 }

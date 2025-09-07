@@ -16,6 +16,12 @@ import {
 } from "@/components/ui/select"
 
 import HandlerDropdown from "@/components/handler-dropdown"
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip"
 
 
 import {
@@ -778,12 +784,32 @@ export function ClaimsListMobile({
           <div ref={containerRef} className="flex-1 overflow-auto">
             <div className="p-4 space-y-4">
               {claims.map((claim) => (
-                <div key={claim.id} className="rounded-lg border border-gray-200 p-4 space-y-2">
+                <div
+                  key={claim.id}
+                  className="rounded-lg border border-gray-200 p-4 space-y-2 cursor-pointer"
+                  onClick={() =>
+                    claim.id &&
+                    (onEditClaim
+                      ? onEditClaim(claim.id)
+                      : handleEditClaimDirect(claim.id))
+                  }
+                >
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
                       {(() => {
                         const Icon = typeIconMap[claim.objectTypeId as number]
-                        return Icon ? <Icon className="h-4 w-4" /> : null
+                        return Icon ? (
+                          <Icon
+                            className="h-4 w-4"
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              claim.id &&
+                                (onEditClaim
+                                  ? onEditClaim(claim.id)
+                                  : handleEditClaimDirect(claim.id))
+                            }}
+                          />
+                        ) : null
                       })()}
                       <span className="font-medium">{claim.spartaNumber || "-"}</span>
                     </div>
@@ -804,14 +830,33 @@ export function ClaimsListMobile({
                   <div className="text-sm text-gray-700 space-y-1">
                     <div>Nr szkody TU: {claim.insurerClaimNumber || "-"}</div>
                     <div>Nr rej.: {claim.victimRegistrationNumber || "-"}</div>
-                    <div>Likwidator: {claim.handler || "-"}</div>
+                    <div>
+                      Likwidator:
+                      {claim.handler ? (
+                        <TooltipProvider>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <span className="inline-block max-w-[200px] truncate ml-1 align-bottom">
+                                {claim.handler}
+                              </span>
+                            </TooltipTrigger>
+                            <TooltipContent>{claim.handler}</TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
+                      ) : (
+                        " -"
+                      )}
+                    </div>
                   </div>
                   <div className="flex justify-end space-x-2 pt-2">
                     <Button
                       variant="ghost"
                       size="sm"
                       className="h-8 w-8 p-0 hover:bg-blue-50"
-                      onClick={() => claim.id && handleViewClaim(claim.id)}
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        claim.id && handleViewClaim(claim.id)
+                      }}
                       title="Podgląd"
                     >
                       <Eye className="h-4 w-4 text-blue-600" />
@@ -820,9 +865,13 @@ export function ClaimsListMobile({
                       variant="ghost"
                       size="sm"
                       className="h-8 w-8 p-0 hover:bg-green-50"
-                      onClick={() =>
-                        claim.id && (onEditClaim ? onEditClaim(claim.id) : handleEditClaimDirect(claim.id))
-                      }
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        claim.id &&
+                          (onEditClaim
+                            ? onEditClaim(claim.id)
+                            : handleEditClaimDirect(claim.id))
+                      }}
                       title="Edytuj"
                     >
                       <Edit className="h-4 w-4 text-green-600" />
@@ -832,7 +881,10 @@ export function ClaimsListMobile({
                         variant="ghost"
                         size="sm"
                         className="h-8 w-8 p-0 hover:bg-red-50"
-                        onClick={() => handleDeleteClaim(claim.id, claim.claimNumber)}
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          handleDeleteClaim(claim.id, claim.claimNumber)
+                        }}
                         title="Usuń"
                       >
                         <Trash2 className="h-4 w-4 text-red-600" />

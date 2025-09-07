@@ -19,15 +19,26 @@ import {
   Trash2,
   X,
   ArrowLeft,
+  Move,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Badge } from "@/components/ui/badge"
 import { emailService, type EmailDto, type AttachmentDto, type SendEmailRequestDto } from "@/lib/email-service"
+import { apiService } from "@/lib/api"
 import { EmailFolder } from "@/types/email"
 import { useDebounce } from "@/hooks/use-debounce"
 import { DocumentPreview, type FileType } from "@/components/document-preview"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+  DropdownMenuSub,
+  DropdownMenuSubContent,
+  DropdownMenuSubTrigger,
+} from "@/components/ui/dropdown-menu"
 
 interface EmailInboxProps {
   claimId?: string
@@ -50,6 +61,7 @@ export default function EmailInbox({ claimId, claimNumber, claimInsuranceNumber 
   const [isDeleting, setIsDeleting] = useState(false)
   const [successMessage, setSuccessMessage] = useState("")
   const [errorMessage, setErrorMessage] = useState("")
+  const [documentCategories, setDocumentCategories] = useState<string[]>([])
 
   // Compose form state
   const [composeTo, setComposeTo] = useState("")
@@ -75,6 +87,19 @@ export default function EmailInbox({ claimId, claimNumber, claimInsuranceNumber 
 
   const [allEmailsForCurrentFolder, setAllEmailsForCurrentFolder] = useState<EmailDto[]>([])
   const debouncedFilterText = useDebounce(filterText, 300)
+
+  useEffect(() => {
+    const loadCategories = async () => {
+      if (!claimId) return
+      try {
+        const claim = await apiService.getClaim(claimId)
+        setDocumentCategories(claim.documentCategories ?? [])
+      } catch (error) {
+        console.error("Error loading claim document categories:", error)
+      }
+    }
+    loadCategories()
+  }, [claimId])
 
   // Normalize text for search (remove Polish characters, convert to lowercase)
   const normalizeForSearch = useCallback((text: string): string => {
@@ -464,6 +489,37 @@ export default function EmailInbox({ claimId, claimNumber, claimInsuranceNumber 
       setErrorMessage("Błąd pobierania załącznika.")
     }
   }, [])
+
+  const transferAttachmentToDocument = useCallback(
+    async (attachment: AttachmentDto, move: boolean, category: string) => {
+      if (!selectedEmail?.eventId) {
+        setErrorMessage("Email nie jest przypisany do szkody.")
+        return
+      }
+
+      try {
+        const doc = await emailService.attachmentToDocument(
+          attachment.id,
+          selectedEmail.eventId,
+          category,
+          move,
+        )
+        if (doc) {
+          setSuccessMessage(
+            move
+              ? "Załącznik przeniesiony do dokumentów."
+              : "Załącznik skopiowany do dokumentów.",
+          )
+        } else {
+          setErrorMessage("Nie udało się dodać załącznika do dokumentów.")
+        }
+      } catch (error) {
+        console.error("transferAttachmentToDocument failed:", error)
+        setErrorMessage("Błąd przenoszenia załącznika do dokumentów.")
+      }
+    },
+    [selectedEmail],
+  )
 
   // Preview attachment
   const previewAttachment = useCallback(async (attachment: AttachmentDto) => {
@@ -892,6 +948,69 @@ export default function EmailInbox({ claimId, claimNumber, claimInsuranceNumber 
                                 >
                                   <Download className="w-4 h-4" />
                                 </Button>
+                                <DropdownMenu>
+                                  <DropdownMenuTrigger asChild>
+                                    <Button
+                                      variant="ghost"
+                                      size="sm"
+                                      title="Dokumenty"
+                                    >
+                                      <Move className="w-4 h-4" />
+                                    </Button>
+                                  </DropdownMenuTrigger>
+                                  <DropdownMenuContent>
+                                    <DropdownMenuSub>
+                                      <DropdownMenuSubTrigger>Kopiuj do dokumentów</DropdownMenuSubTrigger>
+                                      <DropdownMenuSubContent>
+                                        {documentCategories.length > 0 ? (
+                                          documentCategories.map((cat) => (
+                                            <DropdownMenuItem
+                                              key={`copy-${cat}`}
+                                              onClick={() =>
+                                                transferAttachmentToDocument(
+                                                  attachment,
+                                                  false,
+                                                  cat,
+                                                )
+                                              }
+                                            >
+                                              {cat}
+                                            </DropdownMenuItem>
+                                          ))
+                                        ) : (
+                                          <DropdownMenuItem disabled>
+                                            Brak kategorii
+                                          </DropdownMenuItem>
+                                        )}
+                                      </DropdownMenuSubContent>
+                                    </DropdownMenuSub>
+                                    <DropdownMenuSub>
+                                      <DropdownMenuSubTrigger>Przenieś do dokumentów</DropdownMenuSubTrigger>
+                                      <DropdownMenuSubContent>
+                                        {documentCategories.length > 0 ? (
+                                          documentCategories.map((cat) => (
+                                            <DropdownMenuItem
+                                              key={`move-${cat}`}
+                                              onClick={() =>
+                                                transferAttachmentToDocument(
+                                                  attachment,
+                                                  true,
+                                                  cat,
+                                                )
+                                              }
+                                            >
+                                              {cat}
+                                            </DropdownMenuItem>
+                                          ))
+                                        ) : (
+                                          <DropdownMenuItem disabled>
+                                            Brak kategorii
+                                          </DropdownMenuItem>
+                                        )}
+                                      </DropdownMenuSubContent>
+                                    </DropdownMenuSub>
+                                  </DropdownMenuContent>
+                                </DropdownMenu>
                               </div>
                             </div>
                           ))}

@@ -1,6 +1,7 @@
 import { EmailFolder } from "@/types/email"
 import { API_BASE_URL } from "./api"
 import { authFetch } from "./auth-fetch"
+import type { DocumentDto } from "./api"
 
 export interface AttachmentDto {
   id: string
@@ -61,6 +62,29 @@ class EmailService {
     const guidRegex =
       /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/
     return guidRegex.test(id)
+  }
+
+  async attachmentToDocument(
+    attachmentId: string,
+    eventId: string,
+    category: string,
+    move = false,
+  ): Promise<DocumentDto | null> {
+    try {
+      const res = await authFetch(
+        `${API_BASE_URL}/documents/email-attachment/${attachmentId}`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ eventId, category, move }),
+        },
+      )
+      if (!res.ok) throw new Error("Failed to transfer attachment")
+      return (await res.json()) as DocumentDto
+    } catch (error) {
+      console.error("attachmentToDocument failed:", error)
+      return null
+    }
   }
 
   async getAllEmails(): Promise<EmailDto[]> {

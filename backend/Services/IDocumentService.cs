@@ -31,6 +31,7 @@ namespace AutomotiveClaimsApi.Services
         Task<DocumentDownloadResult?> GetDocumentAsync(string filePath);
         Task<Stream> GetDocumentStreamAsync(string filePath);
         Task<DocumentDto> UploadDocumentAsync(IFormFile file, string category, string entityId);
+        Task<DocumentDto> CreateDocumentFromEmailAttachmentAsync(Guid attachmentId, CreateDocumentFromAttachmentDto createDto);
     }
 
     public class DocumentDownloadResult

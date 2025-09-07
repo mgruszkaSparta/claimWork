@@ -561,16 +561,21 @@ namespace AutomotiveClaimsApi.Services
                 email.EventId = claim.EventId;
             }
 
-            // Mark the email as received once it's linked to a claim
+            // Mark the email as received once it's linked to a claim and
+            // ensure it appears in the standard inbox
+            if (string.IsNullOrWhiteSpace(email.Direction))
+            {
+                email.Direction = "Inbound";
+            }
             if (email.Status != "Received")
             {
                 email.Status = "Received";
             }
-
             if (!email.ReceivedAt.HasValue)
             {
                 email.ReceivedAt = DateTime.UtcNow;
             }
+            email.UpdatedAt = DateTime.UtcNow;
 
             await _context.SaveChangesAsync();
             return true;

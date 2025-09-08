@@ -212,11 +212,17 @@ export const DocumentsSection = React.forwardRef<
 
   const uploadedFileToDocument = (file: UploadedFile): Document => {
     const isPersisted = isGuid(file.id)
+    const token =
+      typeof window !== "undefined" ? localStorage.getItem("token") : null
     const previewUrl = isPersisted
-      ? `${process.env.NEXT_PUBLIC_API_URL}/documents/${file.id}/preview`
+      ? `${process.env.NEXT_PUBLIC_API_URL}/documents/${file.id}/preview${
+          token ? `?token=${encodeURIComponent(token)}` : ""
+        }`
       : file.cloudUrl || file.url
     const downloadUrl = isPersisted
-      ? `${process.env.NEXT_PUBLIC_API_URL}/documents/${file.id}/download`
+      ? `${process.env.NEXT_PUBLIC_API_URL}/documents/${file.id}/download${
+          token ? `?token=${encodeURIComponent(token)}` : ""
+        }`
       : file.cloudUrl || file.url
 
     return {
@@ -334,23 +340,6 @@ export const DocumentsSection = React.forwardRef<
   const mapCategoryNameToCode = (name?: string | null) =>
     requiredDocuments.find((d) => d.name === name)?.category || name?.replace(/\s+/g, "") || "Inne dokumenty"
 
-  const addPreviewUrl = async (doc: Document): Promise<Document> => {
-    if (!doc.canPreview) return doc
-    try {
-      const res = await authFetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/documents/${doc.id}/preview`,
-      )
-      if (res.ok) {
-        const blob = await res.blob()
-        const objectUrl = URL.createObjectURL(blob)
-        return { ...doc, previewUrl: objectUrl }
-      }
-    } catch (error) {
-      console.error("Error loading document preview:", error)
-    }
-    return doc
-  }
-
   const loadDocuments = async () => {
     if (!eventId || !isGuid(eventId)) return
 
@@ -369,29 +358,20 @@ export const DocumentsSection = React.forwardRef<
         })
       } else if (response.ok) {
         const data: Document[] = await response.json()
-        const mappedDocs: Document[] = await Promise.all(
-          data.map(async (d: any) => {
-            const baseDoc: Document = {
-              ...d,
-              documentType: mapCategoryCodeToName(d.documentType || d.category),
-              categoryCode: d.documentType || d.category,
-              downloadUrl: `${process.env.NEXT_PUBLIC_API_URL}/documents/${d.id}/download`,
-              isEmailAttachment: false,
-              canPreview:
-                d.canPreview ??
-                (d.contentType?.startsWith("image/") ||
-                  d.contentType === "application/pdf" ||
-                  d.contentType?.startsWith("video/") ||
-                  d.contentType ===
-                    "application/vnd.openxmlformats-officedocument.wordprocessingml.document" ||
-                  d.contentType === "application/msword" ||
-                  d.contentType?.includes("ms-excel") ||
-                  d.contentType?.includes("spreadsheetml") ||
-                  d.contentType?.includes("excel")),
-            }
-            return await addPreviewUrl(baseDoc)
-          }),
-        )
+        const token =
+          typeof window !== "undefined" ? localStorage.getItem("token") : null
+        let mappedDocs: Document[] = data.map((d: any) => ({
+          ...d,
+          documentType: mapCategoryCodeToName(d.documentType || d.category),
+          categoryCode: d.documentType || d.category,
+          previewUrl: `${process.env.NEXT_PUBLIC_API_URL}/documents/${d.id}/preview${
+            token ? `?token=${encodeURIComponent(token)}` : ""
+          }`,
+          downloadUrl: `${process.env.NEXT_PUBLIC_API_URL}/documents/${d.id}/download${
+            token ? `?token=${encodeURIComponent(token)}` : ""
+          }`,
+          isEmailAttachment: false,
+        }))
 
         setDocuments(mappedDocs)
         setUploadedFiles(
@@ -546,7 +526,9 @@ export const DocumentsSection = React.forwardRef<
         if (response.ok) {
           const documentDto = await response.json()
           const serverCategory = documentDto.documentType || documentDto.category
-          const baseDoc: Document = {
+          const token =
+            typeof window !== "undefined" ? localStorage.getItem("token") : null
+          const doc: Document = {
             ...documentDto,
             documentType: serverCategory
               ? mapCategoryCodeToName(serverCategory)
@@ -564,9 +546,14 @@ export const DocumentsSection = React.forwardRef<
                 documentDto.contentType?.includes("spreadsheetml") ||
                 documentDto.contentType?.includes("excel")),
 
-            downloadUrl: `${process.env.NEXT_PUBLIC_API_URL}/documents/${documentDto.id}/download`,
+            previewUrl: `${process.env.NEXT_PUBLIC_API_URL}/documents/${documentDto.id}/preview${
+              token ? `?token=${encodeURIComponent(token)}` : ""
+            }`,
+            downloadUrl: `${process.env.NEXT_PUBLIC_API_URL}/documents/${documentDto.id}/download${
+              token ? `?token=${encodeURIComponent(token)}` : ""
+            }`,
           }
-          return await addPreviewUrl(baseDoc)
+          return doc
        } else {
 
           let errorMessage = `HTTP ${response.status}: ${response.statusText}`

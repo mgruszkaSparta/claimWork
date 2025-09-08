@@ -77,6 +77,9 @@ export const EmailView = ({
     type: FileType
   } | null>(null)
 
+  const [previewIndex, setPreviewIndex] = useState<number | null>(null)
+
+
   useEffect(() => {
     const urls: Record<string, string> = {}
     const loadImages = async () => {
@@ -118,21 +121,76 @@ export const EmailView = ({
     }
   }, [])
 
-  const previewAttachment = useCallback(async (attachment: EmailAttachment) => {
+  const getFileType = (attachment: EmailAttachment): FileType => {
+    const name = attachment.name?.toLowerCase() || ""
+    const extension = name.split(".").pop()
+    const mime = attachment.type
+    if (mime?.includes("pdf") || extension === "pdf") return "pdf"
+    if (mime?.startsWith("image/") ||
+      ["jpg", "jpeg", "png", "gif", "bmp", "webp"].includes(extension || ""))
+      return "image"
+    if (
+      mime === "application/vnd.google-earth.kmz" ||
+      extension === "kmz"
+    )
+      return "kmz"
+    if (
+      mime === "application/vnd.ms-excel" ||
+      mime ===
+        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" ||
+      ["xls", "xlsx"].includes(extension || "")
+    )
+      return "excel"
+    if (
+      mime === "application/msword" ||
+      mime ===
+        "application/vnd.openxmlformats-officedocument.wordprocessingml.document" ||
+      ["doc", "docx"].includes(extension || "")
+    )
+      return "docx"
+    return "other"
+  }
+
+  const previewAttachment = useCallback(
+    async (attachment: EmailAttachment, index: number) => {
     try {
       const blob = await emailService.downloadAttachment(attachment.id)
       if (blob) {
+
+        if (previewedAttachment?.url.startsWith("blob:")) {
+          URL.revokeObjectURL(previewedAttachment.url)
+        }
         const url = URL.createObjectURL(blob)
-        let fileType: FileType = "other"
-        if (attachment.type?.includes("pdf")) fileType = "pdf"
-        else if (attachment.type?.startsWith("image/")) fileType = "image"
-        else if (attachment.type === "application/vnd.google-earth.kmz") fileType = "kmz"
-        setPreviewedAttachment({ attachment, url, type: fileType })
+        const type = getFileType(attachment)
+        setPreviewedAttachment({ attachment, url, type })
+        setPreviewIndex(index)
+
       }
     } catch (err) {
       console.error("Error previewing attachment", err)
     }
-  }, [])
+  }, [previewedAttachment])
+
+  const showNextAttachment = useCallback(() => {
+    if (previewIndex === null) return
+    const nextIndex = (previewIndex + 1) % email.attachments.length
+    previewAttachment(email.attachments[nextIndex], nextIndex)
+  }, [previewIndex, email.attachments, previewAttachment])
+
+  const showPrevAttachment = useCallback(() => {
+    if (previewIndex === null) return
+    const prevIndex =
+      (previewIndex - 1 + email.attachments.length) % email.attachments.length
+    previewAttachment(email.attachments[prevIndex], prevIndex)
+  }, [previewIndex, email.attachments, previewAttachment])
+
+  const closePreview = useCallback(() => {
+    if (previewedAttachment?.url.startsWith("blob:")) {
+      URL.revokeObjectURL(previewedAttachment.url)
+    }
+    setPreviewedAttachment(null)
+    setPreviewIndex(null)
+  }, [previewedAttachment])
 
   const closePreview = useCallback(() => {
     if (previewedAttachment?.url.startsWith("blob:")) {
@@ -304,7 +362,7 @@ export const EmailView = ({
                   <span className="text-sm font-medium text-gray-700">Załączniki ({email.attachments.length})</span>
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-                  {email.attachments.map((attachment) => (
+                  {email.attachments.map((attachment, index) => (
                     <Card key={attachment.id} className="p-3">
                       {attachment.type?.startsWith("image/") && imageUrls[attachment.id] && (
                         <img
@@ -326,7 +384,7 @@ export const EmailView = ({
                             variant="ghost"
                             size="sm"
                             className="h-8 w-8 p-0"
-                            onClick={() => previewAttachment(attachment)}
+                            onClick={() => previewAttachment(attachment, index)}
                           >
                             <Eye className="h-4 w-4" />
                           </Button>
@@ -449,7 +507,14 @@ export const EmailView = ({
       url={previewedAttachment?.url || ""}
       fileName={previewedAttachment?.attachment.name || ""}
       fileType={previewedAttachment?.type || "other"}
-      onDownload={() => previewedAttachment && downloadAttachment(previewedAttachment.attachment)}
+
+      onDownload={() =>
+        previewedAttachment && downloadAttachment(previewedAttachment.attachment)
+      }
+      canNavigate={email.attachments.length > 1}
+      onNext={email.attachments.length > 1 ? showNextAttachment : undefined}
+      onPrev={email.attachments.length > 1 ? showPrevAttachment : undefined}
+
     />
     </>
   )

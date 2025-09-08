@@ -9,9 +9,18 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc.Authorization;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
+using System;
 using System.Text;
+using Microsoft.Extensions.Configuration;
 
 var builder = WebApplication.CreateBuilder(args);
+
+builder.Configuration.Sources.Clear();
+builder.Configuration
+    .SetBasePath(builder.Environment.ContentRootPath)
+    .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
+    .AddEnvironmentVariables()
+    .AddCommandLine(args);
 
 // Add services to the container.
 builder.Services.AddControllersWithViews(options =>
@@ -24,29 +33,40 @@ builder.Services.AddControllersWithViews(options =>
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-// Configure CORS to allow specific origins
+// Configure CORS to allow specific origins from configuration or environment
+var allowedOrigins = (Environment.GetEnvironmentVariable("CORS_ALLOWED_ORIGINS")
+        ?? builder.Configuration["Cors:AllowedOrigins"])
+    ?.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+    ?? new[] { "http://34.118.17.116", "http://localhost:3000" };
+
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowAll", policy =>
-        policy.WithOrigins(
-            "http://34.118.17.116",
-            "http://localhost:3000"
-        )
+        policy.WithOrigins(allowedOrigins)
               .AllowAnyHeader()
               .AllowAnyMethod());
 });
 
 // Add Entity Framework with database provider selected from configuration
-var dbProvider = builder.Configuration.GetValue<string>("DatabaseProvider")?.ToLowerInvariant();
+var dbProvider = (Environment.GetEnvironmentVariable("DATABASE_PROVIDER")
+        ?? builder.Configuration.GetValue<string>("DatabaseProvider"))
+    ?.ToLowerInvariant();
+
+var defaultConnection = Environment.GetEnvironmentVariable("DEFAULT_CONNECTION")
+    ?? builder.Configuration.GetConnectionString("DefaultConnection");
+
+var postgresConnection = Environment.GetEnvironmentVariable("POSTGRES_CONNECTION")
+    ?? builder.Configuration.GetConnectionString("PostgresConnection");
+
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
 {
     if (dbProvider == "postgres" || dbProvider == "postgresql")
     {
-        options.UseNpgsql(builder.Configuration.GetConnectionString("PostgresConnection"));
+        options.UseNpgsql(postgresConnection);
     }
     else
     {
-        options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"));
+        options.UseSqlServer(defaultConnection);
     }
     options.AddInterceptors(new RReportCommandInterceptor());
 });
@@ -62,7 +82,8 @@ builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
     .AddEntityFrameworkStores<ApplicationDbContext>()
     .AddDefaultTokenProviders();
 
-var jwtKey = builder.Configuration["Jwt:Key"]
+var jwtKey = Environment.GetEnvironmentVariable("JWT_KEY")
+    ?? builder.Configuration["Jwt:Key"]
     ?? throw new InvalidOperationException("JWT key not configured");
 
 builder.Services.AddAuthentication(options =>

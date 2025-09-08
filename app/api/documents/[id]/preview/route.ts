@@ -1,19 +1,25 @@
 import { type NextRequest, NextResponse } from "next/server"
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5200/api"
+const API_BASE_URL =
+  process.env.BACKEND_API_URL ||
+  process.env.NEXT_PUBLIC_API_URL ||
+  "http://localhost:5200/api"
 
 export async function GET(
   request: NextRequest,
   { params }: { params: { id: string } },
 ) {
   try {
-    const token = request.nextUrl.searchParams.get("token")
-    const authHeader = token
-      ? `Bearer ${token}`
-      : request.headers.get("authorization") ?? ""
 
-    const headers: HeadersInit = {}
-    if (authHeader) headers["authorization"] = authHeader
+    const queryToken = request.nextUrl.searchParams.get("token")
+    const cookieToken = request.cookies.get("token")?.value
+    const authHeader =
+      request.headers.get("authorization") ||
+      (queryToken ? `Bearer ${queryToken}` : cookieToken ? `Bearer ${cookieToken}` : "")
+
+    const headers = new Headers()
+    if (authHeader) headers.set("authorization", authHeader)
+
 
     const response = await fetch(
       `${API_BASE_URL}/documents/${params.id}/preview`,
@@ -26,7 +32,10 @@ export async function GET(
     if (!response.ok) {
       const errorText = await response.text()
       return NextResponse.json(
-        { error: `Backend API error: ${response.status} ${response.statusText}` },
+        {
+          error: `Backend API error: ${response.status} ${response.statusText}`,
+          details: errorText,
+        },
         { status: response.status },
       )
     }

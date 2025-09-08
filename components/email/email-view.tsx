@@ -76,7 +76,9 @@ export const EmailView = ({
     url: string
     type: FileType
   } | null>(null)
+
   const [previewIndex, setPreviewIndex] = useState<number | null>(null)
+
 
   useEffect(() => {
     const urls: Record<string, string> = {}
@@ -154,6 +156,7 @@ export const EmailView = ({
     try {
       const blob = await emailService.downloadAttachment(attachment.id)
       if (blob) {
+
         if (previewedAttachment?.url.startsWith("blob:")) {
           URL.revokeObjectURL(previewedAttachment.url)
         }
@@ -161,6 +164,7 @@ export const EmailView = ({
         const type = getFileType(attachment)
         setPreviewedAttachment({ attachment, url, type })
         setPreviewIndex(index)
+
       }
     } catch (err) {
       console.error("Error previewing attachment", err)
@@ -186,6 +190,13 @@ export const EmailView = ({
     }
     setPreviewedAttachment(null)
     setPreviewIndex(null)
+  }, [previewedAttachment])
+
+  const closePreview = useCallback(() => {
+    if (previewedAttachment?.url.startsWith("blob:")) {
+      URL.revokeObjectURL(previewedAttachment.url)
+    }
+    setPreviewedAttachment(null)
   }, [previewedAttachment])
 
   const formatDate = (dateString: string) => {
@@ -496,12 +507,14 @@ export const EmailView = ({
       url={previewedAttachment?.url || ""}
       fileName={previewedAttachment?.attachment.name || ""}
       fileType={previewedAttachment?.type || "other"}
+
       onDownload={() =>
         previewedAttachment && downloadAttachment(previewedAttachment.attachment)
       }
       canNavigate={email.attachments.length > 1}
       onNext={email.attachments.length > 1 ? showNextAttachment : undefined}
       onPrev={email.attachments.length > 1 ? showPrevAttachment : undefined}
+
     />
     </>
   )

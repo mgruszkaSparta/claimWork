@@ -35,6 +35,7 @@ import type { Email } from "@/types/email"
 import type { RequiredDocument } from "@/types"
 import { emailService } from "@/lib/email-service"
 import type { EmailAttachment } from "@/types/email"
+import { DocumentPreview, type FileType } from "@/components/document-preview"
 
 interface EmailViewProps {
   email: Email
@@ -70,6 +71,11 @@ export const EmailView = ({
   const [showFullHeaders, setShowFullHeaders] = useState(false)
   const availableDocs = requiredDocuments
   const [imageUrls, setImageUrls] = useState<Record<string, string>>({})
+  const [previewedAttachment, setPreviewedAttachment] = useState<{
+    attachment: EmailAttachment
+    url: string
+    type: FileType
+  } | null>(null)
 
   useEffect(() => {
     const urls: Record<string, string> = {}
@@ -116,14 +122,24 @@ export const EmailView = ({
     try {
       const blob = await emailService.downloadAttachment(attachment.id)
       if (blob) {
-        const url = window.URL.createObjectURL(blob)
-        window.open(url)
-        setTimeout(() => URL.revokeObjectURL(url), 1000)
+        const url = URL.createObjectURL(blob)
+        let fileType: FileType = "other"
+        if (attachment.type?.includes("pdf")) fileType = "pdf"
+        else if (attachment.type?.startsWith("image/")) fileType = "image"
+        else if (attachment.type === "application/vnd.google-earth.kmz") fileType = "kmz"
+        setPreviewedAttachment({ attachment, url, type: fileType })
       }
     } catch (err) {
       console.error("Error previewing attachment", err)
     }
   }, [])
+
+  const closePreview = useCallback(() => {
+    if (previewedAttachment?.url.startsWith("blob:")) {
+      URL.revokeObjectURL(previewedAttachment.url)
+    }
+    setPreviewedAttachment(null)
+  }, [previewedAttachment])
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString)
@@ -154,6 +170,7 @@ export const EmailView = ({
   }
 
   return (
+    <>
     <div className="flex-1 flex flex-col bg-white">
       {/* Header */}
       <div className="border-b border-gray-200 p-4">
@@ -426,5 +443,14 @@ export const EmailView = ({
         </div>
       </div>
     </div>
+    <DocumentPreview
+      isOpen={!!previewedAttachment}
+      onClose={closePreview}
+      url={previewedAttachment?.url || ""}
+      fileName={previewedAttachment?.attachment.name || ""}
+      fileType={previewedAttachment?.type || "other"}
+      onDownload={() => previewedAttachment && downloadAttachment(previewedAttachment.attachment)}
+    />
+    </>
   )
 }

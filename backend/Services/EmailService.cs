@@ -540,25 +540,32 @@ namespace AutomotiveClaimsApi.Services
             {
                 var claim = await _context.ClientClaims
                     .FirstOrDefaultAsync(c => c.Id == claimId);
-                if (claim == null)
+
+                if (claim != null)
                 {
+                    if (!email.EmailClaims.Any(ec => ec.ClaimId == claimId))
+                    {
+                        email.EmailClaims.Add(new EmailClaim
+                        {
+                            EmailId = emailId,
+                            ClaimId = claimId
+                        });
+                    }
+
+                    // Always associate the email with the event of the claim
+                    // so it moves out of the unassigned folder and into "Odebrane".
+                    // This also ensures that subsequent reassignments update the
+                    // event reference.
+                    email.EventId = claim.EventId;
                     continue;
                 }
 
-                if (!email.EmailClaims.Any(ec => ec.ClaimId == claimId))
+                // If the provided id does not match a ClientClaim, treat it as an Event id
+                var evt = await _context.Events.FirstOrDefaultAsync(e => e.Id == claimId);
+                if (evt != null)
                 {
-                    email.EmailClaims.Add(new EmailClaim
-                    {
-                        EmailId = emailId,
-                        ClaimId = claimId
-                    });
+                    email.EventId = evt.Id;
                 }
-
-                // Always associate the email with the event of the claim
-                // so it moves out of the unassigned folder and into "Odebrane".
-                // This also ensures that subsequent reassignments update the
-                // event reference.
-                email.EventId = claim.EventId;
             }
 
             // Mark the email as received once it's linked to a claim and

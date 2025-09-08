@@ -215,12 +215,12 @@ export const DocumentsSection = React.forwardRef<
     const token =
       typeof window !== "undefined" ? localStorage.getItem("token") : null
     const previewUrl = isPersisted
-      ? `/api/documents/${file.id}/preview${
+      ? `${process.env.NEXT_PUBLIC_API_URL}/documents/${file.id}/preview${
           token ? `?token=${encodeURIComponent(token)}` : ""
         }`
       : file.cloudUrl || file.url
     const downloadUrl = isPersisted
-      ? `/api/documents/${file.id}/download${
+      ? `${process.env.NEXT_PUBLIC_API_URL}/documents/${file.id}/download${
           token ? `?token=${encodeURIComponent(token)}` : ""
         }`
       : file.cloudUrl || file.url
@@ -364,10 +364,10 @@ export const DocumentsSection = React.forwardRef<
           ...d,
           documentType: mapCategoryCodeToName(d.documentType || d.category),
           categoryCode: d.documentType || d.category,
-          previewUrl: `/api/documents/${d.id}/preview${
+          previewUrl: `${process.env.NEXT_PUBLIC_API_URL}/documents/${d.id}/preview${
             token ? `?token=${encodeURIComponent(token)}` : ""
           }`,
-          downloadUrl: `/api/documents/${d.id}/download${
+          downloadUrl: `${process.env.NEXT_PUBLIC_API_URL}/documents/${d.id}/download${
             token ? `?token=${encodeURIComponent(token)}` : ""
           }`,
           isEmailAttachment: false,
@@ -546,10 +546,10 @@ export const DocumentsSection = React.forwardRef<
                 documentDto.contentType?.includes("spreadsheetml") ||
                 documentDto.contentType?.includes("excel")),
 
-            previewUrl: `/api/documents/${documentDto.id}/preview${
+            previewUrl: `${process.env.NEXT_PUBLIC_API_URL}/documents/${documentDto.id}/preview${
               token ? `?token=${encodeURIComponent(token)}` : ""
             }`,
-            downloadUrl: `/api/documents/${documentDto.id}/download${
+            downloadUrl: `${process.env.NEXT_PUBLIC_API_URL}/documents/${documentDto.id}/download${
               token ? `?token=${encodeURIComponent(token)}` : ""
             }`,
           }

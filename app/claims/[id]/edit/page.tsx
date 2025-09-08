@@ -43,15 +43,7 @@ export default function EditClaimPage() {
     }
   }, [user])
 
-  const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([
-    {
-      id: "1",
-      name: "Analiza zmian.csv",
-      size: 301,
-      type: "other",
-      url: "/placeholder.svg?width=400&height=300",
-    },
-  ])
+  const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([])
 
   const [requiredDocuments, setRequiredDocuments] = useState<RequiredDocument[]>(() =>
     getRequiredDocumentsByObjectType()
@@ -212,8 +204,7 @@ export default function EditClaimPage() {
             regres: claimFormData.recourses?.length || 0,
             ugody: claimFormData.settlements?.length || 0,
             notatki: claimFormData.notes?.length || 0,
-            dokumenty:
-              (claimFormData.documents?.length || 0) + uploadedFiles.length,
+            dokumenty: uploadedFiles.length,
           }}
 
         />

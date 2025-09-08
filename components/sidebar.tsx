@@ -4,7 +4,6 @@ import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 
 import { LayoutDashboard, FileText, Car, Settings, Calendar, CalendarCheck, BarChart3 } from "lucide-react"
-import { Badge } from "@/components/ui/badge"
 
 import { useAuth } from "@/hooks/use-auth"
 
@@ -25,7 +24,6 @@ const menuItems = [
     label: "Szkody",
     icon: FileText,
     href: "/claims",
-    badgeCount: 6,
   },
   {
     id: "vacations",
@@ -104,11 +102,6 @@ export function Sidebar(props: SidebarProps) {
                 className="flex items-center"
               >
                 <Icon className="h-5 w-5" />
-                {typeof item.badgeCount === "number" && (
-                  <Badge className="ml-2 bg-blue-100 text-blue-800">
-                    {item.badgeCount}
-                  </Badge>
-                )}
               </Link>
             </Button>
           )

@@ -2,16 +2,26 @@ import { type NextRequest, NextResponse } from "next/server"
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5200/api"
 
-export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
+export async function GET(
+  request: NextRequest,
+  { params }: { params: { id: string } },
+) {
   try {
     const token = request.nextUrl.searchParams.get("token")
-    const url = `${API_BASE_URL}/documents/${params.id}/preview${
-      token ? `?token=${encodeURIComponent(token)}` : ""
-    }`
-    const response = await fetch(url, {
-      method: "GET",
-      headers: { authorization: request.headers.get("authorization") ?? "" },
-    })
+    const authHeader = token
+      ? `Bearer ${token}`
+      : request.headers.get("authorization") ?? ""
+
+    const headers: HeadersInit = {}
+    if (authHeader) headers["authorization"] = authHeader
+
+    const response = await fetch(
+      `${API_BASE_URL}/documents/${params.id}/preview`,
+      {
+        method: "GET",
+        headers,
+      },
+    )
 
     if (!response.ok) {
       const errorText = await response.text()

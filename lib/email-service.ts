@@ -373,7 +373,7 @@ class EmailService {
   async downloadAttachment(attachmentId: string): Promise<Blob | undefined> {
     if (!this.isValidGuid(attachmentId)) return undefined
     try {
-      const response = await authFetch(`${this.apiUrl}/attachment/${attachmentId}`, {
+      const response = await authFetch(`/emails/attachment/${attachmentId}`, {
         method: "GET",
       })
       if (!response.ok) throw new Error("Failed to download attachment")

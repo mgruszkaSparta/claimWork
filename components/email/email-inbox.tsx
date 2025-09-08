@@ -35,9 +35,11 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
+
   DropdownMenuSub,
   DropdownMenuSubContent,
   DropdownMenuSubTrigger,
+
 } from "@/components/ui/dropdown-menu"
 
 interface EmailInboxProps {
@@ -491,7 +493,9 @@ export default function EmailInbox({ claimId, claimNumber, claimInsuranceNumber 
   }, [])
 
   const transferAttachmentToDocument = useCallback(
+
     async (attachment: AttachmentDto, move: boolean, category: string) => {
+
       if (!selectedEmail?.eventId) {
         setErrorMessage("Email nie jest przypisany do szkody.")
         return
@@ -501,7 +505,9 @@ export default function EmailInbox({ claimId, claimNumber, claimInsuranceNumber 
         const doc = await emailService.attachmentToDocument(
           attachment.id,
           selectedEmail.eventId,
+
           category,
+
           move,
         )
         if (doc) {
@@ -959,6 +965,7 @@ export default function EmailInbox({ claimId, claimNumber, claimInsuranceNumber 
                                     </Button>
                                   </DropdownMenuTrigger>
                                   <DropdownMenuContent>
+
                                     <DropdownMenuSub>
                                       <DropdownMenuSubTrigger>Kopiuj do dokumentów</DropdownMenuSubTrigger>
                                       <DropdownMenuSubContent>
@@ -1009,6 +1016,7 @@ export default function EmailInbox({ claimId, claimNumber, claimInsuranceNumber 
                                         )}
                                       </DropdownMenuSubContent>
                                     </DropdownMenuSub>
+
                                   </DropdownMenuContent>
                                 </DropdownMenu>
                               </div>

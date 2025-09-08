@@ -54,16 +54,7 @@ export default function ClaimPage() {
   const [claim, setClaim] = useState<Claim | null>(null)
   const contentRef = useRef<HTMLDivElement>(null)
 
-  const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([
-    {
-      id: "1",
-      name: "Analiza zmian.csv",
-      size: 301,
-      type: "other",
-      uploadedAt: "2025-07-24",
-      url: "/placeholder.svg?width=400&height=300",
-    },
-  ])
+  const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([])
 
   const [requiredDocuments, setRequiredDocuments] = useState<RequiredDocument[]>(() =>
     getRequiredDocumentsByObjectType()
@@ -342,7 +333,7 @@ export default function ClaimPage() {
               dokumenty:
                 mode === "view"
                   ? claim?.documents?.length || 0
-                  : (claimFormData.documents?.length || 0) + uploadedFiles.length,
+                  : uploadedFiles.length,
 
             }}
           />

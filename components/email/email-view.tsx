@@ -20,12 +20,19 @@ import {
   Paperclip,
   ChevronLeft,
   PrinterIcon as Print,
-  Plus,
+  Move,
 } from "lucide-react"
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+  DropdownMenuSub,
+  DropdownMenuSubContent,
+  DropdownMenuSubTrigger,
+} from "@/components/ui/dropdown-menu"
 import type { Email } from "@/types/email"
 import type { RequiredDocument } from "@/types"
-import { API_BASE_URL } from "@/lib/api"
 import { emailService } from "@/lib/email-service"
 import type { EmailAttachment } from "@/types/email"
 
@@ -40,7 +47,11 @@ interface EmailViewProps {
   onArchive: (emailId: string) => void
   onDelete: (emailId: string) => void
   requiredDocuments?: RequiredDocument[]
-  onAssignAttachment?: (attachment: any, documentId: string) => void
+  onTransferAttachment?: (
+    attachment: EmailAttachment,
+    move: boolean,
+    category: string,
+  ) => void
 }
 
 export const EmailView = ({
@@ -54,7 +65,7 @@ export const EmailView = ({
   onArchive,
   onDelete,
   requiredDocuments = [],
-  onAssignAttachment,
+  onTransferAttachment,
 }: EmailViewProps) => {
   const [showFullHeaders, setShowFullHeaders] = useState(false)
   const availableDocs = requiredDocuments
@@ -310,44 +321,74 @@ export const EmailView = ({
                           >
                             <Download className="h-4 w-4" />
                           </Button>
-                          <Dialog>
-                            <DialogTrigger asChild>
-                              <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                                <Plus className="h-4 w-4" />
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="h-8 w-8 p-0"
+                                title="Dokumenty"
+                              >
+                                <Move className="h-4 w-4" />
                               </Button>
-                            </DialogTrigger>
-                            <DialogContent className="sm:max-w-md">
-                              <DialogHeader>
-                                <DialogTitle>Przypisz do dokumentu</DialogTitle>
-                              </DialogHeader>
-                              <div className="flex flex-col gap-2">
-                                {availableDocs.length ? (
-                                  availableDocs.map((doc) => (
-                                    <Button
-                                      key={doc.id}
-                                      variant="outline"
-                                      onClick={() =>
-                                        onAssignAttachment?.(
-                                          {
-                                            ...attachment,
-                                            url:
-                                              attachment.url ||
-                                              `${API_BASE_URL}/emails/attachment/${attachment.id}`,
-                                          },
-                                          doc.id,
-                                        )
-                                      }
-                                      className="justify-start"
-                                    >
-                                      {doc.name}
-                                    </Button>
-                                  ))
-                                ) : (
-                                  <p className="text-sm text-gray-500">Brak wymaganych dokumentów</p>
-                                )}
-                              </div>
-                            </DialogContent>
-                          </Dialog>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent>
+                              <DropdownMenuSub>
+                                <DropdownMenuSubTrigger>
+                                  Kopiuj do dokumentów
+                                </DropdownMenuSubTrigger>
+                                <DropdownMenuSubContent>
+                                  {availableDocs.length ? (
+                                    availableDocs.map((doc) => (
+                                      <DropdownMenuItem
+                                        key={`copy-${doc.id}`}
+                                        onClick={() =>
+                                          onTransferAttachment?.(
+                                            attachment,
+                                            false,
+                                            doc.category,
+                                          )
+                                        }
+                                      >
+                                        {doc.name}
+                                      </DropdownMenuItem>
+                                    ))
+                                  ) : (
+                                    <DropdownMenuItem disabled>
+                                      Brak kategorii
+                                    </DropdownMenuItem>
+                                  )}
+                                </DropdownMenuSubContent>
+                              </DropdownMenuSub>
+                              <DropdownMenuSub>
+                                <DropdownMenuSubTrigger>
+                                  Przenieś do dokumentów
+                                </DropdownMenuSubTrigger>
+                                <DropdownMenuSubContent>
+                                  {availableDocs.length ? (
+                                    availableDocs.map((doc) => (
+                                      <DropdownMenuItem
+                                        key={`move-${doc.id}`}
+                                        onClick={() =>
+                                          onTransferAttachment?.(
+                                            attachment,
+                                            true,
+                                            doc.category,
+                                          )
+                                        }
+                                      >
+                                        {doc.name}
+                                      </DropdownMenuItem>
+                                    ))
+                                  ) : (
+                                    <DropdownMenuItem disabled>
+                                      Brak kategorii
+                                    </DropdownMenuItem>
+                                  )}
+                                </DropdownMenuSubContent>
+                              </DropdownMenuSub>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
                         </div>
                       </div>
                     </Card>

@@ -11,7 +11,6 @@ import { EmailComposeComponent } from "./email-compose"
 import { EmailView } from "./email-view"
 import { cn } from "@/lib/utils"
 import { emailService, type EmailDto } from "@/lib/email-service"
-import { API_BASE_URL } from "@/lib/api"
 import {
   Mail,
   MailOpen,
@@ -50,8 +49,6 @@ export const EmailSection = ({
   setUploadedFiles,
   requiredDocuments,
   setRequiredDocuments,
-  pendingFiles,
-  setPendingFiles,
 }: EmailSectionProps) => {
   const { toast } = useToast()
   const [emails, setEmails] = useState<Email[]>([])
@@ -140,8 +137,6 @@ export const EmailSection = ({
   const [internalRequiredDocs, setInternalRequiredDocs] = useState<RequiredDocument[]>([])
   const docs = requiredDocuments ?? internalRequiredDocs
   const updateRequiredDocs = setRequiredDocuments ?? setInternalRequiredDocs
-  const [internalPendingFiles, setInternalPendingFiles] = useState<UploadedFile[]>([])
-  const updatePendingFiles = setPendingFiles ?? setInternalPendingFiles
 
   const mapAttachmentType = (type: string): UploadedFile["type"] => {
     if (type.includes("pdf")) return "pdf"
@@ -324,27 +319,57 @@ export const EmailSection = ({
     setCurrentView("compose")
   }
 
-  const handleAssignAttachment = (attachment: EmailAttachment, documentId: string) => {
-    const doc = docs.find((d) => d.id === documentId)
-    const url = attachment.url
-    const newFile: UploadedFile = {
-      id: attachment.id,
-      name: attachment.name,
-      size: attachment.size,
-      type: mapAttachmentType(attachment.type),
-      uploadedAt: new Date().toISOString(),
-      url,
-      cloudUrl: url,
-      category: doc?.name,
-      categoryCode: doc?.category,
+  const handleTransferAttachment = async (
+    attachment: EmailAttachment,
+    move: boolean,
+    category: string,
+  ) => {
+    if (!claimId) {
+      toast({ title: "Błąd", description: "Brak identyfikatora szkody", variant: "destructive" })
+      return
     }
-    updateDocuments((prev) => [...prev, newFile])
-    updatePendingFiles((prev) => [...prev, newFile])
-    updateRequiredDocs((prev) => prev.map((d) => (d.id === documentId ? { ...d, uploaded: true } : d)))
-    toast({
-      title: "Załącznik przypisany",
-      description: `Dodano ${attachment.name} do dokumentu ${doc?.name || documentId}`,
-    })
+    try {
+      const doc = await emailService.attachmentToDocument(
+        attachment.id,
+        claimId,
+        category,
+        move,
+      )
+      if (!doc) {
+        toast({
+          title: "Błąd",
+          description: "Nie udało się dodać załącznika do dokumentów",
+          variant: "destructive",
+        })
+        return
+      }
+      const newFile: UploadedFile = {
+        id: doc.id,
+        name: doc.fileName,
+        size: doc.fileSize,
+        type: mapAttachmentType(doc.contentType),
+        uploadedAt: doc.createdAt || new Date().toISOString(),
+        url: doc.cloudUrl || doc.downloadUrl || doc.filePath,
+        cloudUrl: doc.cloudUrl || undefined,
+        category: doc.category,
+        categoryCode: doc.category,
+      }
+      updateDocuments((prev) => [...prev, newFile])
+      updateRequiredDocs((prev) =>
+        prev.map((d) => (d.category === doc.category ? { ...d, uploaded: true } : d)),
+      )
+      toast({
+        title: move ? "Załącznik przeniesiony" : "Załącznik skopiowany",
+        description: doc.fileName,
+      })
+    } catch (error) {
+      console.error("transferAttachment failed:", error)
+      toast({
+        title: "Błąd",
+        description: "Nie udało się przenieść załącznika",
+        variant: "destructive",
+      })
+    }
   }
 
   const handleSendEmail = async (emailData: EmailCompose) => {
@@ -453,7 +478,7 @@ export const EmailSection = ({
           }
         }}
         requiredDocuments={docs}
-        onAssignAttachment={handleAssignAttachment}
+        onTransferAttachment={handleTransferAttachment}
       />
     )
   }

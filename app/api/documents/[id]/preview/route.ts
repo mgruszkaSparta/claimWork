@@ -10,6 +10,7 @@ export async function GET(
   { params }: { params: { id: string } },
 ) {
   try {
+
     const queryToken = request.nextUrl.searchParams.get("token")
     const cookieToken = request.cookies.get("token")?.value
     const authHeader =
@@ -18,6 +19,7 @@ export async function GET(
 
     const headers = new Headers()
     if (authHeader) headers.set("authorization", authHeader)
+
 
     const response = await fetch(
       `${API_BASE_URL}/documents/${params.id}/preview`,

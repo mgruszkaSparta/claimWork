@@ -192,13 +192,6 @@ export const EmailView = ({
     setPreviewIndex(null)
   }, [previewedAttachment])
 
-  const closePreview = useCallback(() => {
-    if (previewedAttachment?.url.startsWith("blob:")) {
-      URL.revokeObjectURL(previewedAttachment.url)
-    }
-    setPreviewedAttachment(null)
-  }, [previewedAttachment])
-
   const formatDate = (dateString: string) => {
     const date = new Date(dateString)
     return date.toLocaleString("pl-PL", {

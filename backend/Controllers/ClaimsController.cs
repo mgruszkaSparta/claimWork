@@ -78,6 +78,7 @@ namespace AutomotiveClaimsApi.Controllers
             [FromQuery] string? clientId = null,
             [FromQuery] string? status = null,
             [FromQuery] string? riskType = null,
+            [FromQuery] int? claimObjectTypeId = null,
             [FromQuery] string? policyNumber = null,
             [FromQuery] int? caseHandlerId = null,
             [FromQuery] string? registeredById = null,
@@ -149,14 +150,58 @@ namespace AutomotiveClaimsApi.Controllers
                     query = query.Where(e => e.ClientId == clientIdValue);
                 }
 
-                if (!string.IsNullOrEmpty(status) && int.TryParse(status, out var statusId))
+                if (!string.IsNullOrEmpty(status))
                 {
-                    query = query.Where(e => e.ClaimStatusId == statusId);
+                    var parts = status.Split(',', StringSplitOptions.RemoveEmptyEntries);
+                    var includeNull = parts.Any(p => p.Equals("null", StringComparison.OrdinalIgnoreCase));
+                    var ids = parts
+                        .Where(p => int.TryParse(p, out _))
+                        .Select(int.Parse)
+                        .ToList();
+
+                    if (ids.Any() && includeNull)
+                    {
+                        query = query.Where(e =>
+                            (e.ClaimStatusId != null && ids.Contains(e.ClaimStatusId.Value)) ||
+                            e.ClaimStatusId == null);
+                    }
+                    else if (ids.Any())
+                    {
+                        query = query.Where(e => e.ClaimStatusId != null && ids.Contains(e.ClaimStatusId.Value));
+                    }
+                    else if (includeNull)
+                    {
+                        query = query.Where(e => e.ClaimStatusId == null);
+                    }
                 }
 
                 if (!string.IsNullOrEmpty(riskType))
                 {
-                    query = query.Where(e => e.RiskType == riskType);
+                    var parts = riskType.Split(',', StringSplitOptions.RemoveEmptyEntries);
+                    var includeNull = parts.Any(p => p.Equals("null", StringComparison.OrdinalIgnoreCase));
+                    var types = parts
+                        .Where(p => !p.Equals("null", StringComparison.OrdinalIgnoreCase))
+                        .ToList();
+
+                    if (types.Any() && includeNull)
+                    {
+                        query = query.Where(e =>
+                            (e.RiskType != null && types.Contains(e.RiskType)) ||
+                            e.RiskType == null);
+                    }
+                    else if (types.Any())
+                    {
+                        query = query.Where(e => e.RiskType != null && types.Contains(e.RiskType));
+                    }
+                    else if (includeNull)
+                    {
+                        query = query.Where(e => e.RiskType == null);
+                    }
+                }
+
+                if (claimObjectTypeId.HasValue)
+                {
+                    query = query.Where(e => e.ObjectTypeId == claimObjectTypeId.Value);
                 }
 
                 if (!string.IsNullOrEmpty(policyNumber))

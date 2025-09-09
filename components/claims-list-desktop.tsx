@@ -96,6 +96,9 @@ export function ClaimsListDesktop({
     { id: number; code: string; name: string; color?: string }[]
   >([])
   const [filterRisks, setFilterRisks] = useState<string[]>([])
+  const [filterObjectTypeId, setFilterObjectTypeId] = useState(
+    claimObjectTypeId || "all",
+  )
   const [riskTypes, setRiskTypes] = useState<
     { id: number; code: string; name: string; claimObjectTypeId?: number }[]
   >([])
@@ -127,6 +130,7 @@ export function ClaimsListDesktop({
     () =>
       Boolean(
         searchInput ||
+        filterObjectTypeId !== "all" ||
         filterStatuses.length ||
         filterRisks.length ||
         filterRegistration ||
@@ -137,6 +141,7 @@ export function ClaimsListDesktop({
       ),
     [
       searchInput,
+      filterObjectTypeId,
       filterStatuses,
       filterRisks,
       filterRegistration,
@@ -152,6 +157,7 @@ export function ClaimsListDesktop({
     setSearchTerm("")
     setFilterStatuses([])
     setFilterRisks([])
+    setFilterObjectTypeId("all")
     setFilterRegistration("")
     setFilterHandlerId("")
     setDateFilters([])
@@ -190,6 +196,7 @@ export function ClaimsListDesktop({
         setSearchInput(parsed.searchTerm || "")
         setFilterStatuses(parsed.filterStatuses || [])
         setFilterRisks(parsed.filterRisks || [])
+        setFilterObjectTypeId(parsed.filterObjectTypeId || "all")
         setFilterRegistration(parsed.filterRegistration || "")
         setFilterHandlerId(parsed.filterHandlerId || "")
         setDateFilters(parsed.dateFilters || [])
@@ -211,6 +218,7 @@ export function ClaimsListDesktop({
       searchTerm,
       filterStatuses,
       filterRisks,
+      filterObjectTypeId,
       filterRegistration,
       filterHandlerId,
       dateFilters,
@@ -226,6 +234,7 @@ export function ClaimsListDesktop({
     searchTerm,
     filterStatuses,
     filterRisks,
+    filterObjectTypeId,
     filterRegistration,
     filterHandlerId,
     dateFilters,
@@ -405,7 +414,8 @@ export function ClaimsListDesktop({
             : undefined,
           registeredById:
             showMyClaims && !user?.caseHandlerId ? user?.id : undefined,
-          claimObjectTypeId,
+          claimObjectTypeId:
+            filterObjectTypeId !== "all" ? filterObjectTypeId : undefined,
           sortBy,
           sortOrder,
           reportFromDate: reportFilter?.from || undefined,
@@ -442,7 +452,7 @@ export function ClaimsListDesktop({
     user?.caseHandlerId,
     user?.id,
     dateFilters,
-    claimObjectTypeId,
+    filterObjectTypeId,
     sortBy,
     sortOrder,
     initialClaims,
@@ -559,7 +569,8 @@ export function ClaimsListDesktop({
             : undefined,
           registeredById:
             showMyClaims && !user?.caseHandlerId ? user?.id : undefined,
-          claimObjectTypeId,
+          claimObjectTypeId:
+            filterObjectTypeId !== "all" ? filterObjectTypeId : undefined,
           sortBy,
           sortOrder,
           reportFromDate: reportFilter?.from || undefined,
@@ -706,6 +717,23 @@ export function ClaimsListDesktop({
             )}
           </div>
           <div className="flex gap-2">
+            <Select
+              value={filterObjectTypeId}
+              onValueChange={(value) => {
+                setFilterObjectTypeId(value)
+                setPage(1)
+              }}
+            >
+              <SelectTrigger className="h-9 text-sm bg-white w-[160px]">
+                <SelectValue placeholder="Typ szkody" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Wszystkie typy</SelectItem>
+                <SelectItem value="1">Komunikacyjna</SelectItem>
+                <SelectItem value="2">Majątkowa</SelectItem>
+                <SelectItem value="3">Transportowa</SelectItem>
+              </SelectContent>
+            </Select>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button
@@ -1169,16 +1197,25 @@ export function ClaimsListDesktop({
                   <Search className="h-8 w-8 text-gray-400" />
                 </div>
                 <h3 className="text-sm font-medium text-gray-900 mb-1">
-                  {searchTerm || filterStatuses.length > 0 || filterRisks.length > 0
+                  {searchTerm ||
+                  filterObjectTypeId !== "all" ||
+                  filterStatuses.length > 0 ||
+                  filterRisks.length > 0
                     ? "Brak szkód spełniających kryteria"
                     : "Brak szkód w systemie"}
                 </h3>
                 <p className="text-sm text-gray-500 mb-4">
-                  {searchTerm || filterStatuses.length > 0 || filterRisks.length > 0
+                  {searchTerm ||
+                  filterObjectTypeId !== "all" ||
+                  filterStatuses.length > 0 ||
+                  filterRisks.length > 0
                     ? "Spróbuj zmienić kryteria wyszukiwania"
                     : "Dodaj pierwszą szkodę, aby rozpocząć"}
                 </p>
-                {!searchTerm && filterStatuses.length === 0 && filterRisks.length === 0 && (
+                {!searchTerm &&
+                filterObjectTypeId === "all" &&
+                filterStatuses.length === 0 &&
+                filterRisks.length === 0 && (
                   <Button className="bg-[#1a3a6c] hover:bg-[#1a3a6c]/90" onClick={onNewClaim || handleNewClaimDirect}>
                     <Plus className="h-4 w-4 mr-2" />
                     Dodaj pierwszą szkodę

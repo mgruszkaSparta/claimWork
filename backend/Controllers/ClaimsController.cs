@@ -78,6 +78,7 @@ namespace AutomotiveClaimsApi.Controllers
             [FromQuery] string? clientId = null,
             [FromQuery] string? status = null,
             [FromQuery] string? riskType = null,
+            [FromQuery] int? claimObjectTypeId = null,
             [FromQuery] string? policyNumber = null,
             [FromQuery] int? caseHandlerId = null,
             [FromQuery] string? registeredById = null,
@@ -157,6 +158,11 @@ namespace AutomotiveClaimsApi.Controllers
                 if (!string.IsNullOrEmpty(riskType))
                 {
                     query = query.Where(e => e.RiskType == riskType);
+                }
+
+                if (claimObjectTypeId.HasValue)
+                {
+                    query = query.Where(e => e.ObjectTypeId == claimObjectTypeId.Value);
                 }
 
                 if (!string.IsNullOrEmpty(policyNumber))

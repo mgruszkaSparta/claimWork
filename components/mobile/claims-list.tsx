@@ -82,6 +82,7 @@ export function ClaimsListMobile({
     { id: number; code: string; name: string; color?: string }[]
   >([])
   const [filterRisk, setFilterRisk] = useState("all")
+  const [filterType, setFilterType] = useState(claimObjectTypeId || "all")
   const [riskTypes, setRiskTypes] = useState<
     { id: number; code: string; name: string; claimObjectTypeId?: number }[]
   >([])
@@ -113,6 +114,7 @@ export function ClaimsListMobile({
         searchInput ||
         filterStatus !== "all" ||
         filterRisk !== "all" ||
+        filterType !== "all" ||
         filterRegistration ||
         filterHandlerId ||
         dateFilters.length ||
@@ -123,6 +125,7 @@ export function ClaimsListMobile({
       searchInput,
       filterStatus,
       filterRisk,
+      filterType,
       filterRegistration,
       filterHandlerId,
       dateFilters,
@@ -136,6 +139,7 @@ export function ClaimsListMobile({
     setSearchTerm("")
     setFilterStatus("all")
     setFilterRisk("all")
+    setFilterType("all")
     setFilterRegistration("")
     setFilterHandlerId("")
     setDateFilters([])
@@ -158,6 +162,7 @@ export function ClaimsListMobile({
         setSearchInput(parsed.searchTerm || "")
         setFilterStatus(parsed.filterStatus || "all")
         setFilterRisk(parsed.filterRisk || "all")
+        setFilterType(parsed.filterType || "all")
         setFilterRegistration(parsed.filterRegistration || "")
         setFilterHandlerId(parsed.filterHandlerId || "")
         setDateFilters(parsed.dateFilters || [])
@@ -179,6 +184,7 @@ export function ClaimsListMobile({
       searchTerm,
       filterStatus,
       filterRisk,
+      filterType,
       filterRegistration,
       filterHandlerId,
       dateFilters,
@@ -194,6 +200,7 @@ export function ClaimsListMobile({
     searchTerm,
     filterStatus,
     filterRisk,
+    filterType,
     filterRegistration,
     filterHandlerId,
     dateFilters,
@@ -367,7 +374,8 @@ export function ClaimsListMobile({
             : undefined,
           registeredById:
             showMyClaims && !user?.caseHandlerId ? user?.id : undefined,
-          claimObjectTypeId,
+          claimObjectTypeId:
+            filterType !== "all" ? filterType : undefined,
           sortBy,
           sortOrder,
           reportFromDate: reportFilter?.from || undefined,
@@ -404,7 +412,7 @@ export function ClaimsListMobile({
     user?.caseHandlerId,
     user?.id,
     dateFilters,
-    claimObjectTypeId,
+    filterType,
     sortBy,
     sortOrder,
     initialClaims,
@@ -517,7 +525,8 @@ export function ClaimsListMobile({
             : undefined,
           registeredById:
             showMyClaims && !user?.caseHandlerId ? user?.id : undefined,
-          claimObjectTypeId,
+          claimObjectTypeId:
+            filterType !== "all" ? filterType : undefined,
           sortBy,
           sortOrder,
           reportFromDate: reportFilter?.from || undefined,
@@ -664,6 +673,19 @@ export function ClaimsListMobile({
             )}
           </div>
           <div className="flex gap-2">
+            <select
+              value={filterType}
+              onChange={(e) => {
+                setFilterType(e.target.value)
+                setPage(1)
+              }}
+              className="px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#1a3a6c] focus:border-[#1a3a6c] bg-white"
+            >
+              <option value="all">Wszystkie typy</option>
+              <option value="1">Komunikacyjna</option>
+              <option value="2">Majątkowa</option>
+              <option value="3">Transportowa</option>
+            </select>
             <select
               value={filterStatus}
               onChange={(e) => setFilterStatus(e.target.value)}
@@ -1000,16 +1022,16 @@ export function ClaimsListMobile({
                   <Search className="h-8 w-8 text-gray-400" />
                 </div>
                 <h3 className="text-sm font-medium text-gray-900 mb-1">
-                  {searchTerm || filterStatus !== "all" || filterRisk !== "all"
+                  {searchTerm || filterStatus !== "all" || filterRisk !== "all" || filterType !== "all"
                     ? "Brak szkód spełniających kryteria"
                     : "Brak szkód w systemie"}
                 </h3>
                 <p className="text-sm text-gray-500 mb-4">
-                  {searchTerm || filterStatus !== "all" || filterRisk !== "all"
+                  {searchTerm || filterStatus !== "all" || filterRisk !== "all" || filterType !== "all"
                     ? "Spróbuj zmienić kryteria wyszukiwania"
                     : "Dodaj pierwszą szkodę, aby rozpocząć"}
                 </p>
-                {!searchTerm && filterStatus === "all" && filterRisk === "all" && (
+                {!searchTerm && filterStatus === "all" && filterRisk === "all" && filterType === "all" && (
                   <Button className="bg-[#1a3a6c] hover:bg-[#1a3a6c]/90" onClick={onNewClaim || handleNewClaimDirect}>
                     <Plus className="h-4 w-4 mr-2" />
                     Dodaj pierwszą szkodę

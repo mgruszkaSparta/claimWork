@@ -4,9 +4,13 @@ const seenIds = new Set();
 // Determine the API base URL. When developing locally the API runs on
 // a different port, while in production it is served from the same
 // origin under the `/api` path.
-const API_BASE_URL = self.location.origin.includes("localhost")
-  ? "http://localhost:5200/api"
-  : "/api";
+const API_BASE_URL =
+  (typeof process !== "undefined" &&
+    process.env &&
+    process.env.NEXT_PUBLIC_API_URL) ||
+  (self.location.origin.includes("localhost")
+    ? "http://localhost:5200/api"
+    : "/api");
 
 async function broadcast(notification) {
   const clients = await self.clients.matchAll({

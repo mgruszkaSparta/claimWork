@@ -16,6 +16,9 @@ function urlBase64ToUint8Array(base64String: string) {
 }
 
 function getApiBaseUrl() {
+  if (process.env.NEXT_PUBLIC_API_URL) {
+    return process.env.NEXT_PUBLIC_API_URL;
+  }
   if (typeof window === "undefined") return "/api";
   return window.location.origin.includes("localhost")
     ? "http://localhost:5200/api"

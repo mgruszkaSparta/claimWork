@@ -807,6 +807,12 @@ namespace AutomotiveClaimsApi.Controllers
                 var originalStatus = existing.Status;
 
                 await UpsertClaimAsync(existing, eventDto);
+                existing.UpdatedAt = DateTime.UtcNow;
+
+                if (string.IsNullOrEmpty(existing.SpartaNumber))
+                {
+                    existing.SpartaNumber = await GenerateNextSpartaNumber();
+                }
 
                 if (handler != null)
                 {

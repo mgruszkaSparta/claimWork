@@ -52,6 +52,8 @@ import type { Claim } from "@/types"
 import { dictionaryService } from "@/lib/dictionary-service"
 
 
+const FILTER_STORAGE_KEY = "claimsListFilters"
+
 const typeLabelMap: Record<number, string> = {
   1: "Komunikacyjna",
   2: "Majątkowa",
@@ -103,6 +105,7 @@ export function ClaimsListMobile({
   const [sortBy, setSortBy] = useState<string>("spartaNumber")
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc")
   const containerRef = useRef<HTMLDivElement | null>(null)
+  const [initialized, setInitialized] = useState(false)
 
   const hasActiveFilters = useMemo(
     () =>
@@ -140,7 +143,66 @@ export function ClaimsListMobile({
     setShowMyClaims(false)
     setSelectedSubstituteId("")
     setPage(1)
+    if (typeof window !== "undefined") {
+      localStorage.removeItem(FILTER_STORAGE_KEY)
+    }
   }
+
+  useEffect(() => {
+    if (typeof window === "undefined") return
+    const stored = localStorage.getItem(FILTER_STORAGE_KEY)
+    if (stored) {
+      try {
+        const parsed = JSON.parse(stored)
+        setSearchTerm(parsed.searchTerm || "")
+        setSearchInput(parsed.searchTerm || "")
+        setFilterStatus(parsed.filterStatus || "all")
+        setFilterRisk(parsed.filterRisk || "all")
+        setFilterRegistration(parsed.filterRegistration || "")
+        setFilterHandlerId(parsed.filterHandlerId || "")
+        setDateFilters(parsed.dateFilters || [])
+        setShowMyClaims(parsed.showMyClaims || false)
+        setSelectedSubstituteId(parsed.selectedSubstituteId || "")
+        setPage(parsed.page || 1)
+        setSortBy(parsed.sortBy || "spartaNumber")
+        setSortOrder(parsed.sortOrder || "desc")
+      } catch (e) {
+        console.error("Failed to load claim filters", e)
+      }
+    }
+    setInitialized(true)
+  }, [])
+
+  useEffect(() => {
+    if (!initialized || typeof window === "undefined") return
+    const data = {
+      searchTerm,
+      filterStatus,
+      filterRisk,
+      filterRegistration,
+      filterHandlerId,
+      dateFilters,
+      showMyClaims,
+      selectedSubstituteId,
+      page,
+      sortBy,
+      sortOrder,
+    }
+    localStorage.setItem(FILTER_STORAGE_KEY, JSON.stringify(data))
+  }, [
+    initialized,
+    searchTerm,
+    filterStatus,
+    filterRisk,
+    filterRegistration,
+    filterHandlerId,
+    dateFilters,
+    showMyClaims,
+    selectedSubstituteId,
+    page,
+    sortBy,
+    sortOrder,
+  ])
 
   const {
     claims: fetchedClaims,
@@ -276,6 +338,7 @@ export function ClaimsListMobile({
   }, [user?.id])
 
   useEffect(() => {
+    if (!initialized) return
     if (initialClaims?.length && page === 1) return
 
     const loadClaims = async () => {
@@ -345,6 +408,7 @@ export function ClaimsListMobile({
     sortBy,
     sortOrder,
     initialClaims,
+    initialized,
 
   ])
   const claimStatusMap = useMemo(() => {

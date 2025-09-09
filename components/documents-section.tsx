@@ -1863,7 +1863,7 @@ export const DocumentsSection = React.forwardRef<
                                       variant="ghost"
                                       size="icon"
                                       className="h-7 w-7"
-                                      onClick={() => void handlePreview(doc, documentsForCategory)}
+                                      onClick={() => void handlePreview(doc)}
                                     >
                                       <Eye className="h-4 w-4" />
                                     </Button>

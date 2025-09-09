@@ -1406,9 +1406,14 @@ export const DocumentsSection = React.forwardRef<
           />
         ) : (
           <div className="flex items-center gap-2 mb-1">
-            <span className="text-sm truncate" title={doc.originalFileName}>
+            <button
+              type="button"
+              onClick={() => void handlePreview(doc)}
+              className="text-sm truncate text-blue-600 hover:underline"
+              title={doc.originalFileName}
+            >
               {doc.originalFileName}
-            </span>
+            </button>
             <Button
               variant="ghost"
               size="sm"
@@ -1742,7 +1747,15 @@ export const DocumentsSection = React.forwardRef<
                                 <td className="p-3 font-medium flex items-center gap-2">
                                   {getFileIcon(doc.contentType)}
                                   {doc.isEmailAttachment ? (
-                                    <span className="truncate">{doc.originalFileName}</span>
+                                    <button
+                                      type="button"
+                                      onClick={() =>
+                                        void handlePreview(doc, documentsForCategory)
+                                      }
+                                      className="truncate text-blue-600 hover:underline"
+                                    >
+                                      {doc.originalFileName}
+                                    </button>
                                   ) : editingDocId === doc.id ? (
                                     <Input
                                       value={doc.originalFileName}
@@ -1762,9 +1775,15 @@ export const DocumentsSection = React.forwardRef<
                                     />
                                   ) : (
                                     <div className="flex items-center gap-2">
-                                      <span className="truncate">
+                                      <button
+                                        type="button"
+                                        onClick={() =>
+                                          void handlePreview(doc, documentsForCategory)
+                                        }
+                                        className="truncate text-blue-600 hover:underline"
+                                      >
                                         {doc.originalFileName}
-                                      </span>
+                                      </button>
                                       <Button
                                         variant="ghost"
                                         size="icon"

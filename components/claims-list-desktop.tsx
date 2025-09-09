@@ -394,6 +394,16 @@ export function ClaimsListDesktop({
         const insurerReportFilter = dateFilters.find(
           (f) => f.type === "insurerReportDate",
         )
+        const handlerParams = showMyClaims
+          ? user?.caseHandlerId
+            ? { caseHandlerId: user.caseHandlerId }
+            : { registeredById: user?.id }
+          : selectedSubstituteId
+          ? { caseHandlerId: parseInt(selectedSubstituteId, 10) }
+          : filterHandlerId
+          ? { caseHandlerId: parseInt(filterHandlerId, 10) }
+          : {}
+
         await fetchClaims({
           page,
           pageSize,
@@ -405,6 +415,8 @@ export function ClaimsListDesktop({
             ? filterRisks.join(",")
             : undefined,
           brand: filterRegistration || undefined,
+          ...handlerParams,
+          claimObjectTypeId,
           caseHandlerId: showMyClaims
             ? user?.caseHandlerId
             : selectedSubstituteId
@@ -416,6 +428,7 @@ export function ClaimsListDesktop({
             showMyClaims && !user?.caseHandlerId ? user?.id : undefined,
           claimObjectTypeId:
             filterObjectTypeId !== "all" ? filterObjectTypeId : undefined,
+
           sortBy,
           sortOrder,
           reportFromDate: reportFilter?.from || undefined,
@@ -548,6 +561,16 @@ export function ClaimsListDesktop({
       const insurerReportFilter = dateFilters.find(
         (f) => f.type === "insurerReportDate",
       )
+      const handlerParams = showMyClaims
+        ? user?.caseHandlerId
+          ? { caseHandlerId: user.caseHandlerId }
+          : { registeredById: user?.id }
+        : selectedSubstituteId
+        ? { caseHandlerId: parseInt(selectedSubstituteId, 10) }
+        : filterHandlerId
+        ? { caseHandlerId: parseInt(filterHandlerId, 10) }
+        : {}
+
       await fetchClaims(
         {
           page: 1,
@@ -560,6 +583,10 @@ export function ClaimsListDesktop({
             ? filterRisks.join(",")
             : undefined,
           brand: filterRegistration || undefined,
+
+          ...handlerParams,
+          claimObjectTypeId,
+
           caseHandlerId: showMyClaims
             ? user?.caseHandlerId
             : selectedSubstituteId
@@ -571,6 +598,7 @@ export function ClaimsListDesktop({
             showMyClaims && !user?.caseHandlerId ? user?.id : undefined,
           claimObjectTypeId:
             filterObjectTypeId !== "all" ? filterObjectTypeId : undefined,
+
           sortBy,
           sortOrder,
           reportFromDate: reportFilter?.from || undefined,

@@ -358,6 +358,16 @@ export function ClaimsListMobile({
         const insurerReportFilter = dateFilters.find(
           (f) => f.type === "insurerReportDate",
         )
+        const handlerParams = showMyClaims
+          ? user?.caseHandlerId
+            ? { caseHandlerId: user.caseHandlerId }
+            : { registeredById: user?.id }
+          : selectedSubstituteId
+          ? { caseHandlerId: parseInt(selectedSubstituteId, 10) }
+          : filterHandlerId
+          ? { caseHandlerId: parseInt(filterHandlerId, 10) }
+          : {}
+
         await fetchClaims({
           page,
           pageSize,
@@ -365,6 +375,10 @@ export function ClaimsListMobile({
           status: filterStatus !== "all" ? filterStatus : undefined,
           riskType: filterRisk !== "all" ? filterRisk : undefined,
           brand: filterRegistration || undefined,
+
+          ...handlerParams,
+          claimObjectTypeId,
+
           caseHandlerId: showMyClaims
             ? user?.caseHandlerId
             : selectedSubstituteId
@@ -376,6 +390,7 @@ export function ClaimsListMobile({
             showMyClaims && !user?.caseHandlerId ? user?.id : undefined,
           claimObjectTypeId:
             filterType !== "all" ? filterType : undefined,
+
           sortBy,
           sortOrder,
           reportFromDate: reportFilter?.from || undefined,
@@ -508,6 +523,16 @@ export function ClaimsListMobile({
       const insurerReportFilter = dateFilters.find(
         (f) => f.type === "insurerReportDate",
       )
+      const handlerParams = showMyClaims
+        ? user?.caseHandlerId
+          ? { caseHandlerId: user.caseHandlerId }
+          : { registeredById: user?.id }
+        : selectedSubstituteId
+        ? { caseHandlerId: parseInt(selectedSubstituteId, 10) }
+        : filterHandlerId
+        ? { caseHandlerId: parseInt(filterHandlerId, 10) }
+        : {}
+
       await fetchClaims(
         {
           page: 1,
@@ -516,6 +541,10 @@ export function ClaimsListMobile({
           status: filterStatus !== "all" ? filterStatus : undefined,
           riskType: filterRisk !== "all" ? filterRisk : undefined,
           brand: filterRegistration || undefined,
+
+          ...handlerParams,
+          claimObjectTypeId,
+
           caseHandlerId: showMyClaims
             ? user?.caseHandlerId
             : selectedSubstituteId
@@ -527,6 +556,7 @@ export function ClaimsListMobile({
             showMyClaims && !user?.caseHandlerId ? user?.id : undefined,
           claimObjectTypeId:
             filterType !== "all" ? filterType : undefined,
+
           sortBy,
           sortOrder,
           reportFromDate: reportFilter?.from || undefined,

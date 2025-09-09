@@ -634,12 +634,14 @@ export const AppealsSection = ({ claimId }: AppealsSectionProps) => {
                         >
                           <div className="flex items-center gap-2">
                             <FileText className="h-4 w-4 text-[#1a3a6c]" />
-                            <span
-                              className="text-sm font-medium truncate max-w-60"
+                            <button
+                              type="button"
+                              onClick={() => previewFile(currentAppeal, doc)}
+                              className="text-sm font-medium truncate max-w-60 text-blue-600 hover:underline text-left"
                               title={doc.originalFileName || doc.fileName}
                             >
                               {doc.originalFileName || doc.fileName}
-                            </span>
+                            </button>
                           </div>
                           <div className="flex gap-1">
                             {isPreviewable(doc.originalFileName || doc.fileName) && (
@@ -935,12 +937,14 @@ export const AppealsSection = ({ claimId }: AppealsSectionProps) => {
                             const doc = appeal.documents[0]
                             return (
                               <div key={doc.id} className="flex items-center gap-2">
-                                <span
-                                  className="text-gray-700 truncate max-w-32"
+                                <button
+                                  type="button"
+                                  onClick={() => previewFile(appeal, doc)}
+                                  className="text-gray-700 truncate max-w-32 text-blue-600 hover:underline text-left"
                                   title={doc.originalFileName || doc.fileName}
                                 >
                                   {doc.originalFileName || doc.fileName}
-                                </span>
+                                </button>
                                 <div className="flex gap-1">
                                   {isPreviewable(doc.originalFileName || doc.fileName) && (
                                     <Button

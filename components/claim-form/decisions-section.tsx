@@ -703,9 +703,13 @@ export function DecisionsSection({ claimId, onChange }: DecisionsSectionProps) {
                         >
                           <div className="flex items-center gap-2">
                             <FileText className="h-4 w-4 text-primary" />
-                            <span className="text-sm font-medium">
+                            <button
+                              type="button"
+                              onClick={() => previewFile(currentDecision, doc)}
+                              className="text-sm font-medium text-blue-600 hover:underline"
+                            >
                               {doc.originalFileName || doc.fileName}
-                            </span>
+                            </button>
                           </div>
                           <div className="flex gap-1">
                             {isPreviewable(doc.originalFileName || doc.fileName || "") && (
@@ -733,9 +737,13 @@ export function DecisionsSection({ claimId, onChange }: DecisionsSectionProps) {
                       <div className="p-3 bg-muted rounded-lg border flex items-center justify-between">
                         <div className="flex items-center gap-2">
                           <FileText className="h-4 w-4 text-primary" />
-                          <span className="text-sm font-medium">
+                          <button
+                            type="button"
+                            onClick={() => previewFile(currentDecision)}
+                            className="text-sm font-medium text-blue-600 hover:underline"
+                          >
                             {getDisplayFileName(currentDecision)}
-                          </span>
+                          </button>
                         </div>
                         <div className="flex gap-1">
                           {isPreviewable(getDisplayFileName(currentDecision)) && (
@@ -986,9 +994,13 @@ export function DecisionsSection({ claimId, onChange }: DecisionsSectionProps) {
                           return (
                             <div className="flex items-center gap-2">
                               <FileText className="h-4 w-4 text-primary" />
-                              <span className="text-sm font-medium">
+                              <button
+                                type="button"
+                                onClick={() => previewFile(decision, doc)}
+                                className="text-sm font-medium text-blue-600 hover:underline"
+                              >
                                 {doc.originalFileName || doc.fileName}
-                              </span>
+                              </button>
                               <div className="flex gap-1">
                                 {isPreviewable(doc.originalFileName || doc.fileName || "") && (
                                   <Button
@@ -1018,7 +1030,13 @@ export function DecisionsSection({ claimId, onChange }: DecisionsSectionProps) {
                           return (
                             <div className="flex items-center gap-2">
                               <FileText className="h-4 w-4 text-primary" />
-                              <span className="text-sm font-medium">{name}</span>
+                              <button
+                                type="button"
+                                onClick={() => previewFile(decision)}
+                                className="text-sm font-medium text-blue-600 hover:underline"
+                              >
+                                {name}
+                              </button>
                               <div className="flex gap-1">
                                 {isPreviewable(name) && (
                                   <Button

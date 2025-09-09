@@ -679,9 +679,13 @@ export function RecourseSection({ eventId }: RecourseSectionProps) {
                       >
                         <div className="flex items-center gap-2">
                           <FileText className="h-4 w-4 text-[#1a3a6c]" />
-                          <span className="text-sm font-medium">
+                          <button
+                            type="button"
+                            onClick={() => previewFile(currentRecourse, doc)}
+                            className="text-sm font-medium text-blue-600 hover:underline"
+                          >
                             {doc.originalFileName || doc.fileName}
-                          </span>
+                          </button>
                         </div>
                         <div className="flex gap-1">
                           {isPreviewable(doc.originalFileName || doc.fileName || "") && (

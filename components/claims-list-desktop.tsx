@@ -960,23 +960,38 @@ export function ClaimsListDesktop({
 
                   <th
                     className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer"
-                    onClick={() => handleSort("objectTypeId")}
+                    onClick={() => handleSort("damageType")}
                   >
                     Typ
-                    {renderSortIcon("objectTypeId")}
+                    {renderSortIcon("damageType")}
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th
+                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer"
+                    onClick={() => handleSort("insurerClaimNumber")}
+                  >
                     Nr szkody TU
+                    {renderSortIcon("insurerClaimNumber")}
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th
+                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer"
+                    onClick={() => handleSort("spartaNumber")}
+                  >
                     Nr szkody Sparta
+                    {renderSortIcon("spartaNumber")}
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th
+                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer"
+                    onClick={() => handleSort("vehicleNumber")}
+                  >
                     Nr rejestracyjny
+                    {renderSortIcon("vehicleNumber")}
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th
+                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer"
+                    onClick={() => handleSort("handler")}
+                  >
                     Likwidator
-
+                    {renderSortIcon("handler")}
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     <div className="flex items-center cursor-pointer" onClick={() => handleSort("client")}>

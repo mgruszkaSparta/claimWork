@@ -745,11 +745,24 @@ export function ClaimsListDesktop({
                     ? claimStatuses
                         .filter((s) => filterStatuses.includes(s.id.toString()))
                         .map((s) => s.name)
+                        .concat(
+                          filterStatuses.includes("null")
+                            ? ["Brak statusu"]
+                            : [],
+                        )
                         .join(", ")
                     : "Wszystkie statusy"}
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent className="max-h-64 overflow-y-auto">
+                <DropdownMenuCheckboxItem
+                  key="null-status"
+                  checked={filterStatuses.includes("null")}
+                  onCheckedChange={() => toggleStatus("null")}
+                >
+                  Brak statusu
+                </DropdownMenuCheckboxItem>
+                <DropdownMenuSeparator />
                 {claimStatuses.map((status) => (
                   <DropdownMenuCheckboxItem
                     key={status.id}
@@ -774,11 +787,22 @@ export function ClaimsListDesktop({
                     ? riskTypes
                         .filter((r) => filterRisks.includes(r.id.toString()))
                         .map((r) => r.name)
+                        .concat(
+                          filterRisks.includes("null") ? ["Brak ryzyka"] : [],
+                        )
                         .join(", ")
                     : "Wszystkie ryzyka"}
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent className="max-h-64 overflow-y-auto">
+                <DropdownMenuCheckboxItem
+                  key="null-risk"
+                  checked={filterRisks.includes("null")}
+                  onCheckedChange={() => toggleRisk("null")}
+                >
+                  Brak ryzyka
+                </DropdownMenuCheckboxItem>
+                <DropdownMenuSeparator />
                 {[1, 2, 3].map((type) => {
                   const grouped = riskTypes.filter(
                     (r) => r.claimObjectTypeId === type,

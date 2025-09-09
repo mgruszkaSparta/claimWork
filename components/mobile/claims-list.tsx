@@ -692,6 +692,7 @@ export function ClaimsListMobile({
               className="px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#1a3a6c] focus:border-[#1a3a6c] bg-white"
             >
               <option value="all">Wszystkie statusy</option>
+              <option value="null">Brak statusu</option>
               {claimStatuses.map((status) => (
                 <option key={status.id} value={status.id.toString()}>
                   {status.name}
@@ -704,6 +705,7 @@ export function ClaimsListMobile({
               className="px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#1a3a6c] focus:border-[#1a3a6c] bg-white"
             >
               <option value="all">Wszystkie ryzyka</option>
+              <option value="null">Brak ryzyka</option>
               {[1, 2, 3].map((type) => {
                 const grouped = riskTypes.filter(
                   (r) => r.claimObjectTypeId === type,

@@ -147,7 +147,7 @@ export default function EditClaimPage() {
   }
 
   const handleClose = () => {
-    router.push("/claims")
+    router.back()
   }
 
   if (isLoading) {

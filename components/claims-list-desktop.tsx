@@ -385,6 +385,16 @@ export function ClaimsListDesktop({
         const insurerReportFilter = dateFilters.find(
           (f) => f.type === "insurerReportDate",
         )
+        const handlerParams = showMyClaims
+          ? user?.caseHandlerId
+            ? { caseHandlerId: user.caseHandlerId }
+            : { registeredById: user?.id }
+          : selectedSubstituteId
+          ? { caseHandlerId: parseInt(selectedSubstituteId, 10) }
+          : filterHandlerId
+          ? { caseHandlerId: parseInt(filterHandlerId, 10) }
+          : {}
+
         await fetchClaims({
           page,
           pageSize,
@@ -396,15 +406,7 @@ export function ClaimsListDesktop({
             ? filterRisks.join(",")
             : undefined,
           brand: filterRegistration || undefined,
-          caseHandlerId: showMyClaims
-            ? user?.caseHandlerId
-            : selectedSubstituteId
-            ? parseInt(selectedSubstituteId, 10)
-            : filterHandlerId
-            ? parseInt(filterHandlerId, 10)
-            : undefined,
-          registeredById:
-            showMyClaims && !user?.caseHandlerId ? user?.id : undefined,
+          ...handlerParams,
           claimObjectTypeId,
           sortBy,
           sortOrder,
@@ -538,6 +540,16 @@ export function ClaimsListDesktop({
       const insurerReportFilter = dateFilters.find(
         (f) => f.type === "insurerReportDate",
       )
+      const handlerParams = showMyClaims
+        ? user?.caseHandlerId
+          ? { caseHandlerId: user.caseHandlerId }
+          : { registeredById: user?.id }
+        : selectedSubstituteId
+        ? { caseHandlerId: parseInt(selectedSubstituteId, 10) }
+        : filterHandlerId
+        ? { caseHandlerId: parseInt(filterHandlerId, 10) }
+        : {}
+
       await fetchClaims(
         {
           page: 1,
@@ -550,15 +562,7 @@ export function ClaimsListDesktop({
             ? filterRisks.join(",")
             : undefined,
           brand: filterRegistration || undefined,
-          caseHandlerId: showMyClaims
-            ? user?.caseHandlerId
-            : selectedSubstituteId
-            ? parseInt(selectedSubstituteId, 10)
-            : filterHandlerId
-            ? parseInt(filterHandlerId, 10)
-            : undefined,
-          registeredById:
-            showMyClaims && !user?.caseHandlerId ? user?.id : undefined,
+          ...handlerParams,
           claimObjectTypeId,
           sortBy,
           sortOrder,

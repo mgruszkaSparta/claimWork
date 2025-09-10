@@ -35,12 +35,15 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-
-  DropdownMenuSub,
-  DropdownMenuSubContent,
-  DropdownMenuSubTrigger,
-
 } from "@/components/ui/dropdown-menu"
+import {
+  CommandDialog,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command"
 
 interface EmailInboxProps {
   claimId?: string
@@ -64,6 +67,10 @@ export default function EmailInbox({ claimId, claimNumber, claimInsuranceNumber 
   const [successMessage, setSuccessMessage] = useState("")
   const [errorMessage, setErrorMessage] = useState("")
   const [documentCategories, setDocumentCategories] = useState<string[]>([])
+  const [categoryDialog, setCategoryDialog] = useState<{
+    attachment: AttachmentDto
+    move: boolean
+  } | null>(null)
 
   // Compose form state
   const [composeTo, setComposeTo] = useState("")
@@ -527,6 +534,20 @@ export default function EmailInbox({ claimId, claimNumber, claimInsuranceNumber 
     [selectedEmail],
   )
 
+  const handleCategorySelect = useCallback(
+    (category: string) => {
+      if (categoryDialog) {
+        transferAttachmentToDocument(
+          categoryDialog.attachment,
+          categoryDialog.move,
+          category,
+        )
+        setCategoryDialog(null)
+      }
+    },
+    [categoryDialog, transferAttachmentToDocument],
+  )
+
   // Preview attachment
   const previewAttachment = useCallback(async (attachment: AttachmentDto) => {
     try {
@@ -965,58 +986,28 @@ export default function EmailInbox({ claimId, claimNumber, claimInsuranceNumber 
                                     </Button>
                                   </DropdownMenuTrigger>
                                   <DropdownMenuContent>
-
-                                    <DropdownMenuSub>
-                                      <DropdownMenuSubTrigger>Kopiuj do dokumentów</DropdownMenuSubTrigger>
-                                      <DropdownMenuSubContent>
-                                        {documentCategories.length > 0 ? (
-                                          documentCategories.map((cat) => (
-                                            <DropdownMenuItem
-                                              key={`copy-${cat}`}
-                                              onClick={() =>
-                                                transferAttachmentToDocument(
-                                                  attachment,
-                                                  false,
-                                                  cat,
-                                                )
-                                              }
-                                            >
-                                              {cat}
-                                            </DropdownMenuItem>
-                                          ))
-                                        ) : (
-                                          <DropdownMenuItem disabled>
-                                            Brak kategorii
-                                          </DropdownMenuItem>
-                                        )}
-                                      </DropdownMenuSubContent>
-                                    </DropdownMenuSub>
-                                    <DropdownMenuSub>
-                                      <DropdownMenuSubTrigger>Przenieś do dokumentów</DropdownMenuSubTrigger>
-                                      <DropdownMenuSubContent>
-                                        {documentCategories.length > 0 ? (
-                                          documentCategories.map((cat) => (
-                                            <DropdownMenuItem
-                                              key={`move-${cat}`}
-                                              onClick={() =>
-                                                transferAttachmentToDocument(
-                                                  attachment,
-                                                  true,
-                                                  cat,
-                                                )
-                                              }
-                                            >
-                                              {cat}
-                                            </DropdownMenuItem>
-                                          ))
-                                        ) : (
-                                          <DropdownMenuItem disabled>
-                                            Brak kategorii
-                                          </DropdownMenuItem>
-                                        )}
-                                      </DropdownMenuSubContent>
-                                    </DropdownMenuSub>
-
+                                    <DropdownMenuItem
+                                      disabled={documentCategories.length === 0}
+                                      onClick={() =>
+                                        setCategoryDialog({
+                                          attachment,
+                                          move: false,
+                                        })
+                                      }
+                                    >
+                                      Kopiuj do dokumentów
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem
+                                      disabled={documentCategories.length === 0}
+                                      onClick={() =>
+                                        setCategoryDialog({
+                                          attachment,
+                                          move: true,
+                                        })
+                                      }
+                                    >
+                                      Przenieś do dokumentów
+                                    </DropdownMenuItem>
                                   </DropdownMenuContent>
                                 </DropdownMenu>
                               </div>
@@ -1166,8 +1157,25 @@ export default function EmailInbox({ claimId, claimNumber, claimInsuranceNumber 
               </div>
             </div>
           )}
-        </div>
       </div>
+      </div>
+
+      <CommandDialog
+        open={!!categoryDialog}
+        onOpenChange={(open) => !open && setCategoryDialog(null)}
+      >
+        <CommandInput placeholder="Szukaj kategorii..." />
+        <CommandList>
+          <CommandEmpty>Brak kategorii</CommandEmpty>
+          <CommandGroup>
+            {documentCategories.map((cat) => (
+              <CommandItem key={cat} onSelect={() => handleCategorySelect(cat)}>
+                {cat}
+              </CommandItem>
+            ))}
+          </CommandGroup>
+        </CommandList>
+      </CommandDialog>
 
       <DocumentPreview
         isOpen={isPreviewingAttachment && !!previewedAttachment}

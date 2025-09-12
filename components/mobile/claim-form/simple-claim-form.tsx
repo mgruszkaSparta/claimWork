@@ -56,7 +56,7 @@ export function SimpleClaimFormMobile() {
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       <fieldset disabled={isReadOnly} className="space-y-6">
-        <Card className="border border-gray-200 bg-white shadow-sm">
+        <Card className="border border-gray-200 bg-blue-50 shadow-sm">
           <FormHeader icon={FileText} title="Dane szkody" />
           <CardContent className="p-4 space-y-4">
             <div className="space-y-2">

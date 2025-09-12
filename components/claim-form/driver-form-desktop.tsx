@@ -14,7 +14,7 @@ import { X, User } from 'lucide-react'
 
 export const DriverFormDesktop = ({ driverData, onDriverChange, onRemove, isRemovable }: DriverFormProps) => {
   return (
-    <Card className="border border-gray-200 bg-white shadow-sm">
+  <Card className="border border-gray-200 bg-blue-50 shadow-sm">
       <CardContent className="p-6">
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center space-x-2">

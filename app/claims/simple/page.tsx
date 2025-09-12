@@ -5,7 +5,7 @@ import SimpleClaimForm from "@/components/claim-form/simple-claim-form"
 
 export default function SimpleClaimPage() {
   return (
-    <div className="p-4">
+    <div className="p-4 bg-blue-50">
       <Card className="border border-gray-200 shadow-sm">
         <CardHeader>
           <CardTitle>Dodaj prostą szkodę</CardTitle>

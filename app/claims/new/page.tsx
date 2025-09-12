@@ -491,7 +491,7 @@ export default function NewClaimPage() {
   }
 
   return (
-    <div className="flex flex-col h-screen bg-white">
+    <div className="flex flex-col h-screen bg-blue-50">
       <ClaimTopHeader claimFormData={claimFormData} onClose={handleClose} />
 
       <div className="flex flex-1 overflow-hidden min-h-0">

@@ -255,7 +255,7 @@ export default function ClaimPage() {
   // Loading state
   if (isLoading) {
     return (
-      <div className="bg-white min-h-screen flex items-center justify-center">
+      <div className="bg-blue-50 min-h-screen flex items-center justify-center">
         <div className="text-center">
           <div className="w-8 h-8 border-4 border-[#1a3a6c] border-t-transparent rounded-full animate-spin mx-auto mb-3" />
           <p className="text-sm text-gray-600">
@@ -269,7 +269,7 @@ export default function ClaimPage() {
   // Error state
   if (loadError && mode !== "new") {
     return (
-      <div className="bg-white min-h-screen flex items-center justify-center">
+      <div className="bg-blue-50 min-h-screen flex items-center justify-center">
         <div className="text-center max-w-md mx-auto p-6">
           <div className="text-red-500 mb-4">
             <svg className="w-16 h-16 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -297,7 +297,7 @@ export default function ClaimPage() {
   // Form mode (new or edit)
   if (mode === "new" || mode === "edit") {
     return (
-      <div className="flex flex-col h-screen bg-white">
+      <div className="flex flex-col h-screen bg-blue-50">
         <ClaimTopHeader claimFormData={claimFormData} onClose={handleClose} />
         <div className="flex flex-1 overflow-hidden min-h-0">
           <ClaimFormSidebar
@@ -784,7 +784,7 @@ export default function ClaimPage() {
 
   // Fallback
   return (
-    <div className="bg-white min-h-screen flex items-center justify-center">
+    <div className="bg-blue-50 min-h-screen flex items-center justify-center">
       <div className="text-center">
         <FileText className="h-12 w-12 text-gray-400 mx-auto mb-3" />
         <p className="text-lg font-medium text-gray-900 mb-2">Nie znaleziono szkody</p>

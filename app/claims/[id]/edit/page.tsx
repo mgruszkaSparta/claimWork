@@ -152,7 +152,7 @@ export default function EditClaimPage() {
 
   if (isLoading) {
     return (
-      <div className="bg-white min-h-screen flex items-center justify-center">
+      <div className="bg-blue-50 min-h-screen flex items-center justify-center">
         <div className="text-center">
           <div className="w-8 h-8 border-4 border-[#1a3a6c] border-t-transparent rounded-full animate-spin mx-auto mb-3" />
           <p className="text-sm text-gray-600">Ładowanie szkody...</p>
@@ -163,7 +163,7 @@ export default function EditClaimPage() {
 
   if (loadError) {
     return (
-      <div className="bg-white min-h-screen flex items-center justify-center">
+      <div className="bg-blue-50 min-h-screen flex items-center justify-center">
         <div className="text-center max-w-md mx-auto p-6">
           <div className="text-red-500 mb-4">
             <svg className="w-16 h-16 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -189,7 +189,7 @@ export default function EditClaimPage() {
   }
 
   return (
-    <div className="flex flex-col h-screen bg-white">
+    <div className="flex flex-col h-screen bg-blue-50">
       <ClaimTopHeader claimFormData={claimFormData} onClose={handleClose} />
       <div className="flex flex-1 overflow-hidden min-h-0">
         <ClaimFormSidebar

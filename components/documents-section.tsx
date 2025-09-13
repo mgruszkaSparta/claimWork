@@ -2108,7 +2108,7 @@ export const DocumentsSection = React.forwardRef<
 
               {/* Content area */}
               <div
-                className={`flex justify-center items-center overflow-auto ${previewFullscreen ? "h-[calc(100vh-80px)]" : "max-h-[calc(95vh-80px)]"} bg-gray-100`}
+                className={`flex justify-center items-center overflow-auto ${previewFullscreen ? "h-[calc(100vh-80px)]" : "h-[895px]"} bg-gray-100`}
               >
                 {previewDocument.contentType.startsWith("image/") ? (
                   <div className="flex justify-center items-center w-full h-full p-4">
